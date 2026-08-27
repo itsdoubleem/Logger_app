@@ -141,7 +141,6 @@
   "days_worked_ot_night_whole_period": "{p0} hari kerja · {p1} 잔업 · {p2} malam, untuk seluruh periode. 기본금 dan tunjangan tetap dihitung penuh.",
   "days_you_booked_ahead_they_sit_in_a_pa": "Hari yang Anda catat di muka. Hari itu ada di periode gaji yang belum mulai, jadi ‹ › belum menjangkaunya.",
   "ded_local": "주민세 Pajak daerah · 10% dari pajak penghasilan",
-  "ded_tax": "소득세 Pajak penghasilan",
   "ded_tax__est": "소득세 Pajak penghasilan · perkiraan",
   "ded_tax__mine": "소득세 Pajak penghasilan · angka Anda",
   "deducted": "dipotong",

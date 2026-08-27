@@ -141,7 +141,6 @@
   "days_worked_ot_night_whole_period": "{p0} ngày làm · {p1} 잔업 · {p2} đêm, cho cả kỳ. 기본금 và phụ cấp cố định được tính đủ.",
   "days_you_booked_ahead_they_sit_in_a_pa": "Những ngày bạn đã ghi trước. Chúng nằm trong kỳ lương chưa bắt đầu, nên ‹ › chưa tới được.",
   "ded_local": "주민세 Thuế địa phương · 10% thuế thu nhập",
-  "ded_tax": "소득세 Thuế thu nhập",
   "ded_tax__est": "소득세 Thuế thu nhập · ước tính",
   "ded_tax__mine": "소득세 Thuế thu nhập · số của bạn",
   "deducted": "bị trừ",

@@ -141,7 +141,6 @@
   "days_worked_ot_night_whole_period": "出勤{p0}天 · 잔업 {p1} · 夜班 {p2}（整个期间）。기본금 和固定津贴已全额计入。",
   "days_you_booked_ahead_they_sit_in_a_pa": "你提前登记的日子。它们在尚未开始的工资期里，所以 ‹ › 还到不了。",
   "ded_local": "주민세 居民税 · 所得税的10%",
-  "ded_tax": "소득세 所得税",
   "ded_tax__est": "소득세 所得税 · 估算",
   "ded_tax__mine": "소득세 所得税 · 你输入的金额",
   "deducted": "扣除",

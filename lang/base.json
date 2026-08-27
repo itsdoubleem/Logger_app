@@ -575,14 +575,6 @@
     "en": "Local tax · 10% of income tax",
     "ko": "Local tax · 10% of income tax"
   },
-  "ded_tax": {
-    "en": "Income tax",
-    "ko": "소득세"
-  },
-  "ded_tax__en": {
-    "en": "Income tax",
-    "ko": "Income tax"
-  },
   "ded_tax__est": {
     "en": "Income tax · estimated",
     "ko": "소득세"

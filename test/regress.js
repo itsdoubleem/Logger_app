@@ -3633,5 +3633,105 @@ console.log('\n== 이름 한가운데의 O는 출퇴근 패드의 지문입니�
   ok('문서에 지문 그림은 없습니다', doc.indexOf('<svg')<0);
 }
 
+console.log('\n== 시계가 1초마다 도는데 기록 전부를 예순 번 다시 셌습니다 ==');
+{
+  // 시계 틱 하나가 renderVals()를 부르고, 그 한 번이 month()를 예순 번 넘게
+  // 물었습니다. month()의 중복 제거가 배열 indexOf라 기록 수의 제곱이었고,
+  // periodBackMax()는 period()를 한 틱에 7,751번 불렀습니다. 3년치(939건)에서
+  // 한 틱에 15.5ms, 6년치에서는 44ms — 매 초입니다. 캐시를 붙였습니다.
+  //
+  // 캐시는 renderVals()가 도는 동안에만 삽니다. 기록의 정체(identity)를 키로
+  // 삼지 않은 이유가 여기 있습니다: state.extra를 제자리에서 push하는 코드가
+  // 실제로 있고(이 파일이 그렇게 기록을 심습니다), 그러면 캐시가 기록 하나를
+  // 조용히 빠뜨립니다. 근무내역서에서 하루가 사라지는 것은 이 앱이 절대 내면
+  // 안 되는 실패라, 캐시가 렌더 밖으로 새지 않는 것을 여기서 셉니다.
+  const mkc = (iso) => { const c = new V2({}); c.base = new Date(iso); c.t0 = Date.now(); return c; };
+  const seed = (c, days, y, m, d0) => {
+    for (let i = 0; i < days; i++)
+      c.state.extra.push({ y, m, day: d0 + i, kind:'day', type:'shift',
+        inH:9, outH:21, c: c.calc(9, 21, 'day', false) });
+  };
+
+  const c = mkc('2026-08-28T10:00:00');
+  seed(c, 5, 2026, 8, 21);
+
+  ok('렌더 전에는 캐시가 없습니다', !c._rc);
+  const V = c.renderVals();
+  ok('렌더가 끝나면 캐시는 사라집니다', !c._rc);
+  ok('렌더는 예전처럼 값을 내놓습니다', !!V && typeof V === 'object');
+
+  // 캐시가 렌더 밖으로 새면, 렌더 사이에 넣은 기록이 다음 렌더에서 안 보입니다.
+  const before = c.month().length;
+  c.state.extra.push({ y:2026, m:8, day:27, kind:'day', type:'shift',
+    inH:9, outH:21, c: c.calc(9, 21, 'day', false) });
+  ok('렌더 사이에 넣은 기록이 바로 보입니다', c.month().length === before + 1,
+    before + ' -> ' + c.month().length);
+  ok('다음 렌더도 그 기록을 셉니다',
+    c.renderVals().payPeriodSub === c.T('n_days_recorded', { p0: c.periodRecords(c.viewPeriod()).length }));
+
+  // 지운 기록도 마찬가지입니다 — 캐시가 살아 있으면 지운 날이 남아 있습니다.
+  const k = c.key({ y:2026, m:8, day:27 });
+  c.state.removed = c.state.removed.concat([k]);
+  ok('지운 기록은 바로 사라집니다', c.month().length === before,
+    'got ' + c.month().length);
+
+  // 캐시를 켠 채로 센 값과 끄고 센 값이 같아야 합니다. 다르면 그것이 버그입니다.
+  const c2 = mkc('2026-08-28T10:00:00');
+  seed(c2, 20, 2026, 8, 1);
+  const P = c2.viewPeriod();
+  const cold = JSON.stringify(c2.periodRecords(P).map(r => c2.key(r)));
+  c2._rc = {};
+  const warm = JSON.stringify(c2.periodRecords(P).map(r => c2.key(r)));
+  const warm2 = JSON.stringify(c2.periodRecords(P).map(r => c2.key(r)));
+  c2._rc = null;
+  ok('캐시를 켜도 같은 기록이 나옵니다', cold === warm && warm === warm2);
+
+  // period()도 같은 캐시를 쓰므로, 캐시가 기간을 뒤섞지 않는지 봅니다.
+  const c3 = mkc('2026-08-28T10:00:00');
+  c3.state.settings.periodStart = 21;
+  const p0 = JSON.stringify(c3.periodBack(0).label), p1 = JSON.stringify(c3.periodBack(1).label);
+  c3._rc = {};
+  ok('캐시를 켜도 이번 기간과 지난 기간이 다릅니다',
+    JSON.stringify(c3.periodBack(0).label) === p0
+    && JSON.stringify(c3.periodBack(1).label) === p1
+    && p0 !== p1, p0 + ' / ' + p1);
+  c3._rc = null;
+
+  // 기간 시작일을 바꾸면 캐시가 옛 기간을 물고 있으면 안 됩니다.
+  const c4 = mkc('2026-08-28T10:00:00');
+  c4.state.settings.periodStart = 1;
+  const first = c4.period(c4.now()).label;
+  c4.state.settings.periodStart = 21;
+  ok('기간 시작일을 바꾸면 기간도 바뀝니다', c4.period(c4.now()).label !== first,
+    first + ' -> ' + c4.period(c4.now()).label);
+
+  // 렌더가 던져도 캐시는 남지 않습니다 (finally). 남으면 그 뒤의 모든 계산이
+  // 그 순간의 답에 얼어붙습니다.
+  const c5 = mkc('2026-08-28T10:00:00');
+  const inner = c5.renderValsInner;
+  c5.renderValsInner = () => { throw new Error('boom'); };
+  let threw = false;
+  try { c5.renderVals(); } catch (e) { threw = true; }
+  c5.renderValsInner = inner;
+  ok('렌더가 던져도 캐시는 남지 않습니다', threw && !c5._rc);
+}
+
+console.log('\n== 쓰이지 않는 것은 두지 않습니다 ==');
+{
+  const fs = require('fs');
+  const src = fs.readFileSync(require('path').join(__dirname, '..', 'WorkLogApp.v2.dc.html'), 'utf8');
+  const c = new V2({});
+  // keyDate(k)는 어디에서도 불리지 않았습니다 — 소스에도 시험에도.
+  ok('keyDate()는 없어졌습니다', typeof c.keyDate !== 'function');
+  ok('소스에도 남아 있지 않습니다', src.indexOf('keyDate(') < 0);
+  // ded_tax는 ded_tax__mine / ded_tax__est로 갈라지면서 쓰이지 않게 됐습니다.
+  ok('ded_tax는 지웠습니다', !V2.STR['ded_tax'] && !V2.STR['ded_tax__en']);
+  ok('갈라진 두 키는 그대로입니다', !!V2.STR['ded_tax__mine'] && !!V2.STR['ded_tax__est']);
+  // 지운 뒤에도 공제 줄은 그대로 나옵니다.
+  const V = c.renderVals();
+  ok('공제 줄은 그대로 나옵니다', Array.isArray(V.dedRows) && V.dedRows.length > 0,
+    'rows=' + (V.dedRows || []).length);
+}
+
 console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);
