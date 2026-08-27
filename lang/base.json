@@ -139,6 +139,10 @@
     "en": "a minute ago",
     "ko": "1분 전"
   },
+  "all_records_label": {
+    "ko": "기록 전부 · ALL RECORDS",
+    "en": "ALL RECORDS · 기록 전부"
+  },
   "allowance_generic": {
     "en": "Allowance",
     "ko": "수당"
@@ -928,12 +932,12 @@
     "ko": "지급총액 GROSS"
   },
   "grp_backup": {
-    "en": "Backup and export",
-    "ko": "백업과 내보내기"
+    "ko": "백업",
+    "en": "Backup"
   },
   "grp_backup__en": {
-    "en": "BACKUP & EXPORT",
-    "ko": "BACKUP & EXPORT"
+    "ko": "BACKUP",
+    "en": "BACKUP"
   },
   "grp_ins": {
     "en": "Insurance and tax",
@@ -2580,8 +2584,8 @@
     "ko": "증거가 됩니다"
   },
   "tour4_body": {
-    "en": "No server, no account, nothing is uploaded. That also means a lost phone is a lost record — save a backup file now and then, from 설정 › 백업과 내보내기.",
-    "ko": "서버도 계정도 없고, 아무것도 올라가지 않습니다. 대신 폰을 잃으면 기록도 사라집니다 — 가끔 설정 › 백업과 내보내기에서 파일로 저장해 두세요."
+    "en": "No server, no account, nothing is uploaded. That also means a lost phone is a lost record — save a backup file now and then, from 설정 › 백업.",
+    "ko": "서버도 계정도 없고, 아무것도 올라가지 않습니다. 대신 폰을 잃으면 기록도 사라집니다 — 가끔 설정 › 백업에서 파일로 저장해 두세요."
   },
   "tour4_en": {
     "en": "NO SERVER · NO ACCOUNT",

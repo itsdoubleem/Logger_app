@@ -3446,7 +3446,66 @@ console.log('\n== 성명과 사업장명은 백업 상자 안에 있을 일이 �
   // 남은 것은 정말로 파일을 내보내고 되돌리는 것들뿐입니다
   ok('백업에 JSON 내보내기가 있습니다', backup.indexOf('{{ doExport }}')>=0);
   ok('백업에 복원이 있습니다', backup.indexOf('{{ pickImport }}')>=0);
-  ok('CSV도 백업에 남습니다', backup.indexOf('{{ doExportCsv }}')>=0);
+  // ── 뒤집었습니다 · CSV도 급여 탭으로 갔습니다 ──
+  // 스무째는 CSV를 이 상자에 남겼습니다. 이유는 '묶음 이름이 약속하는 바로
+  // 그것'이라는 것이었는데, 그것은 같은 항목이 열아홉째를 두고 '서류함의
+  // 논리이지 근로자의 논리가 아니다'라며 물리친 바로 그 논리입니다.
+  // 누가 읽는가로 다시 물으면 CSV의 독자는 노무사·상담소이고(csvNote가
+  // 그렇게 말합니다) 여는 계기는 근무내역서와 같습니다. 앱 자신이 읽는
+  // JSON 백업과는 다른 무리입니다.
+  ok('CSV는 백업에 없습니다', backup.indexOf('{{ doExportCsv }}')<0);
+  // 묶음 이름이 '백업과 내보내기'에서 '백업'으로 바뀌었습니다 — 내보낼 것이
+  // JSON 하나만 남았기 때문입니다. 이름을 바꾸면 그 이름을 가리키던 글이
+  // 없는 화면을 가리키게 됩니다(소개 넷째 장이 그랬습니다). 여덟 개 언어
+  // 어디에도 옛 이름이 남지 않았는지 셉니다.
+  ok('묶음 이름은 백업입니다',
+    V2.STR['grp_backup'].ko === '백업' && V2.STR['grp_backup__en'].ko === 'BACKUP');
+  ['ko','en','vi','zh','th','id','ne','km'].forEach(L => {
+    const stale = Object.keys(V2.STR).filter(k =>
+      typeof V2.STR[k][L] === 'string' && V2.STR[k][L].indexOf('백업과 내보내기') >= 0);
+    ok(L + ' 옛 묶음 이름을 가리키는 글이 없습니다', stale.length === 0, stale.join(','));
+  });
+  ok('CSV는 급여에 있습니다', pay.indexOf('{{ doExportCsv }}')>=0);
+  // 두 군데에 두면 유령이 됩니다 — 열아홉째가 복제된 근무내역서 스테퍼를
+  // 지운 이유와 같습니다. 앱 전체에 하나뿐이어야 합니다.
+  ok('CSV 단추는 앱에 하나뿐입니다',
+    (tpl.match(/\{\{ doExportCsv \}\}/g) || []).length === 1);
+  // 근무내역서 바로 다음입니다 — 부족액을 찾은 사람이 원하는 두 가지가
+  // 나란히 있어야 합니다.
+  ok('CSV는 근무내역서 다음입니다',
+    pay.indexOf('{{ doEvidence }}') < pay.indexOf('{{ doExportCsv }}'));
+  // ── 기간을 물려받지 않습니다 ──
+  // 바로 위 근무내역서는 기간 스테퍼를 따르는데 CSV는 기록 전부입니다.
+  // 그 차이가 화면에 적혀 있지 않으면 '이 기간의 CSV'로 읽힙니다.
+  ok('CSV 상자는 기간이 아니라 기록 전부라고 말합니다',
+    pay.indexOf('{{ L.csvLabel }}')>=0 && pay.indexOf('{{ csvScope }}')>=0);
+  {
+    const c2 = mk(V2, '2026-08-17T10:00:00');
+    const z2 = { gross:0, bk:0, net:8, reg:8, ot:0, night:0, hol:0, pay:0 };
+    // 서로 다른 세 급여기간
+    c2.state.extra = [
+      { y:2026, m:8, day:2, kind:'day', type:'shift', c:z2 },
+      { y:2026, m:6, day:2, kind:'day', type:'shift', c:z2 },
+      { y:2025, m:5, day:2, kind:'day', type:'shift', c:z2 },
+    ];
+    ok('보고 있는 기간이 아니라 전부를 셉니다',
+      c2.renderVals().csvScope === c2.T('n_days_recorded', { p0: 3 }),
+      c2.renderVals().csvScope);
+    // 기간을 옮겨도 그 숫자는 그대로여야 합니다 — 기간과 무관하기 때문입니다
+    c2.goPeriod(1);
+    ok('기간을 옮겨도 전부 그대로입니다',
+      c2.renderVals().csvScope === c2.T('n_days_recorded', { p0: 3 }));
+    ok('CSV 내용도 여전히 전부입니다',
+      c2.csvText().trim().split('\r\n').length === 4);
+  }
+  // ── 알림은 따로 삽니다 ──
+  // 한 상태를 나눠 쓰면 급여에서 내보낸 알림이 설정 화면에 남습니다.
+  {
+    const c3 = mk(V2, '2026-08-17T10:00:00');
+    c3.setState({ csvMsg: '내보냈습니다', backupMsg: '' });
+    ok('CSV 알림은 백업 알림과 다른 자리입니다',
+      c3.renderVals().csvMsg === '내보냈습니다' && !c3.renderVals().backupMsg);
+  }
   // 근무내역서는 급여 탭으로 갔습니다
   ok('근무내역서 단추는 급여에 있습니다', pay.indexOf('{{ doEvidence }}')>=0);
   ok('내 정보에는 단추가 없습니다', me.indexOf('{{ doEvidence }}')<0);
