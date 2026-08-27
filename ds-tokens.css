@@ -1,0 +1,46 @@
+/* Modernist design-system tokens — RECONSTRUCTED.
+ *
+ * The handoff bundle references
+ *   _ds/modernist-5ce80c01-ca67-4380-af11-739c06a783bc/styles.css
+ * but that file is not in the bundle and never was, so every var() in the app
+ * resolved to nothing and the deployed build rendered as unstyled overlapping
+ * text. This file supplies the tokens the app actually uses.
+ *
+ * Anchors are documented values, not guesses:
+ *   #f3f2f2 bg, #201e1d ink, #ec3013 accent, #ae1800 accent hover,
+ *   #eae9e9 surface, #d7d3d3 hairline, and the rgba(32,30,29,α) neutral ramp
+ * all come from README.md and the <style> block of "Work Log and Pay.dc.html".
+ * The remaining steps are those anchors composited over #f3f2f2 at the alphas
+ * the canvas uses (.4 / .6 / .75) or mixed toward the accent.
+ *
+ * If the real styles.css ever turns up, drop it in here verbatim and re-run
+ * build.py — nothing else refers to these values.
+ */
+
+:root {
+  --font-heading: 'Archivo', system-ui, -apple-system, sans-serif;
+  --font-body: 'Archivo', system-ui, -apple-system, sans-serif;
+
+  /* surfaces */
+  --color-bg: #f3f2f2;
+  --color-surface: #eae9e9;
+  --color-text: #201e1d;
+
+  /* neutral ramp — #201e1d over #f3f2f2 */
+  --color-neutral-100: #eeecec;
+  --color-neutral-200: #e5e3e3;
+  --color-neutral-300: #d7d3d3; /* 1px hairlines */
+  --color-neutral-400: #c4c1c1;
+  --color-neutral-500: #a9a7a6;
+  --color-neutral-600: #747372; /* α .60 — secondary label ink */
+  --color-neutral-700: #555352; /* α .75 — body ink on tinted panels */
+  --color-neutral-800: #3a3837;
+  --color-divider: #9f9d9d;     /* α .40 — the 2px section rules */
+
+  /* accent — near-mono red */
+  --color-accent: #ec3013;
+  --color-accent-100: #f2dbd7;  /* tinted panel background */
+  --color-accent-300: #f1b5ab;  /* in-range calendar fill */
+  --color-accent-600: #cb240a;  /* pressed / hover on accent */
+  --color-accent-700: #ae1800;  /* accent ink on a tinted panel */
+}

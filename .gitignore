@@ -1,0 +1,31 @@
+# Build outputs — everything here is regenerated, nothing here is source.
+#
+#   dist/, dist-v2/    python3 build.py [v2]
+#   worklog-*.apk      ./build_apk.sh [v2]
+#   android/**/build   gradle assembleDebug
+#
+# 근무기록-WorkLog.html is NOT an output — build.py unpacks it as the shell.
+# Do not add it here. See CLAUDE.md, "Traps".
+
+dist/
+dist-v2/
+*.apk
+android/.gradle/
+android/build/
+android/app/build/
+
+# build_apk.sh rm -rf's this and re-copies dist-v2/ into it on every run.
+# The pwa/icon-*.png next to icon-source.png are NOT ignored: build.py copies
+# those into dist/, so a plain `python3 build.py v2` needs them present.
+android/app/src/main/assets/www/
+
+# Python
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store
+
+# Machine-local Claude Code permissions — absolute paths from this laptop,
+# nothing the app needs.
+.claude/settings.local.json

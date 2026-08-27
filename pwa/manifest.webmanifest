@@ -1,0 +1,22 @@
+{
+  "name": "근무기록 · Work Log",
+  "short_name": "근무기록",
+  "description": "근무 기록과 급여 계산 — 이 휴대폰에만 저장됩니다. 계산기이며 법률 자문이나 노무 상담이 아닙니다. Shift log and Korean payroll, stored on this phone only. A calculator, not legal or labour advice.",
+  "lang": "ko",
+  "dir": "ltr",
+  "author": "DOUBLEEM",
+  "start_url": "./",
+  "scope": "./",
+  "id": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "fullscreen"],
+  "orientation": "portrait",
+  "background_color": "#f3f2f2",
+  "theme_color": "#f3f2f2",
+  "categories": ["productivity", "utilities", "finance"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The launcher icon from API 26 on. The disc is the background layer, so the
+     launcher's own mask decides its shape — circle, squircle, rounded square —
+     instead of the icon baking one in. Below API 26 the mipmap-*/ic_launcher.png
+     bitmaps are used instead, which have the circle drawn in.
+
+     Both layer bitmaps come out of pwa/make_icons.py. -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/ic_launcher_background" />
+    <foreground android:drawable="@mipmap/ic_launcher_foreground" />
+    <!-- Themed icons, API 33+: the launcher tints this by the wallpaper's
+         palette and only its alpha is kept, which is exactly the wordmark. -->
+    <monochrome android:drawable="@mipmap/ic_launcher_foreground" />
+</adaptive-icon>

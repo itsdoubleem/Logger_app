@@ -1,0 +1,43 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'app.worklog.punch'
+    compileSdk 37
+
+    defaultConfig {
+        applicationId 'app.worklog.punch'
+        minSdk 24
+        targetSdk 36
+        versionCode 1
+        versionName '1.0'
+    }
+
+    buildTypes {
+        debug {
+            // signed with ~/.android/debug.keystore — sideload only, not for the Play Store
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    // the app is one big pre-compressed HTML file; leave it alone
+    androidResources {
+        noCompress 'html'
+    }
+}
+
+dependencies {
+    implementation 'androidx.webkit:webkit:1.14.0'
+    implementation 'androidx.biometric:biometric:1.1.0'
+    // biometric 1.1.0 still pulls activity 1.1.0, which predates
+    // registerForActivityResult — the backup file picker and the save sheet
+    // both need it, so ask for versions that have it
+    implementation 'androidx.activity:activity:1.9.3'
+    implementation 'androidx.fragment:fragment:1.8.5'
+}

@@ -1,0 +1,2866 @@
+{
+  "0_days_not_deducted": {
+    "en": "0 days — not deducted",
+    "ko": "0일 — 차감 없음"
+  },
+  "0_days_this_is_not_your_annual_leave": {
+    "en": "0 days — this is not your annual leave",
+    "ko": "0일 — 연차가 아닙니다"
+  },
+  "0_variable": {
+    "en": "₩0 variable",
+    "ko": "변동수당 ₩0"
+  },
+  "0_variable_pay": {
+    "en": "₩0 variable pay",
+    "ko": "변동수당 ₩0"
+  },
+  "1": {
+    "en": "1년 연차",
+    "ko": "days per year"
+  },
+  "1_day": {
+    "en": "1 day",
+    "ko": "1일"
+  },
+  "1_year_or_more_15_days_lsa_60_1_plus_1": {
+    "en": "1 year or more: 15 days (근로기준법 §60①), plus 1 more day every 2 years from year 3, capped at 25. Yours: {p0} days.",
+    "ko": "1년 이상: 15일 (근로기준법 제60조①). 3년째부터 2년마다 1일씩 늘어 최대 25일. 당신은 {p0}일."
+  },
+  "2026_employee_side_rates_health_3_595_": {
+    "en": "2026 employee-side rates — health 3.595% of the standard monthly wage, long-term care 13.14% of the health premium, pension 4.75%, employment insurance 0.9%. That wage is a fixed figure your company reports, not this month's pay, which is why the amount only moves when the figure is reset. Pension is charged only on a wage between ₩400,000 and ₩6,370,000 (the notice in force July 2025–June 2026; it is re-set every July), and the health premium is held between ₩19,780 and ₩9,008,340 — the app stops at those limits. E-9 workers are often not in employment insurance, and pension can be waived under a social-security agreement with your country — switch off any line that is not on your payslip.",
+    "ko": "2026년 근로자 부담 요율 — 건강보험 보수월액 × 3.595%, 장기요양 = 건강보험료 × 13.14%, 국민연금 × 4.75%, 고용보험 × 0.9%. 보수월액은 이번 달 급여가 아니라 공단에 신고된 기준 금액이라, 그 금액이 바뀔 때만 보험료가 달라집니다. 국민연금은 기준소득월액 상한 ₩6,370,000 · 하한 ₩400,000 (2025.7~2026.6 고시, 매년 7월 변경), 건강보험은 보험료 상한 ₩9,008,340 · 하한 ₩19,780 안에서만 부과되며 앱이 그 한도까지만 계산합니다. 외국인 근로자(E-9)는 고용보험에 가입하지 않는 경우가 많고, 국민연금은 나라별 사회보장협정에 따라 빠지기도 합니다 — 명세서에 없으면 그 줄을 꺼 두세요."
+  },
+  "209_is_40_hours_a_week_plus_the_8_hour": {
+    "en": "기준시간 209 is 40 hours a week plus the 8-hour 주휴, converted to a month. Almost every payslip in Korea uses 209 — change it only if yours says something else.",
+    "ko": "기준시간 209는 주 40시간에 주휴 8시간을 더해 월로 환산한 값입니다. 거의 모든 명세서가 209를 씁니다 — 명세서에 다른 수가 적혀 있을 때만 고치세요."
+  },
+  "2_0_past_8h": {
+    "en": " · ×2.0 past 8h",
+    "ko": " · 8h 초과 ×2.0"
+  },
+  "30_days_of_it": {
+    "en": "× 30 days",
+    "ko": "× 30일분"
+  },
+  "8h_regular": {
+    "en": "8h regular",
+    "ko": "8h 정상근무"
+  },
+  "a_day_the_company_sent_you_home_is_not": {
+    "en": "A day the company sent you home is not your 연차 — it must not come out of your leave. 근로기준법 §46: at least 70% of your average wage. Tag each such day with its reason in 근무기록 so the document says why.",
+    "ko": "회사가 돌려보낸 날은 당신의 연차가 아닙니다 — 연차에서 빼면 안 됩니다. 근로기준법 제46조: 평균임금의 70% 이상. 근무기록에서 그 날에 사유를 달아 두면 문서에 이유가 함께 찍힙니다."
+  },
+  "a_day_you_did_not_come_in_it_is_unpaid": {
+    "en": "A day you did not come in — it is unpaid. Estimated deduction {p0} (hourly × 8h). Companies calculate this differently, so check your payslip. It can also cost you that week’s 주휴수당.",
+    "ko": "나가지 않은 날입니다 — 그 날 임금은 나오지 않습니다. 예상 공제 {p0} (시급 × 8시간). 회사마다 공제 방식이 다르니 명세서로 확인하세요. 그 주의 주휴수당까지 빠지는 경우도 있습니다."
+  },
+  "a_session_open_longer_than_24_hours_wi": {
+    "en": "A session open longer than 24 hours will not be closed automatically. Save the real times with 근무 Past shift below, then clear this open session with 출근 취소.",
+    "ko": "24시간이 넘은 기록은 자동으로 닫지 않습니다. 아래 ‘근무’로 실제 출퇴근 시각을 저장한 뒤, 이 진행 중인 기록은 ‘출근 취소’로 지우세요."
+  },
+  "a_week_went_over_the_52_hour_limit": {
+    "en": "⚠ A week went over the 52-hour limit",
+    "ko": "⚠ 주 52시간을 넘긴 주가 있습니다"
+  },
+  "a_work_log_for_workers_in_korea_it_rec": {
+    "en": "A work log for workers in Korea. It records your shifts, works out what the law says you are owed, and prints a document you can hand to your company.",
+    "ko": "한국에서 일하는 사람을 위한 근무기록 앱입니다. 출퇴근을 기록하고, 법이 정한 금액을 계산하고, 회사에 낼 수 있는 문서를 만듭니다."
+  },
+  "about": {
+    "en": "ABOUT",
+    "ko": "정보 · ABOUT"
+  },
+  "absence_unpaid": {
+    "en": "Absence — unpaid",
+    "ko": "결근 — 무급"
+  },
+  "absent_unpaid_this_day_is_taken_off_yo": {
+    "en": "ABSENT · unpaid — this day is taken off your pay",
+    "ko": "결근 · 무급 — 그 날 임금이 빠집니다"
+  },
+  "accrued": {
+    "en": "Accrued",
+    "ko": "발생"
+  },
+  "actual_punch": {
+    "en": "Actual punch",
+    "ko": "실제 지문"
+  },
+  "add_a_shift_you_already_worked_without": {
+    "en": "Add a shift you already worked, without a fingerprint. The shift type is detected from the clock-in time.",
+    "ko": "지문 없이 지난 근무를 직접 넣습니다. 근무조는 출근 시간으로 자동 판별됩니다."
+  },
+  "add_allowance": {
+    "en": "+ ADD ALLOWANCE",
+    "ko": "+ 수당 추가 ADD ALLOWANCE"
+  },
+  "add_any_fixed_line_that_appears_on_you": {
+    "en": "Add any fixed line that appears on your payslip every month besides the basic — meal, special or position allowance. Nothing to add? Leave it empty.",
+    "ko": "명세서에 기본금 말고 매달 똑같이 나오는 항목(식대·특별수당·직책수당 등)이 있으면 여기에 넣으세요. 없으면 비워 두세요."
+  },
+  "add_break": {
+    "en": "+ ADD BREAK",
+    "ko": "+ 휴게시간 추가 ADD BREAK"
+  },
+  "add_deduction": {
+    "en": "+ ADD DEDUCTION",
+    "ko": "+ 공제 추가 ADD DEDUCTION"
+  },
+  "add_meal_allowance": {
+    "en": "+ 식대 Meal (비과세)",
+    "ko": "+ 식대 (비과세)"
+  },
+  "add_overtime_break": {
+    "en": "+ 연장 휴게 ADD OVERTIME BREAK",
+    "ko": "+ 연장 휴게 30분 ADD OVERTIME BREAK"
+  },
+  "add_your_start_date_above_to_see_this": {
+    "en": "Add your start date above to see this.",
+    "ko": "위에 입사일을 적으면 계산됩니다."
+  },
+  "added_to_your_log": {
+    "en": "✓ {p0} added to your log",
+    "ko": "✓ {p0} 기록 추가됨"
+  },
+  "after_tax_insurance_dorm": {
+    "en": "after tax, insurance, dorm",
+    "ko": "세금·보험·기숙사비 공제 후"
+  },
+  "ago_just_now": {
+    "en": "less than a minute ago",
+    "ko": "방금"
+  },
+  "ago_mins": {
+    "en": "{n} minutes ago",
+    "ko": "{n}분 전"
+  },
+  "ago_one_min": {
+    "en": "a minute ago",
+    "ko": "1분 전"
+  },
+  "allowance_generic": {
+    "en": "Allowance",
+    "ko": "수당"
+  },
+  "allowance_name": {
+    "en": "Allowance name",
+    "ko": "수당 이름"
+  },
+  "annual_leave": {
+    "en": "ANNUAL LEAVE",
+    "ko": "연차 ANNUAL LEAVE"
+  },
+  "annual_leave_ledger": {
+    "en": "Annual leave",
+    "ko": "연차 대장"
+  },
+  "anything_past_8h_pays_overtime_1_5_and": {
+    "en": "Anything past 8h pays overtime ×1.5, and every hour between 22:00–06:00 adds the night premium ×0.5. ",
+    "ko": "8시간 초과분은 잔업 ×1.5, 22:00–06:00 사이는 야간수당 ×0.5가 자동으로 붙습니다. "
+  },
+  "app": {
+    "en": "App",
+    "ko": "앱 계산"
+  },
+  "app_works_them_out_n_on": {
+    "en": "App works them out · {p0} on",
+    "ko": "앱이 계산 · {p0}개 켜짐"
+  },
+  "apparently_underpaid_by": {
+    "en": "APPARENTLY UNDERPAID BY",
+    "ko": "덜 받은 것으로 보이는 금액"
+  },
+  "assumed_not_yet_punched": {
+    "en": "Assumed — not yet punched",
+    "ko": "예정 시간 — 아직 찍지 않음"
+  },
+  "assumed_not_yet_worked": {
+    "en": "Assumed — not yet worked",
+    "ko": "예정 시간 (아직 근무 전)"
+  },
+  "at_the_ceiling": {
+    "en": " · at the ceiling",
+    "ko": " · 상한 적용"
+  },
+  "at_the_ceiling_2": {
+    "en": " · at the ceiling",
+    "ko": " · 상한 적용"
+  },
+  "at_the_floor": {
+    "en": " · at the floor",
+    "ko": " · 하한 적용"
+  },
+  "at_the_floor_2": {
+    "en": " · at the floor",
+    "ko": " · 하한 적용"
+  },
+  "auto": {
+    "en": "AUTO 특근",
+    "ko": "자동 특근"
+  },
+  "automatic_holidays_cover_2026_2027_onl": {
+    "en": "Automatic holidays cover 2026–2027 only. Lunar holidays like 설날 and 추석 in this period will not be detected, so if you work one, mark it 특근 by hand — otherwise the legal ×2.0 tier past 8 hours will not be applied.",
+    "ko": "공휴일 자동 표시는 2026–2027년만 들어 있습니다. 이 기간의 설날·추석 같은 음력 명절은 자동으로 휴일로 잡히지 않으니, 그런 날 일했다면 ‘특근’으로 직접 표시하세요 — 그래야 8시간 초과분에 법정 ×2.0이 적용됩니다."
+  },
+  "average_daily_wage_lsa_2_2": {
+    "en": "1일 평균임금 Average daily wage",
+    "ko": "1일 평균임금"
+  },
+  "avg_daily_auto": {
+    "en": "Worked out from your records: {p0} ({p1}% of the three months is recorded). One day of shutdown allowance on that basis is {p2}.",
+    "ko": "앱 기록으로 계산한 값은 {p0}입니다 (3개월 중 {p1}% 기록됨). 이 값으로 계산한 휴업수당 1일분은 {p2}입니다."
+  },
+  "avg_daily_manual": {
+    "en": "Using the figure you entered. One day of shutdown allowance on that basis is {p0}.",
+    "ko": "직접 넣은 값을 씁니다. 이 값으로 계산한 휴업수당 1일분은 {p0}입니다."
+  },
+  "avg_daily_thin": {
+    "en": "Your records are under three months, so this comes out lower than the truth — take the total pay on three months of payslips and divide by the calendar days in that period.",
+    "ko": "기록이 3개월에 못 미쳐 실제보다 낮게 나옵니다 — 급여명세서 3개월분의 임금총액을 그 기간의 달력일수로 나눈 값을 넣어 주세요."
+  },
+  "awaiting_punch": {
+    "en": " · awaiting punch",
+    "ko": " · 지문 대기"
+  },
+  "back_to_this_pay_period": {
+    "en": "Back to this pay period",
+    "ko": "이번 급여기간으로 돌아가기"
+  },
+  "backup": {
+    "en": "BACKUP",
+    "ko": "백업 · BACKUP"
+  },
+  "backup_file_days_of_records_saved_rest": {
+    "en": "Backup file — {p0} days of records, saved {p1}. Restoring replaces all {p2} days on this phone, and your settings. This cannot be undone.",
+    "ko": "백업 파일 — 기록 {p0}일 · {p1} 저장. 불러오면 이 휴대폰에 있는 기록 {p2}일과 설정을 모두 덮어씁니다. 되돌릴 수 없습니다."
+  },
+  "bad_time_format_use_hh_mm_e_g_09_00": {
+    "en": "Bad time format — use HH:MM, e.g. 09:00",
+    "ko": "시간 형식이 잘못되었습니다 — 예: 09:00"
+  },
+  "bad_time_format_use_hh_mm_e_g_20_40": {
+    "en": "Bad time format — use HH:MM, e.g. 20:40",
+    "ko": "시간 형식이 잘못되었습니다 — 예: 20:40"
+  },
+  "base_pay": {
+    "en": "BASE PAY",
+    "ko": "기본 BASE"
+  },
+  "basic_salary": {
+    "en": "Basic salary",
+    "ko": "기본금"
+  },
+  "basis_ins_auto": {
+    "en": "Insurance is calculated from your monthly wage at the 2026 rates; anything under OTHER DEDUCTIONS is exactly what you entered.",
+    "ko": "4대보험은 보수월액에 2026년 요율을 곱해 계산하고, 그 밖의 공제는 설정에 입력한 금액 그대로입니다."
+  },
+  "basis_ins_manual": {
+    "en": "Insurance and dorm are exactly the figures you entered in setup.",
+    "ko": "보험·기숙사비는 설정에 입력한 금액 그대로입니다."
+  },
+  "basis_local": {
+    "en": "Local tax is always 10% of income tax.",
+    "ko": "주민세는 항상 소득세의 10%."
+  },
+  "basis_tax_auto": {
+    "en": "Income tax is estimated from the withholding table, so a heavy-overtime month can differ from the real one.",
+    "ko": "소득세는 간이세액표 근사로 추정하며, 잔업이 많은 달엔 실제와 차이가 날 수 있습니다."
+  },
+  "basis_tax_manual": {
+    "en": "Income tax is the amount you typed from your last payslip.",
+    "ko": "소득세는 직접 입력한 지난달 금액을 그대로 씁니다."
+  },
+  "below_the_legal_minimum_lsa_56": {
+    "en": "⚠ Below the legal minimum: {p0} (근로기준법 §56). Keeping the real figure here is right — it makes the app match your payslip — but the gap is money you are owed. The 근무내역서 shows it as a shortfall.",
+    "ko": "⚠ 법정 최저 미만: {p0} (근로기준법 제56조). 실제 배수를 적어 두는 것은 맞습니다 — 그래야 명세서와 대조가 됩니다 — 다만 그 차액은 받지 못한 돈입니다. 근무내역서에 부족분으로 나옵니다."
+  },
+  "beyond_8h": {
+    "en": "beyond 8h · ",
+    "ko": "8시간 초과 · "
+  },
+  "block": {
+    "en": " BLOCK",
+    "ko": "조"
+  },
+  "bonus": {
+    "en": "BONUS · 상여",
+    "ko": "상여 BONUS"
+  },
+  "bonus_amount": {
+    "en": "Bonus",
+    "ko": "상여금"
+  },
+  "bonus_paid_in_months_p1": {
+    "en": "{p0} in month(s) {p1}. 상여 counts towards 평균임금, which is what 퇴직금 is worked out from.",
+    "ko": "{p1}월에 {p0}. 상여는 평균임금에 들어가고, 퇴직금은 그 평균임금으로 계산됩니다."
+  },
+  "break": {
+    "en": "break",
+    "ko": "휴게시간 이름"
+  },
+  "break_deducted": {
+    "en": "Break deducted",
+    "ko": "휴게시간 차감"
+  },
+  "breaks_are_unpaid_so_these_times_decid": {
+    "en": "Breaks are unpaid, so these times decide your paid hours. They differ by company — enter your own.",
+    "ko": "휴게시간은 무급입니다 — 이 시간이 실근무 시간을 결정합니다. 회사마다 다르니 본인 시간을 넣으세요."
+  },
+  "by_hand": {
+    "en": "BY HAND",
+    "ko": "직접 표시"
+  },
+  "calculate": {
+    "en": "CALCULATE",
+    "ko": "자동 계산"
+  },
+  "calculated": {
+    "en": " · calculated",
+    "ko": ""
+  },
+  "calculated_2": {
+    "en": "Calculated",
+    "ko": "계산값"
+  },
+  "calculated_on_the_standard_monthly_wag": {
+    "en": "Calculated on the standard monthly wage you entered, {p0}.",
+    "ko": "보수월액 {p0} 기준으로 계산합니다."
+  },
+  "calculated_on_your_basic_salary_plus_f": {
+    "en": "Calculated on {p0} — your basic salary plus fixed allowances. If your payslip reports a different 보수월액, enter it in Setup.",
+    "ko": "기본금과 고정수당을 합한 {p0}을 보수월액으로 씁니다. 명세서의 보수월액이 다르면 설정에서 넣으세요."
+  },
+  "calendar_pick_a_date": {
+    "en": "CALENDAR · PICK A DATE",
+    "ko": "달력 · 날짜 선택"
+  },
+  "calendar_start_end": {
+    "en": "CALENDAR · START → END",
+    "ko": "달력 · 시작일 → 종료일"
+  },
+  "cancel": {
+    "en": "CANCEL",
+    "ko": "취소 CANCEL"
+  },
+  "cancel_2": {
+    "en": "CANCEL",
+    "ko": "취소"
+  },
+  "capped_at": {
+    "en": " · capped at {p0}",
+    "ko": " · 상한 {p0} 적용"
+  },
+  "check_the_time_e_g_09_00_and_it_must_b": {
+    "en": "Check the time — e.g. 09:00, and it must be within the last 24 hours.",
+    "ko": "시간을 확인하세요 — 예: 09:00. 24시간 이내여야 합니다."
+  },
+  "check_your_payslip": {
+    "en": "CHECK YOUR PAYSLIP",
+    "ko": "명세서 대조 · 받은 금액과 비교"
+  },
+  "children_8_20": {
+    "en": "Children aged 8–20",
+    "ko": "8~20세 자녀"
+  },
+  "children_8_20_sub": {
+    "en": "8~20세 자녀 · extra tax credit",
+    "ko": "children 8–20 · 세액공제 추가"
+  },
+  "clear_these_figures": {
+    "en": "CLEAR THESE FIGURES",
+    "ko": "입력한 명세서 지우기"
+  },
+  "clock_in": {
+    "en": "Clock in",
+    "ko": "출근"
+  },
+  "clock_in_2": {
+    "en": "CLOCK IN",
+    "ko": "출근 IN"
+  },
+  "clock_in_rounds": {
+    "en": "Clock-in rounds",
+    "ko": "출근 처리"
+  },
+  "clock_in_rounds_up_to_the_next_30_minu": {
+    "en": "Clock-in rounds up to the next 30 minutes — 08:40 becomes 09:00, so being late is never rounded away. Punch in 30 minutes early at 08:30 and it stays 08:30, and that half hour is paid. Clock-out rounds down to the last 30 minutes — 20:15 becomes 20:00. With the grace set to 15, punching out at 20:45 counts as 21:00. Set it to 0 if your company only credits the exact hour.",
+    "ko": "출근은 다음 30분 단위로 올림 — 08:40은 09:00이 됩니다. 지각이 반올림으로 덮이지 않습니다. 30분 일찍 08:30에 찍으면 그대로 08:30, 그 30분은 지급됩니다. 퇴근은 지난 30분 단위로 내림 — 20:15는 20:00. 유예를 15분으로 두면 20:45는 21:00으로 인정됩니다. 정확히 정시에만 인정되는 회사면 0으로 두세요."
+  },
+  "clock_out": {
+    "en": "Clock out",
+    "ko": "퇴근"
+  },
+  "clock_out_2": {
+    "en": "CLOCK OUT",
+    "ko": "퇴근 OUT"
+  },
+  "clock_out_grace": {
+    "en": "Clock-out grace",
+    "ko": "퇴근 유예"
+  },
+  "clock_out_grace_min": {
+    "en": "Clock-out grace (min)",
+    "ko": "퇴근 유예 (분)"
+  },
+  "clock_out_if_you_leave_now": {
+    "en": "Clock out, if you leave now",
+    "ko": "퇴근 (지금 나가면)"
+  },
+  "clock_out_rounds": {
+    "en": "Clock-out rounds",
+    "ko": "퇴근 처리"
+  },
+  "clocked_in": {
+    "en": "Clocked in",
+    "ko": "출근"
+  },
+  "clocked_in_shift_paid_from_h_so_far_cl": {
+    "en": "Clocked in {p0}{p1} · {p2} shift · paid from {p3} · {p4}h so far. Clock out with your fingerprint as usual.",
+    "ko": "{p0}{p1} 출근 · {p2} 근무조 · 인정 {p3}부터 · 지금까지 {p4}시간. 퇴근은 평소대로 지문으로 찍으세요."
+  },
+  "close_b": {
+    "en": "CLOSE",
+    "ko": "닫기"
+  },
+  "companies_deduct_differently_and_it_ca": {
+    "en": "Companies deduct differently, and it can also cost you that week’s 주휴수당",
+    "ko": "회사마다 공제 방식이 다릅니다 — 주휴수당도 함께 빠질 수 있습니다"
+  },
+  "company_pays_the_2_0_tier": {
+    "en": "Company pays the ×2.0 tier",
+    "ko": "휴일 8시간 초과 ×2.0 지급"
+  },
+  "company_vacation": {
+    "en": "company vacation",
+    "ko": "휴가 기간"
+  },
+  "confirm": {
+    "en": "CONFIRM",
+    "ko": "확인 ADD"
+  },
+  "copy_the_figure_your_payslip_calls_기본급": {
+    "en": "Copy the figure your payslip calls 기본급 — just that one number. Everything on this screen is worked out from it: your hourly rate, overtime, night premium, tax and insurance. Without it the amounts below are only an example.",
+    "ko": "명세서에 기본급이라고 적힌 금액을 그대로 옮겨 적으세요 — 그 하나면 됩니다. 이 화면의 모든 금액이 여기서 나옵니다: 시급, 잔업, 야간수당, 세금, 4대보험. 이걸 넣기 전까지 아래 숫자는 예시일 뿐입니다."
+  },
+  "copy_the_numbers_from_your_payslip": {
+    "en": "Copy the numbers from your payslip",
+    "ko": "급여명세서를 그대로 입력하세요"
+  },
+  "copy_the_numbers_from_your_payslip_you": {
+    "en": "Copy the numbers from your payslip. Your hourly rate is 기본금 ÷ monthly hours.",
+    "ko": "급여명세서 그대로 입력하세요. 시급은 기본금 ÷ 기준시간으로 자동 계산됩니다."
+  },
+  "could_not_create_the_file": {
+    "en": "Could not create the file.",
+    "ko": "파일을 만들지 못했습니다."
+  },
+  "could_not_create_the_file_2": {
+    "en": "Could not create the file.",
+    "ko": "파일을 만들지 못했습니다."
+  },
+  "could_not_read_that_file": {
+    "en": "Could not read that file.",
+    "ko": "파일을 읽지 못했습니다."
+  },
+  "counted_as_not_coming_out_of_your_annu": {
+    "en": "Counted as not coming out of your annual leave — confirm with your company.",
+    "ko": "휴가는 연차에서 빠지지 않는 것으로 계산합니다 — 회사에 확인하세요."
+  },
+  "covered_by_basic_salary": {
+    "en": "covered by basic salary",
+    "ko": "기본금에 포함"
+  },
+  "create_a_work_record_evidence": {
+    "en": "CREATE A WORK RECORD (evidence)",
+    "ko": "근무내역서 만들기 (증빙용)"
+  },
+  "csv_opens_in_excel_or_google_sheets_ko": {
+    "en": "CSV opens in Excel or Google Sheets. Korean column headings, every day the app has, with reasons — the file to hand a 노무사 or a 상담소 who wants to add it up themselves.",
+    "ko": "CSV는 엑셀이나 구글 시트에서 열립니다. 머리글은 한국어이고, 앱이 가진 모든 날이 사유와 함께 들어갑니다 — 노무사나 상담소가 직접 더해 볼 수 있는 파일입니다."
+  },
+  "d": {
+    "en": " d",
+    "ko": "일"
+  },
+  "d_h": {
+    "en": "{p0}d {p1}h",
+    "ko": "{p0}일 {p1}시간"
+  },
+  "day": {
+    "en": "DAY",
+    "ko": "주간"
+  },
+  "day_2": {
+    "en": "Day",
+    "ko": "주간"
+  },
+  "day_of": {
+    "en": "day {p0} of {p1}",
+    "ko": "{p0}일차 / {p1}"
+  },
+  "day_only": {
+    "en": "Day only",
+    "ko": "주간만"
+  },
+  "day_only_workers_never_see_night_field": {
+    "en": "Day-only workers never see night fields — every punch is logged as a day shift.",
+    "ko": "주간만 하는 사람은 야간 설정이 필요 없습니다."
+  },
+  "day_shift_breaks": {
+    "en": "주간 휴게 DAY-SHIFT BREAKS",
+    "ko": "주간 휴게 · DAY-SHIFT BREAKS"
+  },
+  "day_shift_starts": {
+    "en": "Day shift starts",
+    "ko": "주간 시작"
+  },
+  "day_total_variable_pay": {
+    "en": "Day total, variable pay",
+    "ko": "일일 변동수당"
+  },
+  "days_added": {
+    "en": "✓ {p0} → {p1} · {p2} days added",
+    "ko": "✓ {p0} → {p1} · {p2}일 기록 추가됨"
+  },
+  "days_as_of_logged_since_left": {
+    "en": "{p1} days as of {p0} · {p2} logged since → {p3} left",
+    "ko": "{p0} 기준 {p1}일 · 그 뒤 사용 {p2}일 → 남음 {p3}일"
+  },
+  "days_cut_short_by_the_company": {
+    "en": "{p0} days cut short by the company",
+    "ko": "회사 사정으로 짧아진 날 {p0}일"
+  },
+  "days_left_changeover_to_on": {
+    "en": "{p0} days left · changeover to {p2} on {p1}",
+    "ko": "{p0}일 남음 · {p1}부터 {p2}"
+  },
+  "days_left_is_higher_than_your_yearly_t": {
+    "en": "⚠ Days left is higher than your yearly total — check these two numbers.",
+    "ko": "⚠ 남은 연차가 연간 연차보다 많습니다. 두 숫자를 확인하세요."
+  },
+  "days_left_today": {
+    "en": "Days left today",
+    "ko": "지금 남은 연차"
+  },
+  "days_of_service_365": {
+    "en": "× days of service ÷ 365",
+    "ko": "× 재직일수 ÷ 365"
+  },
+  "days_per_year": {
+    "en": "Days per year",
+    "ko": "1년 연차"
+  },
+  "days_worked": {
+    "en": "Days worked",
+    "ko": "근무일"
+  },
+  "days_worked_ot_night_as_of_basic_and_f": {
+    "en": "{p0} days worked · {p1} OT · {p2} night, as of {p3}.{p4}. Basic and fixed allowances are counted in full.",
+    "ko": "{p0}일 근무 · 잔업 {p1} · 야간 {p2} ({p3}.{p4} 기준). 기본금·고정수당은 전액 반영됩니다."
+  },
+  "days_worked_ot_night_whole_period": {
+    "en": "{p0} days worked · {p1} OT · {p2} night, for the whole period. Basic and fixed allowances are counted in full.",
+    "ko": "{p0}일 근무 · 잔업 {p1} · 야간 {p2} (이 기간 전체). 기본금·고정수당은 전액 반영됩니다."
+  },
+  "days_you_booked_ahead_they_sit_in_a_pa": {
+    "ko": "미리 적어 둔 날입니다. 아직 시작하지 않은 급여기간에 있어서 ‹ › 로는 닿지 않습니다.",
+    "en": "Days you booked ahead. They sit in a pay period that has not started, so ‹ › do not reach them yet."
+  },
+  "ded_local": {
+    "en": "Local tax · 10% of income tax",
+    "ko": "주민세"
+  },
+  "ded_local__en": {
+    "en": "Local tax · 10% of income tax",
+    "ko": "Local tax · 10% of income tax"
+  },
+  "ded_tax": {
+    "en": "Income tax",
+    "ko": "소득세"
+  },
+  "ded_tax__en": {
+    "en": "Income tax",
+    "ko": "Income tax"
+  },
+  "ded_tax__est": {
+    "en": "Income tax · estimated",
+    "ko": "소득세"
+  },
+  "ded_tax__mine": {
+    "en": "Income tax · your figure",
+    "ko": "소득세"
+  },
+  "deducted": {
+    "en": "deducted",
+    "ko": "차감"
+  },
+  "deducted_estimated": {
+    "en": "Deducted, estimated",
+    "ko": "공제 (추정)"
+  },
+  "deduction_generic": {
+    "en": "Other",
+    "ko": "기타공제"
+  },
+  "deduction_name": {
+    "en": "Deduction name",
+    "ko": "공제 이름"
+  },
+  "deductions": {
+    "en": "DEDUCTIONS",
+    "ko": "공제 DEDUCTIONS"
+  },
+  "deductions_2": {
+    "en": "DEDUCTIONS",
+    "ko": "공제 DEDUCTIONS"
+  },
+  "delete_this_day": {
+    "en": "DELETE THIS DAY",
+    "ko": "삭제 DELETE THIS DAY"
+  },
+  "dependents": {
+    "en": "Dependents",
+    "ko": "부양가족 수"
+  },
+  "document_period": {
+    "en": "DOCUMENT PERIOD · 근무내역서 기간",
+    "ko": "근무내역서 기간 · DOCUMENT PERIOD"
+  },
+  "dow_letters": {
+    "en": "S|M|T|W|T|F|S",
+    "ko": "일|월|화|수|목|금|토"
+  },
+  "dow_long": {
+    "en": "SUNDAY|MONDAY|TUESDAY|WEDNESDAY|THURSDAY|FRIDAY|SATURDAY",
+    "ko": "SUN 일|MON 월|TUE 화|WED 수|THU 목|FRI 금|SAT 토"
+  },
+  "dow_short": {
+    "en": "Sun|Mon|Tue|Wed|Thu|Fri|Sat",
+    "ko": "일요일|월요일|화요일|수요일|목요일|금요일|토요일"
+  },
+  "down_to_last_30_min": {
+    "en": "down to last 30 min",
+    "ko": "지난 30분 단위로 내림"
+  },
+  "dt_absent": {
+    "en": "Absent",
+    "ko": "결근"
+  },
+  "dt_absent__en": {
+    "en": "Absent",
+    "ko": "Absent"
+  },
+  "dt_annual": {
+    "en": "Annual leave",
+    "ko": "연차"
+  },
+  "dt_holiday": {
+    "en": "Holiday work",
+    "ko": "특근"
+  },
+  "dt_holiday__en": {
+    "en": "Holiday work",
+    "ko": "Holiday work"
+  },
+  "dt_shutdown": {
+    "en": "Shutdown",
+    "ko": "휴업"
+  },
+  "dt_shutdown__en": {
+    "en": "Shutdown",
+    "ko": "Shutdown"
+  },
+  "dt_vacation": {
+    "en": "Vacation",
+    "ko": "휴가"
+  },
+  "dt_vacation__en": {
+    "en": "Vacation",
+    "ko": "Vacation"
+  },
+  "dt_work": {
+    "en": "Past shift",
+    "ko": "근무"
+  },
+  "dt_work__en": {
+    "en": "Past shift",
+    "ko": "Past shift"
+  },
+  "e_9_workers_usually_receive_this_as_th": {
+    "en": "E-9 workers usually receive this as 출국만기보험 when they leave Korea. If the insurance pays less than the figure above, the company owes you the difference — which is why you need to be able to work it out yourself.",
+    "ko": "E-9 근로자는 대개 출국만기보험으로 받습니다. 보험금이 위 금액보다 적으면 그 차액은 회사가 줘야 합니다 — 그래서 스스로 계산할 수 있어야 합니다."
+  },
+  "each_time_it_is_paid": {
+    "en": "each time it is paid",
+    "ko": "한 번 받을 때"
+  },
+  "earn_basic": {
+    "en": "Basic salary · {h}h",
+    "ko": "기본금"
+  },
+  "earn_hol": {
+    "en": "Holiday work ×1.5",
+    "ko": "특근수당"
+  },
+  "earn_hol__en": {
+    "en": "Holiday work ×1.5",
+    "ko": "Holiday work ×1.5"
+  },
+  "earn_holover": {
+    "en": "Holiday past 8h, ×2.0 tier (§56②)",
+    "ko": "휴일 8시간 초과 가산 ×2.0"
+  },
+  "earn_holover__en": {
+    "en": "Holiday past 8h, ×2.0 tier (§56②)",
+    "ko": "Holiday past 8h, ×2.0 tier (§56②)"
+  },
+  "earn_night": {
+    "en": "Night premium ×0.5",
+    "ko": "야간심야"
+  },
+  "earn_night__en": {
+    "en": "Night premium ×0.5",
+    "ko": "Night premium ×0.5"
+  },
+  "earn_ot": {
+    "en": "Overtime ×1.5",
+    "ko": "포괄잔업수당"
+  },
+  "earn_ot__en": {
+    "en": "Overtime ×1.5",
+    "ko": "Overtime ×1.5"
+  },
+  "earned_so_far": {
+    "en": "Earned so far",
+    "ko": "지금 벌이"
+  },
+  "earned_today": {
+    "en": "Earned today",
+    "ko": "오늘 벌이"
+  },
+  "earnings": {
+    "en": "EARNINGS",
+    "ko": "지급 EARNINGS"
+  },
+  "edit_times": {
+    "en": "EDIT TIMES",
+    "ko": "시간 수정"
+  },
+  "elapsed": {
+    "en": "Elapsed",
+    "ko": "체류 시간"
+  },
+  "elapsed_so_far": {
+    "en": "Elapsed so far",
+    "ko": "경과"
+  },
+  "employer_name": {
+    "en": "COMPANY NAME",
+    "ko": "사업장명 · COMPANY NAME"
+  },
+  "employer_name_hint": {
+    "en": "Each pay period keeps the company name that was set while you worked it — change jobs and last month’s document does not change with you. Where the app has no company name on record for a period, such as one that ended before you installed it, the document says «현재 설정값» — the current setting — on its own face. Leave it blank and the line does not appear at all.",
+    "ko": "급여기간마다 그 때 적혀 있던 회사 이름을 함께 간직합니다 — 회사를 옮겨도 지난 달 문서는 그대로입니다. 앱을 쓰기 전에 끝난 기간처럼 기록에 회사 이름이 없는 경우에는, 문서가 «현재 설정값»이라고 스스로 밝힙니다. 비워 두면 문서에 이 줄이 나오지 않습니다."
+  },
+  "employer_name_ph": {
+    "en": "company name, as on your 근로계약서",
+    "ko": "근로계약서에 적힌 회사 이름"
+  },
+  "employers_withhold_using_the_national_": {
+    "en": "Employers withhold using the national simplified tax table — it depends on that month’s taxable pay and your dependents, so it changes every month. A heavy-overtime month means more tax. Local tax is always 10% of income tax.",
+    "ko": "회사는 국세청 근로소득 간이세액표를 씁니다 — 그 달 과세소득과 부양가족 수로 정해지므로 매달 달라집니다. 잔업이 많은 달엔 세금도 올라갑니다. 주민세는 항상 소득세의 10%."
+  },
+  "enter_my_own": {
+    "en": "ENTER MY OWN",
+    "ko": "직접 입력 MY FIGURE"
+  },
+  "enter_the_time_your_day_shift_starts_d": {
+    "en": "Enter the time your day shift starts. Day-only workers never need a night start.",
+    "ko": "본인 회사의 주간 출근 시간을 넣으세요. 주간만 하는 사람은 야간 시작 시간이 필요 없습니다."
+  },
+  "enter_the_time_your_night_shift_starts": {
+    "en": "Enter the time your night shift starts. Night-only workers never need a day start.",
+    "ko": "본인 회사의 야간 출근 시간을 넣으세요. 야간만 하는 사람은 주간 시작 시간이 필요 없습니다."
+  },
+  "enter_them_once_and_the_app_works_out_": {
+    "en": "Enter them once and the app works out your hourly, overtime and night pay — any visa, any company. The pale figures already in the fields are only examples: replace them with what your own payslip says.",
+    "ko": "한 번만 입력하면 시급·잔업·야간수당은 자동으로 계산됩니다 — 비자 종류나 회사와 상관없이. 화면에 미리 들어 있는 흐린 숫자는 예시일 뿐이니, 본인 명세서 금액으로 바꾸세요."
+  },
+  "enter_your_own_company_times_the_app_d": {
+    "en": "Enter your own company times. The app decides day or night by which start your punch is closer to.",
+    "ko": "본인 회사 시간을 넣으세요. 출근 시간이 어느 쪽에 가까운지로 근무조를 자동 판별합니다."
+  },
+  "enter_your_own_company_times_the_app_d_2": {
+    "en": "Enter your own company times. The app decides day or night by which start your punch is closer to.",
+    "ko": "본인 회사 시간을 넣으세요. 출근 시간이 어느 쪽에 가까운지로 근무조를 자동 판별합니다."
+  },
+  "est_take_home": {
+    "en": "Est. take-home",
+    "ko": "예상 수령액"
+  },
+  "estimate_it": {
+    "en": "ESTIMATE IT",
+    "ko": "자동 추정 ESTIMATE"
+  },
+  "estimated_for_payday_days_of_this_peri": {
+    "en": "Estimated for payday {p0} · {p1} days of this period still to log, so this figure will rise.",
+    "ko": "지급일 {p0} 예상 · 이번 기간 {p1}일이 남아 있어 금액은 더 올라갑니다."
+  },
+  "estimated_for_payday_every_day_logged": {
+    "en": "Estimated for payday {p0} · today is the last day of this period. Check this figure against the payslip your company gives you.",
+    "ko": "지급일 {p0} 예상 · 오늘이 이번 기간의 마지막 날입니다. 회사가 주는 급여명세서와 이 금액을 맞춰 보십시오."
+  },
+  "estimated_for_payday_one_day_left": {
+    "en": "Estimated for payday {p0} · 1 more day of this period to log, so this figure will still rise.",
+    "ko": "지급일 {p0} 예상 · 이번 기간이 하루 남아 있어 금액은 더 올라갑니다."
+  },
+  "estimated_take_home": {
+    "en": "ESTIMATED TAKE-HOME",
+    "ko": "예상 수령액 · ESTIMATED TAKE-HOME"
+  },
+  "every_break_here_is_unpaid": {
+    "en": "Every break here is unpaid — the app takes it off your worked hours. If the company pays your 10-minute coffee break, do not put it here, or you lose that time every single day. 근로기준법 §54: only a real break, where you are free to leave your post, is unpaid.",
+    "ko": "여기 적는 휴게는 모두 무급입니다 — 앱이 실근무에서 빼갑니다. 회사가 돈을 주는 10분 커피 타임은 적지 마세요. 적으면 매일 그만큼 손해입니다. 근로기준법 제54조: 자리를 떠나 자유롭게 쉴 수 있는 시간만 무급 휴게입니다."
+  },
+  "every_hour": {
+    "en": "every hour · ",
+    "ko": "전 시간 · "
+  },
+  "excluded": {
+    "en": "excluded",
+    "ko": "제외됨"
+  },
+  "excluded_2": {
+    "en": "excluded",
+    "ko": "제외"
+  },
+  "export_a_file": {
+    "en": "EXPORT A FILE",
+    "ko": "파일로 내보내기"
+  },
+  "export_csv_for_a_spreadsheet": {
+    "en": "CSV · for a spreadsheet",
+    "ko": "CSV로 내보내기"
+  },
+  "exported_days_of_records": {
+    "en": "Exported — {p0} days of records · {p1}",
+    "ko": "내보냈습니다 — 기록 {p0}일 · {p1}"
+  },
+  "exported_days_to_csv": {
+    "en": "✓ {p0} days exported to {p1}",
+    "ko": "✓ {p0}일을 {p1} 파일로 내보냈습니다"
+  },
+  "extended_weeks": {
+    "en": "EXTENDED · {p0} weeks",
+    "ko": "연장 · {p0}주"
+  },
+  "fingerprint_check_unavailable_press_an": {
+    "en": "Fingerprint check unavailable — press and hold instead",
+    "ko": "지문 확인을 쓸 수 없습니다 — 길게 눌러 기록하세요"
+  },
+  "fingerprint_not_verified_tap_to_try_ag": {
+    "en": "Fingerprint not verified — tap to try again",
+    "ko": "지문이 확인되지 않았습니다 — 다시 누르세요"
+  },
+  "first_day_at_this_company": {
+    "en": "YYYY-MM-DD",
+    "ko": "YYYY-MM-DD"
+  },
+  "first_run_registers_your_fingerprint_t": {
+    "en": "First run registers your fingerprint — tap to start",
+    "ko": "처음 한 번만 지문을 등록합니다 — 눌러서 시작하세요"
+  },
+  "first_time_setup": {
+    "en": "FIRST-TIME SETUP",
+    "ko": "처음 설정 · FIRST-TIME SETUP"
+  },
+  "fixed": {
+    "en": "fixed",
+    "ko": "고정"
+  },
+  "fixed_2": {
+    "en": "fixed",
+    "ko": "고정"
+  },
+  "fixed_allowances": {
+    "en": "FIXED ALLOWANCES",
+    "ko": "고정수당 FIXED ALLOWANCES"
+  },
+  "floored_at": {
+    "en": " · floored at {p0}",
+    "ko": " · 하한 {p0} 적용"
+  },
+  "flt_employer": {
+    "en": "Company's side",
+    "ko": "회사 사정"
+  },
+  "flt_other": {
+    "en": "Something else",
+    "ko": "그 밖"
+  },
+  "flt_worker": {
+    "en": "My own reason",
+    "ko": "본인 사정"
+  },
+  "for_a_month_end_cut_off_enter_31_short": {
+    "en": "For a month-end cut-off enter 31 — short months fall back to their own last day.",
+    "ko": "말일 마감이면 31을 넣으세요 — 짧은 달은 그 달 말일로 자동 조정됩니다."
+  },
+  "full_days_sent_home": {
+    "en": "{p0} full days sent home",
+    "ko": "통째로 쉰 날 {p0}일"
+  },
+  "gross_paid_hours": {
+    "en": "Gross paid hours",
+    "ko": "총 인정시간"
+  },
+  "gross_pay": {
+    "en": "GROSS PAY",
+    "ko": "지급총액 GROSS"
+  },
+  "grp_backup": {
+    "en": "Backup and export",
+    "ko": "백업과 내보내기"
+  },
+  "grp_backup__en": {
+    "en": "BACKUP & EXPORT",
+    "ko": "BACKUP & EXPORT"
+  },
+  "grp_ins": {
+    "en": "Insurance and tax",
+    "ko": "4대보험과 세금"
+  },
+  "grp_ins__en": {
+    "en": "INSURANCE & TAX",
+    "ko": "INSURANCE & TAX"
+  },
+  "grp_lang": {
+    "en": "Language",
+    "ko": "언어"
+  },
+  "grp_lang__en": {
+    "en": "LANGUAGE",
+    "ko": "LANGUAGE"
+  },
+  "grp_me": {
+    "en": "My details",
+    "ko": "내 정보"
+  },
+  "grp_me__en": {
+    "en": "MY DETAILS",
+    "ko": "MY DETAILS"
+  },
+  "grp_money": {
+    "en": "Allowances and deductions",
+    "ko": "수당과 공제"
+  },
+  "grp_money__en": {
+    "en": "ALLOWANCES & DEDUCTIONS",
+    "ko": "ALLOWANCES & DEDUCTIONS"
+  },
+  "grp_pay": {
+    "en": "My pay setup",
+    "ko": "내 급여 조건"
+  },
+  "grp_pay__en": {
+    "en": "MY PAY SETUP",
+    "ko": "MY PAY SETUP"
+  },
+  "grp_rules": {
+    "en": "Company rules",
+    "ko": "회사 규칙"
+  },
+  "grp_rules__en": {
+    "en": "COMPANY RULES",
+    "ko": "COMPANY RULES"
+  },
+  "grp_shift": {
+    "en": "Shifts and breaks",
+    "ko": "근무조와 휴게"
+  },
+  "grp_shift__en": {
+    "en": "SHIFTS & BREAKS",
+    "ko": "SHIFTS & BREAKS"
+  },
+  "h": {
+    "en": "{p0}h",
+    "ko": "{p0}시간"
+  },
+  "h_8h": {
+    "en": "{p0}/h × 8h",
+    "ko": "시급 {p0} × 8h"
+  },
+  "h_over_52": {
+    "en": "+{p0}h over 52",
+    "ko": "주 52시간 +{p0}시간"
+  },
+  "h_over_the_12h_cap": {
+    "en": "+{p0}h over the 12h cap",
+    "ko": "연장 12시간 +{p0}시간"
+  },
+  "h_total_h_overtime": {
+    "en": "{p0}h total · {p1}h overtime",
+    "ko": "총 {p0}시간 · 연장 {p1}시간"
+  },
+  "health_13_14": {
+    "en": "health × 13.14%",
+    "ko": "건강보험료 × 13.14%"
+  },
+  "health_long_term_care_pension": {
+    "en": "Health {p0} · Long-term care {p1} · Pension {p2}",
+    "ko": "건강보험 {p0} · 장기요양 {p1} · 국민연금 {p2}"
+  },
+  "health_long_term_care_pension_and_empl": {
+    "en": "Health, long-term care, pension and employment insurance are a fixed percentage of your monthly wage, so the app works them out from your salary — you do not type them. Just switch off the ones you are not enrolled in.",
+    "ko": "건강보험·장기요양·국민연금·고용보험은 보수월액에 정해진 요율을 곱한 금액이라, 급여만 정확하면 앱이 계산합니다 — 직접 넣지 않아도 됩니다. 가입하지 않은 항목만 꺼 두세요."
+  },
+  "hol_buddha": {
+    "en": "Buddha's Birthday",
+    "ko": "부처님오신날"
+  },
+  "hol_children": {
+    "en": "Children's Day",
+    "ko": "어린이날"
+  },
+  "hol_christmas": {
+    "en": "Christmas Day",
+    "ko": "성탄절"
+  },
+  "hol_chuseok": {
+    "en": "Chuseok",
+    "ko": "추석"
+  },
+  "hol_chuseok_eve": {
+    "en": "Chuseok holiday",
+    "ko": "추석 연휴"
+  },
+  "hol_foundation": {
+    "en": "National Foundation Day",
+    "ko": "개천절"
+  },
+  "hol_hangul": {
+    "en": "Hangul Day",
+    "ko": "한글날"
+  },
+  "hol_jeheonjeol": {
+    "en": "Constitution Day",
+    "ko": "제헌절"
+  },
+  "hol_labour": {
+    "en": "Labour Day",
+    "ko": "근로자의 날"
+  },
+  "hol_liberation": {
+    "en": "Liberation Day",
+    "ko": "광복절"
+  },
+  "hol_memorial": {
+    "en": "Memorial Day",
+    "ko": "현충일"
+  },
+  "hol_newyear": {
+    "en": "New Year's Day",
+    "ko": "신정"
+  },
+  "hol_samiljeol": {
+    "en": "Independence Movement Day",
+    "ko": "삼일절"
+  },
+  "hol_seollal": {
+    "en": "Seollal",
+    "ko": "설날"
+  },
+  "hol_seollal_eve": {
+    "en": "Seollal holiday",
+    "ko": "설날 연휴"
+  },
+  "hol_sub": {
+    "en": "substitute holiday",
+    "ko": "대체공휴일"
+  },
+  "hold_to_clock_in": {
+    "en": "HOLD TO CLOCK IN",
+    "ko": "출근 · 길게 누르기"
+  },
+  "hold_to_clock_out": {
+    "en": "HOLD TO CLOCK OUT",
+    "ko": "퇴근 · 길게 누르기"
+  },
+  "holiday": {
+    "en": "Holiday ",
+    "ko": "특근 "
+  },
+  "holiday_2": {
+    "en": "Holiday",
+    "ko": "특근"
+  },
+  "holiday_3": {
+    "en": "HOLIDAY",
+    "ko": "휴일"
+  },
+  "holiday_first_8h": {
+    "en": "Holiday first 8h ",
+    "ko": "특근 8시간 이내 "
+  },
+  "holiday_weekend": {
+    "en": "Holiday/weekend",
+    "ko": "공휴일·주말"
+  },
+  "holiday_work": {
+    "en": "Holiday work",
+    "ko": "특근"
+  },
+  "holiday_work_1_5": {
+    "en": "Holiday work ×1.5",
+    "ko": "특근 ×1.5"
+  },
+  "holiday_work_1_5_2": {
+    "en": "Holiday work ×1.5",
+    "ko": "특근 ×1.5"
+  },
+  "holiday_work_2": {
+    "en": "Holiday work",
+    "ko": "특근"
+  },
+  "holiday_work_3": {
+    "en": "Holiday work",
+    "ko": "특근"
+  },
+  "holiday_work_past_8h_2_0_legal": {
+    "en": "Holiday work past 8h ×2.0 (legal)",
+    "ko": "휴일근로 8시간 초과 ×2.0 (법정)"
+  },
+  "hourly_rate_basic_h": {
+    "en": "Hourly rate (basic ÷ {p0}h)",
+    "ko": "시급 (기본금 ÷ {p0}h)"
+  },
+  "how": {
+    "en": "How",
+    "ko": "계산"
+  },
+  "how_it_is_computed": {
+    "en": "HOW IT IS COMPUTED",
+    "ko": "계산 근거 · HOW IT IS COMPUTED"
+  },
+  "how_punch_times_are_counted": {
+    "en": "HOW PUNCH TIMES ARE COUNTED",
+    "ko": "출퇴근 처리 · HOW TIMES ARE COUNTED"
+  },
+  "i_clocked_in_earlier_today": {
+    "en": "I clocked in earlier today",
+    "ko": "이미 출근했습니다 — 시간 직접 입력"
+  },
+  "if_your_payslip_shows_no_shutdown_allo": {
+    "en": "If your payslip shows no shutdown allowance, ask the company",
+    "ko": "명세서에 휴업수당이 없으면 회사에 물어보세요"
+  },
+  "in_progress_days_left": {
+    "en": "IN PROGRESS · {p0} days left",
+    "ko": "진행중 · {p0}일 남음"
+  },
+  "in_progress_one_day_left": {
+    "en": "IN PROGRESS · 1 day left",
+    "ko": "진행중 · 1일 남음"
+  },
+  "including_yourself": {
+    "en": "부양가족 수 · including yourself",
+    "ko": "dependents incl. yourself"
+  },
+  "income_tax": {
+    "en": "INCOME TAX",
+    "ko": "소득세 · INCOME TAX"
+  },
+  "ins_care": {
+    "en": "Long-term care insurance",
+    "ko": "장기요양"
+  },
+  "ins_care_short": {
+    "en": "Long-term care",
+    "ko": "장기요양"
+  },
+  "ins_emp": {
+    "en": "Employment insurance",
+    "ko": "고용보험"
+  },
+  "ins_health": {
+    "en": "Health insurance",
+    "ko": "건강보험"
+  },
+  "ins_pension": {
+    "en": "National pension",
+    "ko": "국민연금"
+  },
+  "inside_basic_salary_no_extra_pay": {
+    "en": "Inside basic salary — no extra pay",
+    "ko": "기본금에 포함 — 추가 지급 없음"
+  },
+  "is_not_a_work_log_backup_file": {
+    "en": "{p0} is not a Work Log backup file.",
+    "ko": "{p0} — 이 앱의 백업 파일이 아닙니다."
+  },
+  "is_this_average_a_guess": {
+    "en": "Is the average a guess?",
+    "ko": "평균임금이 추정입니까?"
+  },
+  "k_11": {
+    "en": "기본금",
+    "ko": "Basic salary"
+  },
+  "k_12": {
+    "en": "급여기간 시작일",
+    "ko": "period starts on the"
+  },
+  "k_13": {
+    "en": "월급날",
+    "ko": "payday"
+  },
+  "k_14": {
+    "en": "지금 남은 연차",
+    "ko": "left today"
+  },
+  "k_15": {
+    "en": "지난달 명세서에서",
+    "ko": "last payslip"
+  },
+  "k_16": {
+    "en": "출근 시간 직접 입력",
+    "ko": "CLOCK IN AT AN EARLIER TIME"
+  },
+  "k_3": {
+    "en": "연차",
+    "ko": "Annual leave"
+  },
+  "k_4": {
+    "en": " / ",
+    "ko": "일 / "
+  },
+  "k_5": {
+    "en": "특근",
+    "ko": "특근"
+  },
+  "k_7": {
+    "en": "주간만",
+    "ko": "Day only"
+  },
+  "k_8": {
+    "en": "야간만",
+    "ko": "Night only"
+  },
+  "k_9": {
+    "en": "교대",
+    "ko": "Both, rotating"
+  },
+  "keep_the_default_for_now": {
+    "en": "Not now — keep the default",
+    "ko": "나중에 — 기본값으로 두기"
+  },
+  "l_avg_daily": {
+    "en": "Average daily wage",
+    "ko": "1일 평균임금"
+  },
+  "l_avg_daily_sub": {
+    "en": "basis for the shutdown allowance — leave empty for automatic",
+    "ko": "휴업수당의 기준 · 비우면 자동"
+  },
+  "l_shut_pct": {
+    "en": "Shutdown allowance rate",
+    "ko": "휴업수당 지급률"
+  },
+  "l_shut_pct_sub": {
+    "en": "% — the legal minimum is 70",
+    "ko": "% · 법정 최저 70"
+  },
+  "l_v": {
+    "en": "{p0}L / {p1}V",
+    "ko": "{p0}연 / {p1}휴"
+  },
+  "labor_standards_act_56_2_holiday_work_": {
+    "en": "Labor Standards Act §56(2) — holiday work pays ×1.5 for the first 8 hours and ×2.0 beyond 8. Sunday (the weekly rest day) and public holidays are 휴일, so the ×2.0 tier applies. Saturday is normally a 무급휴무일, not a holiday: work on it is ordinary overtime at ×1.5 no matter how long. Turn this on only if your company rules or contract designate Saturday as a 휴일.",
+    "ko": "근로기준법 제56조② — 휴일근로는 8시간 이내 ×1.5, 8시간을 넘으면 ×2.0입니다. 일요일(주휴일)과 공휴일은 휴일이므로 8시간 초과분에 ×2.0이 적용됩니다. 토요일은 보통 ‘무급휴무일’이라 휴일이 아니고, 몇 시간을 일해도 연장근로 ×1.5만 붙습니다 — 회사 규칙이나 계약서에서 토요일을 휴일로 정한 경우에만 이 항목을 켜세요."
+  },
+  "labour_standards_act_50_and_53_40_sche": {
+    "en": "Labour Standards Act §50 and §53 — 40 scheduled hours a week plus at most 12 hours of overtime. 52 is the ceiling, and it stays the ceiling even if you agreed to more. Being paid for the extra hours does not make the excess lawful. Keep the record — it is your evidence.",
+    "ko": "근로기준법 제50조·제53조 — 1주 소정근로는 40시간, 연장근로는 12시간까지입니다. 합쳐서 52시간이 상한이고, 본인이 동의했더라도 이 한도를 넘길 수는 없습니다. 넘긴 시간에 수당을 받았더라도 초과 자체가 위반입니다. 기록은 그대로 두세요 — 증빙이 됩니다."
+  },
+  "labour_standards_act_56_2_holiday_work": {
+    "en": "Labour Standards Act §56(2) — holiday work pays ×1.5 for the first 8 hours and ×2.0 for every hour past 8. That is the legal floor, so the app assumes it is paid. If your payslip shows a flat ×1.5 no matter how long the day ran, switch this to NOT PAID and the app will show the difference as money you are owed. The ×2.0 tier applies to Sundays and public holidays only — Saturday is not a 휴일 and stays at ×1.5 however long you work, unless you switch on the setting just above.",
+    "ko": "근로기준법 제56조② — 휴일근로는 8시간 이내 ×1.5, 8시간을 넘긴 시간은 ×2.0입니다. 법이 정한 최저라 기본은 ‘지급함’입니다. 명세서를 보고 회사가 8시간을 넘겨도 ×1.5만 준다면 ‘미지급’으로 바꾸세요 — 그러면 앱이 그 차액을 급여 화면에 ‘받지 못한 금액’으로 따로 보여줍니다. 이 가산은 일요일과 공휴일에만 걸립니다. 토요일은 휴일이 아니라 몇 시간을 일해도 ×1.5이며, 바로 위 항목을 켜야 토요일에도 적용됩니다."
+  },
+  "language": {
+    "en": "LANGUAGE",
+    "ko": "언어 LANGUAGE"
+  },
+  "last_day_of_this_period": {
+    "en": "LAST DAY",
+    "ko": "마지막 날"
+  },
+  "last_day_starts": {
+    "en": "Last day · {p1} starts {p0}",
+    "ko": "오늘이 마지막 · {p0}부터 {p1}"
+  },
+  "last_month_s_income_tax": {
+    "en": "Last month’s income tax",
+    "ko": "지난달 소득세"
+  },
+  "last_period_days_logged_app_total_comp": {
+    "en": "Last period {p0} · {p1} days logged · app total {p2}. Compare it against your actual payslip.",
+    "ko": "지난 기간 {p0} · {p1}일 기록 · 앱 계산 {p2}. 실제 명세서와 비교해 보세요."
+  },
+  "last_shift": {
+    "en": "Last shift",
+    "ko": "지난 근무"
+  },
+  "leave": {
+    "en": "Leave",
+    "ko": "연차"
+  },
+  "leave_2": {
+    "en": "Leave",
+    "ko": "연차"
+  },
+  "leave_deducted": {
+    "en": "Leave deducted",
+    "ko": "연차 차감"
+  },
+  "leave_it_empty_if_you_are_not_at_work_": {
+    "en": "Leave it empty if you are not at work right now — punch in with your fingerprint later.",
+    "ko": "비워 두면 지금은 근무중이 아닙니다. 나중에 지문으로 출근하세요."
+  },
+  "leave_sent_home_no_boxes": {
+    "en": "Leave · sent home, no boxes",
+    "ko": "연차 · 박스 부족 귀가"
+  },
+  "leave_this_at_0_if_your_company_pays_n": {
+    "en": "Leave at 0 if there is no bonus. If there is, 상여 raises your 평균임금 and therefore your 퇴직금 — worth entering.",
+    "ko": "상여가 없으면 0으로 두세요. 있다면 평균임금이 올라가고 퇴직금도 함께 올라갑니다 — 적어 둘 값어치가 있습니다."
+  },
+  "leave_this_period": {
+    "en": "Leave this period",
+    "ko": "연차·휴가 (이번 기간)"
+  },
+  "leave_used": {
+    "en": "Leave used",
+    "ko": "연차 차감"
+  },
+  "leave_used_2": {
+    "en": "Leave used",
+    "ko": "연차 차감"
+  },
+  "leave_used_3": {
+    "en": "Leave used",
+    "ko": "연차 차감"
+  },
+  "left": {
+    "en": "Left",
+    "ko": "잔여"
+  },
+  "legal_and_help": {
+    "en": "LEGAL & HELP",
+    "ko": "법적 고지와 도움 · LEGAL & HELP"
+  },
+  "legal_minimum_0_5": {
+    "en": "legal min ×0.5",
+    "ko": "법정 최저 ×0.5"
+  },
+  "legal_minimum_1_5": {
+    "en": "legal min ×1.5",
+    "ko": "법정 최저 ×1.5"
+  },
+  "legal_minimum_2_0": {
+    "en": "legal min ×2.0",
+    "ko": "법정 최저 ×2.0"
+  },
+  "legal_minimum_check": {
+    "en": "LEGAL MINIMUM CHECK",
+    "ko": "법정 최저와 비교 · LEGAL MINIMUM CHECK"
+  },
+  "legal_minimum_lsa_56_2": {
+    "en": "— Legal minimum (LSA §56(2))",
+    "ko": "— 법정 최저 (근로기준법 §56②)"
+  },
+  "legal_not_advice": {
+    "en": "This app is a calculator — not a 공인노무사 labour attorney, not a lawyer. It applies 근로기준법 to the record you keep yourself and shows you the arithmetic. It is not legal advice, not labour consulting, and it never files or represents anything for you. The figures are estimates for your own reference — the binding ones are on the 급여명세서 payslip and 근로계약서 contract your company issues, and whether you were underpaid is for 고용노동부 and a 공인노무사 or a lawyer to decide. The app is free and warrants nothing it calculates. Before you file a 진정 complaint, check with the people below.",
+    "ko": "이 앱은 계산기입니다 — 공인노무사도 변호사도 아닙니다. 본인이 적은 기록에 근로기준법을 그대로 적용해 계산해 보여 줄 뿐이며, 법률 자문이나 노무 상담이 아니고, 본인을 대리해 신고나 진정을 하지 않습니다. 금액은 참고용 추정치입니다 — 확정 금액은 회사가 발행한 급여명세서와 근로계약서를 따르고, 임금을 덜 받았는지에 대한 판단은 고용노동부와 공인노무사·변호사의 몫입니다. 이 앱은 무료이며 계산 결과를 보증하지 않습니다. 진정을 넣기 전에 아래에서 반드시 확인하십시오."
+  },
+  "legal_where_to_get_help": {
+    "en": "고용노동부 고객상담센터, the labour ministry’s helpline — ☎ 1350, weekdays 09:00–18:00, interpreters available. A 임금체불 unpaid-wage complaint can be filed at the 노동포털 at labor.moel.go.kr, and a 외국인노동자지원센터 foreign worker support centre near you will talk it through with you. All of it is free. Take the 근무내역서 and the CSV this app makes and show them as they are.",
+    "ko": "고용노동부 고객상담센터 ☎ 1350 — 평일 09:00–18:00, 통역이 지원됩니다. 임금체불 진정은 노동포털 labor.moel.go.kr에서 넣을 수 있고, 가까운 외국인노동자지원센터에서도 상담받을 수 있습니다. 모두 무료입니다. 이 앱이 만든 근무내역서와 CSV를 그대로 가져가서 보여 주십시오."
+  },
+  "line": {
+    "en": "Line",
+    "ko": "항목"
+  },
+  "logged_planned": {
+    "en": "{p0} logged · {p1} planned",
+    "ko": "{p0}일 기록 · {p1}일 예정"
+  },
+  "logging_leave_in_the_app_counts_down_f": {
+    "en": "Logging leave in the app counts down from this number.",
+    "ko": "앱에 연차를 기록하면 남은 일수가 자동으로 줄어듭니다."
+  },
+  "m": {
+    "en": "m",
+    "ko": "분"
+  },
+  "made_by": {
+    "en": "Made by {name}",
+    "ko": "만든 사람 {name}"
+  },
+  "makes_a_one_page_korean_document_cover": {
+    "en": "Makes a one-page Korean document covering every day of the pay period you are viewing in this tab — punches, hours, your rate, the arithmetic, and any 52-hour breach or unpaid holiday premium. You can hand it straight to your company, a labour attorney or the Ministry of Employment and Labour.",
+    "ko": "이 탭에서 보고 있는 급여기간의 모든 근무를 한 장으로 정리한 한국어 문서를 만듭니다 — 날짜별 출퇴근, 시간, 시급과 계산 근거, 그리고 주 52시간 초과나 휴일가산 미지급이 있으면 그 내용까지 들어갑니다. 회사·노무사·고용노동부에 그대로 보여 줄 수 있습니다."
+  },
+  "mark_as_a_legal": {
+    "en": "Mark as a legal 휴일 (설날, 추석…)",
+    "ko": "법정 휴일로 표시 (설날·추석 등)"
+  },
+  "marked_a_legal_2_0_applied": {
+    "en": "Marked a legal 휴일 · ×2.0 applied",
+    "ko": "법정 휴일로 표시됨 · ×2.0 적용"
+  },
+  "marked_by_hand": {
+    "en": "marked by hand",
+    "ko": "직접 표시함"
+  },
+  "marks_the_day_as_holiday_work_you_stil": {
+    "en": "Marks the day as holiday work — you still punch in and out. Assumed 09:00 → 21:00 · {p0}. Your real punch replaces the assumed times.",
+    "ko": "그 날을 특근으로 표시합니다 — 지문은 그대로 찍어야 합니다. 예상 09:00 → 21:00 · {p0}. 실제 지문 시간이 예상 시간을 대체합니다."
+  },
+  "may_qualify_for_70_shutdown_allowance": {
+    "en": "may qualify for 70% shutdown allowance",
+    "ko": "휴업수당 70% 대상일 수 있음"
+  },
+  "min": {
+    "en": " min",
+    "ko": "분"
+  },
+  "min_before_the_hour": {
+    "en": " min before the hour",
+    "ko": "분 (정시 직전)"
+  },
+  "minutes_before_the_hour_that_still_cou": {
+    "en": "minutes before the hour that still count",
+    "ko": "정시 직전 몇 분까지 인정"
+  },
+  "missed_the_fingerprint_at_the_start_en": {
+    "en": "Missed the fingerprint at the start? Enter the time you actually began and the shift runs from there. Clock out with your fingerprint as usual.",
+    "ko": "지문을 찍지 못했더라도 오늘 실제로 출근한 시각을 넣으면 그때부터 근무중이 됩니다. 퇴근은 평소대로 지문으로 찍으세요."
+  },
+  "month_names": {
+    "en": "January|February|March|April|May|June|July|August|September|October|November|December",
+    "ko": "1월|2월|3월|4월|5월|6월|7월|8월|9월|10월|11월|12월"
+  },
+  "month_title": {
+    "en": "{name} {y}",
+    "ko": "{y}년 {m}월"
+  },
+  "monthly_hours": {
+    "en": "Monthly hours",
+    "ko": "기준시간"
+  },
+  "my_pay_setup": {
+    "en": "MY PAY SETUP",
+    "ko": "내 급여 조건 · MY PAY SETUP"
+  },
+  "my_shifts": {
+    "en": "MY SHIFTS",
+    "ko": "근무조 MY SHIFTS"
+  },
+  "n_allowances_n_deductions": {
+    "en": "{p0} allowance / {p1} deduction",
+    "ko": "수당 {p0} · 공제 {p1}"
+  },
+  "n_days_recorded": {
+    "en": "{p0} days recorded",
+    "ko": "기록 {p0}일"
+  },
+  "n_excluded_why": {
+    "en": "{n} excluded · {why}",
+    "ko": "{n} 제외 · {why}"
+  },
+  "needs_review": {
+    "en": "NEEDS REVIEW · ",
+    "ko": "확인 필요 · "
+  },
+  "net_pay_app_total": {
+    "en": "NET PAY · app total",
+    "ko": "수령액 NET · 앱 계산"
+  },
+  "net_pay_projected": {
+    "en": "NET PAY · projected",
+    "ko": "수령액 NET · 예정"
+  },
+  "net_worked_so_far": {
+    "en": "Net worked so far",
+    "ko": "실근무"
+  },
+  "next_years_minimum_wage_is_published": {
+    "en": "최저임금 Next year's minimum wage ({p0}) is published. Update the app before January so it keeps checking your pay against the legal floor. Your records and 근무내역서 are unaffected.",
+    "ko": "최저임금 {p0}년 최저임금이 고시됐습니다. 1월이 오기 전에 앱을 새로 받아 두면 바뀐 최저임금과 본인 시급을 계속 견줄 수 있습니다. 기록과 근무내역서는 그대로입니다."
+  },
+  "night": {
+    "en": "NIGHT",
+    "ko": "야간"
+  },
+  "night_2": {
+    "en": "Night ",
+    "ko": "야간 "
+  },
+  "night_3": {
+    "en": "Night",
+    "ko": "야간심야"
+  },
+  "night_4": {
+    "en": "Night",
+    "ko": "야간"
+  },
+  "night_5": {
+    "en": "night ",
+    "ko": "야간 "
+  },
+  "night_hours": {
+    "en": "Night hours",
+    "ko": "야간심야"
+  },
+  "night_only": {
+    "en": "Night only",
+    "ko": "야간만"
+  },
+  "night_premium_0_5": {
+    "en": "Night premium ×0.5",
+    "ko": "야간심야 ×0.5"
+  },
+  "night_premium_0_5_2": {
+    "en": "Night premium ×0.5",
+    "ko": "야간심야 ×0.5"
+  },
+  "night_shift_breaks": {
+    "en": "야간 휴게 NIGHT-SHIFT BREAKS",
+    "ko": "야간 휴게 · NIGHT-SHIFT BREAKS"
+  },
+  "night_shift_starts": {
+    "en": "Night shift starts",
+    "ko": "야간 시작"
+  },
+  "no_boxes_company_sent_you_home": {
+    "en": "No boxes — company sent you home",
+    "ko": "박스 부족 — 회사가 귀가시킴"
+  },
+  "no_boxes_sent_home_shutdown": {
+    "en": "NO WORK · SENT HOME → SHUTDOWN",
+    "ko": "일감 부족 · 휴업으로 기록"
+  },
+  "no_date": {
+    "en": "no date",
+    "ko": "날짜 없음"
+  },
+  "no_dorm_fee_delete_that_row_with_you_d": {
+    "en": "No dorm fee? Delete that row with ×. You don’t need to enter income tax — it changes every month, so the app estimates it and you can enter the real figure later.",
+    "ko": "기숙사비가 없으면 ×로 지우세요. 소득세·주민세는 입력하지 않아도 됩니다 — 매달 달라지므로 앱이 추정하고, 나중에 실제 금액을 넣을 수 있습니다."
+  },
+  "no_dorm_fee_leave_it_0_or_delete_the_r": {
+    "en": "No dorm fee? Leave it 0 or delete the row with ×.",
+    "ko": "기숙사비가 없으면 0으로 두거나 ×로 지우세요."
+  },
+  "no_from_your_own_figure": {
+    "en": "No",
+    "ko": "아니오"
+  },
+  "no_leave": {
+    "en": "no leave",
+    "ko": "차감 0"
+  },
+  "no_name_set": {
+    "en": "No name set",
+    "ko": "성명 미기재"
+  },
+  "no_records_yet": {
+    "en": "No records yet",
+    "ko": "기록이 없습니다"
+  },
+  "no_shutdown_days_recorded_nothing_owed": {
+    "en": "No shutdown days recorded in this period. Nothing owed under §46.",
+    "ko": "이번 기간에 휴업으로 기록된 날이 없습니다. 제46조로 받을 것은 없습니다."
+  },
+  "no_unpaid_break": {
+    "en": "No unpaid break. ",
+    "ko": "무급 휴게 없음. "
+  },
+  "no_unpaid_break_all_hours_paid": {
+    "en": "No unpaid break — all hours paid",
+    "ko": "휴게시간 없음 — 전 시간 유급"
+  },
+  "non_work": {
+    "en": "NON-WORK",
+    "ko": "휴무일"
+  },
+  "none": {
+    "en": "none",
+    "ko": "없음"
+  },
+  "none_2": {
+    "en": "none",
+    "ko": "없음"
+  },
+  "none_of_this_is_in_this_month_s_payslip": {
+    "en": "None of this is in this month’s payslip. It is paid later, or separately, or only if you ask — so the app keeps it on its own page with the law it comes from.",
+    "ko": "여기 있는 돈은 이번 달 명세서에 없습니다. 나중에 나오거나, 따로 나오거나, 말해야 나옵니다 — 그래서 근거 법조문과 함께 따로 모아 둡니다."
+  },
+  "not_a": {
+    "en": "not a 휴일",
+    "ko": "휴일이 아님"
+  },
+  "not_deducted": {
+    "en": " · not deducted",
+    "ko": " · 연차 차감 없음"
+  },
+  "not_deducted_2": {
+    "en": "not deducted",
+    "ko": "없음"
+  },
+  "not_enough_leave_over_you_only_have_le": {
+    "en": "⚠ Not enough leave — {p2} over. You only have {p3} left.",
+    "ko": "⚠ 연차 부족 — {p0}일 초과. 잔여 {p1}일뿐입니다."
+  },
+  "not_on_payslip": {
+    "en": "not on payslip",
+    "ko": "없음"
+  },
+  "not_paid": {
+    "en": "NOT PAID",
+    "ko": "미지급"
+  },
+  "not_punched_yet": {
+    "en": "not punched yet",
+    "ko": "아직 찍지 않았습니다"
+  },
+  "not_your_leave": {
+    "en": " · NOT your leave",
+    "ko": " · 연차 아님"
+  },
+  "note_shut_pct": {
+    "en": "LSA §46 sets a floor of 70% of average wages. If your company pays your whole salary on these days, set this to 100 so the app stops under-counting. Do not go below 70.",
+    "ko": "근로기준법 제46조는 평균임금의 70% 이상을 정하고 있습니다. 회사가 이런 날에 월급을 그대로 준다면 100으로 두세요 — 앱이 그만큼 덜 잡지 않습니다. 70 아래로는 내리지 마세요."
+  },
+  "nothing_excluded": {
+    "en": "nothing excluded",
+    "ko": "제외 없음"
+  },
+  "nothing_logged_in_this_pay_period_yet": {
+    "en": "Nothing logged in this pay period yet",
+    "ko": "이번 급여기간은 아직 비어 있습니다"
+  },
+  "of_left_after_this": {
+    "en": "{p2} of {p1} left after this",
+    "ko": "차감 후 잔여 {p0}일 / {p1}일"
+  },
+  "off": {
+    "en": "OFF",
+    "ko": "해당없음"
+  },
+  "off_rotation": {
+    "en": "⚠ OFF-ROTATION",
+    "ko": "⚠ 근무조 불일치"
+  },
+  "ok": {
+    "en": "OK",
+    "ko": "확인"
+  },
+  "on": {
+    "en": "ON",
+    "ko": "공제"
+  },
+  "on_even_the_first_8h_pay_1_5_and_every": {
+    "en": "On 특근 even the first 8h pay ×1.5, and every hour between 22:00–06:00 adds the night premium ×0.5 on top. ",
+    "ko": "특근이라 8시간 이내도 ×1.5, 22:00–06:00 사이는 야간수당 ×0.5가 그 위에 붙습니다. "
+  },
+  "on_shift": {
+    "en": "ON SHIFT · 특근",
+    "ko": "특근 근무중"
+  },
+  "on_shift_2": {
+    "en": "ON SHIFT",
+    "ko": "근무중"
+  },
+  "on_shift_in_not_clocked_out": {
+    "en": "ON SHIFT · in {p0} · not clocked out",
+    "ko": "근무중 · {p0} 출근 · 퇴근 아직"
+  },
+  "one_day_cut_short_by_the_company": {
+    "en": "1 day cut short by the company",
+    "ko": "회사 사정으로 짧아진 날 1일"
+  },
+  "one_full_day_sent_home": {
+    "en": "1 full day sent home",
+    "ko": "통째로 쉰 날 1일"
+  },
+  "one_thing_first": {
+    "en": "ONE THING FIRST · 한 가지만",
+    "ko": "한 가지만 · ONE THING FIRST"
+  },
+  "only_if_you_work_late": {
+    "en": "연장 시 ONLY IF LATE",
+    "ko": "연장 시에만"
+  },
+  "ot": {
+    "en": "OT ",
+    "ko": "잔업 "
+  },
+  "ot_2": {
+    "en": "OT ",
+    "ko": "잔업 "
+  },
+  "other_deductions": {
+    "en": "OTHER DEDUCTIONS",
+    "ko": "그 밖의 공제 · OTHER DEDUCTIONS"
+  },
+  "overtime": {
+    "en": "Overtime",
+    "ko": "잔업"
+  },
+  "overtime_1_5": {
+    "en": "Overtime ×1.5",
+    "ko": "잔업 ×1.5"
+  },
+  "overtime_1_5_2": {
+    "en": "Overtime ×1.5",
+    "ko": "잔업 ×1.5"
+  },
+  "overtime_2": {
+    "en": "Overtime",
+    "ko": "잔업"
+  },
+  "paid": {
+    "en": "PAID",
+    "ko": "지급함"
+  },
+  "paid_8h": {
+    "en": "paid 8h",
+    "ko": "유급 8h"
+  },
+  "paid_as": {
+    "en": "Paid as",
+    "ko": "유급"
+  },
+  "paid_from": {
+    "en": "Paid from",
+    "ko": "인정 시작"
+  },
+  "paid_hours": {
+    "en": "paid hours",
+    "ko": "유급 시간"
+  },
+  "paid_time_counts_from_clock_in_rounds_": {
+    "en": "Paid time counts from {p0} — clock-in rounds up to the next 30 minutes.",
+    "ko": "급여는 {p0}부터 계산됩니다 (다음 30분 단위로 올림)."
+  },
+  "pale_figures_are_defaults_nobody_has_t": {
+    "en": "Pale figures are defaults nobody has touched yet — type your own and they turn solid. The {p3} basic is simply the {p0} minimum wage, {p1} × {p2}h.",
+    "ko": "흐린 숫자는 아직 아무도 손대지 않은 기본값입니다 — 본인 숫자를 적으면 진해집니다. 기본금 {p3}은 {p0} 최저임금 {p1} × {p2}시간일 뿐입니다."
+  },
+  "past_8h": {
+    "en": "Past 8h ",
+    "ko": "8시간 초과 "
+  },
+  "past_8h_no_2_0": {
+    "en": "Past 8h {p0} — no ×2.0",
+    "ko": "8시간 초과 {p0} — ×2.0 아님"
+  },
+  "pay": {
+    "en": "Pay",
+    "ko": "급여"
+  },
+  "pay_2": {
+    "en": "Pay",
+    "ko": "급여 계산"
+  },
+  "pay_period": {
+    "en": "pay period {p0}",
+    "ko": "급여기간 {p0}"
+  },
+  "pay_period_2": {
+    "en": "PAY PERIOD",
+    "ko": "급여기간 PAYROLL"
+  },
+  "pay_period_payday": {
+    "en": "Pay period {p0} · payday {p1}",
+    "ko": "급여기간 {p0} · 지급일 {p1}"
+  },
+  "pay_period_payday_2": {
+    "en": "Pay period {p0} · payday {p1}",
+    "ko": "급여기간 {p0} · 지급일 {p1}"
+  },
+  "payday": {
+    "en": "Payday",
+    "ko": "월급날"
+  },
+  "payslip": {
+    "en": "Payslip",
+    "ko": "명세서"
+  },
+  "payslip_for": {
+    "en": "Payslip for {p0}",
+    "ko": "이 기간 {p0} 명세서"
+  },
+  "period_closed": {
+    "en": "CLOSED PERIOD",
+    "ko": "마감된 기간"
+  },
+  "period_starts_on_the": {
+    "en": "Period starts on the",
+    "ko": "급여기간 시작일"
+  },
+  "period_to_date": {
+    "en": "period to date",
+    "ko": "이번 기간 누계"
+  },
+  "period_to_date_2": {
+    "en": "period to date",
+    "ko": "이번 기간 누계"
+  },
+  "pick_a_date": {
+    "en": "Pick a date",
+    "ko": "날짜를 선택하세요"
+  },
+  "pick_a_pay_period": {
+    "ko": "기간 고르기 · PICK A PERIOD",
+    "en": "PICK A PERIOD · 기간 고르기"
+  },
+  "planned": {
+    "en": " · planned",
+    "ko": " · 예정"
+  },
+  "planned_2": {
+    "en": " · planned",
+    "ko": " · 예정"
+  },
+  "planned_3": {
+    "en": "planned ",
+    "ko": "예정 "
+  },
+  "press_and_hold_your_fingerprint": {
+    "en": "Press and hold your fingerprint",
+    "ko": "지문을 길게 누르세요"
+  },
+  "press_and_hold_your_fingerprint_2": {
+    "en": "Press and hold your fingerprint",
+    "ko": "지문을 길게 누르세요"
+  },
+  "proj_note_plain": {
+    "en": "Includes planned days: {hol} holiday work{holDates}. Leave and vacation you log will be counted here too.",
+    "ko": "예정 포함 · 특근 {hol}{holDates}. 연차·휴가를 넣으면 여기에 함께 계산됩니다."
+  },
+  "proj_note_vac": {
+    "en": "Includes planned days: {hol} holiday work{holDates} and {vac} vacation{vacDates}. Vacation is paid as 8h regular — already inside your basic salary, so it adds nothing and takes nothing away.",
+    "ko": "예정 포함 · 특근 {hol}{holDates} · 휴가 {vac}{vacDates}. 휴가는 유급 8h 정상근무로, 기본금에 이미 포함되어 있어 더해지지도 빠지지도 않습니다."
+  },
+  "projected_to_period_end": {
+    "en": "PROJECTED TO PERIOD END",
+    "ko": "예정 포함 · PROJECTED"
+  },
+  "pt_absent": {
+    "en": "Absent",
+    "ko": "결근"
+  },
+  "pt_annual": {
+    "en": "Annual leave",
+    "ko": "연차"
+  },
+  "pt_holiday": {
+    "en": "Holiday worked",
+    "ko": "특근"
+  },
+  "pt_shutdown": {
+    "en": "Shutdown",
+    "ko": "휴업"
+  },
+  "pt_vacation": {
+    "en": "Vacation",
+    "ko": "휴가"
+  },
+  "pt_work": {
+    "en": "Past shift",
+    "ko": "지난 근무"
+  },
+  "public_holiday": {
+    "en": "public holiday",
+    "ko": "공휴일"
+  },
+  "punch_in_with_your_fingerprint_on_the_": {
+    "en": "Punch in with your fingerprint on the 출퇴근 screen, or use the 근무 button to add shifts you already worked.",
+    "ko": "출퇴근 화면에서 지문으로 출근하거나, 근무 버튼으로 이미 일한 날을 직접 넣으세요."
+  },
+  "punch_on_a_saturday_a_sunday_a_public_": {
+    "en": "Punch on a Saturday, a Sunday, a public holiday or a day you booked as 휴가 vacation and the app logs it as 특근 by itself — you never need the 특근 card. It is a day you were not due in and were called for, so every hour pays ×1.5, the first 8 included. 연차 annual leave is not included: that is a weekday you took off yourself, so working it is just an ordinary shift. Switch this off if your company marks 특근 by hand — days you marked with the 특근 card stay marked either way.",
+    "ko": "토요일·일요일·공휴일, 그리고 휴가로 잡아 둔 날에 지문을 찍으면 앱이 그 날을 자동으로 특근으로 기록합니다 — 특근 카드를 따로 누르지 않아도 됩니다. 원래 나오지 않는 날에 불려 나온 근무이므로 8시간 이내를 포함한 전 시간이 ×1.5로 계산됩니다. 연차는 포함되지 않습니다: 평일에 본인이 쓴 휴가라 그 날 일하면 평일 근무로 돌아갈 뿐입니다. 특근을 언제나 직접 표시하는 회사라면 꺼 두세요 — 꺼도 특근 카드로 표시한 날은 그대로 남습니다."
+  },
+  "punched": {
+    "en": "punched {p0}",
+    "ko": "지문 {p0}"
+  },
+  "punching_at_logged_as_a_shift_the_near": {
+    "en": "Punching at {p0} → logged as a {p1} shift, the nearer of your two scheduled starts ({p2}). ",
+    "ko": "{p0} 출근 → {p1} 근무조로 판별 ({p2} 시작에 가장 가까움). "
+  },
+  "reason": {
+    "en": "Reason",
+    "ko": "사유"
+  },
+  "reason_2": {
+    "en": "Reason",
+    "ko": "사유"
+  },
+  "record_it_anyway_flagged_for_review": {
+    "en": "Record it anyway, flagged for review",
+    "ko": "그대로 퇴근 — 확인 필요로 기록"
+  },
+  "reduction_for_the_day": {
+    "en": "Reduction for the day",
+    "ko": "그 날 줄어드는 금액"
+  },
+  "regular": {
+    "en": "Regular",
+    "ko": "정상근무"
+  },
+  "regular_inside_basic_pay": {
+    "en": "Regular, inside basic pay",
+    "ko": "정상근무 (기본금에 포함)"
+  },
+  "replace_everything": {
+    "en": "REPLACE EVERYTHING",
+    "ko": "덮어쓰기"
+  },
+  "rest_day_work_is_automatically": {
+    "en": "Rest-day work is 특근 automatically",
+    "ko": "쉬는 날 출근은 자동 특근"
+  },
+  "restore_from_file": {
+    "en": "RESTORE FROM FILE",
+    "ko": "파일에서 불러오기"
+  },
+  "restored_days_of_records": {
+    "en": "Restored — {p0} days of records.",
+    "ko": "불러왔습니다 — 기록 {p0}일."
+  },
+  "rotating": {
+    "en": "Rotating",
+    "ko": "교대"
+  },
+  "rounds_down_min_grace": {
+    "en": "rounds down · {p0} min grace",
+    "ko": "30분 단위로 내림 · 유예 {p0}분"
+  },
+  "rsn_46_est": {
+    "en": "Average daily wage",
+    "ko": "1일 평균임금"
+  },
+  "rsn_46_est_low": {
+    "en": "estimated low — records are under 3 months; enter it in settings",
+    "ko": "기록이 3개월에 못 미쳐 낮게 추정 — 설정에서 직접 입력"
+  },
+  "rsn_46_floor": {
+    "en": "Least guaranteed for this day (70% of average)",
+    "ko": "이 날 보장되는 최저 (평균임금 70%)"
+  },
+  "rsn_46_head": {
+    "en": "Partial shutdown — LSA §46",
+    "ko": "부분휴업 · 근로기준법 제46조"
+  },
+  "rsn_46_if_cut": {
+    "en": "If they cut the unworked hours ({p0})",
+    "ko": "시간을 깎였다면 ({p0})"
+  },
+  "rsn_46_if_full": {
+    "en": "If you get your whole monthly salary",
+    "ko": "월급을 그대로 받는다면"
+  },
+  "rsn_46_if_full_v": {
+    "en": "nothing more is owed",
+    "ko": "추가 지급액 없음"
+  },
+  "rsn_add": {
+    "en": "ADD A REASON",
+    "ko": "사유 적기"
+  },
+  "rsn_change": {
+    "en": "CHANGE THE REASON",
+    "ko": "사유 고치기"
+  },
+  "rsn_defect": {
+    "en": "Defects — production stopped",
+    "ko": "불량 발생 · 생산 중단"
+  },
+  "rsn_defect__en": {
+    "en": "Defects — production stopped",
+    "ko": "Defects — production stopped"
+  },
+  "rsn_edit_title": {
+    "en": "Reason for this day",
+    "ko": "이 날의 사유"
+  },
+  "rsn_fx_employer": {
+    "en": "The company's side made this day short. LSA §46 — an employer-caused shutdown guarantees at least 70% of a day's average wage ({p0}), and this day is not your annual leave.",
+    "ko": "회사 사정으로 짧아진 날입니다. 근로기준법 제46조 — 사업주 귀책 휴업은 1일 평균임금의 70% 이상({p0})을 보장하며, 이 날은 연차가 아닙니다."
+  },
+  "rsn_fx_injury": {
+    "en": "An injury at work is an industrial accident — it goes through 산재보험, not the shutdown allowance, and pays medical costs and its own leave benefit. Tell your company.",
+    "ko": "업무 중 부상은 산업재해입니다 — 휴업수당이 아니라 산재보험으로 처리되고, 치료비와 휴업급여가 따로 나옵니다. 회사에 반드시 알리세요."
+  },
+  "rsn_fx_other": {
+    "en": "This day needs to be looked at separately.",
+    "ko": "따로 살펴봐야 하는 날입니다."
+  },
+  "rsn_fx_weather": {
+    "en": "A natural disaster may not be the employer's fault. But to pay less than the shutdown allowance the company must get Labour Commission approval (§46②).",
+    "ko": "천재지변은 사업주 귀책이 아닐 수 있습니다. 다만 회사가 휴업수당을 줄이려면 노동위원회 승인을 받아야 합니다 (제46조②)."
+  },
+  "rsn_fx_worker": {
+    "en": "You left early for your own reason. This is not a shutdown day.",
+    "ko": "본인 사정으로 조퇴한 날입니다. 휴업수당 대상은 아닙니다."
+  },
+  "rsn_head_employer": {
+    "en": "Company's side — §46 shutdown allowance",
+    "ko": "회사 사정 · 근로기준법 §46 휴업수당"
+  },
+  "rsn_head_note": {
+    "en": "Note (optional)",
+    "ko": "메모 (선택)"
+  },
+  "rsn_head_other": {
+    "en": "Something else",
+    "ko": "그 밖"
+  },
+  "rsn_head_pick": {
+    "en": "Reason for early out",
+    "ko": "조퇴 사유"
+  },
+  "rsn_head_whose": {
+    "en": "Whose side was it?",
+    "ko": "누구 사정입니까?"
+  },
+  "rsn_head_worker": {
+    "en": "My own reason",
+    "ko": "본인 사정"
+  },
+  "rsn_hospital": {
+    "en": "Hospital or clinic visit",
+    "ko": "병원 진료"
+  },
+  "rsn_hospital__en": {
+    "en": "Hospital visit",
+    "ko": "Hospital visit"
+  },
+  "rsn_injury": {
+    "en": "Injured at work",
+    "ko": "업무 중 부상"
+  },
+  "rsn_injury__en": {
+    "en": "Injured at work",
+    "ko": "Injured at work"
+  },
+  "rsn_kicker": {
+    "en": "Early out",
+    "ko": "조퇴"
+  },
+  "rsn_ko_hint": {
+    "en": "Write in Korean if you can — your company and the labour inspector read this. The reason you picked above prints in Korean whatever language you use.",
+    "ko": "되도록 한국어로 적어 주세요 — 회사와 근로감독관이 읽습니다. 위에서 고른 항목은 어떤 언어로 쓰든 한국어로 찍힙니다."
+  },
+  "rsn_ko_warn": {
+    "en": "No Korean characters — your company may not be able to read this note.",
+    "ko": "한국어 글자가 없습니다 — 회사가 이 메모를 읽지 못할 수 있습니다."
+  },
+  "rsn_later": {
+    "en": "LATER",
+    "ko": "나중에 적기"
+  },
+  "rsn_machine": {
+    "en": "Machine or mould breakdown",
+    "ko": "기계 · 금형 고장"
+  },
+  "rsn_machine__en": {
+    "en": "Machine / mould breakdown",
+    "ko": "Machine / mould breakdown"
+  },
+  "rsn_no_material": {
+    "en": "Out of materials (boxes, parts)",
+    "ko": "자재 · 부자재 부족"
+  },
+  "rsn_no_material__en": {
+    "en": "Out of materials",
+    "ko": "Out of materials"
+  },
+  "rsn_no_work": {
+    "en": "No work — not enough orders",
+    "ko": "일감 부족 · 물량 없음"
+  },
+  "rsn_no_work__en": {
+    "en": "No work / no orders",
+    "ko": "No work / no orders"
+  },
+  "rsn_order": {
+    "en": "Company told us to go home",
+    "ko": "회사 지시로 조기 퇴근"
+  },
+  "rsn_order__en": {
+    "en": "Sent home by the company",
+    "ko": "Sent home by the company"
+  },
+  "rsn_other": {
+    "en": "Write it myself",
+    "ko": "직접 입력"
+  },
+  "rsn_other__en": {
+    "en": "Write it myself",
+    "ko": "Write it myself"
+  },
+  "rsn_personal": {
+    "en": "Personal reasons",
+    "ko": "개인 사정"
+  },
+  "rsn_personal__en": {
+    "en": "Personal reasons",
+    "ko": "Personal reasons"
+  },
+  "rsn_pick_none": {
+    "en": "Choose a reason",
+    "ko": "사유를 고르세요"
+  },
+  "rsn_power": {
+    "en": "Power or water cut",
+    "ko": "정전 · 단수"
+  },
+  "rsn_power__en": {
+    "en": "Power or water cut",
+    "ko": "Power or water cut"
+  },
+  "rsn_punched": {
+    "en": "Your clock-out is already saved. This only adds the reason.",
+    "ko": "퇴근은 이미 기록되었습니다. 여기서는 사유만 더합니다."
+  },
+  "rsn_row": {
+    "en": "Reason",
+    "ko": "사유"
+  },
+  "rsn_row_note": {
+    "en": "Note",
+    "ko": "메모"
+  },
+  "rsn_row_whose": {
+    "en": "Whose side",
+    "ko": "누구 사정"
+  },
+  "rsn_save": {
+    "en": "SAVE REASON",
+    "ko": "사유 저장"
+  },
+  "rsn_save_out": {
+    "en": "SAVE AND CLOCK OUT",
+    "ko": "저장하고 퇴근"
+  },
+  "rsn_sick": {
+    "en": "I was ill",
+    "ko": "몸이 아파서"
+  },
+  "rsn_sick__en": {
+    "en": "Illness",
+    "ko": "Illness"
+  },
+  "rsn_skip": {
+    "en": "CLOCK OUT WITHOUT A REASON",
+    "ko": "사유 없이 퇴근"
+  },
+  "rsn_sub": {
+    "en": "{io} · {h} worked. What happened? Writing it now is what lets you show it later.",
+    "ko": "{io} · 실근무 {h}. 무슨 일이 있었습니까? 지금 적어 두어야 나중에 보여 줄 수 있습니다."
+  },
+  "rsn_sub_noio": {
+    "en": "What happened? Writing it now is what lets you show it later.",
+    "ko": "무슨 일이 있었습니까? 지금 적어 두어야 나중에 보여 줄 수 있습니다."
+  },
+  "rsn_title": {
+    "en": "This day did not run its full hours",
+    "ko": "하루를 다 채우지 못했습니다"
+  },
+  "rsn_weather": {
+    "en": "Natural disaster or weather",
+    "ko": "천재지변 · 기상"
+  },
+  "rsn_weather__en": {
+    "en": "Natural disaster",
+    "ko": "Natural disaster"
+  },
+  "saturday": {
+    "en": "Saturday",
+    "ko": "토요일"
+  },
+  "saturday_counts_as_a": {
+    "en": "Saturday counts as a 휴일",
+    "ko": "토요일을 휴일로 지정"
+  },
+  "saturday_is_not_a": {
+    "en": "Saturday is not a 휴일",
+    "ko": "토요일은 휴일이 아님 (무급휴무일)"
+  },
+  "saturday_off": {
+    "en": "Saturday off",
+    "ko": "토요일 휴무"
+  },
+  "saturdays_are_deducted_too": {
+    "en": "Saturdays are deducted too",
+    "ko": "토요일도 연차에서 차감"
+  },
+  "saturdays_excluded_not_deducted": {
+    "en": "Saturdays excluded — not deducted",
+    "ko": "토요일 휴무로 계산 — 차감하지 않음"
+  },
+  "save": {
+    "en": "SAVE",
+    "ko": "저장 SAVE"
+  },
+  "see_the_introduction_again": {
+    "en": "See the introduction again",
+    "ko": "앱 소개 다시 보기"
+  },
+  "selected": {
+    "en": "SELECTED",
+    "ko": "선택 SELECTED"
+  },
+  "service_not_known_yet": {
+    "en": "Service not known yet · 근속",
+    "ko": "근속 — 입사일을 적어 주세요"
+  },
+  "set_your_clock_in_time": {
+    "en": "SET YOUR CLOCK-IN TIME",
+    "ko": "출근 시각 직접 입력"
+  },
+  "severance_is_average_daily_wage_30_day": {
+    "en": "퇴직금 = 1일 평균임금 × 30 × (days of service ÷ 365). 근로자퇴직급여 보장법 §8①. If the average daily wage comes out below your 통상임금, the law uses 통상임금 instead — the app already does that.",
+    "ko": "퇴직금 = 1일 평균임금 × 30일 × (재직일수 ÷ 365). 근로자퇴직급여 보장법 제8조①. 평균임금이 통상임금보다 적으면 통상임금으로 봅니다 — 앱이 이미 그렇게 계산합니다."
+  },
+  "severance_pay": {
+    "en": "Severance pay",
+    "ko": "퇴직금"
+  },
+  "shift_detected": {
+    "en": "SHIFT DETECTED",
+    "ko": "근무조 자동판별"
+  },
+  "shift_start_times": {
+    "en": "SHIFT START TIMES",
+    "ko": "근무 시작 시간 · SHIFT START TIMES"
+  },
+  "short_annual": {
+    "en": "Leave",
+    "ko": "연차"
+  },
+  "short_out_msg": {
+    "en": "You clocked in at {time} ({ago}). Either a mis-tap, or the company sent you home.",
+    "ko": "{time}에 출근했습니다 ({ago}). 실수로 눌렀거나, 박스가 없어 귀가하는 경우입니다."
+  },
+  "shortfall_vs_what_the_company_pays": {
+    "en": "Shortfall vs what the company pays",
+    "ko": "차액 — 회사 지급액보다 부족"
+  },
+  "shutdown_allowance_lsa_46": {
+    "en": "Shutdown allowance (LSA §46)",
+    "ko": "휴업수당 (근로기준법 §46)"
+  },
+  "shutdown_company_had_no_work": {
+    "en": "SHUTDOWN · company had no work",
+    "ko": "휴업 · 회사 사정으로 쉼"
+  },
+  "shutdown_employer_s_side": {
+    "en": "Shutdown, employer’s side",
+    "ko": "사업주 귀책 휴업"
+  },
+  "shutdown_pay": {
+    "en": "Shutdown pay",
+    "ko": "휴업수당"
+  },
+  "shutdown_sent_home_no_work": {
+    "en": "SHUTDOWN · sent home, no work",
+    "ko": "휴업 · 일이 없어 귀가"
+  },
+  "since_you_clocked_in_did_you_forget_to": {
+    "en": "{p0} since you clocked in. Did you forget to clock out? Punching out now records all of it — to fix the real time, re-save that day with 근무 Past shift below.",
+    "ko": "출근한 지 {p0} 지났습니다. 퇴근 찍는 것을 잊으셨나요? 지금 퇴근을 찍으면 이 시간 전부가 기록됩니다 — 실제 퇴근 시각으로 고치려면 아래 ‘근무’로 그 날을 다시 저장하세요."
+  },
+  "since_you_clocked_in_it_looks_like_you": {
+    "en": "{p0} since you clocked in — it looks like you forgot to clock out. The app will not auto-calculate a shift over 24 hours. Save the real times with 근무 Past shift below, then delete this open session.",
+    "ko": "출근을 찍은 지 {p0} 지났습니다 — 퇴근을 잊으신 것 같습니다. 24시간이 넘는 근무는 자동 계산하지 않습니다. 아래 ‘근무’로 그 날의 실제 시각을 저장한 뒤 이 기록을 지우세요."
+  },
+  "slip_basic": {
+    "en": "Basic salary",
+    "ko": "기본금"
+  },
+  "slip_ded": {
+    "en": "Total deductions",
+    "ko": "공제총액"
+  },
+  "slip_gross": {
+    "en": "Gross pay",
+    "ko": "지급총액"
+  },
+  "slip_hol": {
+    "en": "Holiday work",
+    "ko": "휴일(특근)수당"
+  },
+  "slip_net": {
+    "en": "Net pay",
+    "ko": "실수령액"
+  },
+  "slip_night": {
+    "en": "Night premium ×0.5",
+    "ko": "야간수당"
+  },
+  "slip_ot": {
+    "en": "Overtime ×1.5",
+    "ko": "연장(잔업)수당"
+  },
+  "span": {
+    "en": "SPAN",
+    "ko": "기간 SPAN"
+  },
+  "standard_monthly_wage": {
+    "en": "Standard monthly wage",
+    "ko": "보수월액"
+  },
+  "start": {
+    "en": " start",
+    "ko": " 시작"
+  },
+  "start_2": {
+    "en": " start",
+    "ko": " 시작"
+  },
+  "start_3": {
+    "en": "START",
+    "ko": "시작하기 · START"
+  },
+  "start_date": {
+    "en": "Start date",
+    "ko": "입사일"
+  },
+  "start_the_shift": {
+    "en": "START THE SHIFT",
+    "ko": "이 시각으로 출근"
+  },
+  "start_using_it": {
+    "en": "START · 시작하기",
+    "ko": "시작하기 START"
+  },
+  "statutory_insurance": {
+    "en": "STATUTORY INSURANCE",
+    "ko": "4대보험 자동계산 · INSURANCE"
+  },
+  "stay_clocked_in": {
+    "en": "STAY CLOCKED IN",
+    "ko": "계속 근무 · STAY CLOCKED IN"
+  },
+  "step_back_to_any_month_you_still_have": {
+    "en": "Move the ‹ › at the top of this tab and the document moves with it — step back to any month you still have records for, nothing expires. Each pay period keeps the 기본금 and rates that were in force while you worked it, so a raise today does not change an old document. Where the app has no record of a period’s rates, the document says so on its own face.",
+    "ko": "위의 ‹ › 로 기간을 옮기면 이 문서도 함께 옮겨 갑니다 — 기록이 남아 있는 달이면 얼마든지 거슬러 올라갈 수 있고, 지워지는 기간은 없습니다. 급여기간마다 그 때 걸려 있던 기본금과 요율을 함께 간직하므로, 오늘 임금이 올라도 지난 달 문서는 바뀌지 않습니다. 앱이 그 기간의 요율을 모르는 경우에는 문서에 그렇게 적힙니다."
+  },
+  "sunday": {
+    "en": "Sunday",
+    "ko": "일요일"
+  },
+  "sunday_2": {
+    "en": "Sunday",
+    "ko": "일요일"
+  },
+  "tab_logs": {
+    "en": "LOGS",
+    "ko": "근무기록"
+  },
+  "tab_logs__en": {
+    "en": "LOGS",
+    "ko": "LOGS"
+  },
+  "tab_pay": {
+    "en": "PAY",
+    "ko": "급여"
+  },
+  "tab_pay__en": {
+    "en": "PAY",
+    "ko": "PAY"
+  },
+  "tab_punch": {
+    "en": "PUNCH",
+    "ko": "출퇴근"
+  },
+  "tab_punch__en": {
+    "en": "PUNCH",
+    "ko": "PUNCH"
+  },
+  "tab_rights": {
+    "en": "RIGHTS",
+    "ko": "내 권리"
+  },
+  "tab_rights__en": {
+    "en": "RIGHTS",
+    "ko": "RIGHTS"
+  },
+  "tab_set": {
+    "en": "SETUP",
+    "ko": "설정"
+  },
+  "tab_set__en": {
+    "en": "SETUP",
+    "ko": "SETUP"
+  },
+  "tap_and_verify_with_your_fingerprint": {
+    "en": "Tap and verify with your fingerprint",
+    "ko": "눌러서 지문으로 확인하세요"
+  },
+  "tap_once_for_a_single_day_again_for_a_": {
+    "en": "Tap once for a single day, again for a range. Holidays and Sundays are not deducted.",
+    "ko": "첫 탭은 하루, 다시 탭하면 기간. 공휴일과 일요일은 차감되지 않습니다."
+  },
+  "tap_once_for_a_single_day_again_to_ext": {
+    "en": "Tap once for a single day, again to extend into a range. Public holidays and Sundays are excluded automatically.",
+    "ko": "첫 탭은 하루, 다시 탭하면 기간이 됩니다. 공휴일·일요일은 자동 제외됩니다."
+  },
+  "tax_free": {
+    "en": "TAX-FREE",
+    "ko": "비과세"
+  },
+  "tax_free_left_out_of_both_the_tax_and_": {
+    "en": "{p0} tax-free — left out of both the tax and the insurance calculation.",
+    "ko": "비과세 {p0} — 세금과 4대보험 계산에서 빠집니다."
+  },
+  "taxed": {
+    "en": "TAXED",
+    "ko": "과세"
+  },
+  "that_is_over_24_hours_ago_save_that_da": {
+    "en": "That is over 24 hours ago — save that day with 근무 Past shift instead.",
+    "ko": "24시간이 넘었습니다 — 그 날은 아래 ‘근무’로 저장하세요."
+  },
+  "the_app_counts_your_service_from_this": {
+    "en": "Service counted from this day: {p0} years {p1} months ({p2} days).",
+    "ko": "이 날부터 계속근로 {p0}년 {p1}개월 ({p2}일)."
+  },
+  "the_app_filled_this_in_with_the_legal": {
+    "en": "✓ The app filled this in with the legal floor: {p0} 최저임금 minimum wage {p1} × {p2} hours = {p3}. It is not your salary yet — copy the 기본급 figure from your payslip over it.",
+    "ko": "✓ 법이 정한 바닥으로 채워 두었습니다: {p0} 최저임금 {p1} × {p2}시간 = {p3}. 아직 당신의 급여가 아닙니다 — 명세서의 기본급을 그대로 적어 주세요."
+  },
+  "the_app_only_knows_the_minimum_wage_up": {
+    "en": "⚠ 최저임금 This app only knows the minimum wage up to {p0}. Update the app to check this year’s figure. Your records and 근무내역서 are unaffected.",
+    "ko": "⚠ 이 앱이 아는 최저임금은 {p0}년까지입니다. 올해 최저임금과 견주려면 앱을 새로 받으세요. 기록과 근무내역서는 그대로입니다."
+  },
+  "the_app_shows_the_korean_payslip_word": {
+    "en": "Whatever language you pick, the 근무내역서 you print stays in Korean, and the Korean payslip word is always shown beside the translation — so you can find it on the paper your company hands you.",
+    "ko": "어느 언어를 고르든 근무내역서는 한국어로 나오고, 번역 옆에 명세서에 적힌 한국어 낱말을 함께 보여 줍니다 — 회사가 준 종이에서 그 글자를 찾을 수 있도록."
+  },
+  "the_company_had_no_work_for_you_whethe": {
+    "en": "The company had no work for you — whether you went in and were sent home, or were told before your shift not to come. Labour Standards Act §46 — a shutdown on the employer’s side must pay at least 70% of average wages. Estimated {p0}. This is NOT annual leave and does not come out of your leave.",
+    "ko": "회사 사정으로 일하지 못한 날입니다 — 나갔다가 돌아왔든, 출근 전에 쉬라는 연락을 받았든 같습니다. 근로기준법 제46조 — 사업주 귀책 휴업은 평균임금의 70% 이상을 지급해야 합니다. 예상 휴업수당 {p0}. 이 날은 연차가 아니며, 연차에서 빠지지 않습니다."
+  },
+  "the_company_sent_you_home_this_is_what": {
+    "en": "✓ The company stopped your work. 근로기준법 §46 says they owe you this.",
+    "ko": "✓ 회사 사정으로 일을 못 한 날이 있습니다. 근로기준법 제46조에 따라 받을 돈입니다."
+  },
+  "the_document_carries_these_figures_too": {
+    "en": "The 근무내역서 carries these figures too, in Korean, whatever language the app is set to. You make it at the bottom of the 급여 PAY tab.",
+    "ko": "근무내역서에도 이 금액들이 함께 들어갑니다 — 앱을 어느 언어로 쓰든 문서는 한국어입니다. 문서는 급여 탭 맨 아래에서 만듭니다."
+  },
+  "the_earnings_lines_match_what_the_app_": {
+    "en": "The earnings lines match what the app counted, or exceed it.",
+    "ko": "지급 항목은 앱 계산과 맞거나 그 이상입니다."
+  },
+  "the_figure_the_company_reports": {
+    "en": "the figure the company reports",
+    "ko": "명세서·공단 기준 금액"
+  },
+  "the_file_goes_only_where_you_send_it_t": {
+    "en": "The file goes only where you send it. The app uploads nothing, ever.",
+    "ko": "파일은 본인이 고른 곳으로만 갑니다. 앱은 어디에도 전송하지 않습니다."
+  },
+  "the_meal_allowance_exemption_stops_at_": {
+    "en": "⚠ The meal-allowance exemption stops at {p0} a month. Anything above that is counted as taxable.",
+    "ko": "⚠ 비과세는 식대 기준 월 {p0}까지입니다. 초과분은 과세로 계산했습니다."
+  },
+  "the_payslip_is_less_than_the_app_count": {
+    "en": "The payslip is {p0} less than the app counted. Ask the company about the red lines. Tax and insurance in the app are estimates, so a difference there can be normal — a difference in basic, overtime, night or holiday pay is not.",
+    "ko": "앱 계산보다 {p0} 적게 지급되었습니다. 빨간 줄을 회사에 물어보세요. 앱의 세금·보험은 추정이라 공제 줄의 차이는 정상일 수 있지만, 기본금·연장·야간·휴일수당의 차이는 그렇지 않습니다."
+  },
+  "these_are_multiples_of_your_hourly_rat": {
+    "en": "These are multiples of your hourly rate. Leave them alone unless your company pays something different — the greyed figures are what the law sets as the minimum.",
+    "ko": "시급에 곱하는 비율입니다. 회사가 다르게 주는 것이 아니라면 그대로 두세요 — 흐린 숫자가 법이 정한 최저입니다."
+  },
+  "these_are_on_because_the_rates_are_set": {
+    "en": "✓ 건강보험 · 장기요양 · 국민연금 are ON because their rates are set by law — once your wage is known the amount is fixed, so the app works it out instead of asking you. 고용보험 starts OFF: E-9 workers are often not in it. Turn any of them off if your payslip does not show it.",
+    "ko": "✓ 건강보험 · 장기요양 · 국민연금은 켜져 있습니다 — 요율이 법으로 정해져 있어서 보수가 정해지면 금액도 정해집니다. 그래서 묻지 않고 앱이 계산합니다. 고용보험은 꺼져 있습니다 — E-9은 빠지는 경우가 많습니다. 명세서에 없는 항목은 끄세요."
+  },
+  "this_is_what_the_law_gives_you_your_co": {
+    "en": "Accrued is what the law gives you (근로기준법 §60). Left is your own figure, typed below. Used is the difference between them — it includes leave you took before you started using this app. If Used is more than you remember taking, ask your company about it.",
+    "ko": "발생은 법이 주는 일수입니다 (근로기준법 제60조). 잔여는 아래에 적어 둔 당신의 숫자이고, 사용은 그 둘의 차이입니다 — 앱을 쓰기 전에 쓴 연차도 여기 들어 있습니다. 사용이 기억하는 것보다 많다면 회사에 물어보십시오."
+  },
+  "this_is_your_own_figure_the_app_will_n": {
+    "en": "✓ This is your own figure. The app will not change it.",
+    "ko": "✓ 당신이 적은 숫자입니다. 앱이 바꾸지 않습니다."
+  },
+  "this_period_is_closed_check_it_against": {
+    "en": "This period is closed. Check this figure against the payslip your company gave you on payday {p0}.",
+    "ko": "이 기간은 끝났습니다. 지급일 {p0}에 회사가 준 급여명세서와 이 금액을 맞춰 보십시오."
+  },
+  "this_punch_is_a_shift_but_you_are_in_t": {
+    "en": "This punch is a {p1} shift but you are in the {p0} block — logged as punched, flagged for you to check.",
+    "ko": "로테이션은 {p0}조인데 {p1} 근무로 찍혔습니다 — 그대로 기록하고 표시해 두었습니다."
+  },
+  "today_is_holiday_work_a_rest_day_you_w": {
+    "en": " Today is 특근 holiday work ({p0}) — a rest day you were called in on, so every hour pays ×1.5 instead of regular+OT. Just punch as normal; you do not need the 특근 card.",
+    "ko": " 오늘은 특근입니다 ({p0}) — 원래 쉬는 날이라 근무시간 전부가 ×1.5로 계산됩니다. 특근 카드를 따로 누를 필요 없이 평소대로 지문만 찍으세요."
+  },
+  "today_is_marked_annual_leave_no_punch_": {
+    "en": " Today is marked 연차 annual leave — no punch needed. Punching anyway replaces the leave with a worked shift.",
+    "ko": " 오늘은 연차로 표시되어 있습니다 — 찍지 않아도 됩니다. 찍으면 연차가 근무로 바뀝니다."
+  },
+  "too_short_likely_a_mis_tap": {
+    "en": "Too short — likely a mis-tap",
+    "ko": "너무 짧은 근무 — 실수로 누른 듯"
+  },
+  "too_soon_to_clock_out": {
+    "en": "TOO SOON TO CLOCK OUT",
+    "ko": "확인 필요 · 너무 이른 퇴근"
+  },
+  "total_deductions": {
+    "en": "TOTAL DEDUCTIONS",
+    "ko": "공제액 TOTAL"
+  },
+  "touch_the_fingerprint_sensor": {
+    "en": "Touch the fingerprint sensor",
+    "ko": "지문 센서에 손가락을 대세요"
+  },
+  "tour1_body": {
+    "en": "Press the pad with your fingerprint when you arrive and when you leave. The app works out on its own whether it was a day or a night shift, and takes your breaks off. Nothing to set up first.",
+    "ko": "출근할 때와 퇴근할 때 지문으로 찍기만 하면 됩니다. 주간조인지 야간조인지는 앱이 스스로 구분하고, 휴게시간도 알아서 뺍니다. 미리 설정할 것은 없습니다."
+  },
+  "tour1_en": {
+    "en": "PUNCH IN, PUNCH OUT",
+    "ko": "PUNCH IN, PUNCH OUT"
+  },
+  "tour1_ko": {
+    "en": "It records your shifts",
+    "ko": "출퇴근을 기록합니다"
+  },
+  "tour2_body": {
+    "en": "잔업 overtime ×1.5, 야간 night ×0.5 between 22:00 and 06:00, 휴일 holiday work ×1.5 and ×2.0 past 8 hours — 근로기준법 §56. It also tracks 휴업수당, 연차 and 퇴직금, which most payslips never show you.",
+    "ko": "잔업 ×1.5, 야간 ×0.5(22:00–06:00), 휴일근로 ×1.5 · 8시간 초과분 ×2.0 — 근로기준법 제56조. 명세서에 잘 나오지 않는 휴업수당·연차·퇴직금도 함께 셉니다."
+  },
+  "tour2_en": {
+    "en": "OVERTIME · NIGHT · HOLIDAY",
+    "ko": "OVERTIME · NIGHT · HOLIDAY"
+  },
+  "tour2_ko": {
+    "en": "It applies the law",
+    "ko": "법대로 계산합니다"
+  },
+  "tour3_body": {
+    "en": "The 근무내역서 the app makes is always in Korean, whatever language you read the app in — so your company, and a 근로감독관, can read it. Years later it still says what it said the day it was made.",
+    "ko": "앱이 만드는 근무내역서는 앱을 어느 언어로 쓰든 언제나 한국어입니다 — 회사도 근로감독관도 읽을 수 있어야 하니까요. 몇 년 뒤에 열어도 만든 날 그대로 나옵니다."
+  },
+  "tour3_en": {
+    "en": "A DOCUMENT YOU CAN HAND OVER",
+    "ko": "A DOCUMENT YOU CAN HAND OVER"
+  },
+  "tour3_ko": {
+    "en": "It becomes evidence",
+    "ko": "증거가 됩니다"
+  },
+  "tour4_body": {
+    "en": "No server, no account, nothing is uploaded. That also means a lost phone is a lost record — save a backup file now and then, from 설정 › 백업과 내보내기.",
+    "ko": "서버도 계정도 없고, 아무것도 올라가지 않습니다. 대신 폰을 잃으면 기록도 사라집니다 — 가끔 설정 › 백업과 내보내기에서 파일로 저장해 두세요."
+  },
+  "tour4_en": {
+    "en": "NO SERVER · NO ACCOUNT",
+    "ko": "NO SERVER · NO ACCOUNT"
+  },
+  "tour4_ko": {
+    "en": "It stays on this phone",
+    "ko": "이 폰에만 있습니다"
+  },
+  "tour_setup_next": {
+    "ko": "다음은 설정입니다. 지금 다 채우지 않아도 됩니다 — 출퇴근은 바로 되고, 기본금은 급여 탭을 처음 열 때 한 번만 묻습니다.",
+    "en": "Setup is next. You do not have to fill it all in now — punching works straight away, and the app asks for your 기본금 once, the first time you open 급여."
+  },
+  "type": {
+    "en": "Type",
+    "ko": "유형"
+  },
+  "type_2": {
+    "en": "Type",
+    "ko": "유형"
+  },
+  "type_3": {
+    "en": "Type",
+    "ko": "유형"
+  },
+  "type_a_number_and_the_app_remembers_th": {
+    "en": "Type a number and the app remembers the date too, then only counts leave logged after it.",
+    "ko": "숫자를 넣으면 그 날짜를 함께 기억해, 그 뒤로 기록한 연차만 빼 나갑니다."
+  },
+  "type_my_own": {
+    "en": "TYPE MY OWN",
+    "ko": "직접 입력"
+  },
+  "type_the_day_you_started_at_this_compa": {
+    "en": "⚠ Type the day you started at this company. Severance and annual leave are both worked out from it — without it the app will not guess.",
+    "ko": "⚠ 이 회사에서 처음 일한 날을 적어 주세요. 퇴직금도 연차도 여기서 나옵니다 — 없으면 앱은 짐작하지 않습니다."
+  },
+  "typed_in_by_hand": {
+    "en": "Typed in by hand",
+    "ko": "직접 입력"
+  },
+  "under_1_year_1_day_for_each_full_month": {
+    "en": "Under 1 year: 1 day for each full month you worked without absence, up to 11 (근로기준법 §60②).",
+    "ko": "1년 미만: 1개월 개근할 때마다 1일, 최대 11일 (근로기준법 제60조②)."
+  },
+  "under_1_year_of_service_no_severance_y": {
+    "en": "Under 1 year of service — no severance yet (근로자퇴직급여 보장법 §8①). {p0} days to go.",
+    "ko": "계속근로 1년 미만 — 아직 퇴직금이 발생하지 않습니다 (근로자퇴직급여 보장법 제8조①). {p0}일 남았습니다."
+  },
+  "undo": {
+    "en": "UNDO",
+    "ko": "되돌리기 UNDO"
+  },
+  "undo_2": {
+    "en": "UNDO",
+    "ko": "되돌리기 UNDO"
+  },
+  "undo_clock_in": {
+    "en": "UNDO CLOCK-IN",
+    "ko": "출근 취소 · UNDO CLOCK-IN"
+  },
+  "unit_day_one": {
+    "en": "1 day",
+    "ko": "1일"
+  },
+  "unit_days_n": {
+    "en": "{n} days",
+    "ko": "{n}일"
+  },
+  "unit_days_short": {
+    "en": "d",
+    "ko": "일"
+  },
+  "unpaid_break": {
+    "en": "Unpaid break {p0}. ",
+    "ko": "무급 휴게 {p0}. "
+  },
+  "unpaid_break_2": {
+    "en": "Unpaid break",
+    "ko": "휴게 (무급)"
+  },
+  "unpaid_break_min_per_shift": {
+    "en": "Unpaid break {p1} min per shift",
+    "ko": "무급 휴게 {p0}시간 ({p1}분) / 근무당"
+  },
+  "unpaid_break_min_per_shift_plus_late": {
+    "en": "Unpaid break {p1} min per shift · +{p2} min only if you work past that",
+    "ko": "무급 휴게 {p0}시간 ({p1}분) / 근무당 · 연장 시 +{p2}분"
+  },
+  "unpaid_break_only_when_you_work_late": {
+    "en": "{p0} min unpaid break — only on days you work late. Nothing comes off a normal day.",
+    "ko": "무급 휴게 {p0}분 — 늦게까지 일한 날에만 빠집니다. 정시 퇴근한 날은 빠지지 않습니다."
+  },
+  "unpaid_per_company_schedule": {
+    "en": "unpaid, per company schedule",
+    "ko": "무급 · 회사 스케줄"
+  },
+  "up_to_next_30_min": {
+    "en": "up to next 30 min",
+    "ko": "다음 30분 단위로 올림"
+  },
+  "upcoming_days": {
+    "ko": "예정 · UPCOMING",
+    "en": "UPCOMING · 예정"
+  },
+  "updated": {
+    "en": "✓ {p0} updated",
+    "ko": "✓ {p0} 기록 수정됨"
+  },
+  "use_calculated_values": {
+    "en": "USE CALCULATED VALUES",
+    "ko": "계산값 적용하기"
+  },
+  "use_the_chip_under_each_allowance_to_m": {
+    "en": "Use the chip under each allowance to mark it taxed or tax-free. A meal allowance is tax-free up to ₩200,000 a month, and tax-free pay carries no insurance either — marking it correctly stops the app overstating both. If your payslip prints it under 비과세, match that.",
+    "ko": "각 수당 아래의 칩으로 과세·비과세를 고르세요. 식대는 월 20만원까지 비과세라 세금도 4대보험도 붙지 않습니다 — 비과세로 두면 앱이 세금과 보험료를 실제에 맞게 낮춰 계산합니다. 명세서에 ‘비과세’로 적혀 있으면 그대로 따라 주세요."
+  },
+  "used": {
+    "en": "Used",
+    "ko": "사용"
+  },
+  "usually_209": {
+    "en": "기준시간 · usually 209",
+    "ko": "Monthly hours (보통 209)"
+  },
+  "vacation": {
+    "en": "Vacation",
+    "ko": "휴가"
+  },
+  "vacation_day": {
+    "en": "Vacation day",
+    "ko": "휴가"
+  },
+  "vacation_days": {
+    "en": "Vacation days",
+    "ko": "휴가 차감"
+  },
+  "variable_allowances_only": {
+    "en": "variable allowances only",
+    "ko": "변동수당만"
+  },
+  "verify_to_clock_in": {
+    "en": "VERIFY TO CLOCK IN",
+    "ko": "출근 · 지문 확인"
+  },
+  "verify_to_clock_out": {
+    "en": "VERIFY TO CLOCK OUT",
+    "ko": "퇴근 · 지문 확인"
+  },
+  "viewing_pay_period": {
+    "en": "PAY PERIOD SHOWN · 급여기간",
+    "ko": "보고 있는 급여기간 · PAY PERIOD SHOWN"
+  },
+  "week_block": {
+    "en": "{p0}-week block",
+    "ko": "{p0}주 주기"
+  },
+  "week_mon_sun": {
+    "en": " week (Mon–Sun)",
+    "ko": " 주 (월~일)"
+  },
+  "welcome": {
+    "en": "WELCOME · 처음 오셨습니다",
+    "ko": "환영합니다 · WELCOME"
+  },
+  "what_is_your_basic_salary": {
+    "en": "What is your 기본금?",
+    "ko": "기본금이 얼마입니까?"
+  },
+  "what_the_law_owes_you": {
+    "en": "WHAT THE LAW OWES YOU · 내 권리",
+    "ko": "내 권리 · MY RIGHTS"
+  },
+  "what_your_company_actually_pays": {
+    "en": "WHAT YOUR COMPANY ACTUALLY PAYS · 실제 배수",
+    "ko": "회사가 실제로 주는 배수"
+  },
+  "when_your_payslip_arrives_copy_its_fig": {
+    "en": "When your payslip arrives, copy its figures into the right-hand column. The left column is what the app worked out from your own punches. A red figure means the payslip is lower.",
+    "ko": "급여명세서를 받으면 그 숫자를 오른쪽 칸에 그대로 넣으세요. 왼쪽은 앱이 본인 출퇴근 기록으로 계산한 금액입니다. 빨간 숫자는 명세서가 더 적다는 뜻입니다."
+  },
+  "when_your_payslip_arrives_type_its_fig": {
+    "en": "When your payslip arrives, type its figures into the right-hand column. The app compares them line by line.",
+    "ko": "명세서를 받으면 그 금액을 오른쪽 칸에 넣으세요. 앱이 계산한 금액과 줄마다 비교해 드립니다."
+  },
+  "which_months_is_it_paid": {
+    "en": "Which months is it paid?",
+    "ko": "몇 월에 받습니까?"
+  },
+  "work_preview": {
+    "en": "{shift} shift · paid {sched} · net {net} · OT {ot} · night {night} → {pay}",
+    "ko": "{shift} · 인정 {sched} · 실근무 {net} · 잔업 {ot} · 야간 {night} → {pay}"
+  },
+  "work_record_created": {
+    "en": "Work record created — {p0}",
+    "ko": "근무내역서를 만들었습니다 — {p0}"
+  },
+  "worked": {
+    "en": "Worked",
+    "ko": "근무 시간"
+  },
+  "worked_h": {
+    "en": " · {p0} worked",
+    "ko": " · 실근무 {p0}"
+  },
+  "worker_name": {
+    "en": "YOUR NAME",
+    "ko": "근로자 성명 · YOUR NAME"
+  },
+  "worker_name_hint": {
+    "en": "This name goes on the 근무내역서, the CSV, and the file names. It is stored on this phone only, and travels only when you send a document yourself.",
+    "ko": "이 이름이 근무내역서와 CSV, 그리고 파일 이름에 함께 나옵니다. 이름은 이 폰에만 저장되고, 본인이 문서를 보낼 때만 함께 갑니다."
+  },
+  "worker_name_missing": {
+    "en": "Leave it blank and the 근무내역서 says «성명 미기재» — no name given. If workmates at the same company use this app too, a document with no name cannot be told from theirs.",
+    "ko": "비워 두면 근무내역서에 «성명 미기재»로 나옵니다. 같은 회사 동료도 이 앱을 쓴다면, 이름이 없는 문서는 누구의 것인지 알 수 없습니다."
+  },
+  "worker_name_ph": {
+    "en": "as written on your 근로계약서",
+    "ko": "근로계약서에 적힌 이름"
+  },
+  "worth_checking": {
+    "en": "Worth checking",
+    "ko": "확인할 것"
+  },
+  "worth_checking_2": {
+    "en": "Worth checking",
+    "ko": "확인할 것"
+  },
+  "worth_checking_3": {
+    "en": "Worth checking",
+    "ko": "확인할 것"
+  },
+  "year_legal_minimum": {
+    "en": "{p0} legal minimum",
+    "ko": "{p0} 최저시급"
+  },
+  "years_months_of_service": {
+    "en": "{p0}y {p1}m of service · 근속",
+    "ko": "근속 {p0}년 {p1}개월"
+  },
+  "yes_from_partial_records": {
+    "en": "Yes — partial records",
+    "ko": "예 — 기록이 부족"
+  },
+  "yes_this_is_my_basic": {
+    "en": "Yes — this is my 기본금",
+    "ko": "맞습니다 — 이것이 내 기본금입니다"
+  },
+  "yesterday": {
+    "en": "yesterday ",
+    "ko": "어제 "
+  },
+  "you_are_ahead_of_your_scheduled_start_": {
+    "en": "You are ahead of your scheduled start — pay counts from {p0}, so that extra time is paid.",
+    "ko": "정규 시작보다 일찍 왔습니다 — 급여는 {p0}부터 계산되어 그만큼 더 지급됩니다."
+  },
+  "you_can_change_any_of_this_later_in_se": {
+    "en": "You can change any of this later in Setup. Already at work right now? Use ‘I clocked in earlier today’ on the punch screen to set your start time.",
+    "ko": "나중에 설정에서 언제든 바꿀 수 있습니다. 지금 이미 근무 중이라면 출퇴근 화면의 ‘이미 출근했습니다’로 출근 시각을 넣으세요."
+  },
+  "you_confirmed_this_is_your_basic": {
+    "en": "✓ You confirmed this is your 기본금. It happens to equal {p0} 최저임금 minimum wage {p1} × {p2} hours, which is the most common 기본금 there is. Change it here any time your pay changes.",
+    "ko": "✓ 이 금액이 본인의 기본금이라고 확인했습니다. 마침 {p0} 최저임금 {p1} × {p2}시간과 같은 금액이고, 가장 흔한 기본금이기도 합니다. 임금이 바뀌면 언제든 여기서 고치십시오."
+  },
+  "you_have_passed_1_year_this_is_owed_wh": {
+    "en": "✓ Past 1 year of service — this is owed when you leave. It grows by roughly one more month’s average wage every year; {p0} days to your next anniversary.",
+    "ko": "✓ 계속근로 1년을 넘겼습니다 — 퇴사할 때 받을 돈입니다. 해마다 평균임금 한 달치쯤 늘어납니다. 다음 입사기념일까지 {p0}일."
+  },
+  "your_hourly_rate_is_below_the_legal_mi": {
+    "en": "⚠ Your hourly rate is {p0} — below the {p1} legal minimum of {p2}. Check 기본금 and the hours divisor.",
+    "ko": "⚠ 시급 {p0} — {p1} 최저시급 {p2}보다 낮습니다. 기본금·기준시간을 확인하세요."
+  },
+  "your_payslip": {
+    "en": "Your payslip",
+    "ko": "명세서 입력값"
+  },
+  "your_payslip_is_always_the_truth_the_c": {
+    "en": "Your payslip is always the truth — the calculated figure is for checking it.",
+    "ko": "명세서 금액이 항상 정답입니다 — 계산값은 확인용입니다."
+  },
+  "your_records_are_still_there_tap_to_st": {
+    "en": "Your records are still there. Tap ‹ above to step back to {p0}.",
+    "ko": "기록은 그대로 있습니다. 위의 ‹ 를 누르면 {p0} 기간이 나옵니다."
+  },
+  "your_records_live_on_this_phone_and_no": {
+    "en": "Your records live on this phone and nowhere else. Lose it or reset it and they go with it — save a file now and then.",
+    "ko": "기록은 이 휴대폰 안에만 있습니다. 휴대폰을 잃어버리거나 초기화하면 기록도 같이 사라집니다 — 가끔 파일로 저장해 두세요."
+  }
+}

@@ -1,0 +1,2174 @@
+# 근무기록 LOGGER — orientation for whoever picks this up next
+
+Read this first. It is the map; the detail lives in the three files it points at.
+
+## What this is
+
+An offline work-log and wage app for **foreign workers in Korea** (built with and for
+an EPS E-9 factory worker, generalised to any visa or company). It records clock-in /
+clock-out with the phone's fingerprint sensor, decides day-vs-night shift on its own,
+applies Korean overtime and night-premium law, and predicts the monthly 급여명세서 so
+the worker can hold it up against the paper the company hands them.
+
+**Three things drive every decision in here.**
+
+1. *The output is evidence.* A worker may print the 근무내역서 years later and put it
+   in front of a 근로감독관. So money figures must be right or absent, and the record
+   must read in **Korean** whatever language the app is set to.
+2. *Nothing leaves the phone.* No server, no account, no telemetry, no analytics.
+   `localStorage` is the whole database. This is a hard product requirement — workers
+   pass this app around between themselves and their pay data is nobody else's.
+3. *The app calculates; it does not judge.* It applies the statute to the worker's own
+   record and shows the arithmetic. It never says what the worker should do, never
+   drafts or files a 진정 for them, and is never sold. That line is what keeps it a
+   calculator rather than 노무 상담 under 공인노무사법 제27조 — see the 2026-08-28
+   (seventeenth) entry, which is where the disclaimers, the 1350 hand-off and the
+   reasoning live.
+
+## Which version is live
+
+**v2 is the shipping version.** v1 still builds and is untouched, but do not develop it.
+
+| | v2 (ship this) | v1 (frozen) |
+|---|---|---|
+| source | `WorkLogApp.v2.dc.html` | `WorkLogApp.dc.html` |
+| build | `python3 build.py v2` → `dist-v2/` | `python3 build.py` → `dist/` |
+| APK | `./build_apk.sh v2` → `worklog-debug.apk` | `./build_apk.sh` → `worklog-frozen-debug.apk` |
+
+Both carry `applicationId app.worklog.punch`, so installing one upgrades the other in
+place and the WebView's `localStorage` survives — that is what makes v2's v1→v2 record
+migration run on a real phone.
+
+## The three documents
+
+- **`README.md`** — what the app is, the wage engine's rules, the non-negotiables.
+  The wage rules section is the specification; it is byte-identical between v1 and v2
+  and there is a test that proves it.
+- **`V2.md`** — every bug found by actually using v1 on shift, and what changed. Read
+  Part 1 before you "fix" anything that looks odd; it is probably deliberate and the
+  reasoning is written down.
+- **`DEPLOY.md`** — building, hosting, HTTPS, WebAuthn, TWA, the APK.
+
+## How the source is shaped
+
+`WorkLogApp.v2.dc.html` is **one file**, and it is large. Three regions:
+
+1. `<x-dc>…</x-dc>` — the **template**. A small custom runtime (React under the hood)
+   with `<sc-if value="{{ x }}">`, `<sc-for list="{{ xs }}" as="x">`, and `{{ … }}`
+   holes. Inline `style="…"` strings, `onClick="{{ handler }}"`. There is no CSS file
+   and no class names; the design system is inline styles plus `ds-tokens.css` vars.
+2. `class Component extends DCLogic` — **all the logic**. Plain framework-agnostic JS.
+   This class is the part worth reading. `renderVals()` at the bottom builds every
+   value the template interpolates — if a `{{ hole }}` is empty on screen, its key is
+   missing from `renderVals()`.
+3. `static STR = {…}` — the **generated** 8-language string table. 716 keys, ~262 KB
+   on one line. **Never edit it by hand.** Edit `lang/*.json`, then
+   `python3 tools/sync_lang.py` (it prints the key count and size, so you can tell at a
+   glance whether the source you are looking at is current).
+
+Because of (3), `grep` the source with care: a bare `grep -n "reason"` returns the
+whole STR line. Filter it out — `grep -n "reason" WorkLogApp.v2.dc.html | grep -v '"en":'`.
+
+### Number fields — never write `type="number"`
+
+Every number box in the app is:
+
+```html
+<input type="text" inputmode="decimal" enterkeyhint="done" onKeyDown="{{ keyFoo }}"
+       value="{{ fooVal }}" onFocus="{{ focFoo }}" onBlur="{{ blurFoo }}" onChange="{{ setFoo }}" />
+```
+
+That is deliberate and was measured on a real Galaxy. Chrome **overrides
+`enterkeyhint` on `type="number"`** with its own form-navigation logic: `Next` if
+another field follows, `Go` if it is the last one — and that `Go` is drawn greyed and
+dead, because there is no form to submit. A worker who had finished typing had no way
+off the keypad except tapping somewhere else on the screen, which is usually another
+button. `type="text"` + `inputmode="decimal"` keeps the same numeric keypad and gets a
+live **Done**. The full four-way measurement is in the comment above `numField()`.
+
+Two things follow, and both are easy to forget when adding a field:
+
+- **The browser no longer filters the input.** Values must go through
+  `Component.numClean()` (drops thousands-separator commas, keeps one decimal point,
+  no letters, no minus) and `Component.numReady()` (`''` and `'.'` are not numbers
+  yet — committing them gives 0 or NaN). `numField()` does both for you. The only
+  hand-rolled call site is `slipRows`, and it cleans explicitly.
+- **`onKeyDown` must be wired**, or the Done key is live but does nothing — which
+  reads to the worker exactly like the dead one. `numField()`/`timeField()` expose
+  `key`; `numFields()` publishes it as `key<Name>`, and row builders pass `key: f.key`.
+
+Easiest safe route: copy an existing row rather than writing a new input from scratch.
+
+### Design system — do not redesign
+
+"Modernist": flat, **zero border-radius**, 2px rules, near-mono red `#ec3013` on
+`#f3f2f2`, Archivo throughout. Every tap target ≥ 44px. Do not round corners, do not
+centre button labels. Colours, type, spacing and copy are final.
+
+### Wording
+
+House style: **the Korean payslip term leads and the translation follows** —
+`잔업 Tăng ca ×1.5`, not `Tăng ca ×1.5`. The worker has to be able to find that word
+on the paper in their hand. ASCII digits always, never a script's own numerals.
+
+Adding or changing wording: edit `lang/base.json` (ko + en, the reference), then the
+six `lang/<code>.json` files, then `python3 tools/check_lang.py && python3 tools/sync_lang.py`.
+`tools/README.md` covers adding a language and adding a 조퇴 사유.
+
+## Working on it
+
+```sh
+sh test/run.sh          # everything: regressions, bindings, translations, both builds
+python3 build.py v2     # dist-v2/
+./build_apk.sh v2       # worklog-debug.apk  (needs Gradle from Android Studio)
+```
+
+`sh test/run.sh` is the gate. It runs the wage-engine equivalence proof, 1244
+regression assertions (each tied to a real bug), a check that every `{{ hole }}` in the
+template resolves, translation validation, and a render of all eight languages.
+
+The app has **five tabs**: 출퇴근 PUNCH · 근무기록 LOGS · 급여 PAY · 내 권리 RIGHTS ·
+설정 SETUP. 내 권리 is 퇴직금 / 연차 / 휴업수당 — money the law owes that is not in
+this month's payslip. First run shows a welcome screen (`showTour`), not a form.
+
+In the 연차 ledger only **발생 ACCRUED** is the law's figure (`annualAccrued()`, §60).
+**잔여 LEFT** is the worker's own balance (`annualLeft()`) and **사용 USED** is the
+difference. It has to work that way: the app cannot know leave taken before it was
+installed, and everyone installs it mid-employment. See the 2026-08-19 (eleventh) entry
+before changing any of those three cells.
+
+`test/bind.js` reports `unresolved: 2` at rest — those are the literals `true` and
+`false` from `hint-placeholder-val` attributes, not real holes. Anything else in that
+list is a genuine missing `renderVals()` key.
+
+**Run it after every change**, and add an assertion for whatever you changed —
+`test/regress.js` is written as a narrative of bugs found on real shifts, in Korean,
+and new entries should read the same way.
+
+### Checking a change on a real screen
+
+There is no test that looks at pixels. To see the app, serve the build and drive it
+with headless Chrome over CDP:
+
+```sh
+(cd dist-v2 && python3 -m http.server 8777) &
+"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+  --headless=new --remote-debugging-port=9222 --user-data-dir=/tmp/cp about:blank &
+```
+
+Two things will bite you:
+
+- **`localhost` is a secure context**, so the punch pad becomes a *real* WebAuthn
+  fingerprint prompt, not press-and-hold. Add a CDP virtual authenticator
+  (`WebAuthn.enable` then `WebAuthn.addVirtualAuthenticator` with
+  `automaticPresenceSimulation: true`) or you cannot punch. Clear
+  `localStorage['worklog.bio.v1']` between runs or the app tries to verify a
+  credential the new authenticator has never seen.
+- **Seed state from a separate page that redirects into the app.** Writing
+  `localStorage` from inside the running app just gets overwritten by its own `save()`.
+- **Focus events do not fire unless the window has focus.** `element.focus()` in
+  headless is silent — no `focus`, no `focusin`, and `document.hasFocus()` is false.
+  Send `Emulation.setFocusEmulationEnabled {enabled:true}` first. This bit once and
+  looked exactly like a broken feature.
+
+Delete any scratch seed pages from `dist-v2/` before building the APK — whatever is in
+that folder ships.
+
+**Headless cannot answer keyboard questions at all.** The on-screen keyboard is drawn
+by the IME, not by the app, and it differs per vendor. Anything about the keypad — which
+action key appears, whether it is live, how much of the screen it covers — has to be
+looked at on the phone. See the next two sections.
+
+### Installing on the phone
+
+```sh
+adb devices                              # must say "device", not "unauthorized"
+adb install -r worklog-debug.apk         # -r keeps the worker's records
+```
+
+`unauthorized` means the "Allow USB debugging" prompt has not been accepted on the
+phone — but a *stale daemon* reports the same thing for an already-trusted phone.
+Try `adb kill-server && adb start-server` before going to look for a prompt that
+isn't there. `adb` lives at `~/Library/Android/sdk/platform-tools/adb` if it is not
+on PATH.
+
+**Never uninstall to "get a clean install."** The records live in the WebView's
+localStorage inside the app's data directory; removing the app destroys them. `-r`
+upgrades in place. If the signature does not match, Android *refuses* the install
+rather than wiping — so a failed `install -r` is safe, and the answer is to build on
+the machine that owns `~/.android/debug.keystore`, not to uninstall.
+
+### Seeing what the app on the phone is actually running
+
+The debug build exposes the WebView to CDP, which is the only reliable way to know
+whether the phone is running the build you just made:
+
+```sh
+adb forward tcp:9333 localabstract:webview_devtools_remote_$(adb shell pidof app.worklog.punch)
+curl -s http://127.0.0.1:9333/json/list
+```
+
+Then drive it over the WebSocket exactly as with headless Chrome. `window.__dcRegistry
+.WorkLogApp.Logic` is the component class — checking for a method or a `Logic.STR` key
+you just added tells you in one line whether the new code is live. Do that before
+debugging any "the fix didn't work on the phone" report; the answer is often that the
+phone is running the previous build (see the service-worker note below).
+
+`adb shell input tap X Y` uses device pixels. Get them from the element itself rather
+than measuring a screenshot — `rect.left * devicePixelRatio` via CDP — because the
+screenshot is 1440px wide while CSS is 384.
+
+**Calling `focus()` over CDP is not the same as tapping.** On the phone too, focus
+events need real window focus — `document.hasFocus()` comes back false and nothing
+happens. To test anything focus- or keyboard-related you must `adb shell input tap`
+like a finger, then `adb exec-out screencap -p` and look at it.
+
+**Testing something that only appears with years of records.** The picker in the
+stepper needs three pay periods before it shows, and the tap-count test that justifies
+its design needs three *years*. Do not hand-edit the worker's store to get there — back
+it up, seed, test, restore, and *prove* the restore:
+
+```sh
+node eval.js "$WS" "localStorage.getItem('worklog.v2')" > PHONE-BACKUP.json   # 1. back up
+node eval.js "$WS" "localStorage.setItem('worklog.v2', <seed>);                     setTimeout(() => location.reload(), 30)"                  # 2. seed + reload
+#   … tap-test …
+node eval.js "$WS" "localStorage.setItem('worklog.v2', <backup>);                     setTimeout(() => location.reload(), 30)"                  # 3. restore
+#   4. read it back and compare the parsed JSON — not 'it looked right'
+```
+
+The `setTimeout` before `reload()` matters: writing `localStorage` from inside the
+running app is otherwise overwritten by its own `save()` (the same trap as the headless
+seed page). Reloading immediately after the write beats the 250ms save debounce.
+
+**And re-measure before every tap.** Once the keyboard is up the page has scrolled and
+the coordinates you took a moment ago are stale. Re-using them taps the keypad instead
+of the field — which is how a stray `8` once landed in a real worker's 연차 balance.
+Re-read `getBoundingClientRect()` immediately before each tap, and check the stored
+value afterwards when you have been tapping near real settings.
+
+## Traps
+
+- **`build.py` does not compile the app.** It unpacks the handoff bundle
+  `근무기록-WorkLog.html`, swaps the current source in as a gzip+base64 asset, adds the
+  design tokens and PWA head tags, and re-seals it. The loader, the dc runtime, React
+  and the font CSS come through byte-for-byte from that file. **Do not delete it.**
+  It *looks* like a stale July artifact and it is the single most deletable-looking
+  file in the folder — it has been proposed for deletion once already. `build.py:32`
+  opens it by name and dies without it (`FileNotFoundError`), so every future build
+  stops. That an APK already on a phone still runs proves nothing: the APK is baked,
+  the shell is what makes the *next* one.
+- **The PWA head tags live in `PWA_HEAD` inside `build.py`**, not in `WorkLog.dc.html`.
+- **`tools/` holds exactly two live scripts** — `sync_lang.py` and `check_lang.py`.
+  Seven one-time i18n refactor scripts used to sit beside them and would corrupt the
+  source if run; they were deleted 2026-08-28 (see `tools/README.md`).
+- **The `__en` gloss keys** (`rsn_machine__en`) are the small English line shown *under*
+  a label for Korean readers. `check_lang.py` skips them; they are never translated.
+- **A record's `reason.ko` is a snapshot**, copied onto the record when the worker picks
+  it. Changing wording in `lang/` does not rewrite documents already generated. That is
+  deliberate — the paper must read as it did the day it was made.
+- **The service worker can hide your build.** `pwa/sw.js` caches the shell. It used to
+  serve navigations cache-first, so a freshly installed APK opened the *previous*
+  build and only showed the new one on the second launch — which reads exactly like
+  "the change didn't work". It is network-first with a 1.5s fallback now (fixed
+  2026-08-13), but if you ever see the phone running old code, check the worker before
+  suspecting your patch. The cache key is `sha256(index.html + sw.js)[:10]`, so it
+  moves when either does.
+
+## Change log beyond V2.md
+
+### 2026-08-28 (latest, twenty-fourth) — 폴더를 치웠습니다, 그리고 지울 뻔한 것
+
+**56MB → 13MB.** 지운 것은 전부 *다시 만들어지는 것*이거나 *아무도 가리키지 않는
+낡은 것*입니다. 지우기 전에 `grep`으로 참조를 확인했고, 지운 뒤 `sh test/run.sh`가
+그대로 통과합니다(1244).
+
+| 지운 것 | 크기 | 왜 |
+|---|---|---|
+| `android/.gradle`, `android/build`, `android/app/build` | 24M | Gradle 산출물, `build_apk.sh`가 다시 만듭니다 |
+| `guide/figs`, `guide/shots` | 17.5M | 같은 28장면을 두 번 찍은 것. **어느 문서도 가리키지 않고**, 8월 2–3일 것이라 내 권리 탭이 생기기 전입니다 |
+| 루트의 스크린샷 다섯 장 | 910K | 마찬가지로 낡았고(탭이 넷) 참조 없음 |
+| `tools/`의 일회용 스크립트 일곱 | 40K | 아래 |
+| `pwa/__pycache__` | — | 바이트코드 |
+
+`guide/evidence.html`(견본 근무내역서)은 남겼습니다. `.gitignore`를 새로 넣었습니다.
+
+#### 일회용 스크립트를 남겨 두는 것이 오히려 함정이었습니다
+
+`extract_lang.py` · `convert_*.py` · `add_dates.py` · `fix_pass*.py` 일곱은 v2의
+i18n 리팩터(416개 `this.t(ko, en)` → `this.T(key, params)`)를 한 번 수행한
+것들입니다. **그 일은 끝났고 다시 일어날 수 없습니다.** 그런데 이것들은
+`WorkLogApp.v2.dc.html`을 제자리에서 고쳐 쓰고 리팩터 *이전* 소스를 기대하므로,
+지금 하나라도 돌리면 소스가 깨집니다.
+
+그래서 이 문서에는 *'돌리지 마십시오'*라는 경고가 있었습니다. **경고로 막아야 하는
+물건이라면, 없애는 편이 낫습니다.** `tools/README.md`에 무엇이었는지 남기고 파일은
+지웠습니다. 남은 것은 `sync_lang.py`와 `check_lang.py` 둘뿐이고 둘 다 언제 돌려도
+안전합니다.
+
+#### 하마터면 지울 뻔한 것 — `근무기록-WorkLog.html`
+
+**지울 후보로 지목된 것이 이 파일이었습니다.** 근거는 *'7월 것이라 낡았고, 지워도
+지금 apk는 멀쩡하다'* — 뒷부분은 맞고 앞부분이 틀렸습니다. 이미 만들어진 apk는
+구워진 것이라 아무 영향이 없지만, **`build.py:32`가 이 파일을 이름으로 열고, 없으면
+`FileNotFoundError`로 죽습니다.** 다음 빌드부터 앱을 만들 수 없습니다.
+
+말로 우기지 않고 **옮겨 놓고 빌드를 돌려 보였습니다** — 먼저 백업을 뜨고, 옮기고,
+`python3 build.py v2`가 죽는 것을 확인하고, 되돌리고, 체크섬이 같은지 보고, 빌드가
+다시 되는지까지. 파일 하나의 필요 여부를 두고 다툴 때 이것이 가장 짧은 길입니다.
+
+`Traps` 항목에 그 사실을 적어 두었습니다 — **이 폴더에서 가장 지우기 좋아 보이는
+파일이고, 실제로 한 번 지목됐다**는 것까지.
+
+#### apk가 2.2MB 작아졌습니다 — 확인했습니다
+
+`android/app/build`를 지우고 처음부터 빌드했더니 6.98MB → **4.75MB**. 줄어든
+apk는 무언가 빠진 apk일 수 있으므로 확인했습니다: **apk 안의
+`assets/www/index.html`이 `dist-v2/index.html`과 바이트 단위로 같습니다**(1,021,343).
+아이콘·매니페스트·서비스 워커도 그대로입니다. 줄어든 것은 증분 빌드가 쌓아 둔
+중간 산출물이지 앱이 아닙니다. 폰에 설치해 확인했습니다 — 로고, 초록, 기록 31일.
+
+**남긴 것과 그 이유** (전부 필요하거나, 잃으면 되돌릴 수 없는 것):
+`근무기록-WorkLog.html`(빌드의 껍데기) · `WorkLogApp.dc.html`+`test/harness.js`
+(v1 등가 증명) · `Work Log and Pay.dc.html`(`ds-tokens.css`가 색 근거로 인용) ·
+`RECREATE-PROMPT.md`(백지에서 다시 만드는 명세) · `pwa/icon-source.png.bak`
+(이전 아이콘 원본, 유일본) · `dist/`·`dist-v2/`(어차피 `run.sh`가 매번 다시 만듭니다).
+
+**다음 사람에게.** 이 폴더에서 무언가를 지우기 전에 **`grep -rl`로 이름을 찾고,
+정말 필요 없다고 생각되면 옮겨 놓고 `sh test/run.sh`와 `python3 build.py v2`를
+돌려 보십시오.** 여기는 git 저장소가 아니라 되돌릴 수 없습니다.
+
+### 2026-08-28 (twenty-third) — 이 앱은 아직 1판도 나가지 않았습니다
+
+만든 사람의 말입니다: **지문을 조금 더 크게. 그리고 정보에서 `v2`를 빼십시오. 이
+앱은 한 번도 공개된 적이 없고, 처음 내보내는 판이 1판입니다. 폴더에 남아 있는 옛
+apk도 치우고, 남는 하나는 v2라고 하지 않아도 됩니다.**
+
+맞습니다. **`v2`는 이 저장소 안의 개발 계보이지 근로자가 읽을 말이 아닙니다.**
+공개된 적이 없는 앱이 스스로 '2판'이라고 말하면, 있지도 않은 이력을 주장하는
+것입니다 — 그리고 이 앱은 근로감독관 앞에 놓이는 문서를 만듭니다. **없는 것을
+있다고 하지 않는다**는 것이 이 저장소의 규칙입니다.
+
+#### 1. 지문 — `0.95em` → `1.05em`
+
+`vertical-align`도 같이 옮겼습니다(`-0.08em` → `-0.13em`). 그림은 viewBox의
+y 2~22만 차지하므로 실제 높이는 상자의 0.833배이고, **상자만 키우면 그림이 위로
+떠오릅니다.** 그림의 한가운데가 예전 자리에 그대로 남도록 다시 잡았습니다:
+
+```
+중심 = -b + 0.5h     b = 0.5(1.05) − 0.395 = 0.13
+```
+
+그림 높이가 `0.79em` → **`0.875em`** (대문자 높이 `0.72em` 대비 10% → 21% 넘침).
+세 자리가 같은 문자열을 쓰므로 assertion 하나가 셋을 함께 셉니다.
+
+#### 2. 설정 › 정보에서 판 번호를 뺐습니다
+
+`근무기록 L`+지문+`GGER` **· v2** → `근무기록 L`+지문+`GGER`. `aria-label`도
+같이 줄였습니다 — 화면 낭독기가 없는 판 번호를 읽으면 안 됩니다.
+
+**assertion을 쓰다 한 번 걸렸습니다, 적어 둡니다.** *'정보 칸에 `v2`라는 글자가
+없는지'*를 마크업에서 그대로 찾았더니 실패했습니다. 지문 path의
+`M9 6.8a6 6 0 0 1 9 5.2v2` — SVG의 세로선 명령 `v2`입니다. **이름을 그림으로
+만들고 나면 마크업에서 글자를 찾는 시험은 더 이상 글자만 보지 않습니다.** 태그를
+걷어내고 보도록 고쳤습니다.
+
+#### 3. 폴더에는 apk가 하나입니다
+
+| 지운 것 | 무엇이었나 |
+|---|---|
+| `worklog-debug.apk` (08-11) | 얼려 둔 원본의 빌드 |
+| `worklog-dist.zip` (08-11) | 원본의 dist 묶음 |
+| `worklog-v2-dist.zip` (08-13) | 두 주 전 dist-v2 묶음 |
+
+셋 다 **소스에서 다시 만들 수 있는 산출물**이고, 어느 스크립트도 문서도 이름으로
+가리키고 있지 않았습니다(지우기 전에 `grep`으로 확인했습니다).
+
+이름도 바꿨습니다:
+
+```
+./build_apk.sh v2   ->  worklog-debug.apk         ← 나가는 앱
+./build_apk.sh      ->  worklog-frozen-debug.apk  ← 얼려 둔 원본
+```
+
+**얼려 둔 원본 쪽 이름을 바꾼 이유가 중요합니다.** 나가는 앱을 그냥
+`worklog-debug.apk`로 두면, 얼려 둔 원본을 한 번 빌드하는 순간 **같은 이름으로
+조용히 덮어씁니다.** 그 다음 `adb install -r`은 두 주 전 앱을 근로자 폰에
+얹습니다. 이 저장소가 계속 적어 온 그 함정(서비스 워커, force-stop)과 같은
+종류라서, 이름 자체가 부딪히지 않게 갈랐습니다.
+
+`CLAUDE.md`와 `DEPLOY.md`의 apk 이름도 함께 고쳤습니다.
+
+#### 하지 않은 것 — 물어보고 하겠습니다
+
+- **근무내역서의 `작성 도구: 근무기록 LOGGER v2` 줄은 그대로입니다.** 화면의
+  판 번호와 달리 이 줄은 **어떤 빌드가 계산했는지를 확인하는 자리**입니다
+  (열일곱째). 다만 화면이 판 번호를 말하지 않게 된 지금 이 줄만 `v2`라고 하는
+  것은 어긋나므로, 어떻게 부를지는 정해야 합니다.
+- **`v2` 계보 자체의 이름은 바꾸지 않았습니다** — `WorkLogApp.v2.dc.html`,
+  `dist-v2/`, `build.py v2`, `V2.md`. 이것을 `v1`으로 옮기려면 **v1 등가
+  증명이 함께 사라집니다**: `test/regress.js`가 얼려 둔 원본의 임금 엔진과
+  지금 엔진이 같은 답을 내는지 증명하고 있고, 그것이 이 저장소에서 가장 센
+  안전망입니다. 파일 이름 몇 개를 위해 버릴 것이 아닙니다.
+
+4 new assertions (1244 total): 크기·정렬 문자열이 셋 다 새 값인지, 정보에는
+판 번호가 없는지(태그를 걷어낸 글자로), 정보의 `aria-label`도 그런지.
+
+**폰에서 확인**: 머리말과 정보 모두 커진 지문으로 `근무기록 L`+지문+`GGER`,
+정보에는 판 번호가 없습니다. 폴더에 apk는 `worklog-debug.apk` 하나입니다.
+근로자의 저장소는 그대로입니다.
+
+### 2026-08-28 (twenty-second) — 이름 한가운데의 O는 출퇴근 패드의 지문입니다
+
+근로자가 물었습니다: **앱 이름의 `O` 자리에 출퇴근 화면의 초록 지문을 넣어
+주십시오.** `근무기록 L`+지문+`GGER`.
+
+좋은 생각입니다. 이 앱이 하는 일이 **지문으로 도장을 찍는 것**이고, 그 지문은
+근로자가 매일 아침 누르는 바로 그 그림입니다. 이름이 앱을 설명하게 됩니다.
+
+#### 이름이 나오는 자리는 셋입니다
+
+| 자리 | 크기 | 획 두께 |
+|---|---|---|
+| 머리말(모든 탭 위) | 16px | 3 |
+| 소개(환영) 화면 | 26px | 2.6 |
+| 설정 › 정보 | 13 → **14px** | 3 |
+
+**셋이 서로 다르게 생기면 그것은 로고가 아니라 사고입니다.** 크기와 정렬은 한
+벌입니다(`width:0.95em; height:0.95em; vertical-align:-0.08em; margin:0 0.03em`) —
+`em`이라 글자 크기를 따라가고, 세 자리가 같은 문자열이라 assertion이 셋을
+한꺼번에 셉니다.
+
+- **획 두께만 자리마다 다릅니다.** viewBox 24 안에 아홉 개의 호(弧)가 있어서, 획을
+  그대로 두면 작은 자리에서 뭉개지고 큰 자리에서 가늘어집니다. 26px에서는 2.6,
+  작은 두 자리에서는 3입니다.
+- **`0.95em`인 이유**: 그림은 viewBox의 y 2~22만 차지하므로 실제 높이는 약
+  `0.79em`입니다. 대문자 높이가 `0.72em`이니 둥근 글자가 위아래로 살짝 넘치는
+  그 정도 — `O`가 원래 그렇게 생겼습니다.
+- **정보 줄만 13 → 14px로 올렸습니다.** 13px에서는 아홉 개의 호가 초록 얼룩으로
+  보였습니다. 이름을 그림으로 만들면 **글자보다 큰 최소 크기**가 생깁니다.
+
+**초록은 패드의 값을 그대로 씁니다** — `oklch(0.52 0.14 149)`, `padIconInk`와 같은
+literal입니다. 이 저장소는 의미 있는 색을 토큰이 아니라 주석 달린 literal로 두므로
+(`oklch(0.84 0.16 92)` 주간, `oklch(0.72 0.15 30)` 휴업 …) 그 방식을 따랐고,
+**두 초록이 갈라지지 않도록** 소스에서 `padIconInk`의 값을 읽어 로고의 세 개와
+같은지 보는 assertion을 걸었습니다.
+
+#### 그림은 글자가 아닙니다 — 두 가지가 따라옵니다
+
+**1. 이름을 읽을 수 있어야 합니다.** `innerText`는 이제 `근무기록 LGGER`입니다.
+세 자리 모두 감싸는 요소에 `aria-label="근무기록 LOGGER"`가 붙고 `<svg>`는
+`aria-hidden="true"`입니다 — 화면 낭독기는 온전한 이름을 읽습니다.
+
+**2. 정보 줄은 문자열이 아니게 됐습니다.** `L.aboutName`(`app_name_version__en`)이
+`근무기록 LOGGER · v2` 한 줄이었는데, **이름 한가운데에 그림이 들어가면 문자열
+하나로는 그릴 수 없습니다.** 여덟 개 언어에서 값이 똑같은 고유명사라 머리말·소개와
+같이 템플릿에 그대로 적고 키를 지웠습니다. 717 → **716 키**.
+
+#### 문서에는 넣지 않았습니다
+
+`evidenceHtml()`의 `작성 도구: 근무기록 LOGGER v2` 줄은 **글자 그대로입니다.**
+근무내역서는 근로감독관 앞에 놓이는 종이이고, 열일곱째가 그 줄을 왜 그렇게 썼는지
+적어 두었습니다. 인쇄·첨부·복사에서 `<svg>`가 어떻게 될지는 알 수 없고, **알 수
+없는 것을 증거 문서에 넣지 않습니다.** 문서 전체에 `<svg`가 하나도 없는지 보는
+assertion이 있습니다.
+
+10 new assertions (1242 total) under 이름 한가운데의 O는 출퇴근 패드의 지문입니다:
+세 자리가 다 지문을 갖는지, 셋의 초록이 패드와 같은지, 크기·정렬 문자열이 셋 다
+같은지, `aria-label`이 셋 다 붙어 있는지, 글자로 찍히던 `근무기록 LOGGER`가 남아
+있지 않은지(단 `aria-label` 안의 것은 남아 있어야 합니다 — 처음 쓴 assertion이
+그것까지 세다가 걸렸습니다), 그리고 문서는 여전히 글자인지.
+
+**폰에서 확인**: 머리말·소개·정보 세 자리 모두 `근무기록 L`+초록 지문+`GGER`,
+글자 사이 간격도 어색하지 않습니다. 근로자의 저장소는 그대로입니다.
+
+**다음 사람에게.** `padIconInk`의 초록을 바꾸면 **로고 세 개도 함께 바꾸십시오** —
+assertion이 잡아 주지만, 잡히는 것과 왜 그런지 아는 것은 다릅니다. 그리고 지문
+아이콘의 path를 손보게 되면 네 벌(패드 + 로고 셋)이 있다는 것을 기억하십시오.
+
+### 2026-08-28 (twenty-first) — 이 칸에 적는 것은 사람이 아니라 회사 이름입니다
+
+스무째로 만든 **내 정보**를 폰에서 보고 근로자가 말했습니다: **'Employer'를 회사
+이름으로 바꿔 주십시오.**
+
+맞습니다, 그리고 이 앱에서는 그냥 낱말 취향의 문제가 아닙니다. **`EMPLOYER`는
+사람(고용주)으로도 읽히는데 이 칸에 적는 것은 근로계약서에 적힌 회사 이름**이고,
+더 나쁜 것은 **이 앱이 '사업주'라는 말을 이미 다른 뜻으로 쓰고 있다**는 것입니다 —
+근로기준법 제46조의 **사업주 귀책 휴업**. 한 낱말이 두 가지를 가리키면, 하필
+그 둘이 같은 문서 안에 나옵니다.
+
+| | 예전 | 지금 |
+|---|---|---|
+| ko | 사업장명 · EMPLOYER | 사업장명 · **COMPANY NAME** |
+| en | EMPLOYER | **COMPANY NAME** |
+| vi | 사업장명 NƠI LÀM VIỆC *(일터)* | 사업장명 **TÊN CÔNG TY** |
+| zh | 사업장명 用人单位 | 사업장명 **公司名称** |
+| th | 사업장명 สถานประกอบการ *(사업장)* | 사업장명 **ชื่อบริษัท** |
+| id | 사업장명 PERUSAHAAN *(회사)* | 사업장명 **NAMA PERUSAHAAN** |
+| ne | 사업장명 रोजगारदाता *(고용주)* | 사업장명 **कम्पनीको नाम** |
+| km | 사업장명 និយោជក *(고용주)* | 사업장명 **ឈ្មោះក្រុមហ៊ុន** |
+
+**셋(vi·ne·km)은 영어를 그대로 옮겨 '일터' 또는 '고용주'라고 말하고 있었습니다.**
+영어 한 줄만 고쳤으면 그 세 언어의 근로자는 예전 낱말을 계속 봤을 것입니다.
+
+**한국어 `사업장명`은 그대로입니다.** 근로계약서에 그렇게 적혀 있고, 근무내역서도
+여전히 `사업장`이라고 씁니다 — 이 앱의 규칙은 한국어 서류의 낱말이 앞에 서고
+번역이 뒤따르는 것입니다.
+
+#### 안내문도 함께 — 그리고 한 언어는 스스로와 어긋나 있었습니다
+
+`employer_name_hint`에서 **영어가 두 자리**(`keeps the employer that was set` ·
+`has no employer on record`)에서 사람을 가리키고 있었습니다.
+
+**태국어는 한 문장 안에서 두 낱말을 쓰고 있었습니다** — 앞 절은
+`ชื่อสถานประกอบการ`(사업장 이름), 뒤 절은 이미 `ชื่อบริษัท`(회사 이름). 같은 칸을
+한 문단이 두 가지로 부르고 있었던 것이고, 이번에 둘 다 `ชื่อบริษัท`이 됐습니다.
+
+나머지 다섯은 손댈 것이 없었습니다 — 한국어는 이미 `회사 이름`, vi·zh·id·ne·km도
+안내문에서는 이미 회사 이름이라고 말하고 있었습니다. **이름표만 낡아 있었던
+것입니다.**
+
+#### 손대지 않은 것
+
+`rsn_fx_employer` · `shutdown_employer_s_side` ·
+`the_company_had_no_work_for_you_whethe` — 전부 **사업주 귀책**을 말하는 제46조의
+문장입니다. 영어로 `employer`가 남아 있는 것이 맞습니다. **찾아 바꾸기로 한 번에
+쓸어버리기 딱 좋은 자리**라서, 그 셋이 그대로인지 보는 assertion을 함께 걸었습니다.
+
+**키 수는 그대로 717입니다** — 값만 고쳤습니다. 30 new assertions (1232 total)
+under 이 칸에 적는 것은 사람이 아니라 회사 이름입니다: 여덟 개 언어의 이름표와
+안내문이 모두 회사 이름을 말하는지, 사람을 가리키는 낱말(`employer` · 고용주 ·
+`nơi làm việc` · 用人单位 · สถานประกอบการ · रोजगारदाता · និយោជក)이 그 둘에
+남아 있지 않은지, 한국어는 `사업장명`이 앞에 서는지, 그리고 §46 세 문장은
+그대로인지. **임금 계산식은 손대지 않았습니다.**
+
+**폰에서 확인**(EN): 칸 이름이 `COMPANY NAME`, 그 아래 안내문이 *Each pay period
+keeps the **company name** that was set…*. 근로자의 저장소는 그대로입니다.
+
+### 2026-08-28 (twentieth) — 백업 상자 안에 세 가지 다른 일이 들어 있었습니다
+
+근로자의 말입니다: **백업과 내보내기는 파일을 내보내고 되돌리는 곳이어야 하는데,
+성명과 사업장명이 그 안에 있고 근무내역서 만들기까지 거기 있어서 어색합니다.**
+
+맞습니다. 그리고 이유는 '어색하다'보다 뾰족합니다. **한 상자 안에 세 가지가 있었고,
+그 셋은 파일로 끝난다는 것 말고는 공통점이 없었습니다.**
+
+| | 얼마나 자주 | 누가 읽는가 | 잘못되면 |
+|---|---|---|---|
+| 성명 · 사업장명 | **평생 한 번** | 아무도 — 찍히기만 합니다 | 모든 문서가 미기재로 나갑니다 |
+| 근무내역서 | **한 달에 한 번** | 근로감독관·노무사 | 이 앱이 있을 이유가 없어집니다 |
+| JSON 백업 · 복원 | 어쩌면 한 번 | 앱 자신 | **복원은 전부를 덮어씁니다** |
+
+열아홉째는 '파일을 만드는 것들끼리 있어야 합니다'로 묶었습니다. 그것은 **서류함의
+논리이지 근로자의 논리가 아닙니다.** 근로자에게 JSON 백업은 *만드는 것*이 아니라
+잃어버릴 때를 대비한 보험이고, 그 바로 옆에 앱의 유일한 파괴적 단추인 복원이
+있습니다. 한 달에 한 번 쓰는 문서를 그 상자 안에 두면 근로자가 **매달 복원 옆을
+지나갑니다.**
+
+#### 1. 내 정보 — 접혀 있어도 이름이 보입니다
+
+성명이 백업 상자 안에 있을 때는 **조용히 실패했습니다.** 설정에는 묶음이 일곱 개
+있는데 그 가운데 '나'를 말하는 것이 하나도 없었고, 백업을 한 번도 생각해 본 적 없는
+사람은 자기 이름을 적는 칸을 **영영 만나지 못했습니다.** 열여덟째가 애써 문서에
+빨간 «성명 미기재»를 넣었지만, 그것은 **문서가 이미 만들어진 뒤**입니다.
+
+새 묶음 `내 정보 · MY DETAILS`, 자리는 **언어 바로 다음**입니다 — 처음 설정을 훑어
+내려가는 사람이 가장 먼저 만나는 자리이고, 이 두 칸은 다른 무엇보다 먼저 적는
+것입니다. 안에는 성명과 사업장명, 옮기기 전과 똑같은 칸과 똑같은 설명입니다.
+
+**요약 줄이 이름을 말합니다.** 접혀 있어도 `Librado Emarjorie`가 보이고, 비어 있으면
+`성명 미기재`가 **빨갛게** 보입니다. 펼치지 않고도 실패가 보이는 것이 이 변경에서
+가장 값나가는 한 줄입니다.
+
+**빨간 것은 이 하나뿐입니다**(`gMeSumInk`). 열아홉째가 사업장명에 적어 둔 이유와
+같습니다 — 경고를 쌓아 두면 정작 봐야 할 빨간 줄이 묻힙니다.
+
+#### 2. 근무내역서는 급여 탭으로 — 그리고 스테퍼 하나가 없어졌습니다
+
+문서에는 `docBack`이라는 **자기 스테퍼**가 따로 있었습니다. 그 말은 같은 앱이
+'어느 기간을 보고 있는가'에 **두 가지로 답할 수 있었다**는 뜻입니다 — 화면은 8월인데
+문서는 7월. 열두째가 근무기록과 급여를 하나로 묶으면서 *'두 탭이 늘 같은 기간을
+말해야 합니다'*라고 적어 둔 그 원칙이 닿지 않은 마지막 자리였습니다.
+
+이제 문서는 **급여 탭 맨 아래**에 있고, 그 탭의 `payBack`을 그대로 씁니다.
+`docBack` · `docPeriod()` · `stepDoc()`은 없어졌고, `docBackMax()`는 화면과 문서가
+함께 쓰는 하나라는 뜻으로 **`periodBackMax()`**가 됐습니다.
+
+**남은 것은 스테퍼가 아니라 확인 줄입니다** — `근무내역서 기간 · 08.21 → 09.20 ·
+5 days recorded`. 빨간 단추를 누르기 직전에 '지금 만드는 것이 어느 달인가'가 눈에
+있어야 하고, 스테퍼가 둘이면 둘이 어긋날 길이 생깁니다.
+
+**그리고 이 자리가 맞는 자리입니다.** 회사 급여명세서와 맞춰 보다가 부족액을 찾아낸
+사람이 **바로 다음에 원하는 것**이 이 문서입니다. 예전에는 거기서 설정 탭으로 가서
+접힌 묶음을 열어야 했습니다.
+
+**알림도 갈랐습니다**(`docMsg`/`docErr`). `backupMsg` 하나를 나눠 쓰면 급여에서 만든
+문서의 알림이 **설정 화면에 남습니다** — 서로 보이지 않는 두 탭이라 열아홉째가 지운
+유령과 같은 모양입니다. 기간을 옮기면 지웁니다(`goPeriod`): 07월 문서를 만들었다는
+줄이 08월 밑에 남아 있으면 안 됩니다.
+
+#### 3. 백업과 내보내기에는 이제 파일뿐입니다
+
+`파일로 내보내기(JSON)` · `파일에서 복원` · `CSV`. **CSV는 남겼습니다** — 그것은 한
+기간이 아니라 **기록 전부**를 담은 파일이고, 묶음 이름이 약속하는 바로 그것입니다.
+근로자가 말한 '파일을 내보내고 되돌리는 곳'과 정확히 같습니다.
+
+#### 고친 문장
+
+- `the_document_carries_these_figures_too`(내 권리의 가리키는 한 줄) — `설정 ›
+  백업과 내보내기` → **`급여 탭 맨 아래`**. 여덟 개 언어. 이 줄이 없는 화면을
+  가리키면 열아홉째가 stale slug를 고친 이유와 같은 문제가 됩니다.
+- `makes_a_one_page_korean_document_cover` — *'백업 파일(JSON)은 앱을 복구할 때
+  쓰는 것이고, 이 문서는 사람이 읽는 것입니다'* 한 문장을 **뺐습니다.** 그 비교는
+  JSON 단추 옆에 서 있을 때만 뜻이 있었습니다. 여덟 개 언어.
+- `step_back_to_any_month_you_still_have` — *'위의 ‹ › 로 기간을 옮기면 이 문서도
+  함께 옮겨 갑니다'*로 시작하게 했습니다. 그 화살표가 이제 이 탭의 것이라 어느
+  화살표인지 말해 주어야 합니다. 여덟 개 언어.
+
+새 키 셋 — `grp_me`, `grp_me__en`, `no_name_set`. 714 → **717 키**. 67 new
+assertions (1202 total) under 성명과 사업장명은 백업 상자 안에 있을 일이 아닙니다 ·
+접혀 있어도 이름이 있는지 없는지가 보입니다 · 문서의 기간은 급여 탭이 보고 있는
+기간입니다 · 옮겼다고 앱이 하던 일을 멈추지는 않습니다. 예전 동작을 붙들고 있던
+`기간 스테퍼도 하나입니다`(docPrev가 하나인지)는 **하나도 없는지**로 뒤집었고,
+급여기간 스테퍼가 근무기록·급여 둘뿐인지를 함께 셉니다. **임금 계산식은 손대지
+않았습니다** — 바꾼 것은 무엇이 어느 화면에 있는가이므로 v1 등가 증명은 그대로
+통과합니다.
+
+**폰에서 확인**(EN, 실제 기록 31일, 21일 시작): 설정에 `My details 내 정보 ·
+Librado Emarjorie`가 언어 바로 밑에 있고, 펼치면 성명과 사업장명 두 칸입니다.
+백업과 내보내기에는 `EXPORT A FILE` · `RESTORE FROM FILE` · `CSV` 셋뿐입니다.
+급여 맨 아래 `DOCUMENT PERIOD 08.21 → 09.20 · 5 days recorded` + 빨간 단추,
+맨 위 ‹ 를 한 번 누르니 머리띠와 함께 **`07.21 → 08.20 · 26 days recorded`**로
+따라왔습니다. 근로자의 저장소는 그대로입니다(기록 31일, 성명·사업장명 그대로,
+`payBack`·`docBack` 둘 다 저장되지 않음).
+
+**다음 사람에게.** 이 앱에서 무언가를 어디에 둘지 정할 때 물어야 하는 것은 *'무엇을
+만드는가'*가 아니라 **'누가, 얼마나 자주, 무엇을 하려고 여는가'**입니다. 파일을
+만든다는 공통점은 백업(평생 한 번, 앱을 위해)과 근무내역서(매달, 사람에게)를 같은
+상자에 넣을 이유가 되지 못했습니다. 그리고 **기간을 말하는 스테퍼는 앱에 둘뿐**
+입니다(근무기록·급여, 같은 `payBack`) — 세 번째를 만들고 싶어지면, 그것이 화면과
+어긋나는 날이 언제인지부터 적어 보십시오.
+
+### 2026-08-28 (nineteenth) — 사업장명은 붙들어 두고, 근무내역서를 만드는 곳은 하나로 줄였습니다
+
+열여덟째 끝에 '사업장명은 도장을 찍어야 한다'고 적어 둔 것을 실제로 했고, 그러다
+물어본 김에 **내 권리와 설정에 근무내역서 단추가 두 벌 있다**는 것이 함께 나왔습니다.
+
+#### 1. 사업장명 — `wageLog`에 함께 찍습니다
+
+**성명과 달리 사업장명은 바뀝니다.** 회사를 옮기면 그 뒤로 뽑는 지난 달 문서가 전부
+새 회사 이름을 답니다. 임금체불 진정에서 그것은 **상대를 잘못 지목하는 문서**입니다.
+
+`settings.employer`는 지금 회사이고, `wageNow()`가 그것을 **임금 기준 한 벌에 얹어**
+`wageLog`에 함께 찍습니다. 따로 `employerLog`를 두지 않은 이유는 같은 기간이 두 곳에
+적히면 둘이 어긋날 길이 생기기 때문입니다 — 한 벌에 몇 바이트 늘 뿐입니다.
+
+| 12월 문서를 1월에 뽑으면 | 붙들기 전 | 지금 |
+|---|---|---|
+| 사업장 | (주)대한기계 ← **1월에 옮긴 회사** | **(주)한국정밀** |
+
+**회사 이름은 되살릴 수 없습니다.** 시급은 `c.pay`에서 거꾸로 풀리지만(`recoverWage`)
+회사 이름은 기록 어디에도 남지 않습니다. 그리고 `recoverWage()`와 `unknown` 갈래는
+둘 다 `wageNow()`를 바탕으로 만들어지므로 `employer`가 **지금 회사**로 딸려 옵니다.
+그래서 `employerFor(W)`가 갈라 줍니다 — **도장이 찍힌 기간(`src === 'live'`)만
+확실**하고, 나머지는 지금 설정값을 쓰되 문서가 스스로 밝힙니다:
+
+> 사업장 **(주)대한기계** ※ 이 기간의 기록에 사업장명이 남아 있지 않아 현재
+> 설정값입니다 — 그 사이에 회사를 옮겼다면 이 기간의 회사는 다른 곳입니다.
+
+**이 변경 이전에 찍힌 도장에는 `employer` 자체가 없습니다.** `src`는 `'live'`인데
+회사만 모르는 상태이고, 그것도 확실하지 않은 쪽으로 보냅니다(asserted) — 없는 것을
+있다고 하지 않습니다.
+
+**비워 두면 그 줄이 아예 없습니다.** 성명과 다릅니다: 성명이 없으면 '누구 문서인가'를
+아무도 모르므로 빨갛게 말해야 하지만, 사업장명이 없다고 문서가 못 쓰게 되지는
+않습니다. **경고를 쌓아 두면 정작 봐야 할 빨간 줄이 묻힙니다.**
+
+**CSV와 파일 이름에는 넣지 않았습니다.** CSV는 여러 기간이 한 파일에 섞이므로 줄마다
+`wageFor()`를 다시 불러야 하고(수백 줄), 사람을 가르는 일은 `근로자` 칸이 이미 합니다.
+파일 이름은 성명만으로 충분히 갈라집니다.
+
+#### 2. 근무내역서를 만드는 곳이 두 군데였습니다
+
+2026-08-18(여섯째)부터 **내 권리 아래**와 **설정 › 백업과 내보내기**에 같은 스테퍼와
+같은 빨간 단추가 한 벌씩 있었습니다. 둘은 같은 `docBack`을 나눠 쓰므로, **한쪽에서
+7월로 옮기면 다른 탭의 스테퍼도 말없이 7월이 됩니다.**
+
+열두째가 근무기록과 급여를 **일부러** 하나로 묶은 것과 겉모습은 같지만 뜻이 다릅니다.
+그 둘은 **한 화면 안에서 같은 기간을 말해야 해서** 묶은 것이고, 이쪽은 **서로 보이지
+않는 두 탭**이라 그냥 유령입니다.
+
+**남긴 것은 설정 쪽입니다.** 세 가지 이유입니다.
+
+- 원래 의도가 그랬습니다. 내 권리 쪽 안내의 키 이름이
+  `the_same_document_as_in_settings_it_car` — *'설정에 있는 그 문서'*였습니다. 내
+  권리는 처음부터 **가리키는 줄**이었고, 어느 시점에 스테퍼와 단추까지 복제된 것입니다.
+- **파일을 만드는 것들끼리 있어야 합니다.** 백업(JSON)·CSV·근무내역서. 설정 쪽 안내가
+  이미 *'백업 파일(JSON)은 앱을 복구할 때 쓰는 것이고, 이 문서는 사람이 읽는
+  것입니다'*라고 말하는데, 그 문장은 JSON 단추 옆에서만 뜻이 있습니다.
+- **내 권리는 퇴직금·연차·휴업수당**, 곧 *'이번 달 명세서에 없는 돈'*입니다.
+  급여기간 하나의 근무를 정리한 문서는 그 주제가 아닙니다.
+
+내 권리에는 **한 줄이 남습니다** — 이 탭의 금액이 문서에도 들어간다는 사실은 여기서
+말해야 하고, 이제 그 줄이 **어디서 만드는지 가리킵니다**(여덟 개 언어, asserted).
+**잃는 것**은 문서가 접힌 그룹 뒤로 간다는 것입니다. 매일 여는 화면에서 한 달에 한 번
+쓰는 단추를 빼는 대가로는 싸다고 봤습니다.
+
+**stale slug도 고쳤습니다** — `the_same_document_as_in_settings_it_car` →
+`the_document_carries_these_figures_too`. 이 저장소는 소스를 `grep`해서 읽으라고
+되어 있는데, 그 이름이 이제는 없는 화면을 가리키고 있었습니다(`tour_setup_next`,
+`the_company_had_no_work_for_you_whethe`와 같은 이유). **키 수는 그대로입니다** —
+이름만 바꿨습니다.
+
+새 키 셋 — `employer_name`, `employer_name_ph`, `employer_name_hint`. 711 →
+**714 키**. 35 new assertions (1135 total) under 회사를 옮겨도 지난 달 문서는 그 때의
+회사입니다 · 회사 이름은 기록에서 되살릴 수 없습니다 · 이 변경 이전에 찍힌 도장은
+확실하지 않은 쪽입니다 · 사업장명을 안 적으면 그 줄이 아예 없습니다 ·
+근무내역서를 만드는 곳은 한 군데뿐입니다. **임금 계산식은 손대지 않았습니다** —
+`employer`는 문자열이라 `wRate`·`wOtRate`·`taxableFixed` 어디에도 닿지 않고, v1 등가
+증명은 그대로 통과합니다.
+
+**폰에서 확인**(EN, 실제 기록 31일, 21일 시작): 같은 문서를 세 기간에서 뽑아
+`08.21 → 09.20` **live**(단서 없음), `07.21 → 08.20` **recovered**(단서 붙음),
+`06.21 → 07.20` **unknown**(단서 붙음). 내 권리 맨 아래에서 스테퍼와 빨간 단추가
+사라지고 가리키는 한 줄만 남았습니다.
+
+**다음 사람에게.** `stampWage()`는 **오늘이 든 기간에만** 도장을 찍습니다. 그래서
+`employer`를 얹은 이 변경 뒤에도 **지난 기간의 도장은 다시 쓰이지 않습니다** — 그것이
+맞습니다(그 때 회사가 무엇이었는지 앱은 모릅니다). 임금 기준에 무엇을 더 붙들고
+싶어지면 `wageNow()`에 얹으면 되고, 되살릴 수 없는 값이라면 **`src`로 갈라서 문서가
+스스로 밝히게** 하십시오 — `employerFor()`가 그 본보기입니다.
+
+### 2026-08-28 (eighteenth) — 한 공장에서 셋이 내면 누구 것인지 알 수 없었습니다
+
+열일곱째에서 만든 사람의 이름을 문서에서 빼고 나서 물어본 것입니다: **같은 회사에서
+여러 사람이 이 앱을 쓰고 각자 근무내역서를 내면, 어느 문서가 누구 것입니까?**
+
+알 수 없었습니다. **앱은 근로자가 누구인지를 아예 갖고 있지 않았습니다** —
+`DEFAULTS`에 이름 칸이 없고, 문서 어디에도 사람을 가리키는 줄이 없습니다. 급여기간과
+금액만 있는 종이 석 장이 근로감독관 책상에 놓입니다.
+
+**파일 이름까지 똑같습니다.** 셋 다 `근무내역서-08210920.html`입니다. 한 폴더에
+받으면 **서로 덮어씁니다** — 열어 보기 전에 이미 둘이 사라집니다.
+
+#### `settings.workerName` — 한 칸, 그리고 세 군데에 찍힙니다
+
+| | 이름을 적었을 때 | 비워 두었을 때 |
+|---|---|---|
+| 문서 머리 | `근로자 성명 **NGUYEN VAN A**` | `근로자 성명 **미기재**` + 빨간 설명 |
+| 파일 이름 | `근무내역서-NGUYEN VAN A-08210920.html` | `근무내역서-08210920.html` |
+| CSV | 줄마다 맨 앞 칸에 이름 | 맨 앞 칸이 빈 칸 |
+
+- **문서에서 자리는 제목 아래, 급여기간보다 위입니다.** 여러 사람이 낸 문서를 갈라
+  보는 사람이 가장 먼저 찾는 것이 이름이기 때문입니다(asserted, 두 위치 관계 모두).
+- **비워 둘 수 있습니다.** 법이 요구하는 칸이 아니고, 이름을 적고 싶지 않은 사람이
+  있습니다. 다만 **조용히 익명으로 나가지는 않습니다** — 비어 있으면 문서가 빨간
+  글씨로 `미기재`라고 밝히고 왜 필요한지 적습니다. 근로자는 보내기 전에 알아야 하고,
+  받은 사람도 알아야 합니다. **막지는 않습니다** — 문서도 CSV도 그대로 나옵니다.
+- **공백만 친 것은 이름이 아닙니다**(`workerName()`이 trim). 파일 이름에도 새지
+  않습니다.
+- **CSV의 `근로자` 칸은 이름이 없어도 있습니다.** 13 → 14칸. 노무사가 여러 사람의
+  CSV를 한 표에 붙여 놓고 더해 보는 자리인데, **파일마다 모양이 다르면 붙일 수가
+  없습니다.** 빈 칸은 빈 칸입니다.
+- **`Component.fileSafe()`** — `/ \ : * ? " < > |`와 제어문자를 빼고, 공백을 하나로
+  줄이고, 40자에서 자릅니다. **한글·태국어·크메르어 이름은 그대로 둡니다**: 이 앱을
+  쓰는 사람의 이름이 ASCII라는 보장이 없고, 파일 이름은 사람이 읽는 것입니다.
+  못 쓰는 글자만 친 이름은 파일 이름에서 조용히 빠지지만 문서에는 그대로 적힙니다.
+
+#### 칸의 자리 · 누르면 비우지 **않습니다**
+
+설정 › **백업과 내보내기** 맨 위, 내보내기 단추들보다 **앞**입니다. 이 한 칸이 세 가지
+출력에 다 찍히므로 찍히는 것들보다 앞에 있어야 순서가 말이 됩니다.
+
+**숫자 칸의 `numField`를 쓰지 않았습니다.** 그쪽은 누르면 비우고 그냥 나가면
+되돌립니다 — 2,156,880을 3,000,000으로 고치려고 백스페이스를 일곱 번 누르던 문제
+때문입니다(2026-08-17). **이름은 고쳐 쓰는 것이 아니라 한 번 적는 것**이고, 눌렀다가
+그만두면 이름이 사라지는 편이 훨씬 나쁩니다. `onKeyDown`은 다른 칸과 똑같이
+`leaveField`로 갑니다 — 안 달면 완료 키가 죽은 키와 똑같아집니다(2026-08-19 열째).
+
+**쓰던 사람에게 새로 생기는 화면은 없습니다** — 저장된 설정에 `workerName`이 없으면
+빈 값이고, 그것은 그냥 미기재입니다(asserted, 키를 지운 저장본으로).
+
+새 키 넷 — `worker_name`, `worker_name_ph`, `worker_name_hint`,
+`worker_name_missing`. 707 → **711 키**. 62 new assertions (1100 total) under
+한 공장에서 셋이 내면 누구 것인지 알 수 있어야 합니다 · 이름을 안 적으면 문서가
+스스로 그렇게 말합니다 · 이름은 파일 이름에 넣을 수 있게 다듬습니다 · 성명 칸은
+여덟 개 언어에 다 있고 쓰던 사람을 건드리지 않습니다. CSV 칸 수를 붙들고 있던 기존
+assertion은 13 → 14로 고쳤습니다. **임금 계산식은 손대지 않았습니다.**
+
+**폰에서 확인**(EN): 손가락으로 눌러 IME로 `NGUYEN VAN A`를 쳤고 — 자판 오른쪽
+아래가 **살아 있는 `Done`**, 누르니 자판이 내려가고(`visualViewport` 473 → 832)
+그대로 저장됐습니다. 비우면 칸이 빨갛게 되고 아래에 이유가 붙습니다. 실제 기록
+31일로 만든 문서에서 `근무내역서-NGUYEN VAN A-08210920.html`, CSV 줄 맨 앞에 이름.
+
+**다음 사람에게 — 사업장명은 일부러 넣지 않았습니다.** 넣으면 유용하지만 **회사는
+바뀝니다**. 그러면 작년 문서가 지금 회사 이름을 달고 나옵니다 — 열여섯째가 기본금에서
+겪은 바로 그 어긋남이고, `wageLog`처럼 **급여기간마다 도장을 찍어야** 풀립니다.
+성명에는 그 문제가 없습니다(사람 이름은 바뀌지 않습니다). 사업장명을 넣게 된다면
+`stampWage()` 옆에 얹으십시오 — 지금 설정을 그대로 지난 문서에 쓰면 안 됩니다.
+
+### 2026-08-28 (seventeenth) — 이 문서를 만든 사람의 이름이 근로감독관 앞에 놓여 있었습니다
+
+만든 사람이 물었습니다: **이 앱으로 부족액을 찾아낸 근로자가 근무내역서를 들고
+노동청에 갑니다. 나는 그 사건에 끌려들어가고 싶지 않습니다. 그러면서도 앱은
+법에 맞아야 합니다.**
+
+둘은 충돌하지 않습니다. **끌려들어가게 만드는 것은 정확한 계산이 아니라, 이 앱이
+무엇인지 문서가 말하지 않는 것**이었습니다. 세 가지가 실제로 문제였습니다.
+
+#### 1. 문서 맨 아래 회색 잔글씨에 만든 사람의 이름이 있었습니다
+
+`작성: 근무기록 LOGGER v2 — 개발 DOUBLEEM`. 이 줄은 근로감독관 앞에 놓이는
+종이에 찍혔습니다. 계산이 다투어지는 순간 그 이름이 물어볼 사람의 이름이 됩니다.
+
+**도구의 이름과 판(版)만 남겼습니다** — `작성 도구: 근무기록 LOGGER v2 — 오프라인
+앱, 기록은 본인 휴대폰에만 저장됩니다`. 어떻게 계산된 것인지 확인하는 데는 그것으로
+충분하고, 그 이상은 필요하지 않습니다. 엑셀이 만든 표에 엑셀 개발자의 이름이 찍히지
+않는 것과 같습니다. **`Component.AUTHOR`는 그대로 설정 › 정보에 있습니다** — 그
+화면은 근로자 본인만 봅니다(asserted, 양쪽 다).
+
+#### 2. 문서가 회사가 발행한 증명서처럼 보였습니다
+
+도장 찍힌 칸, 합계, 법조문. **받아 든 사람이 가장 먼저 알아야 하는 것은 '누가 쓴
+것인가'**이고, 답은 근로자 본인입니다. 그 말은 있었지만 **맨 아래 회색 잔글씨**에
+있었고, 거기 있으면 읽히지 않습니다.
+
+이제 **제목 바로 아래, 첫 표보다 위에** 두 줄이 상자로 붙습니다:
+
+> **이 문서는 근로자 본인이 작성한 기록입니다.** 회사나 공공기관이 발행한 증명서가
+> 아닙니다. 출퇴근 시각은 근로자 본인이 휴대폰에 기록한 것이고, 아래 금액은 그
+> 기록과 본인이 입력한 임금 조건으로 앱이 계산한 **참고용 추정치**입니다.
+
+**이것은 근로자를 위한 것이기도 합니다.** 임금체불 진정에서 없던 서류를 새로
+만들어 내는 것은 그 자체가 문제가 됩니다(서류 위조). 이 문서가 스스로 '자기
+기록'이라고 밝히면 그 의심을 처음부터 받지 않습니다.
+
+#### 3. 안내가 '추정치'만 말하고 '자문이 아니다'는 말하지 않았습니다
+
+**공인노무사법 제27조①** — 노무사가 아닌 자는 노동관계법령에 관한 **상담·지도**나
+**서류의 작성·확인**을 *업으로서* 해서는 안 됩니다(제28조, 3년 이하 징역 또는
+500만원 이하 벌금). 제2항은 그렇게 **오인될 표시·광고**도 금합니다.
+
+이 앱은 무료이고, 본인의 기록을 본인의 입력으로 계산해 보여 줄 뿐이며, 어떤 사건도
+대리하지 않습니다 — 그래서 '업으로서'에 닿지 않습니다. **문제는 그 사실이 어디에도
+적혀 있지 않았다는 것**입니다. 안내가 네 줄로 늘었습니다: 법률 자문이 아니라는 것,
+판단은 고용노동부와 노무사·변호사의 몫이라는 것, 세금·보험은 추정이고 앱이 아는
+법령이 낡았을 수 있다는 것, 그리고 **어디에 물어보면 되는지**.
+
+**면책은 넓게 쓰면 오히려 무효가 됩니다.** 약관규제법 제7조는 고의·중과실 책임을
+배제하는 조항을 무효로 합니다 — '개발자는 어떠한 책임도 지지 않는다'는 한국
+법정에서 지워집니다. 그래서 쓴 것은 **넓은 면책이 아니라 좁은 사실**입니다: 이것은
+계산기다, 자문이 아니다, 확정 금액은 급여명세서다, 확인은 여기서 하라. 사실은
+지워지지 않습니다.
+
+#### 도움받을 곳 — 앱이 아니라 국가로 넘깁니다
+
+설정에 접히지 않는 **법적 고지와 도움** 칸이 생겼습니다. 여덟 개 언어입니다.
+빨간 상자 안에 **고용노동부 고객상담센터 ☎ 1350**(평일 09:00–18:00, 통역 지원),
+**노동포털 labor.moel.go.kr**, **외국인노동자지원센터** — 전부 무료입니다.
+
+이것이 제품으로도 맞고 책임으로도 맞습니다. **부족액을 찾아낸 근로자가 다음에 할
+일은 앱을 더 보는 것이 아니라 1350에 거는 것**이고, 그렇게 되면 조언하는 자리에
+앉는 것은 앱이 아니라 국가입니다. `접히지 않는` 것도 그래서입니다 — 접어 두면
+아무도 열지 않습니다.
+
+PWA 매니페스트의 설명에도 한 줄 붙었습니다(`계산기이며 법률 자문이나 노무 상담이
+아닙니다`). 그 줄이 스토어와 설치 화면에 나가는 **표시**이므로, 제27조②가 보는
+자리가 정확히 거기입니다.
+
+#### 하지 않은 것
+
+**계산은 한 줄도 손대지 않았습니다.** 임금 계산식·요율·스냅 규칙 전부 그대로이고,
+v1 등가 증명은 그대로 통과합니다. 고지는 **경고이지 잠금이 아닙니다** — 출퇴근,
+기록 열람, 근무내역서 출력, CSV 전부 예전 그대로입니다(asserted). 최저임금 경고가
+그랬던 것과 같은 원칙입니다(2026-08-17).
+
+새 키 셋 — `legal_and_help`, `legal_not_advice`, `legal_where_to_get_help`. 704 →
+**707 키**. 63 new assertions (1037 total) under 근무내역서는 누가 썼는지를 맨
+위에서 밝힙니다 · 이 앱은 계산기이지 노무사가 아닙니다 · 만든 사람의 이름은
+근무내역서에 찍히지 않습니다 · 법적 고지는 접히지 않고 여덟 개 언어에 다 있습니다 ·
+고지를 붙였다고 앱이 하던 일을 멈추지는 않습니다.
+
+**다음 사람에게.** 여기서 지켜야 하는 선은 하나입니다: **앱은 계산하고 보여
+주기만 하고, 판단은 하지 않습니다.** 그 선을 넘는 것은 정확한 법조문이 아니라
+'당신은 진정을 넣어야 합니다' 같은 문장이고, 진정서를 **대신 써 주는** 기능이며,
+이 계산에 **돈을 받는** 것입니다(그 순간 '업으로서'가 됩니다 — 만든 사람의 E-9
+체류자격 문제와는 별개의 이유로 유료화는 이 선을 건드립니다). 지금의 내 권리 탭은
+법의 숫자와 회사의 숫자를 **나란히 놓아 근로자가 스스로 보게** 할 뿐이고, 그
+설계는 우연이 아니라 이 선입니다(2026-08-19 열한째 항목이 발생·사용·잔여를 가른
+이유와 같습니다).
+
+### 2026-08-28 (sixteenth) — 1월에 기본금을 올렸더니 12월 문서가 스스로와 어긋났습니다
+
+열다섯째를 끝내고 물어본 김에 따라 나온 것입니다. **최저임금이 오르면 회사가
+기본금을 올리고, 근로자는 설정에서 그 숫자를 고칩니다. 그 순간 지난 달
+근무내역서가 다시 계산됩니다.**
+
+그냥 다시 계산되는 것이 아닙니다. **문서가 스스로를 부정합니다.**
+
+| 2026년 12월 근무내역서 | 인상 전 | 인상 후 |
+|---|---|---|
+| 일별 스무 줄을 더한 값 | ₩619,200 | **₩619,200** |
+| 연장근로 합계 줄 | ₩619,200 | **₩642,000** |
+| 머리말 통상시급 | ₩10,320 | ₩10,700 |
+
+일별 금액은 기록에 박혀 있고(`c.pay`, 도장을 찍던 시각의 시급) 합계와 머리말은
+`rate()`에서 나옵니다. 한 문서 안에 시급이 둘이었던 것입니다. **근로감독관은 그
+칸을 더해 볼 수 있고, 더해서 맞지 않는 문서는 증거가 되지 못합니다.**
+
+그리고 이것은 드문 일이 아닙니다 — **해마다 1월에 모든 근로자에게 일어납니다.**
+최저임금이 오르고 기본금이 따라 오르는 그 달이, 하필 지난 달 문서를 회사
+명세서와 맞춰 보는 달이기 때문입니다.
+
+#### 급여기간마다 임금 기준 한 벌 (`wageLog`)
+
+`settings.wageLog` — 기간 시작일(ISO)이 키입니다. 한 벌에
+`{basic, divisor, rate, otMult, nightMult, holOverMult, allow, tf, src}`.
+
+- **기간이 열려 있는 동안 도장을 찍습니다**(`stampWage()`, `componentDidUpdate`).
+  같으면 쓰지 않으므로 시계가 1초마다 돌아도 저장이 일어나지 않습니다(asserted:
+  50번 찍어도 추가 기록 0). 기간이 넘어가면 **그 기간 마지막 날의 설정**이
+  그대로 남습니다 — 급여명세서가 만들어지는 방식 그대로입니다.
+- **수당도 함께 붙듭니다.** 수당은 `avgDaily()`를 지나 휴업수당과 퇴직금으로
+  가므로, 이것을 빼면 §46 금액이 계속 흔들립니다. 마지막까지 흔들린 것은
+  실수령이었고, 원인은 `insBase → taxableFixed → fixedPay`로 흐르는 4대보험
+  이었습니다.
+- **`rate()`·`otRate()`는 손대지 않았습니다.** 새 `w*` 계열은 인자 없이 부르면
+  예전 값을 그대로 돌려줍니다(asserted). 바꾼 것은 계산식이 아니라 **어느 시점의
+  값을 쓰는가**이므로 v1 등가 증명은 그대로 통과합니다.
+- **한 벌에 119바이트, 10년에 14KB.** 기록마다 붙이면 30배가 되는데, 그러고도
+  '12월 기본금이 얼마였나'라는 월 단위 물음에는 답하지 못합니다.
+
+#### 앱을 깔기 전에 끝난 기간 — 지어내지 않고 되살립니다 (`recoverWage`)
+
+`c.pay = ot×otRate + night×nightRate + hol×otRate`입니다. 시간을 알고 배수를
+알면 **시급이 나옵니다.** 추측이 아니라 앱이 이미 저장해 둔 값을 거꾸로 푸는
+것입니다.
+
+| 기본금 | 그 때 시급 | 되살린 값 |
+|---|---|---|
+| 2,156,880 | 10,320 | **10,320** |
+| 2,236,300 | 10,700 | **10,700** |
+| 2,600,000 | 12,440 | **12,440** |
+| 3,010,000 | 14,402 | **14,402** |
+
+원 단위까지 정확합니다. **마이그레이션도, 업그레이드할 때 남의 저장소를 건드리는
+일도 없습니다** — 필요할 때 기록에서 계산합니다.
+
+**모르는 것은 모른다고 문서에 적습니다.** 잔업도 야간도 특근도 없던 기간은
+`c.pay`가 전부 0이라 아무것도 말해 주지 않습니다. 그런 기간은 되살리지 않고,
+문서에 단서가 붙습니다:
+
+- `src: 'recovered'` — *※ 이 기간의 통상시급은 앱이 저장해 둔 일별 금액에서
+  되살린 값입니다. 고정수당은 현재 설정값을 썼으므로…* (시급은 되살려도 수당까지는
+  되살릴 수 없습니다)
+- `src: 'unknown'` — *※ 이 기간의 임금 기준이 기록에 남아 있지 않아 **현재
+  설정값**으로 계산했습니다…*
+- `src: 'live'` — 단서 없음(asserted: `※`가 아예 없습니다)
+
+#### 급여 탭도 같은 기준을 읽습니다
+
+**문서만 붙들어 두면 새 어긋남이 생깁니다** — 문서는 12월 시급으로 얼어 있는데
+급여 탭은 지금 시급으로 다시 셉니다. 같은 기간을 두 화면이 다르게 말하면 근로자는
+어느 쪽을 회사에 들이밀어야 할지 알 수 없습니다. 열두째가 스테퍼를 둘이 함께
+쓰게 만든 것과 같은 이유입니다.
+
+그래서 급여 탭의 명세서 줄·수당 줄·요약 칸, **명세서 대조표**(`slipRows`),
+근무기록의 **일별 상세 줄**이 전부 `wageFor(P)`를 지납니다. 출퇴근 카드의
+`예상 실수령`과 설정의 `taxWarn`은 그대로 지금 설정입니다 — 그 둘은 '지금 내
+급여'를 말하는 자리이지 기간을 말하는 자리가 아닙니다.
+
+`W`는 `const P = this.viewPeriod()` **바로 아래**에 있어야 합니다. 합계
+(`const t`) 옆에 두었더니 `logRows`가 그보다 먼저 만들어져 TDZ로 터졌습니다.
+
+#### 화면의 안내문도 반대말을 하고 있었습니다
+
+여섯째가 남겨 둔 `step_back_to_any_month_you_still_have`가 *'지난 달 문서를 만들기
+전에 기본금을 먼저 맞추십시오'*라고 말하고 있었습니다. 이제 그대로 하면 **이번
+기간의 기준만 바뀌고 지난 문서는 그대로**입니다. 여덟 개 언어를 다시 썼습니다 —
+기간마다 그 때의 기준을 간직한다는 것, 모르는 기간은 문서가 스스로 밝힌다는 것.
+
+10 + 39 new assertions (974 total) under 지난 달 문서는 그 달의 시급으로
+남습니다 · 앱을 깔기 전에 끝난 기간은 기록에서 되살립니다 · 쓰던 사람은 새 화면도
+잃는 것도 없습니다 · 급여 탭과 근무내역서가 같은 기간을 같게 말합니다.
+새 키는 없습니다(문서 안의 단서는 한국어 리터럴입니다).
+
+**폰에서 확인**(21일 시작): 세 가지 상태가 실제 기록 위에 다 나왔습니다 —
+`08.21 → 09.20` **live**(도장), `07.21 → 08.20` **recovered**(19일치에서 10,320을
+정확히 되살림), `06.21 → 07.20` **unknown**(기록 없음, 단서 붙음). 세 기간 모두
+급여 탭과 문서의 지급총액·실수령이 같습니다.
+
+**확인하다 스스로 한 번 틀렸습니다, 적어 둡니다.** 7월 기간에서 '줄의 합과 합계가
+다르다'가 나와서 버그인 줄 알았는데, **검증식이 휴일 8시간 초과분을 빼먹은
+것**이었습니다. 그 기간에 ×2.0 구간이 2.5시간(₩12,900) 있었고, 넣으면
+`1,194,540 = 1,181,640 + 12,900`으로 정확히 맞습니다. 이 자리를 검증할 때
+`holOverPremium`을 빠뜨리지 마십시오 — 특근이 없는 달로 시험하면 안 보입니다.
+
+**다음 사람에게.** 아직 붙들지 않은 것은 **보험료율과 세율**입니다. 이것들은
+법이 따로 바꾸는 것이라 기본금과는 다른 문제이고, 지금은 언제나 현재 요율로
+계산합니다.
+
+### 2026-08-28 (fifteenth) — 최저임금이 오르면 무엇이 저절로 바뀝니까
+
+근로자가 물었습니다: **최저임금이 바뀌면 휴업수당 같은 금액도 저절로 바뀝니까,
+아니면 해마다 사람이 챙겨야 합니까?**
+
+**금액은 바뀌지 않습니다 — 바뀌면 안 됩니다.** 급여는 언제나 근로자 자신의
+기본금에서 나오고(`rate()`), 최저임금은 그 옆에 대 보는 잣대일 뿐입니다
+(`:2291`의 주석이 그렇게 적혀 있습니다). 회사가 안 올려 줬는데 앱이 올려 버리면
+**근무내역서가 받지도 않은 돈을 적게 됩니다.** 오를 때 앱이 할 일은 금액을 고치는
+것이 아니라 '지금 받는 시급이 법 아래로 내려갔다'고 말하는 것이고, 그것은
+`minWageWarn`이 2027-01-01에 정확히 합니다(asserted, 시계를 옮겨서 확인).
+
+세 가지가 실제로 문제였습니다.
+
+#### 1. 한 줄이 숫자를 문장에 박아 두고 있었습니다
+
+설정의 `pale_figures_are_defaults_nobody_has_t`가 *'기본금 **2,156,880**은
+**2026** 최저임금 **₩10,320** × 209시간'*이라고 말하고 있었습니다. 형제 문장들은
+전부 `{p0}`으로 받는데 이것만 리터럴이었습니다. 2027년 1월 1일에 새로 깐 사람은
+기본금 2,236,300을 받는데 이 줄만 2,156,880이라고 우깁니다. 여덟 개 언어를 다시
+쓰고 네 값을 인자로 받게 했습니다.
+
+**고치다 두 번째 것이 나왔습니다.** `DEFAULTS`는 `static`이라 페이지를 열 때
+`new Date()`로 **한 번** 계산되는데, 설명하는 세 줄은 `this.now()`를 보고
+있었습니다. 새해를 넘겨 켜 둔 폰에서 둘이 갈라지면 *'₩2,156,880은 2027 최저임금
+₩10,700 × 209시간입니다'* — 10,700 × 209는 2,236,300입니다. **문장이 스스로를
+부정합니다.** `DEFAULT_WAGE_ISO`로 그 순간에 이름을 붙이고, 기본값을 설명하는 세
+줄이 모두 거기를 보게 했습니다. `minWageWarn`은 그대로 `now()`입니다 — '지금 내
+시급이 법 아래인가'는 다른 질문이고, 새해에 비로소 둘이 달라집니다. 문장에서
+숫자를 꺼내 곱이 맞는지 보는 assertion을 남겼습니다.
+
+#### 2. 해마다 챙겨야 하는 일을, 시험이 대신 챙깁니다
+
+`MIN_WAGE` 표는 손으로 고칠 수밖에 없습니다 — 앱이 오프라인이라 고시를 받아올
+길이 없습니다. **그건 어쩔 수 없지만, 낡은 문장이 조용히 남는 것은 어쩔 수 있는
+일입니다.**
+
+`tools/check_lang.py`가 최저임금 금액, `× 209` 곱, 그리고 최저임금을 말하면서
+연도를 리터럴로 적은 문장을 잡습니다. **표를 복사하지 않고 소스에서 읽습니다** —
+복사본은 지키려는 대상과 똑같은 날에 낡습니다.
+
+**믿기 전에 떨어뜨려 봤습니다.** 옛 문장을 도로 넣으면:
+
+```
+! base.json  pale_figures…: wage figure 10,320 is typed in
+! base.json  pale_figures…: wage figure 2,156,880 is typed in
+! base.json  pale_figures…: 최저임금 sentence names the year 2026
+  exit=1
+```
+
+`sh test/run.sh`가 `set -e`이므로 그대로 게이트입니다.
+
+#### 3. 경고가 다섯 달 늦었습니다
+
+**최저임금법 제8조① — 고용노동부장관은 8월 5일까지 다음 해 최저임금을
+고시합니다.** 그런데 배너는 `MIN_WAGE_UNTIL`을 넘긴 **1월 1일**에야 떴습니다.
+그 날은 앱이 **이미 틀린** 날이고, 하필 최저임금이 오른 첫 달입니다.
+
+| 날짜 | 상태 | 하는 말 |
+|---|---|---|
+| ~2027-08-05 | 조용 | — |
+| **2027-08-06 ~ 12-31** | **고시됨** | 최저임금 **2028**년 최저임금이 고시됐습니다. 1월이 오기 전에 앱을 새로 받아 두면… |
+| 2028-01-01 ~ | 낡음 | ⚠ …앱이 아는 마지막 해는 2027입니다… |
+
+두 날짜 모두 `MIN_WAGE_UNTIL`에서 나오므로, 표에 한 줄 더하면 **둘 다 저절로**
+따라 옵니다(`wageTableDueIso()`, `wageTableNextYear()`). **어느 쪽도 막지
+않습니다** — 출퇴근도 근무내역서도 그대로입니다(asserted, 두 상태 모두).
+
+새 키 `next_years_minimum_wage_is_published`, 여덟 개 언어. 703 → **704 키**.
+52 new assertions (925 total) under 최저임금이 오르는 날, 앱은 스스로 말을
+바꿉니다 · 다음 해 고시는 8월에 나옵니다 · 기본값 설명에 숫자를 박아 두지
+않습니다.
+
+**교훈.** `MIN_WAGE` 표에는 스스로 낡는 것을 알리는 장치가 있는데(넷째 항목이
+공휴일 표에는 없다고 적어 둔 그것), **문장에는 없었습니다.** 이제 시험이 그
+역할을 합니다.
+
+### 2026-08-28 (fourteenth) — 휴업은 나가 본 사람만의 것이 아닙니다
+
+야간조 근로자의 보고입니다. **오늘은 근무표상 일하는 날이었는데, 출근 서너 시간
+전에 회사 총무가 '오늘 휴무'라고 연락했습니다. 출퇴근 화면에서 휴업 표시를 찾아
+눌렀더니 설명이 '나갔지만 회사에 일이 없어…'였습니다. 나는 나가지 않았는데,
+그러면 이 날은 앱에 들어갈 자리가 없는 겁니까?**
+
+있습니다. **근로기준법 제46조가 보는 것은 '나갔는가'가 아니라 '사용자의
+귀책사유인가'입니다.** 미리 알려 주었다고 휴업수당이 줄지 않습니다 — 그런 예외는
+제46조에 없습니다(한 달 전 예고는 제24조 경영상 해고 이야기이고 다른 것입니다).
+
+**기록을 쓰는 코드는 처음부터 맞았습니다.** 날짜 표시로 넣는 휴업
+(`togglePending('shutdown')`)은 `sentHome` 없이 저장되고, 목록도 예전부터
+`휴업 · 회사 사정으로 쉼`이라고 읽습니다. 틀린 것은 **그 카드에 붙은 문장
+하나**였고, 그 한 줄이 근로자를 돌려보냈습니다.
+
+`나갔지만 회사에 일이 없어 쉬거나 돌아온 날입니다`
+→ `회사 사정으로 일하지 못한 날입니다 — 나갔다가 돌아왔든, **출근 전에 쉬라는
+연락을 받았든** 같습니다`
+
+제46조·70%·예상 금액·'연차가 아닙니다'는 그대로입니다. 넓힌 것은 앞머리의
+전제뿐입니다. 여덟 개 언어.
+
+**키 이름도 바꿨습니다** — `you_went_in_but_the_company_had_no_wor` →
+`the_company_had_no_work_for_you_whethe`. 자동 슬러그가 고치려는 바로 그 말을
+그대로 갖고 있었고, 이 저장소는 소스를 `grep`해서 읽으라고 되어 있습니다.
+'나갔다'는 이름이 '나가지 않아도 됩니다'라는 문장 위에 붙어 있으면 다음 사람이
+걸려 넘어집니다(2026-08-17의 `tour_setup_next`와 같은 이유). **키 수는 그대로
+703입니다** — 새로 만든 것이 아니라 이름을 바꾼 것입니다.
+
+40 new assertions (873 total) under 휴업은 나가 본 사람만의 것이 아닙니다 ·
+여덟 개 언어가 모두 나가지 않은 날을 덮습니다. **나갔다가 돌려보내진 날이
+`sentHome`으로 남고 목록에 `귀가`라고 읽히는지도 함께 걸어 두었습니다** — 두 날은
+§46에서는 같지만 근무내역서에서는 다른 날이고, 한쪽을 고치다 다른 쪽을 뭉개기
+쉬운 자리입니다.
+
+**폰에서 확인**(EN): 카드가 *The company had no work for you — whether you went in
+and were sent home, or were told before your shift not to come.* 예상 휴업수당
+₩62,735.
+
+### 2026-08-22 (thirteenth) — '다른 급여기간'은 스테퍼가 하는 말을 덜 말하며 되풀이했습니다
+
+근로자의 보고입니다: **근무기록 맨 아래 '다른 급여기간'에 지난 달 날짜가 하루도
+빠짐없이 늘어서 있는데, ‹ › 로 그 기간을 열면 같은 날들이 또 나온다.** 맞습니다.
+어제(열두째) 스테퍼가 생기면서 그 목록은 자기 자리를 잃었습니다.
+
+더 나쁜 것은 **같은 것을 두 곳에서, 한 곳은 덜 말한다**는 점입니다. ‹ 를 누르면
+날짜·출퇴근 시각·실근무·잔업·야간·금액이 붙어서 나오는데, 목록에는 **날짜·주야·
+급여기간·삭제** 네 가지뿐입니다. 열두째 항목이 '지난 기록에서는 그 날 얼마를
+벌었는지가 없다'고 적어 둔 바로 그 화면이 그대로 남아 있었던 것입니다.
+
+목록은 지웠습니다. 매달려 있던 두 가지는 이렇게 처리했습니다.
+
+#### 1. 연도 칩은 스테퍼 안으로 들어가 '기간 고르기'가 됐습니다
+
+목록 위의 `지난 기록 · PAST RECORDS` 칩(`최근 12개월` / `2026` / `전체`)은 그
+목록을 **거르는** 것이었으므로, 목록이 없어지면 아무 데도 닿지 않는 단추가
+됩니다. 그렇다고 지우면 3년 쓴 사람이 2024년을 보려고 ‹ 를 서른여섯 번 눌러야
+합니다.
+
+**처음에는 연도 칩만 옮겨서 '그 해의 가장 최근 기록이 든 기간'으로 보냈습니다.
+3년치(735줄, 37기간)를 넣고 재 보니 그것으로는 모자랐습니다** — 그 자리는 언제나
+그 해의 **12월**이고, 21일 시작이면 이름표가 `12.21 → 01.20`이라 누른 연도처럼
+보이지도 않습니다.
+
+| 가려는 곳 | 연도 칩만 있을 때 | 지금 |
+|---|---|---|
+| 3년 전 2023.09 | 칩 + ‹ 3번 = **4번** | **3번** |
+| 2년 전 2024.08 | 칩 + ‹ 4번 = **5번** | **3번** |
+| 1년 전 2025.08 | 칩 + ‹ 4번 = **5번** | **3번** |
+| 2024년 2월 | 칩 + ‹ 10번 = **11번** | **3번** |
+| 올해 2026년 3월 | ‹ 5번 | **2번** |
+
+그래서 연도 아래에 **달 칸 열두 개**를 놓았습니다. **어느 기간이든 펼치기 → 연도
+→ 달, 세 번이면 끝이고, 3년을 쓰든 10년을 쓰든 그 수는 늘지 않습니다.** 보고 있는
+해 안에서는 두 번입니다.
+
+**달로 가를 수 있는 근거**: 급여기간이 며칠에 시작하든 **한 달에 시작하는 기간은
+언제나 정확히 하나**입니다. 21일 시작이면 '2024년 02월'은 `02.21 → 03.20` 하나뿐
+입니다. 그래서 칸 열두 개가 그 해를 빠짐없이, 겹치지 않게 덮습니다(asserted:
+2025년 열두 칸이 서로 다른 기간을 가리키고, 각 칸의 기간이 정말 그 달에 시작합니다).
+
+- **평소에는 접혀 있습니다**(`state.jumpOpen`, 저장하지 않습니다 — `setOpen`과
+  같은 화면 상태입니다). 매일 출근을 찍는 사람이 매일 보는 카드이고, 지난 기간을
+  찾는 일은 한 달에 한 번이거나 그보다 드뭅니다. 접혀 있으면 **지도도 셈도 만들지
+  않습니다** — 735줄에서 렌더 한 번에 1.4ms 더 드는데, 그것도 펼친 동안만입니다.
+- **기간이 셋 이상 쌓이기 전에는 줄 자체가 없습니다**(`payBackMax() >= 2`).
+  그 전에는 화살표가 더 빠릅니다.
+- **기록이 없는 달은 흐리고 눌러도 아무 일이 없습니다.** 빈 기간을 여는 것은 빈
+  표를 뽑는 것과 같습니다(`docBackMax`의 주석과 같은 이유). 덕분에 이 칸들이
+  **어느 달에 일했는지 한눈에 보이는 지도**가 되기도 합니다 — 입사가 2023년 8월인
+  사람의 2023년 칸은 01–06이 흐리고 07–12이 진합니다.
+- **켜지는 것은 '보고 있는 기간이 시작하는 해와 달'입니다.** 연도와 달이 같은
+  기준으로 켜지므로 언제나 같은 곳을 가리킵니다.
+- **달을 고르면 접힙니다**(`goPeriod(n, true)`). 찾던 것을 찾았으니 그 아래 기록과
+  금액이 화면을 밀지 않고 바로 보여야 합니다. **연도만 고른 사람은 아직 고르는
+  중이라 펼쳐 둡니다** — 다음에 누를 것이 바로 아래 달 칸입니다. `이번 기간으로`도
+  접습니다.
+- **근무기록과 급여 두 스테퍼에 똑같이 들어갑니다.** 같은 `payBack`을 읽는 스테퍼가
+  한쪽만 다르게 생기면 안 됩니다.
+- 연도 칩에 붙어 있던 **줄 수(`2025 240`)는 뺐습니다.** 네 해가 두 줄로 접히게
+  만들 만큼 자리를 먹는데, 어느 해를 누를지 정하는 데는 도움이 되지 않습니다 —
+  어느 달에 기록이 있는지는 바로 아래 달 칸이 말합니다.
+- **한 번만 거슬러 올라갑니다**(`periodMap()`). 칸마다 따로 걸어가면 열두 번이
+  되고, `renderVals()`는 시계가 갈 때마다 돕니다.
+
+#### 2. 앞으로의 날은 화살표가 닿지 않습니다 (`futureRecords()`)
+
+`payBack`은 0 아래로 내려가지 않으므로 **‹ › 는 이번 기간에서 멈춥니다.** 그런데
+다음 달 연차를 미리 적어 두면(`planned: x.d > now`, `:3525`) 그 기록은 아직
+시작하지 않은 기간에 들어갑니다. 그것을 목록째 지웠다면 **볼 수도, 지울 수도 없는
+기록**이 생깁니다 — 달력은 색 막대만 보여 줄 뿐 이미 있는 기록을 열어 주지 않습니다.
+
+그래서 같은 자리에 `예정 · UPCOMING`이 남습니다. **지난 기간의 날은 여기 없습니다**
+— 그것은 ‹ 로 걸어가면 금액까지 붙어서 나옵니다. 적어 둔 것이 없으면 이 자리는
+아예 없으므로, 대부분의 사람에게는 목록이 통째로 사라진 것과 같습니다.
+
+- **기준은 `viewPeriod()`가 아니라 오늘이 든 기간입니다.** 지난 기간을 펼쳐 놓고
+  본다고 해서 '예정'의 뜻이 달라지면 안 됩니다.
+- 줄마다 그 날이 든 급여기간 이름이 붙어 있어서, 지금 보고 있는 기간과 헷갈리지
+  않습니다.
+
+**앞으로 가는 화살표는 만들지 않았습니다.** 급여 탭이 같은 `payBack`을 읽으므로,
+아직 오지 않은 달로 넘어가면 **일하지도 않은 달의 `예상 실수령`에 기본금이 통째로
+찍힙니다.** 증거로 쓰라는 앱에서 그것은 '예정' 목록 하나보다 훨씬 나쁩니다.
+
+#### 3. 목록에는 몇 년인지가 없었습니다 (`viewPeriodFull`)
+
+기간 고르기를 실제로 써 본 근로자의 보고입니다: **2023년 08월을 골라 접고 목록을
+내려가면, 줄에는 `08.21`처럼 월.일밖에 없어서 몇 년의 기록인지 알 수 없다. 제대로
+골랐는지 스스로 의심하게 된다.** 연도는 스테퍼 카드에만 있었고 — 사실 거기에도
+없었습니다(`P.label`이 `08.21 → 09.20`입니다) — 목록을 몇 줄만 내려가면 화면에서
+사라집니다.
+
+목록 맨 위에 **머리띠**가 붙습니다: `2023.08.21 → 2023.09.20`.
+
+- **자리는 줄 바로 위입니다** — 누계 네 칸도, 52시간 경고도, 공휴일 안내 상자도
+  다 지나고 나서 첫 줄 바로 앞. 처음에는 공휴일 안내 상자 **위**에 놓았는데,
+  근로자가 아래로 옮기라고 했습니다: 머리띠는 목록의 머리이지 경고문의 머리가
+  아닙니다.
+- **스크롤을 따라다닙니다**(`position:sticky; top:0`). 맨 위에만 있으면 스무 줄을
+  내려간 뒤에는 없는 것과 같습니다 — 근로자가 겪은 것이 정확히 그것입니다.
+- **연도를 양쪽에 다 적습니다.** `12.21 → 01.20`처럼 해를 넘기는 기간이 있고,
+  하필 그 기간이 연도가 가장 헷갈리는 자리입니다(`2023.12.21 → 2024.01.20`).
+- **지난 기간일 때만 빨강입니다**(`var(--color-accent)` + 흰 글자). 이번 기간에는
+  조용한 회색입니다. '지금이 아닌 곳에 있다'는 말이라야 빨강이 뜻을 갖고, 매일
+  보는 화면에서 빨강이면 바로 위 잔업·야간 숫자와 다툽니다.
+- **줄 자체는 손대지 않았습니다** — 여전히 `08.21`입니다. 줄마다 연도를 넣으면
+  스무 줄이 다 넓어지는데, 머리띠 하나면 같은 말을 한 번만 하면 됩니다.
+
+- **급여 탭에도 같은 머리띠가 있습니다.** 거기서도 아래로 내려가면 수당·공제
+  줄만 남고 어느 기간의 명세인지가 사라집니다(`Pay period 08.21 → 09.20 ·
+  payday 09.25` 한 줄에도 연도가 없습니다). 자리는 큰 금액 카드 바로 아래,
+  `EARNINGS` 바로 위 — 위쪽은 요약이고 여기서부터가 훑어 내려가는 줄입니다.
+  **값은 하나(`viewPeriodFull`)를 둘이 같이 씁니다**: 두 탭이 같은 `payBack`을
+  읽으므로 머리띠가 어긋날 수 있는 길을 아예 만들지 않습니다(asserted).
+
+#### 지운 것 · 남긴 것
+
+`archYears` · `archPick` · `archKeep` · `otherRecords` · `state.archYear`가
+없어졌습니다. **기록은 한 줄도 지워지지 않고, CSV와 백업은 예전처럼 언제나 전부를
+냅니다**(asserted) — '최근 12개월'은 애초에 화면만 접는 것이었습니다.
+
+키 일곱 개를 지웠습니다(`past_records`, `last_12_months`, `all_years`,
+`every_record_the_app_has`, `older_records_are_still_here_and_still`,
+`other_pay_periods`, `saved_but_paid_on_a_different_payslip`). 새 키 셋
+(`pick_a_pay_period`, `upcoming_days`, `days_you_booked_ahead_they_sit_in_a_pa`),
+여덟 개 언어(머리띠는 숫자뿐이라 새 키가 없습니다). 707 → **703 키**. 51 new
+assertions (833 total) under 지난 기간은
+스테퍼가 말합니다 · **3년을 쓴 폰에서 특정 급여기간까지 세 번** · 목록 맨 위에
+연도까지 적힌 기간이 붙어 있습니다 · 미리 적어 둔 날은 예정에 남습니다. **임금 계산식은 손대지 않았습니다** — 바꾼 것은 어느 기간을 어떻게
+고르는가이므로 v1 등가 증명은 그대로 통과합니다.
+
+**교훈, 다음 사람에게.** 이 자리는 **기록이 쌓여야 드러납니다.** 한 해치로는 연도
+칩만으로도 충분해 보였고, 3년치를 세워 놓고 '2024년 2월로 가 보라'고 시켜 본 뒤에야
+열한 번이 나왔습니다. `test/regress.js`의 **3년을 쓴 폰에서 특정 급여기간까지 세 번**
+블록이 735줄짜리 폰을 세우고 탭 수를 세므로, 이 카드를 건드릴 때 그 자리를 함께
+돌려 보십시오 — 탭 수가 늘면 시험이 잡습니다.
+
+**폰에서 확인**(EN, 21일 시작, 기록 27일): 근무기록에서 '다른 급여기간' 스물여섯
+줄이 사라졌습니다. 3년치를 심은 화면에서는 `기간 고르기` → `2024` → `02` 세 번에
+`02.21 → 03.20 · 20 days recorded`가 나오고, 고르는 자리는 스스로 접힙니다.
+
+### 2026-08-21 (twelfth) — 급여기간이 넘어간 아침, 지난 한 달이 통째로 사라졌습니다
+
+21일이 급여기간 첫날인 근로자의 보고입니다. **20일 20:40에 출근해 21일 08:50에
+퇴근했더니, 출퇴근 화면이 다른 것을 보여 주고 그 날 번 돈이 어디에도 없었습니다.
+근무기록과 급여는 전부 초기화된 것처럼 보였고, 지난 급여를 볼 방법이 없었습니다 —
+아직 그 달 월급을 받지도 않았는데.**
+
+세 가지가 겹쳐 있었습니다. 각각은 작고, 합쳐지면 '앱이 내 한 달을 지웠다'가 됩니다.
+
+#### 1. 근무기록과 급여에 급여기간 스테퍼가 생겼습니다 (`payBack`)
+
+근무내역서(`docBack`)는 2026-08-18(여섯째)부터 지난 기간까지 거슬러 갈 수 있었는데
+**화면은 그러지 못했습니다.** `periodRecords()`·`totals()`가 언제나
+`period(now())`를 봤기 때문에, 21일 00:00을 넘기는 순간 근무기록은 빈 목록이 되고
+급여는 기본금만 남았습니다. 지난 한 달은 '지난 기록'으로 내려가 있었지만 거기서는
+**날짜·주야·급여기간·삭제** 네 가지뿐 — 그 날 몇 시간을 일했고 얼마를 벌었는지가
+없습니다. 하필 회사 명세서와 맞춰 보는 그 날 볼 수가 없었습니다.
+
+- `periodBack(n)`을 화면이 함께 씁니다. **근무기록과 급여가 스테퍼 하나(`payBack`)를
+  공유합니다** — 근무기록은 7월인데 급여는 8월이면 근로자는 어느 쪽을 믿어야 할지
+  알 수 없습니다.
+- `periodRecords(P)` · `totals(mode, P)` · `slip(P)` 모두 `viewPeriod()` 기준.
+  명세서 대조표도 그 기간의 것이 나옵니다(`slips`는 예전부터 기간별로 저장하고
+  있었고, 없던 것은 여는 방법이었습니다).
+- **끝난 기간에 '며칠 남았습니다'라고 하지 않습니다.** `period().left`는 오늘
+  기준이라 지난 기간에서는 언제나 0이고, 그대로 두면 반 년 전 기간이 '마지막 날'로
+  읽힙니다. `마감된 기간` + *이 기간은 끝났습니다. 지급일 08.25에 회사가 준
+  급여명세서와 이 금액을 맞춰 보십시오.* 빨간 카드도 `예정`이 아니라 `앱 계산`입니다.
+- **머리말 칩과 설정의 기간 미리보기는 오늘 그대로**(`Pnow`). 스테퍼를 어디에 두든
+  '지금이 언제인가'를 말하는 자리는 움직이면 안 됩니다.
+- `payBack`은 **저장하지 않습니다.** 출근을 찍으러 여는 사람이 지난 달을 보고 있으면
+  그것대로 위험합니다. 기록이 남아 있는 가장 오래된 기간까지만 갑니다.
+- **열려 있는 근무는 출근한 날의 기간에만 얹힙니다.** 야간조는 기간 마지막 날 밤에
+  출근해 다음 기간 아침에 퇴근하므로, 21일에 새 기간을 보는 사람에게 20일 밤 근무를
+  얹으면 그 기간에 없는 하루가 생깁니다.
+
+#### 2. 퇴근 도장을 찍는 순간 그 날 벌이가 화면에서 사라졌습니다 (`lastShift()`)
+
+출퇴근 카드는 근무중일 때와 아닐 때가 **서로 다른 것**을 말합니다. 근무중에는 그 날의
+것 — 출근·퇴근·실근무·잔업·야간, 그리고 `오늘 벌이` 일곱 줄. 퇴근을 찍는 순간 그
+일곱 줄이 통째로 사라지고 **급여기간 누계 다섯 줄**로 바뀝니다. 열두 시간 동안
+자라는 것을 지켜보던 금액이 도장 한 번에 없어집니다.
+
+**야간조는 그것이 매일 아침입니다.** 다만 누계가 자라고 있는 동안에는 아무도
+눈치채지 못했습니다 — 급여기간 첫날 아침에야 드러납니다. 그 근무는 출근한 날(20일)
+기준이라 지난 기간에 들어가는데 카드는 오늘(21일)이 든 기간을 말하므로,
+**근무일 0일 · 잔업 0.0h · 야간 0.0h.** 방금 열두 시간을 일하고 나온 사람에게 앱이
+0을 다섯 줄 보여 준 것입니다.
+
+`lastShift()` — 마지막으로 **일한** 하루. 카드 맨 위에 한 줄이 남습니다:
+`지난 근무 · 08.20 목요일 · 실근무 11.0h · ₩82,560`. 급여기간과 상관없이 '내가
+마지막으로 일한 날'은 언제나 하나이고, 그것이 근로자가 찾던 숫자입니다.
+
+- **예정·지문 대기(`planned`/`awaiting`)와 앞으로의 날짜는 빠집니다** — 앱이 미리
+  잡아 둔 줄이지 일한 날이 아닙니다. 연차·휴업도 아닙니다(`type === 'shift'`).
+- **누계 네 줄은 고치지 않았습니다.** 오늘이 새 기간 첫날인 것은 사실이고, 그
+  0은 참입니다. 문제는 0이라고 말한 것이 아니라 **방금 일한 하루가 어디에도 없던
+  것**입니다. 줄이 하나 늘었을 뿐, 카드는 여전히 같은 말을 합니다.
+- **근무중 카드는 손대지 않았습니다** — 거기에는 이미 `오늘 벌이`가 있습니다.
+
+#### 3. 근무기록이 처음 쓰는 사람에게 하는 말을 했습니다 (`emptyLogBack()`)
+
+기간이 넘어간 다음 날 근무기록을 열면 **`기록이 없습니다 · 출퇴근 화면에서 지문으로
+출근하세요`**. ‹ 한 번 뒤에 지난 한 달 31일이 그대로 있는데 화면은 아무것도 없다고
+말한 것이고, 근로자에게는 그것이 '앱이 초기화됐다'로 읽힙니다.
+
+뒤에 기록이 남아 있으면 → `이번 급여기간은 아직 비어 있습니다` / *기록은 그대로
+있습니다. 위의 ‹ 를 누르면 07.21 → 08.20 기간이 나옵니다.* **바로 앞 기간이 아니라
+'기록이 있는' 가장 가까운 기간을 짚습니다** — 한 달을 통째로 쉰 사람에게 빈 기간을
+가리켜 봐야 소용이 없습니다. 정말 처음 쓰는 사람에게는 예전 그대로입니다(그 사람에게
+필요한 것은 출근하는 법이고, 돌아갈 기간이 없습니다).
+
+#### 덤 — 퇴근 알림이 `202608.20`이라고 말했습니다
+
+폰에서 확인하다 걸렸습니다. 퇴근을 찍으면 뜨는 검은 띠가 `✓ 202608.20 기록 추가됨`.
+기록 키는 `y*10000 + m*100 + day`인데, **연도가 붙기 전(BUG A)에는 키에 연도가 없어서
+`Math.floor(k / 100)`이 곧 월이었습니다.** 연도가 붙은 뒤로 그 자리가 202608이 됐고
+아무도 고치지 않았습니다. 퇴근할 때마다, 손으로 날을 넣을 때마다 보이던 줄입니다.
+
+새 키 `last_shift`, `worked_h`, `nothing_logged_in_this_pay_period_yet`,
+`your_records_are_still_there_tap_to_st`, 여덟 개 언어. 38 new assertions
+(790 total) under 퇴근을 찍는 순간 그 날 벌이가 화면에서 사라졌습니다 ·
+퇴근 알림이 202608.20이라고 말했습니다 · 기록이 뒤에 있으면 처음 쓰는 사람에게 하는
+말을 하지 않습니다. 임금 계산식은 손대지 않았습니다 — 바꾼 것은 **어느 기간을 보고
+있는가**와 **무엇을 화면에 남기는가**이므로 v1 등가 증명은 그대로 통과합니다.
+
+**폰에서 확인**(EN, 21일 시작, 기록 26일): 근무기록 ‹ 한 번에
+`07.21 → 08.20 · 26 days recorded` · REGULAR 132.0h · OVERTIME 42.0h ₩650,160 ·
+NIGHT 49.0h ₩252,840 · HOLIDAY 21.0h ₩325,080 와 날짜별 줄이 모두 돌아왔고,
+출퇴근 카드 맨 위에 `Last shift · 08.20 THU · 11.0H WORKED · ₩82,560`.
+
+**교훈, 그리고 다음 사람에게.** 이 세 가지는 전부 **급여기간이 넘어가는 그 하루**에만
+드러납니다. 한 달에 한 번, 그것도 야간조에게는 퇴근하는 아침에. 다른 스물아홉 날에는
+누계가 자라고 있어서 아무 문제도 없어 보입니다. **날짜를 바꿔 가며 열어 보는 시험이
+아니면 영영 안 보입니다** — `mk(V2, '2026-08-21T09:00:00')`처럼 기간 첫날을 콕 집어
+세우는 assertion을 남겨 두었으니, 화면을 건드릴 때 그 자리를 함께 돌려 보십시오.
+
+### 2026-08-19 (eleventh) — 대장의 '사용 0일 · 잔여 15일'은 거짓말이었습니다
+
+근로자가 물었습니다: **발생 15 · 사용 0 · 잔여 15인데, 바로 아래 칸에 내가 적어
+둔 '지금 남은 연차 9일'이 있다. 이게 논리에 맞습니까?**
+
+맞지 않았습니다. `annLedger`의 '사용'은 **앱에 기록된 연차 일수**
+(`annualUsedThisYear()`)였고 '잔여'는 `발생 − 그것`이었습니다. 앱을 쓰기 전에
+쓴 연차를 앱은 모릅니다. 그래서 **근무 도중에 앱을 깐 사람 — 다시 말해 모든
+사람 —** 은 사용 0일로 시작했고, 잔여는 발생을 그대로 베꼈습니다.
+
+같은 카드 안에서 15와 9가 정면으로 어긋났고, 근로자 눈에는 아래 칸이 먹통인
+것으로 읽혔습니다. **더 나쁜 것은 그 문서를 뽑았을 때입니다** — 연차를 여섯 날
+쓴 사람의 서류가 근로감독관 앞에서 '하나도 안 썼다'고 말합니다. 모르는 것을
+아는 것처럼 적은 것이고, 이 앱이 하지 않기로 한 바로 그 일입니다.
+
+| | 예전 | 지금 |
+|---|---|---|
+| 발생 ACCRUED | 15 (법) | 15 (법) — 그대로 |
+| 사용 USED | **0** (기록된 것만) | **6** (`발생 − 잔여`) |
+| 잔여 LEFT | **15** (`발생 − 사용`) | **9** (근로자가 적어 둔 숫자) |
+
+**발생만은 그대로 법의 숫자로 둡니다.** 그래야 회사가 덜 준 것이 눈에 보입니다 —
+발생 15에 잔여 9면 사용 6이고, 근로자가 기억하는 것이 세 날뿐이라면 그 차이가
+회사에 물어볼 거리입니다. 잔여까지 법이 계산하면 이 탭이 있을 이유가 없어집니다.
+
+- **잔여는 입사일이 없어도 압니다** — 근로자가 직접 적은 숫자이기 때문입니다.
+  예전에는 입사일이 없으면 `?`였습니다. 발생과 사용은 여전히 `?`입니다(발생을
+  모르면 뺄 수 없습니다).
+- **법보다 많이 남았으면 사용은 0입니다.** `Math.max(0, acc − left)` — 회사가
+  더 주는 것은 음수로 적을 일이 아닙니다.
+- **적어 둔 날 이전의 연차는 다시 빼지 않습니다.** `annualLeft()`가
+  `annualAsOf` 이후의 기록만 세므로, 이미 9 안에 들어 있는 지난 연차를 두 번
+  세는 일이 없습니다. 이것이 근로자가 **지난 날짜를 기억해 낼 필요가 없는**
+  이유입니다 — 오늘 몇 날 남았는지만 적으면 됩니다.
+- **출퇴근 탭의 연차 단추와 대장이 이제 같은 숫자를 말합니다**(둘 다
+  `annualLeft()`). 어긋나면 근로자는 어느 쪽을 믿어야 할지 알 수 없습니다.
+
+**카드의 설명도 함께 고쳤습니다.** `this_is_what_the_law_gives_you_your_co`가
+'이것은 법이 주는 일수입니다 … 앱이 따로 세어'라고 말하고 있었는데, 이제 법의
+숫자는 세 칸 가운데 발생 하나뿐이고 잔여는 '따로' 있지 않습니다. 세 칸을 각각
+짚고, **사용에 앱을 쓰기 전의 연차가 들어 있다는 것**을 말하도록 여덟 개 언어를
+다시 썼습니다. 새 키는 없습니다 — 있던 문장을 바로잡았습니다.
+
+**`annualUsedThisYear()`와 `leaveYearStart()`는 지우지 않았습니다.** 연차년도가
+입사 기념일부터 돈다는 규칙은 맞고 시험도 걸려 있습니다. 다만 이제 화면을
+움직이지 않으므로, 다시 잇지 말라고 메서드 위에 적어 두었습니다.
+
+21 new assertions (677 total) under 대장의 사용 0일 · 잔여 15일이 거짓말이었습니다.
+예전 동작을 붙들고 있던 기존 세 줄(`사용 2` · `잔여 13` · `회사 대장과 다를 수
+있다고`)은 새 동작으로 고쳤고, 왜 바뀌었는지 그 자리에 적었습니다.
+
+폰에서 확인: **15 / 6 / 9**.
+
+### 2026-08-19 (tenth) — 숫자 자판의 완료 키가 죽어 있었습니다
+
+폰에서 온 보고: 숫자를 고치고 나면 **자판에 Enter도 완료도 없다. 있어도
+눌리지 않는다.** 칸을 떠나려면 칸 바깥을 눌러야 하는데, 그 바깥은 대개 다른
+단추입니다. 잘못 누르면 다른 일이 일어납니다.
+
+**추측하지 말고 폰에서 재십시오.** 갤럭시(삼성 자판)에 네 가지를 나란히
+띄워 놓고 하나씩 눌러 봤습니다:
+
+| 칸 | 오른쪽 아래 키 |
+|---|---|
+| `type=number` (뒤에 칸이 있을 때) | `Next` · 살아 있음 |
+| `type=number enterkeyhint=done` | `Next` — **힌트를 무시합니다** |
+| `type=number`, 마지막 칸 | **`Go`, 회색으로 죽어 있음** ← 근로자가 본 화면 |
+| `type=text inputmode=decimal enterkeyhint=done` | **`Done`, 살아 있음** |
+
+크롬은 `type=number`에서 `enterkeyhint`를 form 이동 논리로 덮어씁니다 — 뒤에
+칸이 있으면 `Next`, 마지막이면 `Go`이고, 보낼 form이 없으니 그 `Go`는 회색으로
+죽습니다. **`enterkeyhint`만 붙이는 것은 아무것도 고치지 못합니다**(한 번
+그렇게 해 보고 폰에서 회색 `Go`를 다시 봤습니다). `type="text"`에
+`inputmode="decimal"`이면 자판은 그대로 숫자판인데 힌트가 지켜집니다.
+
+**그래서 숫자 칸 19개가 전부 `type="text" inputmode="decimal"
+enterkeyhint="done"`입니다.** 자판 모양은 그대로입니다 — 숫자와 `.` `,`.
+
+**브라우저가 걸러 주던 일을 대신해야 합니다.** `type=number`가 아니므로 이제
+글자가 들어올 수 있습니다.
+
+- **`Component.numClean(raw)`** — 쉼표는 천 단위 구분으로 보고 버리고
+  (`2,156,880`을 붙여넣는 사람이 있습니다), 숫자와 소수점만 남기고, 소수점은
+  하나만 둡니다(배수 `1.5` 때문에 필요합니다). 음수는 없습니다 — 이 앱의 숫자
+  칸은 금액·일수·시간·배수뿐입니다.
+- **`Component.numReady(v)`** — `''`도 `'.'`도 아직 숫자가 아닙니다. 둘 다
+  `+v`가 0이나 NaN이 됩니다. `numField`는 이 둘을 저장하지 않습니다. `1.5`를
+  치는 도중의 `'1.'`에서 배수가 튀지 않는 이유가 이것입니다.
+- `numField`를 쓰지 않는 **명세서 대조 칸**(`slipRows`)도 `numClean`을 지나서
+  들어갑니다. 거기서 NaN이 나면 던지지 않고 차액 계산으로 조용히 번집니다.
+
+**완료 키는 눌렀을 때 실제로 무언가 해야 합니다.** form 밖의 글자 칸에서
+Enter는 기본적으로 아무 일도 하지 않고, **아무 일도 하지 않는 키는 회색으로
+죽은 키와 근로자에게 똑같습니다.** `leaveField(ev)` — Enter면 기본 동작을
+막고 칸을 떠납니다. `numField`/`timeField`의 새 `key`로 나가고, 템플릿의
+`onKeyDown`이 부릅니다(줄 안에서 만들어지는 수당·공제·배수·명세서 칸 포함).
+시각 칸 두 개도 같은 키를 씁니다 — 나가면서 `09:00` 한 모양으로 정리하던
+동작은 그대로입니다.
+
+폰에서 확인: 회색 `Go`가 살아 있는 `Done`으로 바뀌었고, 눌렀더니 자판이
+내려가고(`visualViewport` 473 → 832) 친 숫자가 그대로 들어갔습니다.
+
+36 new assertions (656 total) under 숫자 자판의 완료 키가 죽어 있었습니다.
+임금 계산식은 손대지 않았습니다 — 바꾼 것은 칸의 종류이지 식이 아니라서 v1
+등가 증명은 그대로 통과합니다.
+
+**앞으로 이 자리를 볼 사람에게.** 자판은 앱이 그리는 것이 아니라 IME가 그리는
+것이고, IME마다 다릅니다. **헤드리스로는 볼 수 없고, CDP로 `focus()`를 불러도
+볼 수 없습니다** — `document.hasFocus()`가 거짓이면 포커스 이벤트조차 나지
+않습니다. `adb shell input tap`으로 진짜 손가락처럼 누르고 `adb exec-out
+screencap`으로 찍어서 눈으로 보십시오. 좌표는 화면을 재지 말고 요소에서
+직접 얻으십시오(`rect.left * devicePixelRatio`). 그리고 **자판이 올라온 뒤에는
+그 좌표가 이미 낡았습니다** — 화면이 스크롤됩니다. 낡은 좌표로 다시 누르면
+자판 위를 누르게 되고, 그러면 근로자의 설정에 숫자가 하나 들어갑니다.
+
+### 2026-08-18 (ninth) — 하루짜리 휴업은 단수로 적습니다
+
+내 권리 › 휴업수당의 두 줄이 금액 옆에서 **`1 full days sent home`** ·
+**`1 days cut short by the company`**로 읽혔습니다. 복수형이 문장에 박혀
+있었습니다. `t.days === 1`이면 단수 키를 쓰도록 갈랐습니다 — 두 줄은 같은 카드에
+붙어 있어서 한쪽만 고치면 더 이상해집니다.
+
+새 키 `one_full_day_sent_home`, `one_day_cut_short_by_the_company`, 여덟 개 언어.
+한국어·베트남어·태국어·크메르어·네팔어·인도네시아어·중국어는 수에 따라 낱말이
+바뀌지 않으므로 번역은 같은 문장에 1을 넣은 것이고, **실제로 달라지는 것은 영어
+하나뿐**입니다. 11 new assertions (620 total) — 하루일 때 단수, 여러 날일 때
+복수가 그대로인지(고치다 반대로 망가뜨리기 쉬운 자리), 여덟 개 언어 모두.
+
+**남아 있는 같은 종류의 문장들 — 고치지 않았습니다.** `lang/base.json`을 훑으면
+`{p0}` 뒤에 복수형이 박힌 문장이 스무 개쯤 있고, 그 가운데 실제로 1이 될 수 있는
+것이 열 개쯤 됩니다. 폰에서 바로 보이는 것 하나: 내 권리 맨 위가
+**`Service counted from this day: 1 years 4 months (505 days)`**
+(`the_app_counts_your_service_from_this`). 그 밖에 `days_added`(연차 하루 넣을 때),
+`n_days_recorded`, `days_left_changeover_to_on`, `days_worked_ot_night_as_of_...`,
+`exported_days_of_records`, `restored_days_of_records` 등.
+
+**한 줄씩 키를 늘리는 방식으로는 여기서 끝납니다.** `days_as_of_logged_since_left`
+(`{p1} days as of {p0} · {p2} logged since → {p3} left`)처럼 한 문장에 수가 셋인
+것은 단수 키 하나로 풀리지 않습니다 — 조합이 여덟 가지입니다. 제대로 하려면
+`T()`가 수에 따라 낱말을 고르는 방법을 알아야 하고, 영어만 그것이 필요하므로
+`en` 값에만 붙는 표시(예: `{p0} day{p0|s}`)와 `sync_lang.py`의 이해가 함께
+가야 합니다. 이 변경 하나에 얹기에는 큰 일이라 여기서 멈췄고, 다음에 손댈 사람이
+보라고 적어 둡니다.
+
+### 2026-08-18 (eighth) — 최저임금을 그대로 받는 사람도 답할 수 있어야 합니다
+
+급여 맨 위의 `ONE THING FIRST · 기본금이 얼마입니까?` 카드가 뜨는 조건은
+**'기본금이 아직 기본값과 같은가'**(`isDef('basic')`)였습니다. 그런데 그 기본값은
+`최저임금 × 209 = 2,156,880`이고, **그것이 E-9 근로자에게 가장 흔한 기본금입니다.**
+그 금액을 실제로 받는 사람에게 앱은 영영 '아직 안 적었다'고 우겼습니다.
+
+`basicAsked`는 저장하지 않습니다(`save()`가 쓰는 목록에 없습니다). 그래서
+'나중에 — 기본값으로 두기'를 눌러도 앱을 다시 열면 카드가 다시 맨 위에 앉았고,
+`ESTIMATED TAKE-HOME`은 카드 아래로 밀려났습니다. **답이 이미 맞는 사람에게
+계속 묻는 화면은 세 번째부터는 읽히지 않고 그냥 넘겨집니다** — 그리고 정작
+고쳐야 할 사람도 같은 손놀림으로 함께 넘기게 됩니다.
+
+원래 설계(`:1840`의 주석)는 '안 고쳤다면 다음에 한 번 더 묻는 편이 낫다'였고,
+**답을 안 한 사람에게는 그것이 맞습니다.** 빠져 있던 것은 *'맞다'고 말할 방법*
+이었습니다. 넘어가기는 유예이지 확인이 아닙니다.
+
+**`settings.basicConfirmed`** (저장됨). 카드에 단추가 하나 늘었습니다:
+
+| | 하는 일 | 남는 곳 |
+|---|---|---|
+| **맞습니다 — 이것이 내 기본금입니다** | `basicConfirmed = true` | **설정 · 저장됨** |
+| 나중에 — 기본값으로 두기 | `basicAsked = true` | state · 이번 실행만 |
+
+확인 단추가 주(까만 배경), 나중에가 부(외곽선)입니다. `askBasic`은 이제
+`(isDef || basicSticky) && !basicAsked && !st().basicConfirmed`.
+
+**설명 줄도 따라갑니다.** 확인한 사람에게 `아직 당신의 급여가 아닙니다 — 명세서의
+기본급을 그대로 적어 주세요`는 거짓말입니다. `basicDefaultNote`가 세 갈래가 됐습니다:
+본인이 고친 숫자 / 아직 안 답한 기본값 / **확인한 기본값**(`이 금액이 본인의
+기본금이라고 확인했습니다. 마침 2026 최저임금 × 209시간과 같은 금액이고, 가장 흔한
+기본금이기도 합니다`).
+
+**확인이 덮지 않는 것 — 이게 중요합니다.** 확인은 *'이 금액이 내 기본금이다'*
+이지 *'이 금액이 적법하다'*가 아닙니다. 2027년에 최저임금이 10,700으로 오르면
+2026년 금액을 확인해 둔 사람은 그 순간부터 미달입니다. `minWageWarn`은 `rate()`를
+오늘의 최저임금과 견주므로 **그대로 뜹니다**(asserted). 그리고 그때는
+`DEFAULTS.basic`이 2,236,300으로 바뀌어 `isDef`가 거짓이 되므로 카드도 뜨지
+않습니다 — 확인 단추가 근로자에게 불리한 것을 덮어 주는 일은 없습니다.
+
+**쓰던 사람에게 새로 생기는 화면은 없습니다.** `basicConfirmed`는 새 설정이라
+업그레이드하면 `false`로 들어오지만, 이미 자기 기본금을 적어 둔 사람은 `isDef`가
+거짓이라 어차피 묻지 않습니다(asserted).
+
+새 키 `yes_this_is_my_basic`, `you_confirmed_this_is_your_basic`, 여덟 개 언어.
+24 new assertions (609 total) under 최저임금을 그대로 받는 사람도 답할 수 있어야
+합니다 · 확인해도 최저임금 경고는 그대로 뜹니다 · 쓰던 사람은 묻는 화면을 새로
+만나지 않습니다.
+
+**폰에서 확인하다 걸린 함정, 코드가 아니라 시험 방법이었습니다.**
+`adb shell am force-stop`은 SIGKILL이라 **WebView가 localStorage를 디스크에
+내리기 전에 죽습니다.** 확인 → `save()` → 곧바로 force-stop 하면, 살아 있는
+프로세스 안에서는 `true`로 읽히는데 다시 켜면 `false`입니다. 저장 코드가 아니라
+플러시 타이밍입니다 — `location.reload()`로는 언제나 남고, 몇 초 기다린 뒤
+force-stop 해도 남습니다. **앞으로 '설정이 저장 안 된다'가 보이면 이것부터
+의심하십시오.** 사용자가 홈 버튼으로 나가는 정상 경로에서는 플러시가 됩니다.
+
+### 2026-08-18 (seventh) — 마지막 날에 금액이 더 오른다고 말하면 안 됩니다
+
+큰 빨간 실수령 카드 밑의 한 줄이 남은 날과 상관없이 **언제나** 같은 문장이었습니다:
+`{p1}일이 남아 있어 금액은 더 올라갑니다`. 마지막 날에는 그것이 `0일이 남아 있어
+금액은 더 올라갑니다`가 되어, 바로 위에 붙은 상태(`마감`)와 정면으로 어긋났습니다.
+하필 그 날이 근로자가 회사 명세서와 맞춰 보는 날입니다.
+
+`periodState`(`:4653`)는 `P.left > 0`으로 갈라지고 있었는데 `payslipCheck`(`:4657`)는
+갈라지지 않았습니다. 두 줄 차이입니다.
+
+**그런데 `P.left` 자체가 틀려 있었습니다.** `Math.round((e − now) / 86400000)` —
+`e`는 마지막 날의 00:00이라, 남은 시간을 밀리초로 재서 반올림하면 **마지막 날
+전날 정오에 이미 0**이 됩니다.
+
+| | 예전 | 지금 |
+|---|---|---|
+| 07.30 09:00 | `진행중 · 1일 남음` | `진행중 · 1일 남음` |
+| 07.30 13:00 | **`마감`** | `진행중 · 1일 남음` |
+| 07.30 20:00 | **`마감`** | `진행중 · 1일 남음` |
+| 07.31 아무 때나 | `마감` | `마지막 날` |
+
+30일 오전에는 하루 남았다던 것이 **점심때 마감으로 바뀌었고**, 31일이 통째로
+남아 있는데 다 끝난 것처럼 보였습니다. 남은 날수는 하루의 어디에 서 있든 같아야
+합니다 — 이제 날짜 경계(`day0`)로 셉니다.
+
+**그리고 0일은 '마감'이 아닙니다.** `period(now)`는 언제나 오늘이 들어 있는 기간을
+돌려주므로, `left === 0`은 '기간이 끝났다'가 아니라 **'오늘이 마지막 날'**이라는
+뜻입니다. 오늘 근무가 아직 남아 있는데 마감이라고 말하면 안 됩니다. `마감`은
+`마지막 날 · LAST DAY`로 바뀌었고, 이제 어디에서도 쓰이지 않는 `closed` 키는
+여덟 개 언어에서 지웠습니다.
+
+세 갈래가 됐습니다 — 2일 이상은 예전 그대로, 1일은 단수(`진행중 · 1일 남음` /
+`이번 기간이 하루 남아 있어`), 0일은 `마지막 날` + *오늘이 이번 기간의 마지막
+날입니다. 회사가 주는 급여명세서와 이 금액을 맞춰 보십시오.* 영어에서 `1 days`가
+나오던 자리도 함께 없어졌습니다.
+
+새 키 `estimated_for_payday_every_day_logged`, `estimated_for_payday_one_day_left`,
+`in_progress_one_day_left`, `last_day_of_this_period`, 여덟 개 언어. 23 new
+assertions (585 total) under 마지막 날에 금액이 더 오른다고 말하면 안 됩니다 and
+남은 날은 시계가 아니라 달력으로 셉니다 — 21일 시작과 2월 말일 포함, 한국어와
+영어 양쪽으로.
+
+**교훈:** 같은 값에서 갈라지는 문장이 두 개 있으면 둘 다 갈라져야 합니다. 그리고
+'며칠 남았나'는 날짜를 세는 질문이지 시간을 재는 질문이 아닙니다.
+
+### 2026-08-18 (sixth) — 지난 달 근무내역서도 뽑을 수 있습니다
+
+7월 한 달을 폰에 넣고 8월에 열었더니, **7월 근무내역서를 만들 방법이 없었습니다.**
+`evidenceHtml()`과 `evidenceName()`이 언제나 `this.period(this.now())`를 썼기
+때문입니다. 8월 18일에 단추를 누르면 `근무내역서-08010831.html`이 나왔고, 그
+안에는 7월 기록이 **한 줄도** 없었습니다. 기록은 `localStorage`에 그대로 있고
+CSV 내보내기는 전부를 냈지만, 사람이 읽는 문서만 나오지 않았습니다.
+
+증거로 쓰라고 만든 앱에서 이것이 가장 나쁜 종류의 구멍입니다. **임금체불 진정은
+그 달의 다음 달에 넣는 것이 아닙니다** — 반 년 뒤일 수도, 퇴직하고 나서일 수도
+있습니다. 그때 근로감독관 앞에 내놓을 문서가 만들어지지 않습니다.
+
+**`periodBack(n)`** — 급여기간을 n번 거슬러 올라갑니다. '한 달 빼기'가 아니라
+직전 기간 시작 하루 전으로 가서 `period()`에게 다시 묻습니다. `period()`가 이미
+짧은 달과 월말 시작을 다 알고 있으므로, 21일 시작이 2월을 지나는 경우도
+(`04.21 → 05.20` → … → `02.21 → 03.20`), 31일 시작이 짧은 달에서 말일로
+내려앉는 경우도(`02.28 → 03.30`) 그대로 맞습니다. `prevPeriod()`는 이제
+`periodBack(1)`입니다.
+
+**기간을 받는 쪽으로 바꾼 것들** — 전부 인자가 없으면 예전 그대로입니다:
+`periodRecords(P)` · `totals(mode, P)` · `weeks(P)` · `weekOver(P)` ·
+`evidenceHtml(P)` · `evidenceName(P)`.
+
+**화면은 달력과 같은 `‹ ›` 스테퍼**입니다(내 권리 아래, 설정 › 백업과 내보내기).
+칩을 늘어놓지 않은 이유는 기간 이름이 `07.01 → 07.31`처럼 길어서 열두 달이면
+화면을 네 줄 잡아먹기 때문입니다. 끝에 닿으면 화살표가 **회색이 되고 아무 일도
+하지 않습니다** — 사라지게 하면 아래 단추의 자리가 움직여서, 누르려던 것을 잘못
+누릅니다. 밑에 `23 days recorded`가 붙어서 빈 기간을 뽑는 일이 없습니다.
+
+- **갈 수 있는 범위는 가장 오래된 기록이 든 기간까지**(`docBackMax()`). 기록이
+  없는 기간의 근무내역서는 빈 표일 뿐이고, 빈 표를 뽑게 해 둘 이유가 없습니다.
+- **`docBack`은 저장하지 않습니다.** 앱을 다시 열면 이번 기간에서 시작합니다 —
+  문서를 만들 때 기본값이 '지금'이 아니면 그것대로 위험합니다 (asserted).
+- **`작성` 줄은 언제나 오늘입니다.** 문서가 덮는 기간(P)과 문서를 만든 날(n)은
+  서로 다른 것이고, 지난 기간을 뽑을 때 비로소 달라집니다. 폰에서 확인:
+  `급여기간 07.01 → 07.31 · 지급일 08.10 · 작성 2026.08.18`.
+- §46 블록의 1일 평균임금도 `avgDaily(P.e)`로 그 기간 끝 기준입니다.
+
+**남아 있는 한계, 문서에는 적지 않고 화면에만 적었습니다.** 기본금과 각 요율은
+**지금 설정된 값**을 씁니다 — 설정에는 이력이 없습니다. 그 뒤로 임금이 올랐다면
+지난 달 문서가 그 오른 시급으로 계산됩니다. 설정 이력은 이 변경보다 훨씬 큰
+일이라 여기서 하지 않았고, 대신 스테퍼 밑에 여덟 개 언어로 한 줄을 적었습니다:
+*지난 달 문서를 만들기 전에 기본금을 먼저 맞추십시오.* `reason.ko`가 기록 위에
+스냅숏으로 남는 것과 같은 문제이고, 같은 방식(기간별 스냅숏)으로 풀어야 합니다.
+
+새 키 `document_period`, `step_back_to_any_month_you_still_have`, 여덟 개 언어.
+`makes_a_one_page_korean_document_cover`의 '이번 급여기간' → '위에서 고른
+급여기간'으로 여덟 개 언어 모두 고쳤습니다. 26 new assertions (562 total) under
+지난 달 근무내역서도 뽑을 수 있어야 합니다 and 21일 시작 급여기간도 거꾸로
+걸어갑니다.
+
+### 2026-08-18 (fifth) — 출근 도장의 초가 잔업 30분을 먹고 있었습니다
+
+Found while testing the 돌려보내진 날 flow on the phone: a 09:30 퇴근 punch produced
+`outH` **9.4999997**, and `snapOut` floored it to 09:00.
+
+`sessionHours()`가 두 가지를 섞고 있었습니다.
+
+```js
+const inH = inD.getHours() + inD.getMinutes() / 60;           // 초를 버립니다
+const el  = (this.now().getTime() - inD.getTime()) / 3600000; // 초가 살아 있습니다
+return { inD, inH, outH: inH + el, ... };
+```
+
+`inH`를 자르는 것은 **맞습니다** — `snapIn`이 다음 30분 단위로 올림이라, 06:00:37을
+초까지 살리면 06:30 출근이 되어 근로자가 출근 쪽에서 30분을 잃습니다. 틀린 것은
+그 잘라 낸 밑변에 **초까지 정확한 경과**를 더해 `outH`를 만든 것입니다. 결과적으로
+`outH`는 실제 퇴근보다 최대 **59초 앞섰고**, `snapOut`은 지난 30분 단위로 내림이라
+그 몇 초가 30분을 통째로 깎았습니다.
+
+```
+06:00:SS 출근 · 17:30:05 퇴근
+  06:00:00 → 인정 17:30 · 실근무 10.5 · 잔업 2.5
+  06:00:10 → 인정 17:00 · 실근무 10.0 · 잔업 2.0   ← 30분 손실
+  06:00:59 → 인정 17:00 · 실근무 10.0 · 잔업 2.0   ← 30분 손실
+```
+
+같은 날 같은 일을 하고도 **출근 도장의 초가 몇이었느냐**로 잔업 30분(₩7,740)이
+갈렸습니다. 근로자는 그 초를 볼 수 없습니다. 언제나 근로자에게 불리한 쪽으로만
+틀렸습니다.
+
+**왜 여태 안 보였는가.** 정시(매시 00분) 퇴근은 `outGrace` 15분이 덮어 줍니다 —
+17:29:55는 유예 안이라 18:00… 이 아니라 17:00으로 가지 않고 정상 처리됩니다.
+덮개가 없는 것은 **30분 자리**뿐이고, 거기가 하필 잔업이 끝나는 자리입니다.
+
+`outH`는 이제 출근한 날 자정에서 곧장 잽니다 — `(now − midnight) / 3600000`.
+자정 기준이라 자정을 넘기는 야간조는 그대로 24를 넘는 값이 되어 예전과 같습니다
+(21:00:41 출근 → 06:00:03 퇴근 = `outH` 30.0008, 인정 06:00, asserted).
+`inH`는 손대지 않았습니다.
+
+**임금 계산식은 그대로입니다.** 고친 것은 계산식에 **넣는 시각**이지 계산식이
+아니라서, v1 등가 증명(`calc()`·`snapIn`/`snapOut`·요율)은 그대로 통과합니다.
+바뀐 값은 언제나 예전보다 크거나 같으므로 **이 고침으로 손해 보는 근로자는
+없습니다**. 11 new assertions (536 total) under 출근 도장의 초가 잔업 30분을
+먹고 있었습니다 — 야간조 자정 넘김, 시계 역행, 너무 이른 퇴근 가드 포함.
+
+**교훈:** 분 단위로 자른 값과 초까지 정확한 값을 더하지 마십시오. 그리고 내림이
+걸린 자리에서는 그 몇 초가 30분입니다.
+
+### 2026-08-18 (fourth) — 제헌절이 빨간날로 돌아왔습니다
+
+Found by driving a full month through the app on the phone — 06:00~15:00, 휴게
+10:00–11:00, 7월 한 달. The worker looked at the result and said 7월 17일은
+빨간날이었다. They were right.
+
+**제헌절은 2008년에 공휴일에서 빠졌다가 2026년에 되살아났습니다** (2026-04-28
+국무회의, 관공서의 공휴일에 관한 규정 개정). `holidayName()`의 표는 2008년 이후
+기준이라 `07-17`이 아예 없었고, 소스 어디에도 `제헌절`이라는 낱말이 없었습니다.
+
+조용했던 이유가 문제입니다. `holidayYearKnown(2026)`이 `true`라서 앱은 2026년을
+**다 안다고 말하면서** 빨간날 하루를 평범한 금요일로 계산했습니다. 근무내역서에는
+특근 8시간이 통째로 빠진 채 찍혔습니다 — 그 문서 하나로 **₩119,240**이 사라집니다.
+앱이 막으라고 있는 바로 그 실패입니다.
+
+| | 표에 없을 때 | 고친 뒤 |
+|---|---|---|
+| 실근무 (정상) | 184.0h | **176.0h** |
+| 휴일근로 | — | **8.0h · ₩123,840** |
+| 지급총액 | ₩2,226,540 | **₩2,350,380** |
+| 실수령(추정) | ₩2,007,140 | **₩2,126,380** |
+
+**같은 표에서 반대 방향의 오류도 하나 나왔습니다.** 2027년 칸의 `'06-07': sub`는
+현충일(2027-06-06, 일)의 대체공휴일로 넣은 것인데, **대체는 국경일과 명절에만
+붙습니다**(같은 규정 제3조). 신정과 현충일은 국경일이 아니라 빠집니다. 없는 특근을
+만들면 근무내역서가 회사 명세서보다 **많이** 나오고, 많이 나온 문서도 틀린
+문서입니다. 지웠습니다.
+
+제헌절은 국경일이므로 대체가 함께 붙습니다 — 2027-07-17은 토요일이라 **07-19(월)**
+이 대체공휴일입니다. 2027년 칸의 나머지(설날 02-09, 광복절 08-16, 개천절 10-04,
+한글날 10-11, 성탄절 12-27)는 달력과 맞는 것을 확인했습니다.
+
+새 키 `hol_jeheonjeol`, 여덟 개 언어. 12 new assertions (525 total) under
+제헌절은 2026년에 빨간날로 돌아왔습니다 and 현충일에는 대체공휴일이 붙지 않습니다,
+including a loop over all eight languages. 폰에서 확인: 07.17을 지우고 손으로 다시
+넣었더니 앱이 **스스로** 특근으로 잡았고, 근무기록에 `Holiday`로 뜹니다.
+
+**교훈:** 최저임금은 `MIN_WAGE` 표와 `MIN_WAGE_UNTIL` 경고로 낡는 것을 스스로
+알리지만, **공휴일 표에는 그런 장치가 없습니다.** `holidayYearKnown()`은 음력
+명절만 걱정하고 있고, 법이 바뀌어 양력 고정 공휴일이 늘거나 주는 경우는 보지
+못합니다. 해마다 표를 눈으로 확인해야 합니다.
+
+### 2026-08-18 (third) — 탭을 바꾸면 맨 위에서 시작합니다
+
+Found on the phone while testing the two entries below. The five tabs share **one**
+scroll container, and changing tabs only changed `state.tab` — the box kept whatever
+offset the previous tab had left in it. There is no `scrollTop`, `scrollTo` or
+`scrollIntoView` anywhere in the pre-fix source, so this was an omission, not a choice.
+
+Read 내 권리 to the bottom, tap 급여, and 급여 opens **at DEDUCTIONS** — with
+`ONE THING FIRST · 기본금이 얼마입니까?`, the one card a new worker has to answer,
+scrolled off the top. The header is fixed, so nothing looks wrong; you simply never
+learn the card exists. Measured on the device: `scrollTop` 536 carried straight across.
+
+**`scrollTabTop()`** zeroes `#tabScroll` (the `flex:1;overflow:auto` div at `:120`,
+which now carries that id) — once immediately and once in `requestAnimationFrame`,
+because `setState` does not paint synchronously and the browser restores the old
+offset as the new tab renders. **`goTab(t)`** is what the tab bar calls now, and it
+resets **only when the tab actually changes** — re-tapping the tab you are already on
+keeps your place, which matters on a long 근무기록.
+
+Two other jumps reset too:
+- **`editDay()`** — 근무기록 → 출퇴근. Tapping 고치기 on a row far down the list used
+  to land on 출퇴근 already scrolled past the manual-entry fields it sent you to.
+  Same shape as the 조퇴 사유 sheet of 2026-08-13.
+- **`endTour()`** — 소개 → 설정.
+
+`test/harness2.js` gained a `getElementById` stub returning a fake `tabScroll`, and
+exports it, so the assertions can watch the offset. 7 new assertions (513 total) under
+탭을 바꾸면 맨 위에서 시작합니다 and 고치기를 누르면 손으로 적는 칸이 보여야 합니다.
+Verified on the phone: the failing sequence now reads `scrollTop` 536 → **0**, and
+re-tapping the current tab still reads 536.
+
+### 2026-08-18 (second) — 12시간 2교대는 잔업이 근무표 안에 있습니다
+
+A correction to the entry two below, found the same day by the person who asked for
+it: on 교대 the `+ 연장 휴게 30분` button was **taking money off every single day**.
+
+`otMark` — where 8 worked hours land — is the end of a normal day *only if the
+schedule ends there*. A 9-to-6 factory, yes. A 12-hour 2교대 factory, no: someone
+rotating 09:00~21:00 reaches 8 hours at **18:30 and is still on normal hours**. The
+button placed a break at 18:30–19:00, squarely inside the punched window, so net went
+10.5h → 10.0h and 잔업 2.5 → 2.0 **daily** — while the row wore a `연장 시에만` tag and
+설정 said `연장 시 +30분`. Both were false. The feature's one promise — *this costs
+nothing on a normal day* — was broken for exactly the shift pattern this app was
+built for.
+
+**`normalEnd(kind)`** is the threshold now. For 주간만/야간만 it is `otMark`: no
+퇴근 시각 is known, so nothing changes there. For **교대** it is
+`max(otMark, the other shift's start)`, because a 2-shift rotation is *defined* by one
+shift ending where the other begins — that is what the word 교대 means, and it is the
+only place the app can legitimately learn a finish time without inventing a setting.
+
+| | 8h reached | normal day ends | preset lands |
+|---|---|---|---|
+| 주간만 09:00, 점심 1h | 18:00 | 18:00 | 18:00–18:30 |
+| 교대 주간 09:00~21:00 | 18:30 | **21:00** | 21:00–21:30 |
+| 교대 야간 21:00~09:00 | 06:00 | **09:00** | 09:00–09:30 |
+
+Verified on a 교대 setup: after tapping the button, a normal 09:00–21:00 day is
+net 10.5h / 잔업 2.5 / 휴게 1.5 — **identical to before the tap** — and staying to
+22:00 is the first day the 30 minutes applies. Lunch and dinner stay untagged; only
+the 21:00 row wears the tag.
+
+The lesson worth keeping: "8 hours" is a *pay* boundary, not a *schedule* boundary,
+and this app's original factory pays 잔업 every ordinary day. 19 new assertions (506
+total) under 12시간 2교대는 잔업이 근무표 안에 있습니다 and 주간만·야간만은 예전 그대로.
+
+### 2026-08-18 (first) — 근무조 시작 시각도 비울 수 없게 됐습니다
+
+Found on the real phone while checking something else: `dayStart` was stored as `''`.
+Nothing looked wrong — the box showed a faint `09:00`, because that is the
+**placeholder**. The tell was the group summary reading `교대 · / 21:00`, and behind it
+`schedStart()` silently falling back to 9. 주·야간 판정과 `otMark()`가 모두 거기서
+나오므로, 근로자 눈에는 채워진 칸인데 앱은 다른 값을 쓰고 있었습니다.
+
+The 2026-08-17 round gave the *number* boxes tap-clears / blur-restores (`numField`);
+the two time boxes are plain text inputs and were never covered. They are now, via
+**`timeField(key, cur, dflt, commit)`** — same `state.numEdit` buffer, same rules
+(focus empties, an empty buffer never commits, blur restores), plus one more:
+
+- **blur normalises.** `parseHM` is deliberately lenient — `'9'`, `'09:'`, `'0900'` all
+  read as 09:00. The arithmetic was always right, but the *screen* showed whatever was
+  typed, so the summary could read `교대 · 09: / 21:00`. Leaving the field now writes
+  back `this.hhmm(parsed)`, so storage, summary and calculation say the same thing.
+- **unreadable input reverts** to the value the field had on focus (`numEdit.prev`),
+  or to `DEFAULTS` if that was unreadable too.
+
+**Already-broken phones heal on next launch.** The constructor merges saved settings
+*over* `DEFAULTS`, so a stored `''` beat the default and stayed forever. The merge now
+drops an unparseable `dayStart`/`nightStart` (letting `DEFAULTS` win) and canonicalises
+a parseable one. Verified on the actual phone: `''` → `'09:00'`, and the summary went
+from `Rotating · / 21:00` to `Rotating · 09:00 / 21:00`. A good value is never touched
+(07:00 / 20:00 survive, asserted).
+
+Break rows are *not* covered by this and should not be: `addBreak()` creates
+`{from:'',to:''}` on purpose, `breaks()` filters unparseable rows out, and an empty
+row is a legitimate half-finished state.
+
+21 new assertions (487 total) under 근무조 시작 시각을 비울 수는 없습니다 and
+이미 비어 있는 휴대폰을 고칩니다.
+
+### 2026-08-18 (later) — the break that only bites on the days you work late
+
+Asked for directly: a 9-to-6 factory that calls overtime usually gives 30 minutes'
+break before the extra hours start. Should there be a separate "overtime break"?
+
+**No — the engine already does it, and had done all along.** `calc()` subtracts breaks
+by interval intersection with the *punched* window (`ov()`, `:2554`, applied `:2604`),
+so an 18:00–18:30 row costs exactly nothing on a 09:00–18:00 day and costs 30 minutes
+the moment the worker stays past 18:00. A second break type would have duplicated
+`ov()` and given the worker a second concept to learn. What was missing was not
+mechanism, it was **anything on screen saying so** — plus one line that was actively
+wrong.
+
+**`otMark(kind)` — the hour at which 8 worked hours are reached.** Walk from
+`schedStart(kind)` and accumulate worked time, skipping each break (unpaid, so the
+clock stops): 09:00 + 1h lunch → **18:00**; no breaks → 17:00; the 12h 교대 set →
+18:30; night 21:00 + 자정 휴게 → 06:00. There is no "퇴근 시각" setting and there must
+not be — 퇴근 is punched, not declared — so this is derived, not stored.
+
+**`normalEnd(kind)` — where a normal day actually ends.** `otMark` alone was wrong,
+and the same-day correction is written up under 2026-08-18 (second) below.
+`normalEnd` is `otMark` for 주간만/야간만, and `max(otMark, the other shift's start)`
+for 교대. **This, not `otMark`, is the threshold everything below uses.**
+
+Three things hang off it:
+
+- **`isOtBreak()` tags the row.** A break starting at or after `normalEnd` shows a
+  small red `연장 시에만 · ONLY IF LATE` label above it. Without the tag the row reads
+  like 30 minutes lost every day and gets deleted.
+- **`breakTotal()` stopped lying.** It summed every break regardless of window, so one
+  overtime row made 설정 read `무급 휴게 1.5시간 (90분) / 근무당` on a day where 1 hour
+  is what actually comes off — and that line is the only figure a worker can check
+  themselves against. It now splits: `무급 휴게 1시간 (60분) / 근무당 · 연장 시 +30분`,
+  and a break set that is *only* overtime says so in a full sentence. **A break set
+  with nothing past `normalEnd` renders byte-identically to before** — the 12h 교대
+  default has both its breaks inside a normal day, so an existing worker sees no
+  change (asserted).
+- **`+ 연장 휴게 30분` preset**, dashed outline beside `+ ADD BREAK`, in both the day
+  and night blocks. Appends `[normalEnd, normalEnd+30m]` — the start time is the whole
+  point, since overlap with an on-time punch is then exactly zero. It hides once such
+  a break exists: no double-tap duplicates, and the button vanishing *is* the
+  confirmation.
+
+**And the trap the question exposed.** Every break here is unpaid; `calc()` subtracts
+all of them. A worker entering the paid 10-minute coffee break their company gives
+would lose that time every single day, and nothing warned them. There is now one note
+under both lists (`every_break_here_is_unpaid`) naming 근로기준법 제54조: only a real
+break, where you are free to leave your post, is unpaid.
+
+**Worth knowing:** `snapOut` floors 퇴근 to the previous 30-minute unit, so an 18:15
+punch is computed as 18:00 and never touches an 18:00 break at all. A partial-break
+overlap can only appear on a half-hour boundary. An assertion written the obvious way
+fails here — it is the floor rule at `:2591` doing its job, not a bug.
+
+45 new assertions in `test/regress.js` (441 total) under 잔업하는 날에만 있는 휴게,
+잔업이 시작되는 시각, 한 줄이 거짓말을 하고 있었습니다, 연장 휴게 한 번에 넣기,
+여기 적는 휴게는 모두 무급입니다.
+
+### 2026-08-18 (earlier) — the two break lists finally say which shift they belong to
+
+Reported from the phone: pick **교대** in 설정 › 근무조와 휴게 and two sets of break rows
+appear, one under the other, **with nothing saying which is which**. A worker typing
+their night 휴게 into the day list silently loses that time off every day shift — the
+break is unpaid, so it comes straight out of 실근무.
+
+Each list now carries a header in the same 10px uppercase style as `SHIFT START TIMES`
+— `주간 휴게 · DAY-SHIFT BREAKS` and `야간 휴게 · NIGHT-SHIFT BREAKS` (`L.secDayBreaks`
+/ `L.secNightBreaks`, keys `day_shift_breaks` / `night_shift_breaks`). The Korean 조
+name leads in **all eight languages**, not just Korean, because 주간/야간 are the words
+said on the factory floor and on the shift board — the Vietnamese reads
+`주간 휴게 GIỜ NGHỈ CA NGÀY`. Each block also gained a `2px solid var(--color-divider)`
+top rule, so with 교대 selected the two lists read as two sections rather than one long
+run of time boxes.
+
+The header stays when the worker is 주간만 (it is still true, and the screen does not
+reshuffle when they switch); the night block is still gated on `showNight`, so
+주간만 never sees it. 22 new assertions in `test/regress.js` (396 total) under
+이 휴게는 어느 조의 것입니까, including a loop over all eight languages.
+
+### 2026-08-17 — the defaults stopped being one factory's, and number fields stopped eating your figure
+
+Reported after installing fresh and walking the app as a new worker would.
+
+**Every default was that one 12-hour 2교대 factory.** Setup read `근무조와 휴게 · 교대 ·
+09:00 / 21:00`, and a first-time reader takes those two numbers for clock-in and
+clock-out — that leaving home at nine and getting back at nine is what this app
+assumes. Most companies are not that. The defaults are now a standard 9-to-6:
+
+| | was | now |
+|---|---|---|
+| `shifts` | `both` (교대) | `day` (주간만) |
+| `breaksDay` | 11:30–12:30 + 17:00–17:30 | 11:30–12:30 only → 09:00–18:00 is 8h |
+| `periodStart` / `payday` | 21 / 25 | **1 / 10** (1일~말일, 익월 10일) |
+| `annualBase` | 9 | **15** — PUNCH read `9/15` on a phone that had never logged a day |
+| manual entry 출근/퇴근 | 09:00 / 21:00 | `HAND_IN` / `HAND_OUT` = **09:00 / 18:00** |
+
+`nightStart` stays 21:00. It is the *start* of the night shift, not a clock-out, and
+21:00 is correct for a factory that actually rotates — so it only appears once 교대
+is picked. Picking 교대 also brings the 17:00–17:30 break back (`breaksFor(mode)`,
+`BREAKS_8` / `BREAKS_12`), and picking 주간만 takes it away again — but **only while
+the break set is still untouched**. A worker's own break times are never rewritten.
+
+`DEFAULTS` reaches new installs only; saved settings merge over it, so an upgrading
+worker keeps 21일~20일, 교대 and their own 연차 잔여 (asserted). One trap found doing
+this: the constructor had `annualBase: p.annualLeft == null ? 9 : p.annualLeft` — a
+second copy of the default that made changing `DEFAULTS` do nothing on screen. It
+reads `Component.DEFAULTS` now.
+
+**START now lands on 설정, not 출퇴근.** Covering the welcome and dropping straight
+onto the punch pad meant the app took its first record knowing neither the shift nor
+the pay period. The line above the button changed to match (`tour_setup_next`,
+renamed from the stale auto-slug `you_do_not_need_to_set_up_pay_now_the_a`, all eight
+languages).
+
+**The 기본금 card vanished while you were answering it.** 급여 shows "기본금이
+얼마입니까?" gated on `isDef('basic')` — is the figure still the untouched default.
+So the first keystroke in that box broke the gate and the whole card unmounted:
+question, input and all. Pressing backspace made the window disappear. `askBasic` now
+also honours `state.basicSticky`, set the moment the field is committed to, and
+cleared by "이 값으로 계속".
+
+**Number fields: tap clears, walking away restores.** Changing 기본금 2,156,880 to
+3,000,000 meant seven backspaces, and what was left afterwards was `0` — a value with
+no way back, because the original had already been wiped off the screen, and the app
+took that 0 as a real 기본금 and computed a ₩0 hourly rate.
+
+`numField(key, cur, commit)` (one place, used by all 19 number inputs via
+`numFields()` and the row builders) holds the on-screen text in `state.numEdit`
+`{k, v}`:
+
+- **focus** → `{k, v: ''}`, so the box shows empty while the *setting is untouched*
+- **change** → buffer updates; commit **only if non-empty**
+- **blur** → buffer dropped, so the stored figure reappears
+
+Changing your mind is therefore "do nothing", and an empty box can never be saved as
+0. `numEdit` is not in `save()`'s list — which field has the cursor is not a record.
+Template side: every `<input type="number">` gained `onFocus`/`onBlur`; per-row keys
+are `alw:i` / `ded:i` / `mult:otMult` so one row clearing does not blank its neighbour.
+
+64 new assertions in `test/regress.js` (374 total) under 새로 까는 사람에게 맞는 기본값,
+근무조를 바꾸면 휴게도 따라갑니다, 급여기간은 1일부터 말일까지, 아직 하나도 안 쓴 사람의
+연차, 손으로 적는 하루의 기본 시각, 쓰던 사람의 설정은 그대로, 숫자 칸 · 누르면 비고,
+기본금을 묻는 카드, 소개를 덮으면 설정으로. The v1 equivalence proof now aligns
+근무조·휴게 as well as 기본금 before comparing — it proves the *engine*, not the seeds.
+
+### 2026-08-17 (later) — the app got a welcome, settings got folded, and 내 권리 got a tab
+
+Reported after wiping the app and reinstalling it to see what a new worker meets:
+**the first screen was a form.** `showSetup` opened straight onto the 8-language grid,
+기본금, 기준시간, allowances, insurance — before saying a word about what the app does.
+And the SETUP tab was 14 flat sections, every heading 9px uppercase grey while the
+values beside them were 13px/800. The hierarchy was inverted: the numbers shouted and
+the labels whispered.
+
+**First run now teaches.** The setup overlay is gone, replaced by a welcome screen:
+language first (you cannot explain anything in a language the reader does not have),
+then four numbered cards — it records shifts / it applies 근로기준법 §56 / it becomes
+evidence in Korean / it never leaves this phone. Then it gets out of the way. It does
+**not** ask for 기본금: punching does not need it. That question moved to the top of
+급여, asked once, at the moment it is first needed, with the legal default explained
+(`askBasic`, cleared the moment the worker types their own figure).
+
+Gated on `state.tourSeen`, which is persisted. An upgrading worker has a saved blob
+without the key, so it defaults to `true` — nobody who already uses the app gets
+taught. Re-openable from 설정 › 정보.
+
+**Settings fold into seven groups** — 언어 / 내 급여 조건 / 근무조와 휴게 / 수당과
+공제 / 4대보험과 세금 / 회사 규칙 / 백업과 내보내기 — each a 14.5px/800 header with
+the English underneath and, crucially, **the current value on the right**. Folding
+alone would just hide things; the summary is what makes it safe (`setGroupSums()`).
+All closed at rest, and `setOpen` is deliberately not saved — it is screen state, not
+a record. The whole tab now fits on one screen.
+
+Two explanations the worker asked for, both driven by `isDef()`:
+`basicDefaultNote` says 기본금 was seeded from 최저임금 × 209 and swaps to "this is your
+own figure" once touched; `insWhyOnNote` says 건강보험·장기요양·국민연금 are ON because
+their rates are fixed by law, and 고용보험 is OFF because E-9 workers often are not in it.
+
+**Fifth tab: 내 권리** — money the law owes you that is not in this month's payslip,
+each with its statute.
+- **퇴직금** — `severancePay()` = `avgDaily() × 30 × tenureDays/365`, 근로자퇴직급여
+  보장법 §8①. `avgDaily()` already carried the 근로기준법 §2② 통상임금 floor, so it
+  was the right input. Under a year it shows no figure at all, just how many days to go.
+- **연차 ledger** — 발생/사용/잔여. `annualAccrued()` implements §60② (1 day per full
+  month, cap 11), §60① (15 days), §60④ (+1 every 2 years from year 3, cap 25). The
+  worker's hand-typed company balance stays and is shown *next to* the legal figure —
+  the app does not claim to overrule the company ledger, it lets you hold them up
+  against each other.
+- **휴업수당** — `shutdownTally()` gathers whole shutdown days and the §46 shortfall on
+  days cut short, which were already computed but had nowhere to live.
+
+All three hang off one new setting, **`hireDate`**. Without it the tab asks for it
+rather than guessing.
+
+**Also in this round.** Multi-year archive with a year-chip row in 근무기록 (defaults
+to the last 12 months, `전체` always one tap away — nothing is ever hidden from export,
+and `archKeep()` only filters the *view*). CSV export (`csvText()`, Korean headings,
+UTF-8 BOM so 한글 Excel does not mojibake, reasons included). 식대 one-tap preset.
+상여 with a month picker, wired into `avgDailyCalc()` because 상여 raises 평균임금 and
+therefore 퇴직금. And configurable **배수** (`otMult`/`nightMult`/`holOverMult`) for
+factories that pay something other than the statutory 1.5/0.5/2.0 — defaults are the
+old hard-coded constants exactly, so the v1 equivalence proof still passes, and a
+multiplier below the legal floor is labelled as a shortfall rather than silently accepted.
+
+**A crash worth knowing about.** A record with no `c` block white-screened the entire
+app: `totals()` reads `s.c.reg` unguarded, so one bad row from a hand-edited backup
+made `renderVals()` throw and left the worker looking at a red bar with their records
+still sitting in localStorage, unreachable. `Component.normRecs()` now scrubs every
+record on both paths into `state.extra` (load and import) — missing `c` filled,
+non-numeric fields zeroed, unusable rows dropped. NaN is worse than a throw: it does
+not crash, it just spreads quietly.
+
+**Not built this round, by agreement:** multiple 사업장. It is the deepest change on
+the list — every record needs a workplace id, per-workplace 기본금 and shift rules, the
+근무내역서 scoped per employer, plus a migration — and it should not land in the same
+build that moves every screen.
+
+**Deliberately not built:** any tier that hides records. The ask mentioned "free keeps
+12 months visible". Records are evidence; a worker in a 임금체불 dispute must never open
+this app and find last year greyed out. The 12-month idea shipped as a *default view
+filter* with everything always visible and exportable.
+
+108 new assertions in `test/regress.js` (310 total).
+
+### 2026-08-17 (earlier) — 최저임금 became a date-keyed table, and the build warns when it is stale
+
+The 2027 minimum wage was set on 2026-07-14: **10,700원/h** from 2027-01-01, up from
+2026's 10,320. `10320` had been a literal in three places, and the year was baked into
+two lang **key names** (`2026_legal_minimum`, `your_hourly_rate_is_below_the_2026_leg`),
+so the app would have quietly told a lie every January.
+
+`static MIN_WAGE = [{ from, won }]` now holds both years; `Component.minWageOn(iso)`
+returns the rate in force on a given day. Minimum wage still touches **only** a warning
+threshold and a display row — `rate()` is untouched and the wage-engine equivalence
+proof still passes.
+
+The two call sites read **different dates**, and that is the whole point:
+
+- `minWageWarn` (설정) is about the 기본금 you are on *now* → today's minimum.
+- `basisRows` (급여) is the basis for the payslip of period `P` → `periodMinWage(P)`,
+  the minimum in force **during that period**. Opening a December 2026 payslip in
+  March 2027 must still read 10,320원. Same principle as `reason.ko` being a snapshot.
+  A period that straddles New Year (12.21 → 01.20) takes the **later** date: only one
+  figure fits on the row, and showing the lower one would make January pay that was
+  below the new floor look legal.
+
+`DEFAULTS.basic` is now `minWageOn(today) × DEFAULT_DIVISOR`, so a fresh install in
+2027 starts at 2,236,300 rather than 2,156,880. It reaches **new installs only** — the
+constructor merges saved settings *over* `DEFAULTS`, so an upgrading worker's own
+기본금 survives untouched (asserted, including from a v1 blob). Two older assertions
+that hard-coded 2,156,880 now derive it, or they would have failed on 2027-01-01.
+
+**Task 5, the staleness warning.** The app is offline by design and cannot fetch next
+year's 고시. `MIN_WAGE_UNTIL = '2027-12-31'`; past that the app shows one line under the
+header saying it does not know this year's minimum wage. It is **a warning, never a
+lock** — punching, viewing, exporting and printing the 근무내역서 all keep working, and
+there is a test that says so. It sits in the flow (not an overlay), dismisses for the
+session only (`state.wageStaleHide` is not in `save()`'s list), and adds no network
+call. Adding next year's figure is: one row in `MIN_WAGE`, move `MIN_WAGE_UNTIL`.
+
+New keys `year_legal_minimum`, `your_hourly_rate_is_below_the_legal_mi`,
+`the_app_only_knows_the_minimum_wage_up`; the two year-named keys are gone. The warning
+now takes three params — rate, year, **and the minimum itself**, because that figure
+had been hard-coded inside the sentence too. 39 new assertions in `test/regress.js`
+under 최저임금은 해마다 바뀝니다, 명세서는 만들어진 날의 얼굴로, 시급 10,500원,
+앱이 법보다 낡았을 때, 쓰던 사람의 기본금.
+
+### 2026-08-13 — the service worker was hiding every update
+
+Found while verifying the 조퇴 사유 popup (below) *on the phone*: it was installed and still did
+not appear. The APK was correct; the app was running the previous build, because
+`sw.js` answered navigations from cache and only refreshed for next time. Every APK
+update had been invisible until its second launch.
+
+`sw.js` now races the network against a 1.5s timer for navigations and falls back to
+cache. In the APK the page comes from `WebViewAssetLoader` on the device, so it is
+always the fresh one; offline the fetch fails immediately and it is cache-first again
+(measured: 24ms to open with the network fully cut, versus 14ms online).
+
+`build.py` now derives the cache key from `index.html` **and** `sw.js`. Before, a
+change to the worker alone shipped under the old cache name — the browser swaps the
+worker on a byte diff regardless, but `activate` then keeps a cache written under the
+old rules.
+
+### 2026-08-13 (earlier) — 조퇴 사유 became a popup with a dropdown
+
+The early-out reason sheet was an inline block inside each tab. Three problems, all
+reported from real use:
+
+- In **LOGS** it opened at the very top of the tab. Tapping "사유 고치기" on a row far
+  down the list appeared to do nothing; the app scrolled you to the top, but the screen
+  you arrived at had no visible connection to the button you had just pressed.
+- In **PUNCH** all twelve reasons were permanently expanded, so the save button sat
+  off-screen.
+- Clocking out minutes after clocking in hit the "너무 이른 퇴근" guard, whose only
+  reason-bearing option stamped `일감 부족` ("no box") with no way to choose anything
+  else without going to LOGS afterwards.
+
+Now there is **one popup**, defined once at the root of the template outside every tab
+(`<sc-if value="{{ earlySheet }}">`, `position:absolute; inset:0; z-index:30`, dimmed
+backdrop, tap-outside to close). Both entry points open the same thing, so it looks
+the same and there is one place to change it.
+
+The twelve reasons are a **collapsed dropdown** (`state.rsnOpen`, `toggleRsnList()`)
+showing the picked one; expanding reveals all twelve in their three fault groups.
+Picking collapses it again — twelve rows permanently open is what pushed the save
+button off-screen before.
+
+`sentHome()` and `forceClockOut()` now open the popup after writing their record, so
+the "sent home" path can be re-tagged as 금형 고장 or 정전 on the spot. `sentHome()`
+still pre-picks `일감 부족`, so closing the popup leaves a sensible reason rather than
+none.
+
+Also fixed here: the sent-home button still read **"→ LEAVE / 연차로 기록"** long after
+v2 stopped spending annual leave on that day (V2.md Part 1 §C). It now reads
+"→ SHUTDOWN / 휴업으로 기록", matching what the code writes. Key renamed
+`no_boxes_sent_home_leave` → `no_boxes_sent_home_shutdown`.
+
+New strings: `rsn_kicker`, `rsn_head_pick`, `rsn_pick_none`, `rsn_sub_noio`
+(a sent-home day has no clock times, so the subtitle must not say `— · 0.0h worked`).
+26 new assertions in `test/regress.js` under 팝업과 드롭다운, 귀가한 날, 그래도 기록한 날.
