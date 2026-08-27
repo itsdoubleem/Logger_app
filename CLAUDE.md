@@ -35,6 +35,15 @@ the worker can hold it up against the paper the company hands them.
 | build | `python3 build.py v2` → `dist-v2/` | `python3 build.py` → `dist/` |
 | APK | `./build_apk.sh v2` → `worklog-debug.apk` | `./build_apk.sh` → `worklog-frozen-debug.apk` |
 
+The two APKs above are debug-signed, for your own phone. The store route is
+`./bump_version.sh` then `./build_apk.sh bundle` → `worklog-release.aab`, signed
+with the upload key named by `android/keystore.properties` (gitignored; template
+at `android/keystore.properties.example`). Without a key it still builds,
+unsigned, and says so. **Release builds are not debuggable**, so the CDP trick
+below does not work against them — verify on a debug build. R8 is off on purpose;
+`DEPLOY.md` §"R8 is off, deliberately" says why and what to check by hand if you
+ever turn it on.
+
 Both carry `applicationId app.worklog.punch`, so installing one upgrades the other in
 place and the WebView's `localStorage` survives — that is what makes v2's v1→v2 record
 migration run on a real phone.

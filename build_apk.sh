@@ -1,8 +1,15 @@
 #!/bin/sh
 # Build the sideloadable test APK.
 #
-#   ./build_apk.sh v2     ->  worklog-debug.apk         (the shipping app, dist-v2/)
-#   ./build_apk.sh        ->  worklog-frozen-debug.apk  (the frozen original, dist/)
+#   ./build_apk.sh v2       ->  worklog-debug.apk         (sideload, dist-v2/)
+#   ./build_apk.sh          ->  worklog-frozen-debug.apk  (the frozen original, dist/)
+#   ./build_apk.sh release  ->  worklog-release.apk       (release APK, dist-v2/)
+#   ./build_apk.sh bundle   ->  worklog-release.aab       (what the Play Store takes)
+#
+# release and bundle are signed only if android/keystore.properties (or the
+# WORKLOG_STORE_* environment variables) point at your upload key. Without it
+# they still build, unsigned, and this script says so — an unsigned artifact
+# cannot be uploaded. See android/keystore.properties.example.
 #
 # The shipping APK carries no version in its name on purpose: this app has never
 # been released, so the first build that goes out to workers is version 1, not
@@ -22,18 +29,25 @@
 set -e
 cd "$(dirname "$0")"
 
-if [ "$1" = "v2" ]; then
-  SRC=dist-v2
-  OUT=worklog-debug.apk
-else
-  SRC=dist
-  OUT=worklog-frozen-debug.apk
-fi
+# MODE tells build.py which source to unpack ('' = the frozen original).
+case "$1" in
+  release) SRC=dist-v2; MODE=v2; OUT=worklog-release.apk; TASK=assembleRelease
+           ART=android/app/build/outputs/apk/release/app-release.apk
+           UNSIGNED=android/app/build/outputs/apk/release/app-release-unsigned.apk ;;
+  bundle)  SRC=dist-v2; MODE=v2; OUT=worklog-release.aab; TASK=bundleRelease
+           ART=android/app/build/outputs/bundle/release/app-release.aab
+           UNSIGNED= ;;
+  v2)      SRC=dist-v2; MODE=v2; OUT=worklog-debug.apk; TASK=assembleDebug
+           ART=android/app/build/outputs/apk/debug/app-debug.apk; UNSIGNED= ;;
+  '')      SRC=dist;    MODE='';  OUT=worklog-frozen-debug.apk; TASK=assembleDebug
+           ART=android/app/build/outputs/apk/debug/app-debug.apk; UNSIGNED= ;;
+  *)       echo "unknown mode: $1  (use v2 | release | bundle | no argument)" >&2; exit 1 ;;
+esac
 
 # web icons and the Android launcher bitmaps, both from pwa/icon-source.png
 python3 pwa/make_icons.py
 
-python3 build.py $1
+python3 build.py $MODE
 
 rm -rf android/app/src/main/assets/www
 mkdir -p android/app/src/main/assets/www
@@ -46,9 +60,44 @@ if [ -z "$GRADLE" ]; then
   exit 1
 fi
 
-( cd android && "$GRADLE" --no-daemon assembleDebug )
+( cd android && "$GRADLE" --no-daemon "$TASK" )
 
-cp android/app/build/outputs/apk/debug/app-debug.apk "$OUT"
+# An unsigned release lands under a different name than a signed one, so look
+# for both rather than reporting "build ok" over a missing file.
+if [ -f "$ART" ]; then
+  cp "$ART" "$OUT"
+elif [ -n "$UNSIGNED" ] && [ -f "$UNSIGNED" ]; then
+  cp "$UNSIGNED" "$OUT"
+else
+  echo "gradle finished but no artifact at $ART" >&2
+  exit 1
+fi
+
 echo
 echo "$OUT  $(wc -c < "$OUT") bytes"
-"$HOME"/Library/Android/sdk/build-tools/*/apksigner verify --print-certs "$OUT" 2>/dev/null | head -2 || true
+
+APKSIGNER=$(ls "$HOME"/Library/Android/sdk/build-tools/*/apksigner 2>/dev/null | tail -1)
+case "$1" in
+  bundle)
+    # An .aab is a zip, not an APK — apksigner cannot read it. Play re-signs the
+    # app itself; what matters is that the bundle carries YOUR upload signature.
+    if unzip -l "$OUT" 2>/dev/null | grep -q 'META-INF/.*\.RSA\|META-INF/.*\.EC'; then
+      echo "signed with your upload key — ready to upload"
+    else
+      echo
+      echo "!! UNSIGNED — the Play Store will refuse this file."
+      echo "   Point android/keystore.properties at your upload key and build again."
+      echo "   See android/keystore.properties.example."
+    fi ;;
+  release)
+    if [ -n "$APKSIGNER" ] && "$APKSIGNER" verify --print-certs "$OUT" >/dev/null 2>&1; then
+      "$APKSIGNER" verify --print-certs "$OUT" 2>/dev/null | head -2
+    else
+      echo
+      echo "!! UNSIGNED — this cannot be installed or uploaded as-is."
+      echo "   Point android/keystore.properties at your upload key and build again."
+      echo "   See android/keystore.properties.example."
+    fi ;;
+  *)
+    [ -n "$APKSIGNER" ] && "$APKSIGNER" verify --print-certs "$OUT" 2>/dev/null | head -2 || true ;;
+esac

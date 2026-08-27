@@ -127,9 +127,14 @@ permission — SAF hands back a `content://` the worker picked themselves.
 ## The test APK (no hosting needed)
 
 ```
-./build_apk.sh v2     ->  worklog-debug.apk         (the shipping app)
-./build_apk.sh        ->  worklog-frozen-debug.apk  (the frozen original)
+./build_apk.sh v2       ->  worklog-debug.apk         (sideload / testing)
+./build_apk.sh          ->  worklog-frozen-debug.apk  (the frozen original)
+./build_apk.sh release  ->  worklog-release.apk       (release APK)
+./build_apk.sh bundle   ->  worklog-release.aab       (what the Play Store takes)
 ```
+
+The first two are debug-signed and for your own phone. `release` and `bundle`
+are the store route — see [Releasing to the Play Store](#releasing-to-the-play-store).
 
 `worklog-debug.apk` is the whole app inside an Android package — no server, no
 URL, works with the phone in airplane mode. Sideload it: send it to the phone,
@@ -152,7 +157,8 @@ your hand before deciding anything about hosting. Differences that matter:
   transfer are both switched off in the manifest. The 백업 export is the only
   way data leaves the phone, and the worker picks where it goes.
 - Debug-signed with `~/.android/debug.keystore`. Fine for sideloading and
-  testing; a Play Store build needs the TWA route and its own key.
+  testing; the Play Store needs a release build signed with your own upload
+  key — `./build_apk.sh bundle`, described below.
 
 Records made in this APK are stored under the APK's own WebView origin. They
 are **not** shared with the hosted site — a TWA would share them, a WebView
@@ -194,6 +200,89 @@ curl -s http://127.0.0.1:9333/json/list        # gives you the WebSocket URL
 
 then evaluate something only the new build has, e.g. a method on
 `window.__dcRegistry.WorkLogApp.Logic.prototype` or a key in `Logic.STR`.
+
+## Releasing to the Play Store
+
+The APK route above is a real, shippable app — it does not need hosting, a URL,
+or the TWA described further down. What it needs is a version number and your
+own signing key.
+
+### 1. Bump the version
+
+```sh
+./bump_version.sh --show     # what it is now
+./bump_version.sh minor      # versionCode +1, 1.0 -> 1.1
+```
+
+`versionCode` is the only number the store orders releases by, and **it can
+never be reused or reduced** — once a code is uploaded it is spent, even if you
+delete the draft. `versionName` is the string a worker sees and means nothing to
+that ordering. The script touches `android/app/build.gradle` and nothing else;
+in particular it does not touch the 근무내역서's `작성 도구` line, which is a
+separate decision.
+
+### 2. Make the upload key — once, and back it up
+
+```sh
+keytool -genkeypair -v -keystore ~/worklog-upload.jks \
+  -alias worklog -keyalg RSA -keysize 4096 -validity 10000
+
+cp android/keystore.properties.example android/keystore.properties
+# then edit it to point at the .jks and hold the two passwords
+```
+
+`keystore.properties` and every `*.jks` are gitignored, and must stay that way.
+
+**Back the key up somewhere that is not this laptop, before you ship anything.**
+Play signs the delivered app with a key Google holds, but every update you
+upload must be signed with *this* key. Lose it and you cannot update the app the
+workers already have — they would have to uninstall, which **destroys their
+records**, and install a fresh listing. There is no recovery process.
+
+A CI machine can supply the same four values as `WORKLOG_STORE_FILE`,
+`WORKLOG_STORE_PASSWORD`, `WORKLOG_KEY_ALIAS`, `WORKLOG_KEY_PASSWORD` instead of
+a file.
+
+### 3. Build the bundle
+
+```sh
+./build_apk.sh bundle     # -> worklog-release.aab
+```
+
+With no key configured this still builds, unsigned, and says so — an unsigned
+artifact cannot be uploaded. With a key it prints the signing certificate.
+
+Release builds differ from the debug ones in one way worth knowing: **they are
+not debuggable**, so the `webview_devtools_remote` CDP trick in `CLAUDE.md` does
+not work against them. Verify behaviour on a debug build; use the release build
+to check it starts, punches, and exports.
+
+### R8 is off, deliberately
+
+`classes.dex` is about 2.7 MB — larger than the app itself (~1.2 MB of assets) —
+because androidx's biometric, fragment and activity libraries come along.
+Turning R8 on would cut a lot of that.
+
+It is off anyway, because everything Java does here is reached **by name**:
+WebView looks up `@JavascriptInterface` methods from a string, and
+`BioShim`/`FileShim` call `window.WorkLogNative.<name>`. If R8 renames one of
+them the punch pad falls back to press-and-hold and the worker just experiences
+"the fingerprint stopped working". There are no tests over the Java — the 1296
+assertions are all on the web app — so nothing would catch it.
+
+`android/app/proguard-rules.pro` already holds the keep rules. To turn it on,
+set `minifyEnabled true` (and optionally `shrinkResources true`) in the release
+buildType, then **verify on a real phone by hand**: fingerprint punch in and
+out, 백업 내보내기, and 백업 불러오기.
+
+### Before the first upload
+
+- Data safety form: nothing is collected and nothing is shared. The missing
+  `INTERNET` permission, `allowBackup=false` and `data_extraction_rules.xml` all
+  back that up.
+- Store listing needs a 512×512 icon and a 1024×500 feature graphic; neither is
+  in this repo (`pwa/icon-512.png` is the app icon, not the listing one).
+- A privacy policy URL is required even when nothing is collected.
 
 ## Wrapping the URL into an APK
 
