@@ -3733,5 +3733,129 @@ console.log('\n== 쓰이지 않는 것은 두지 않습니다 ==');
     'rows=' + (V.dedRows || []).length);
 }
 
+console.log('\n== 줄을 더하면 지급총액이 나와야 합니다 ==');
+{
+  // 지급 항목에는 더하는 줄만 있고 빼는 줄이 없었습니다. gross는
+  // 고정급 + 변동급 − 결근공제 − 휴업공제인데, 화면과 근무내역서에는 앞의
+  // 둘만 줄로 있었습니다. 휴업 하루가 든 달에 20,178원이 설명 없이
+  // 사라지고, 결근까지 있으면 107,328원이 빕니다.
+  //
+  // 열여섯째가 일별 합과 합계 줄이 어긋나는 것을 두고 적었습니다 —
+  // 근로감독관은 그 칸을 더해 볼 수 있고, 더해서 맞지 않는 문서는 증거가
+  // 되지 못합니다. 여기서 그것을 셉니다.
+  const mkp = (iso) => { const c = new V2({}); c.base = new Date(iso); c.t0 = Date.now();
+    c.state.settings.periodStart = 21; return c; };
+  const shiftD = (c, d) => ({ y:2026, m:8, day:d, kind:'day', type:'shift',
+    inH:9, outH:21, c:c.calc(9, 21, 'day', false) });
+  const flatD = (d, type) => ({ y:2026, m:8, day:d, kind:'day', type,
+    c:{ gross:0, bk:0, net:0, reg:0, ot:0, night:0, hol:0, pay:0 } });
+  // '−₩82,560' / '₩92,880' / '—' 를 숫자로. 부호를 놓치면 시험이 통과해 버립니다.
+  const amt = (v) => { const m = String(v || '').match(/^(−?)₩([\d,]+)$/);
+    return m ? (m[1] ? -1 : 1) * (+m[2].replace(/,/g, '')) : 0; };
+  const rowSum = (V) => V.earnRows.reduce((a, r) => a + amt(r.amt), 0);
+  const gross = (V) => amt(V.grossPay);
+
+  // ── 네 가지 경우 모두 맞아야 합니다 ──
+  const cases = [
+    ['공제가 없는 달',        [24, 25], []],
+    ['휴업 하루가 든 달',      [24, 25], [[26, 'shutdown']]],
+    ['결근 하루가 든 달',      [24, 25], [[27, 'absent']]],
+    ['둘 다 든 달',           [24, 25], [[26, 'shutdown'], [27, 'absent']]],
+  ];
+  cases.forEach(([name, work, flat]) => {
+    const c = mkp('2026-08-28T10:00:00');
+    c.state.extra = work.map(d => shiftD(c, d)).concat(flat.map(([d, ty]) => flatD(d, ty)));
+    const V = c.renderVals();
+    ok(name + ' — 줄의 합이 지급총액과 같습니다', rowSum(V) === gross(V),
+      rowSum(V) + ' vs ' + gross(V));
+  });
+
+  // 공제가 없으면 줄도 없어야 합니다 — 없는 공제를 0원으로 적으면
+  // 그것대로 물어볼 거리가 생깁니다.
+  {
+    const c = mkp('2026-08-28T10:00:00');
+    c.state.extra = [shiftD(c, 24), shiftD(c, 25)];
+    const V = c.renderVals();
+    const labels = V.earnRows.map(r => r.ko + '|' + r.en).join(' ');
+    ok('공제가 없으면 공제 줄도 없습니다',
+      labels.indexOf('결근') < 0 && labels.indexOf('휴업') < 0
+      && labels.indexOf('Absence') < 0 && labels.indexOf('Shutdown') < 0, labels);
+  }
+
+  // ── 빼는 줄은 지급 항목 안에 있어야 합니다 ──
+  // 공제 칸은 지급총액 → 실수령의 뺄셈입니다. 거기에 두면 두 번 빼는 것으로
+  // 읽히고, 실수령이 실제보다 적어 보입니다.
+  {
+    const a = mkp('2026-08-28T10:00:00'); a.state.extra = [shiftD(a, 24)];
+    const b = mkp('2026-08-28T10:00:00');
+    b.state.extra = [shiftD(b, 24), flatD(26, 'shutdown'), flatD(27, 'absent')];
+    const Va = a.renderVals(), Vb = b.renderVals();
+    ok('공제 칸은 늘어나지 않습니다', Va.dedRows.length === Vb.dedRows.length,
+      Va.dedRows.length + ' vs ' + Vb.dedRows.length);
+    ok('지급 항목이 두 줄 늘어납니다', Vb.earnRows.length === Va.earnRows.length + 2,
+      Va.earnRows.length + ' -> ' + Vb.earnRows.length);
+    ok('빼는 값으로 적힙니다',
+      Vb.earnRows.filter(r => amt(r.amt) < 0).length === 2,
+      JSON.stringify(Vb.earnRows.map(r => r.amt)));
+  }
+
+  // ── 하루면 단수입니다 (아홉째) ──
+  {
+    const one = mkp('2026-08-28T10:00:00');
+    one.state.settings.lang = 'en';
+    one.state.extra = [shiftD(one, 24), flatD(26, 'shutdown')];
+    const r1 = one.renderVals().earnRows.filter(r => amt(r.amt) < 0)[0];
+    const two = mkp('2026-08-28T10:00:00');
+    two.state.settings.lang = 'en';
+    two.state.extra = [shiftD(two, 24), flatD(25, 'shutdown'), flatD(26, 'shutdown')];
+    const r2 = two.renderVals().earnRows.filter(r => amt(r.amt) < 0)[0];
+    ok('휴업 하루는 1 day', r1.hrs === one.T('unit_day_one'), r1.hrs);
+    ok('휴업 이틀은 2 days', r2.hrs === two.T('unit_days_n', { n: 2 }), r2.hrs);
+  }
+
+  // ── 근무내역서도 같아야 합니다 ──
+  // 화면만 고치면 근로감독관 앞에 놓이는 종이가 여전히 맞지 않습니다.
+  {
+    const c = mkp('2026-08-28T10:00:00');
+    c.state.extra = [shiftD(c, 24), shiftD(c, 25), flatD(26, 'shutdown'), flatD(27, 'absent')];
+    const P = c.viewPeriod(), t = c.totals(null, P), W = c.wageFor(P), pc = c.payCalc(t, W);
+    const doc = c.evidenceHtml(P);
+    ok('문서에 결근 공제 줄이 있습니다', doc.indexOf('결근 공제') >= 0);
+    ok('문서에 휴업 공제 줄이 있습니다', doc.indexOf('휴업 공제') >= 0);
+    ok('문서의 공제도 빼는 값입니다',
+      doc.indexOf('−' + c.won(pc.absentCut)) >= 0 && doc.indexOf('−' + c.won(pc.shutCut)) >= 0);
+    // 표의 숫자를 실제로 더해 봅니다 — 기본금 + 변동급 − 공제 = 지급총액.
+    const built = c.wFixedPay(W) + pc.variable - pc.absentCut - pc.shutCut;
+    ok('문서의 지급총액은 그 줄들의 합입니다', Math.round(built) === Math.round(pc.gross),
+      built + ' vs ' + pc.gross);
+    // 공제가 없는 달의 문서에는 그 줄이 없습니다.
+    const clean = mkp('2026-08-28T10:00:00');
+    clean.state.extra = [shiftD(clean, 24), shiftD(clean, 25)];
+    const doc2 = clean.evidenceHtml(clean.viewPeriod());
+    ok('공제가 없으면 문서에도 그 줄이 없습니다',
+      doc2.indexOf('결근 공제') < 0 && doc2.indexOf('휴업 공제') < 0);
+  }
+
+  // ── 여덟 개 언어에 다 있습니다 ──
+  {
+    ['ko','en','vi','zh','th','id','ne','km'].forEach(L => {
+      const c = mkp('2026-08-28T10:00:00');
+      c.state.settings.lang = L;
+      c.state.extra = [shiftD(c, 24), flatD(26, 'shutdown'), flatD(27, 'absent')];
+      const V = c.renderVals();
+      const neg = V.earnRows.filter(r => amt(r.amt) < 0);
+      ok(L + ' 공제 두 줄이 다 나옵니다', neg.length === 2 && neg.every(r => r.ko && r.en));
+      ok(L + ' 줄의 합이 지급총액과 같습니다', rowSum(V) === gross(V));
+    });
+    // 한국어 명세서 낱말이 앞에 섭니다 — 이 저장소의 집 규칙입니다.
+    ['vi','zh','th','id','ne','km'].forEach(L => {
+      ok(L + ' 번역은 한국어 낱말이 앞에 섭니다',
+        V2.STR['earn_shutcut'][L].indexOf('휴업 공제') === 0
+        && V2.STR['earn_absentcut'][L].indexOf('결근 공제') === 0,
+        V2.STR['earn_shutcut'][L]);
+    });
+  }
+}
+
 console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);

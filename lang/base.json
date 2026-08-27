@@ -687,6 +687,14 @@
     "en": "each time it is paid",
     "ko": "한 번 받을 때"
   },
+  "earn_absentcut": {
+    "ko": "결근 공제",
+    "en": "Absence · unpaid days"
+  },
+  "earn_absentcut__en": {
+    "ko": "Absence · unpaid days",
+    "en": "Absence · unpaid days"
+  },
   "earn_basic": {
     "en": "Basic salary · {h}h",
     "ko": "기본금"
@@ -722,6 +730,14 @@
   "earn_ot__en": {
     "en": "Overtime ×1.5",
     "ko": "Overtime ×1.5"
+  },
+  "earn_shutcut": {
+    "ko": "휴업 공제",
+    "en": "Shutdown · unpaid part"
+  },
+  "earn_shutcut__en": {
+    "ko": "Shutdown · unpaid part",
+    "en": "Shutdown · unpaid part"
   },
   "earned_so_far": {
     "en": "Earned so far",
