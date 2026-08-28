@@ -3916,5 +3916,220 @@ console.log('\n== 줄을 더하면 지급총액이 나와야 합니다 ==');
   }
 }
 
+console.log('\n== 공제 차액은 덜 받은 돈이 아닙니다 ==');
+{
+  // 이 앱을 만든 사람이 자기 명세서를 앱과 맞춰 보다 물었습니다: 특근에서
+  // 12,900원이 덜 나온 것은 찾았는데, 공제가 명세서 쪽이 107,120원 많다.
+  // 회사가 무언가 더 떼고 있는 것입니까?
+  //
+  // 아니었습니다. 앱은 4대보험을 기본금+고정수당(2,211,640)에 매기는데
+  // 회사는 공단에 신고된 보수월액(연금 3,434,000 · 건강 약 3,482,000)에
+  // 매깁니다. 잔업이 통째로 빠져 있으니 차이가 납니다. 소득세도 회사가
+  // 개정 전 간이세액표를 쓰고 있어 15,000원 높았고, 장기요양은 회사가
+  // 떼는지 아닌지조차 명세서로는 가릴 수 없었습니다.
+  //
+  // 셋 다 앱이 알 수 없는 값입니다 — 공단·국세청·회사에 있습니다. 그러면
+  // 계산으로 고칠 수 있는 것이 아니고, **모른다고 적는 것**이 답입니다.
+  // 열여섯째가 임금 기준을 되살릴 수 없을 때 문서에 ※를 붙인 것과 같습니다.
+  //
+  // 만든 사람조차 네 번을 물어봐야 했습니다. 소스를 못 읽는 근로자에게는
+  // 이 한 줄이 회사를 의심할 것인가 말 것인가를 가릅니다.
+  const K = 'these_are_estimates_the_app_cannot_see';
+  const c = new V2({});
+  const V = c.renderVals();
+
+  ok('공제 줄 밑에 한 줄이 붙습니다', !!V.L.dedNote && V.L.dedNote.length > 40, V.L.dedNote);
+  ok('그 줄은 새 키에서 옵니다', V.L.dedNote === V2.STR[K]['ko']);
+
+  const fs = require('fs');
+  const src = fs.readFileSync(require('path').join(__dirname, '..', 'WorkLogApp.v2.dc.html'), 'utf8');
+  ok('템플릿에 실제로 걸려 있습니다', src.indexOf('{{ L.dedNote }}') > 0);
+  // 공제 총액 줄보다 뒤에 있어야 합니다 — 합계를 보고 나서 읽는 단서입니다.
+  ok('자리는 공제 총액 바로 밑입니다',
+    src.indexOf('{{ L.dedNote }}') > src.indexOf('{{ dedTotal }}'));
+
+  // ── 여덟 개 언어에 다 있고, 셋을 다 말합니다 ──
+  ['ko','en','vi','zh','th','id','ne','km'].forEach(L => {
+    const t = V2.STR[K][L];
+    ok(L + ' 그 줄이 있습니다', !!t && t.length > 40);
+    // 1) 명세서에 있는 낱말이 그대로 들어갑니다 — 종이에서 찾을 수 있어야 합니다
+    ok(L + ' 보수월액·공제대상가족을 한국어로 짚습니다',
+      t.indexOf('보수월액') >= 0 && t.indexOf('공제대상가족') >= 0, t);
+    // 2) 어디서 확인하는지 — 앱이 아니라 공단으로 넘깁니다
+    ok(L + ' 확인할 곳을 가리킵니다', t.indexOf('4insure.or.kr') >= 0, t);
+    // 3) 금액을 박아 두지 않습니다 — 요율도 기준도 해마다 바뀝니다
+    ok(L + ' 숫자를 박아 두지 않습니다', !/[0-9]{3},[0-9]{3}/.test(t), t);
+  });
+  ok('한국어는 차이가 부족액이 아니라고 말합니다',
+    V2.STR[K]['ko'].indexOf('덜 받은 돈이 아닙니다') >= 0);
+  ok('영어도 같은 말을 합니다',
+    V2.STR[K]['en'].indexOf('not money you are owed') >= 0);
+
+  // ── 말만 그런 것이 아니라 셈이 그렇습니다 ──
+  // slipShortfall()은 지급 줄(basic·ot·night·hol)만 셉니다. 공제가 아무리
+  // 어긋나도 빨간 '부족액'에는 한 푼도 들어가지 않아야 합니다. 이 줄이
+  // 설명하는 것이 바로 그 설계입니다 — 한쪽이 무너지면 다른 쪽은 거짓말이 됩니다.
+  const d = new V2({});
+  d.base = new Date('2026-08-28T10:00:00'); d.t0 = Date.now();
+  d.state.settings.periodStart = 21;
+  d.state.extra = [{ y:2026, m:8, day:24, kind:'day', type:'shift',
+    inH:9, outH:21, c:d.calc(9, 21, 'day', false) }];
+  const P = d.viewPeriod();
+  const rows = () => d.slipRows(P);
+  const app = {}; rows().forEach(r => { app[r.k] = r.app; });
+  // 명세서: 잔업은 10,000원 적게, 공제는 107,120원 많게 적습니다.
+  d.setSlip('ot', String(Math.round(app.ot) - 10000), P);
+  d.setSlip('ded', String(Math.round(app.ded) + 107120), P);
+  const after = rows();
+  const otRow = after.find(r => r.k === 'ot');
+  const dedRow = after.find(r => r.k === 'ded');
+  ok('공제 줄도 차이는 보여 줍니다', dedRow.short === 107120, String(dedRow.short));
+  ok('잔업 줄의 부족액은 그대로 잡힙니다', otRow.short === 10000, String(otRow.short));
+  ok('부족액에는 잔업만 들어갑니다', d.slipShortfall(P) === 10000,
+    '공제 107,120이 새면 ' + d.slipShortfall(P));
+
+  // ── 줄을 붙였다고 앱이 하던 일을 멈추지는 않습니다 ──
+  ok('공제 줄은 그대로 나옵니다', Array.isArray(V.dedRows) && V.dedRows.length > 0);
+  ok('공제 총액도 그대로입니다', !!V.dedTotal && V.dedTotal.indexOf('₩') === 0);
+  ok('실수령도 그대로입니다', !!V.netPay && V.netPay.indexOf('₩') === 0);
+}
+
+console.log('\n== 보수월액은 명세서의 국민연금에서 되살립니다 ==');
+{
+  // '보수월액이 얼마입니까'에 답할 수 있는 근로자는 거의 없습니다 — 공단에
+  // 있는 값이고 명세서에 그 이름으로 적혀 있지도 않습니다. bosu 칸은 그래서
+  // 있으나 마나였습니다(스무째의 성명 칸과 같은 모양 — 있는데 아무도 못 찾음).
+  //
+  // 그런데 '명세서의 국민연금이 얼마입니까'는 종이를 보고 답할 수 있고, 그
+  // 한 줄이 보수월액을 **유일하게** 결정합니다: 기준소득월액은 천원 단위이고
+  // 보험료는 10원 미만 절사라, 163,110원을 내는 값은 3,434,000 하나뿐입니다.
+  // 열여섯째의 recoverWage()와 같은 방식입니다 — 지어내지 않고 되살립니다.
+  const fl = x => Math.floor(x / 10) * 10;
+
+  // ── 실제 명세서 한 줄 ──
+  ok('163,110은 3,434,000에서만 나옵니다', V2.bosuFromPension(163110) === 3434000,
+    String(V2.bosuFromPension(163110)));
+  ok('되돌리면 그 줄이 그대로 나옵니다', V2.pensionOn(3434000) === 163110);
+
+  // ── 답이 하나라는 것을 실제로 셉니다 ──
+  // 천원 단위 값 전체를 훑어 163,110을 내는 것이 몇 개인지. 하나여야 합니다.
+  {
+    let n = 0, hit = 0;
+    for (let b = V2.PENSION_FLOOR; b <= 4200000; b += 1000)
+      if (V2.pensionOn(b) === 163110) { n++; hit = b; }
+    ok('천원 단위 값 가운데 답은 하나뿐입니다', n === 1 && hit === 3434000, 'n=' + n);
+  }
+  // 요율이 다르면 아예 나오지 않습니다 — 이것이 4.75%임을 명세서가 증언합니다.
+  {
+    const other = r => { for (let b = 400000; b <= 4200000; b += 1000)
+      if (fl(b * r) === 163110) return b; return null; };
+    ok('4.5%로는 천원 단위 답이 없습니다', other(0.045) === null);
+    ok('5.0%로도 천원 단위 답이 없습니다', other(0.05) === null);
+  }
+
+  // ── 되살릴 수 없으면 지어내지 않습니다 ──
+  ok('절사되지 않은 금액은 되살리지 않습니다', V2.bosuFromPension(163115) === null);
+  ok('천원 단위가 아닌 기준에서 나온 값도 되살리지 않습니다',
+    V2.pensionOn(2211640) === 105050 && V2.bosuFromPension(105050) === null);
+  ok('0과 빈 값은 null입니다',
+    V2.bosuFromPension(0) === null && V2.bosuFromPension('') === null && V2.bosuFromPension(null) === null);
+  ok('상한을 넘는 금액은 되살리지 않습니다', V2.bosuFromPension(999999999) === null);
+
+  // ── 한 바퀴 돌려도 제자리입니다 ──
+  {
+    let bad = null;
+    for (let b = 1000000; b <= 6370000; b += 1000)
+      if (V2.bosuFromPension(V2.pensionOn(b)) !== b) { bad = b; break; }
+    ok('천원 단위 값은 전부 왕복합니다', bad === null, '깨진 값 ' + bad);
+  }
+
+  // ── 요율은 한 곳에만 적혀 있습니다 ──
+  // 두 곳에 적어 두면 2027년에 한쪽만 고치게 됩니다(열여섯째가 기본금에서
+  // 겪은 그것). insCalc가 쓰는 값과 되살리기가 쓰는 값이 같아야 합니다.
+  {
+    const c = new V2({});
+    c.state.settings.bosu = 3434000;
+    ok('insCalc도 같은 요율을 씁니다', c.insCalc().pension === V2.pensionOn(3434000));
+    ok('insCalc의 국민연금이 명세서와 일치합니다', c.insCalc().pension === 163110,
+      String(c.insCalc().pension));
+    const fs = require('fs');
+    const src = fs.readFileSync(require('path').join(__dirname, '..', 'WorkLogApp.v2.dc.html'), 'utf8');
+    const lit = src.split('\n').filter(l => l.indexOf('0.0475') >= 0 && l.indexOf('//') !== 0);
+    ok('4.75%는 소스에 한 번만 적혀 있습니다', lit.length === 1, lit.join(' | '));
+  }
+
+  // ── 화면: 치면 보수월액이 채워집니다 ──
+  {
+    const c = new V2({});
+    ok('처음에는 비어 있고 무엇을 적는지 말해 줍니다',
+      c.renderVals().bosuPenVal === '' &&
+      c.renderVals().bosuPenNote === V2.STR['copy_the_national_pension_line_from_yo']['ko']);
+    // 손가락으로 치는 것과 같은 순서: 누르고 → 친다
+    c.renderVals().focBosuPen();
+    c.renderVals().setBosuPen({ target: { value: '163,110' } });   // 쉼표째 붙여넣어도
+    ok('보수월액이 채워집니다', c.st().bosu === 3434000, String(c.st().bosu));
+    ok('4대보험 기준이 그 값으로 바뀝니다', c.insBase() === 3434000);
+    ok('국민연금이 명세서와 같아집니다', c.insCalc().pension === 163110);
+    const V = c.renderVals();
+    ok('한 줄이 되살린 값을 말합니다', V.bosuPenNote.indexOf('3,434,000') >= 0, V.bosuPenNote);
+    ok('공단에 신고된 값인지는 확인하라고 합니다', V.bosuPenNote.indexOf('4insure.or.kr') >= 0);
+    // 칸을 떠나도 값이 보입니다 — bosu 하나에서 다시 계산하므로 두 곳에 저장되지 않습니다
+    V.blurBosuPen();
+    ok('떠난 뒤에도 그 줄이 칸에 보입니다', c.renderVals().bosuPenVal === '163110',
+      c.renderVals().bosuPenVal);
+    ok('저장되는 것은 bosu 하나뿐입니다', c.st().bosuPen === undefined);
+    // 손으로 보수월액을 고치면 이 칸이 따라옵니다
+    c.setS({ bosu: 3000000 });
+    ok('보수월액을 고치면 칸도 따라옵니다',
+      c.renderVals().bosuPenVal === String(V2.pensionOn(3000000)));
+  }
+
+  // ── 되살릴 수 없는 금액을 치면 그렇다고 말합니다 ──
+  {
+    const c = new V2({});
+    c.renderVals().focBosuPen();
+    c.renderVals().setBosuPen({ target: { value: '163115' } });
+    ok('되살릴 수 없으면 보수월액을 건드리지 않습니다', !c.st().bosu, String(c.st().bosu));
+    ok('되살릴 수 없다고 말합니다',
+      c.renderVals().bosuPenNote === V2.STR['no_standard_monthly_wage_produces_that']['ko']);
+    // 치는 도중에는 나무라지 않습니다 — 아직 다 안 친 것뿐입니다
+    c.renderVals().setBosuPen({ target: { value: '' } });
+    ok('치는 도중에는 나무라지 않습니다',
+      c.renderVals().bosuPenNote !== V2.STR['no_standard_monthly_wage_produces_that']['ko']);
+  }
+
+  // ── 여덟 개 언어 ──
+  ['ko','en','vi','zh','th','id','ne','km'].forEach(L => {
+    ['national_pension_on_your_payslip','copy_the_national_pension_line_from_yo',
+     'that_pension_line_comes_from_this_wage','no_standard_monthly_wage_produces_that'].forEach(k => {
+      ok(L + ' ' + k + ' 있습니다', !!(V2.STR[k] && V2.STR[k][L]));
+    });
+    // 명세서에 적힌 낱말이 그대로 서야 종이에서 찾을 수 있습니다
+    ok(L + ' 국민연금을 한국어로 짚습니다',
+      V2.STR['national_pension_on_your_payslip'][L].indexOf('국민연금') >= 0,
+      V2.STR['national_pension_on_your_payslip'][L]);
+    ok(L + ' 되살린 줄이 보수월액을 한국어로 짚습니다',
+      V2.STR['that_pension_line_comes_from_this_wage'][L].indexOf('보수월액') >= 0);
+    // 금액을 문장에 박아 두지 않습니다 — 인자로 받습니다
+    ok(L + ' 금액은 인자입니다',
+      V2.STR['that_pension_line_comes_from_this_wage'][L].indexOf('{p0}') >= 0
+      && V2.STR['that_pension_line_comes_from_this_wage'][L].indexOf('{p1}') >= 0);
+  });
+
+  // ── 칸을 더했다고 앱이 하던 일을 멈추지는 않습니다 ──
+  {
+    const c = new V2({});
+    ok('보수월액을 안 넣으면 예전 그대로입니다',
+      c.insBase() === c.taxableFixed() && !c.st().bosu);
+    const fs = require('fs');
+    const src = fs.readFileSync(require('path').join(__dirname, '..', 'WorkLogApp.v2.dc.html'), 'utf8');
+    // 숫자 칸의 집 규칙 — type=number를 쓰면 완료 키가 죽습니다(열째)
+    const row = src.split('\n').filter(l => l.indexOf('{{ setBosuPen }}') >= 0)[0];
+    ok('숫자 칸의 집 규칙을 지킵니다',
+      row.indexOf('type="text"') >= 0 && row.indexOf('inputmode="decimal"') >= 0
+      && row.indexOf('enterkeyhint="done"') >= 0 && row.indexOf('{{ keyBosuPen }}') >= 0, row);
+  }
+}
+
 console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);
