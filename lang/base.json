@@ -2998,5 +2998,81 @@
   "is_this_your_pay_period_it_is_on_your": {
     "en": "Is this your 급여기간 pay period? It is on your 근로계약서 contract and at the top of your payslip. If it is right, tap once.",
     "ko": "이 급여기간이 맞습니까? 근로계약서와 급여명세서 맨 위에 적혀 있습니다. 맞으면 한 번만 눌러 주세요."
+  },
+  "skip_this": {
+    "en": "Skip",
+    "ko": "건너뛰기"
+  },
+  "which_shift_do_you_work": {
+    "en": "Which 근무조 shift do you work?",
+    "ko": "어느 근무조로 일합니까?"
+  },
+  "this_is_the_one_thing_the_app_cannot": {
+    "en": "This is the one thing the app cannot work out on its own. The rest is either set by law or calculated.",
+    "ko": "앱이 스스로 알아낼 수 없는 단 하나입니다. 나머지는 법이 정하거나 앱이 계산합니다."
+  },
+  "or_type_your_own": {
+    "en": "Or type your own",
+    "ko": "또는 직접 입력"
+  },
+  "your_unpaid_meal_break": {
+    "en": "Your unpaid meal break",
+    "ko": "무급 식사 휴게"
+  },
+  "unpaid_time_comes_off_your_hours": {
+    "en": "Unpaid time comes off your hours, so the app has to know it. If what is below is right, leave it.",
+    "ko": "무급 시간은 실근무에서 빠지므로 앱이 알아야 합니다. 지금 값이 맞으면 그대로 두세요."
+  },
+  "right_now": {
+    "en": "Right now",
+    "ko": "지금 값"
+  },
+  "it_is_30_minutes": {
+    "en": "It is 30 minutes",
+    "ko": "30분입니다"
+  },
+  "no_meal_break": {
+    "en": "There is no meal break",
+    "ko": "식사 휴게가 없습니다"
+  },
+  "which_days_are_on_one_payslip": {
+    "en": "Which days are on one 급여명세서 payslip?",
+    "ko": "어느 날짜들이 한 장의 명세서입니까?"
+  },
+  "your_contract_says_this_so_does_the": {
+    "en": "Your 근로계약서 contract says this, and so does the top of your payslip. The law does not set it — every company differs.",
+    "ko": "근로계약서에 적혀 있고, 급여명세서 맨 위에도 있습니다. 법이 아니라 회사가 정하므로 회사마다 다릅니다."
+  },
+  "or_type_your_own_day": {
+    "en": "Or type it (1–31)",
+    "ko": "또는 직접 (1–31)"
+  },
+  "set_up": {
+    "en": "SET UP",
+    "ko": "설정 끝"
+  },
+  "that_is_everything_the_app_needs": {
+    "en": "That is everything the app needs.",
+    "ko": "앱이 알아야 하는 것은 여기까지입니다."
+  },
+  "setup_has_more_none_of_it_is_needed": {
+    "en": "설정 Setup has more — 수당 allowances, 4대보험 insurance, tax, 연차 leave, 퇴직금 severance. None of it is needed to record your shifts; the app will ask at the moment each one matters.",
+    "ko": "설정에는 수당, 4대보험, 세금, 연차, 퇴직금이 더 있습니다. 출퇴근을 기록하는 데는 하나도 필요하지 않습니다 — 필요해지는 그 자리에서 앱이 묻습니다."
+  },
+  "start_punching": {
+    "en": "출퇴근 START PUNCHING",
+    "ko": "출퇴근 시작하기"
+  },
+  "day_to_end": {
+    "en": "{p0} → month end",
+    "ko": "{p0}일 ~ 말일"
+  },
+  "changing_this_now_re_buckets_records": {
+    "en": "You already have records. Changing the 급여기간 start re-buckets them, and the wage basis and payslip comparisons already saved will no longer line up with those periods.",
+    "ko": "이미 기록이 있습니다. 급여기간 시작일을 바꾸면 지난 기록이 다른 기간으로 다시 묶이고, 이미 찍어 둔 임금 기준과 저장된 명세서 대조가 그 기간과 맞지 않게 됩니다."
+  },
+  "next_question": {
+    "en": "Next",
+    "ko": "다음"
   }
 }

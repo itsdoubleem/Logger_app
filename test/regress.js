@@ -716,7 +716,10 @@ console.log('\n== 첫 화면은 가르칩니다 · 설정 양식이 아닙니다
   ok('시작하면 소개가 닫힙니다', c.renderVals().showTour===false);
   // START는 설정으로 보냅니다 — 첫 기록을 찍기 전에 근무조와 급여기간을
   // 한 번은 지나가야 그 기록이 제대로 계산됩니다
-  ok('설정 화면으로 갑니다', c.state.tab==='set', 'got '+c.state.tab);
+  // 2026-08-29: START는 설정 탭이 아니라 네 물음의 첫 화면으로 갑니다.
+  // 소개 카드 1번이 '먼저 설정할 것은 없습니다'라고 말한 그 약속을 지키는 자리입니다.
+  ok('첫 물음으로 갑니다', c.state.setupStep===1, 'got '+c.state.setupStep);
+  ok('설정 탭으로 내보내지 않습니다', c.state.tab!=='set', 'got '+c.state.tab);
   c.save();
   ok('봤다는 사실은 저장됩니다', /tourSeen/.test(c.lastSaved||''));
   // 다시 볼 수 있어야 합니다 — 한 번 닫으면 영영 못 보는 화면이면 안 됩니다
@@ -1609,7 +1612,7 @@ console.log('\n== 소개를 덮으면 설정으로 갑니다 ==');
   // 계산됩니다 — 출퇴근은 아래 탭으로 언제나 한 번에 닿습니다.
   const c=mk(V2);
   c.renderVals().endTour();
-  ok('설정 화면입니다', c.state.tab==='set', 'got '+c.state.tab);
+  ok('다시 열어도 첫 물음입니다', c.state.setupStep===1, 'got '+c.state.setupStep);
   ok('소개는 닫혔습니다', c.renderVals().showTour===false);
   ok('출퇴근 탭은 그대로 있습니다', c.renderVals().tabs.length===5);
 }
@@ -4272,8 +4275,12 @@ console.log('\n== 근무조·휴게와 회사 규칙에도 같은 이름을 붙�
   const rules = src.indexOf('{{ gRulesOpen }}');
   ok('근무조 묶음의 끝을 제대로 잡았습니다', shift > 0 && shiftEnd > shift && rules > shiftEnd);
   const con = idx('{{ L.secContract }}');
+  // {{ shiftOpts }}와 {{ L.secStarts }}는 2026-08-29부터 **네 물음의 첫 화면에서도**
+  // 쓰입니다. 그쪽이 소스에서 훨씬 앞이라, 구간을 안 박고 indexOf만 쓰면 설정을
+  // 잰다고 생각하면서 소개 흐름을 재게 됩니다 — 스물일곱째의 {{ L.lBasic }}과
+  // 같은 자리이고, 이 두 줄이 실제로 그 자리에서 실패해서 잡혔습니다.
   ok('근무조 묶음 맨 위에 근로계약서 구역이 섭니다',
-    con.some(i => i > shift && i < src.indexOf('{{ shiftOpts }}')));
+    con.some(i => i > shift && i < src.indexOf('{{ shiftOpts }}', shift)));
   ok('근무조 묶음에는 명세서 구역이 없습니다',
     !idx('{{ L.secMine2 }}').some(i => i > shift && i < shiftEnd));
   ok('근무조 묶음에는 법정 구역도 없습니다',
@@ -4281,7 +4288,7 @@ console.log('\n== 근무조·휴게와 회사 규칙에도 같은 이름을 붙�
   // 기존 세 머리말은 그대로 남아 있어야 합니다(2026-08-18)
   ok('주간·야간 휴게 머리말은 그대로입니다',
     [ '{{ L.secDayBreaks }}', '{{ L.secNightBreaks }}', '{{ L.secStarts }}' ]
-      .every(t => { const i = src.indexOf(t); return i > shift && i < shiftEnd; }));
+      .every(t => { const i = src.indexOf(t, shift); return i > shift && i < shiftEnd; }));
 
   // ── 회사 규칙: 세 구역이 순서대로 ──
   const at = t => src.indexOf(t, rules);
@@ -4951,6 +4958,194 @@ console.log('\n== 나는 다 한 것입니까 ==');
     ok(Lg + ' 급여기간 묶음 이름이 있습니다', !!V2.STR['grp_period'][Lg]);
     ok(Lg + ' 급여기간 물음이 있습니다', !!V2.STR['is_this_your_pay_period_it_is_on_your'][Lg]);
   });
+}
+
+console.log('\n== 환영 화면 다음이 여덟 묶음짜리 설정이었습니다 ==');
+{
+  // 소개 카드 1번은 '먼저 설정할 것은 없습니다'라고 말합니다. 그래 놓고 START가
+  // 설정 탭으로 내보내고 있었고, 그 화면에는 묶음이 여덟 개 있었습니다. 앱의
+  // 안내문(tour_setup_next)이 '지금 다 채우지 않아도 됩니다'라고 미리 사과하고
+  // 있었던 것이 그 자리가 틀렸다는 가장 분명한 표시입니다.
+  const fresh = () => { const c = mk(V2, '2026-08-03T09:00:00'); c.setState({ tourSeen:false }); return c; };
+
+  const c = fresh();
+  ok('처음에는 물음이 없습니다', c.renderVals().suOn === false);
+  c.renderVals().endTour();
+  ok('START가 첫 물음을 엽니다', c.renderVals().suIs1 === true);
+  ok('설정 탭으로 내보내지 않습니다', c.state.tab !== 'set', c.state.tab);
+  ok('소개는 닫혔습니다', c.renderVals().showTour === false);
+
+  // ── 한 화면에 하나씩, 넷 ──
+  const steps = [];
+  for (let i = 0; i < 5; i++) { steps.push(c.renderVals().suStep); c.renderVals().suNext(); }
+  ok('다섯 화면을 지나갑니다', steps.join() === '1,2,3,4,5', steps.join());
+  ok('마지막 다음에는 닫힙니다', c.renderVals().suOn === false);
+  ok('끝까지 가면 다 물은 것으로 적습니다', c.state.setupDone === true);
+  ok('끝나면 출퇴근으로 보냅니다', c.state.tab === 'punch', c.state.tab);
+
+  // 건너뛰기만 해도 끝납니다 — 막지 않습니다
+  const sk = fresh(); sk.renderVals().endTour();
+  for (let i = 0; i < 5; i++) sk.renderVals().suNext();
+  ok('전부 건너뛰어도 끝납니다', sk.renderVals().suOn === false && sk.state.setupDone === true);
+  ok('건너뛰면 아무것도 정해지지 않습니다', sk.setNeededDone().done === 0,
+    JSON.stringify(sk.setNeededDone()));
+
+  // ── 1. 근무조를 고르는 것이 곧 정하는 것입니다 ──
+  const a = fresh(); a.renderVals().endTour();
+  ok('아직 정한 것이 없습니다', a.st().shiftConfirmed === false);
+  a.renderVals().shiftOpts[2].set();
+  ok('교대를 고르면 그것이 저장됩니다', a.st().shifts === 'both');
+  ok('고른 것 자체가 확인입니다', a.st().shiftConfirmed === true);
+  ok('그러면 출퇴근 카드도 가정이라고 하지 않습니다', a.renderVals().shiftAsk === false);
+  // 교대를 고르면 저녁 휴게가 표를 달고 함께 옵니다(스물아홉째)
+  ok('교대의 저녁 휴게가 따라옵니다', (a.st().breaksDay || []).length === 2,
+    JSON.stringify(a.st().breaksDay));
+  ok('그 줄에는 표가 붙어 있습니다', a.st().breaksDay[1].ot === true,
+    JSON.stringify(a.st().breaksDay[1]));
+
+  const t = fresh(); t.renderVals().endTour();
+  t.renderVals().suStartChips[0].set();
+  ok('시각 칩이 정규 문자열을 씁니다', t.st().dayStart === '06:00', t.st().dayStart);
+  ok('시각을 고른 것도 확인입니다', t.st().shiftConfirmed === true);
+
+  // ── 2. 휴게는 첫 줄만 건드립니다 ──
+  // 교대의 저녁 휴게는 잔업하는 날에만 빠지는 다른 줄입니다. 여기서 함께
+  // 지워 버리면 그 사람은 그 표를 손으로 다시 달아야 합니다(스물아홉째).
+  const b2 = fresh(); b2.renderVals().endTour();
+  b2.renderVals().shiftOpts[2].set();
+  b2.setState({ setupStep: 2 });
+  const before = JSON.stringify(b2.st().breaksDay[1]);
+  b2.renderVals().suBreakHalf();
+  ok('30분은 첫 줄만 줄입니다', b2.st().breaksDay[0].to === b2.hhmm(b2.parseHM(b2.st().breaksDay[0].from) + 0.5),
+    JSON.stringify(b2.st().breaksDay[0]));
+  ok('저녁 휴게는 그대로입니다', JSON.stringify(b2.st().breaksDay[1]) === before);
+  ok('손댔다는 사실이 적힙니다', b2.st().breaksTouched === true);
+
+  const b3 = fresh(); b3.renderVals().endTour();
+  b3.renderVals().shiftOpts[2].set();
+  b3.setState({ setupStep: 2 });
+  const dinner = JSON.stringify(b3.st().breaksDay[1]);
+  b3.renderVals().suBreakNone();
+  ok('없음은 식사 휴게 하나만 지웁니다', b3.st().breaksDay.length === 1);
+  ok('남은 것은 저녁 휴게입니다', JSON.stringify(b3.st().breaksDay[0]) === dinner);
+
+  // '맞습니다'는 breaksTouched를 켜지 않습니다 — 지금 값이 맞다는 뜻이지
+  // 앞으로 근무조를 바꿔도 따라오지 말라는 뜻이 아닙니다
+  const b4 = fresh(); b4.renderVals().endTour(); b4.setState({ setupStep: 2 });
+  b4.renderVals().suNext();
+  ok('맞다고만 하면 휴게를 잠그지 않습니다', b4.st().breaksTouched === false);
+
+  // ── 3. 기본금 ──
+  const p3 = fresh(); p3.renderVals().endTour(); p3.setState({ setupStep: 3 });
+  ok('숫자 칸은 numField를 지납니다', typeof p3.renderVals().keyBasic === 'function'
+    && typeof p3.renderVals().focBasic === 'function');
+  p3.renderVals().suBasicYes();
+  ok('맞다고 하면 기본금이 정해집니다', p3.st().basicConfirmed === true);
+  ok('그리고 급여기간 물음으로 넘어갑니다', p3.renderVals().suIs4 === true);
+  // 나중에는 확인이 아닙니다 — 급여 탭이 다시 물어야 합니다
+  const p3b = fresh(); p3b.renderVals().endTour(); p3b.setState({ setupStep: 3 });
+  p3b.renderVals().suNext();
+  ok('나중에는 확인이 아닙니다', p3b.st().basicConfirmed === false);
+  ok('급여 탭이 여전히 묻습니다', p3b.renderVals().askBasic === true);
+
+  // ── 4. 급여기간 ──
+  const p4 = fresh(); p4.renderVals().endTour(); p4.setState({ setupStep: 4 });
+  ok('기록이 없으면 경고가 없습니다', p4.renderVals().suPeriodWarn === '');
+  p4.renderVals().suPeriodChips[2].set();
+  ok('21일 칩이 저장됩니다', p4.st().periodStart === 21);
+  ok('고른 것 자체가 확인입니다', p4.st().periodConfirmed === true);
+  p4.renderVals().suPaydayChips[2].set();
+  ok('월급날 칩도 저장됩니다', p4.st().payday === 25);
+  ok('미리보기가 고른 기간을 말합니다', /21/.test(p4.renderVals().periodPreview),
+    p4.renderVals().periodPreview);
+
+  // ── 기록이 있으면 급여기간을 바꾸는 것은 공짜가 아닙니다 ──
+  // wageKey(P)도 slipKey(P)도 기간 시작일이라, 시작일이 바뀌면 이미 찍힌 임금
+  // 기준과 저장된 명세서 대조가 어느 기간과도 맞지 않게 됩니다. 첫날에는 기록이
+  // 0일이라 공짜이고, 그것이 이 물음을 첫 화면에 두는 가장 센 이유입니다.
+  const rec = fresh(); rec.renderVals().endTour(); rec.setState({ setupStep: 4 });
+  rec.state.extra = [{ y:2026, m:7, day:5, kind:'day', type:'shift', inH:9, outH:18,
+    c: rec.calc(9, 18, 'day', false) }];
+  ok('기록이 있으면 경고가 뜹니다', rec.renderVals().suPeriodWarn.length > 10,
+    rec.renderVals().suPeriodWarn.slice(0, 40));
+  ok('그래도 막지는 않습니다', typeof rec.renderVals().suPeriodChips[0].set === 'function');
+
+  // ── 5. 다 물었습니다 ──
+  const d5 = fresh(); d5.renderVals().endTour();
+  d5.setS({ shiftConfirmed:true, periodConfirmed:true });
+  d5.setState({ setupStep: 5 });
+  const sum = d5.renderVals().suSummary;
+  ok('마지막 화면이 셋을 요약합니다', sum.length === 3);
+  ok('정한 것에는 ✓', sum[0].mark === '✓' && sum[2].mark === '✓');
+  ok('아직인 것에는 !', sum[1].mark === '!' && sum[1].ink === 'var(--color-accent)');
+  ok('요약이 설정 요약과 같은 자리에서 나옵니다',
+    sum[2].v === d5.setGroupSums().grp_period, sum[2].v);
+  // 마지막 화면에는 건너뛰기가 없습니다 — 큰 단추와 같은 일을 하는 두 번째
+  // 단추이고, 그 하나를 '건너뛰기'라고 부르면 거짓말입니다. 폰에서 보고 잡았습니다.
+  ok('마지막 화면에는 건너뛰기가 없습니다', d5.renderVals().suAsking === false);
+  const q4 = fresh(); q4.renderVals().endTour(); q4.setState({ setupStep: 4 });
+  ok('묻는 동안에는 있습니다', q4.renderVals().suAsking === true);
+
+  // 도중에 닫으면 다음에 처음부터입니다 — setupStep은 저장하지 않습니다
+  const q = fresh(); q.renderVals().endTour(); q.renderVals().suNext(); q.save();
+  ok('setupStep은 저장되지 않습니다', !/setupStep/.test(q.lastSaved || ''));
+  ok('setupDone은 저장됩니다', /setupDone/.test(q.lastSaved || ''));
+
+  // 쓰던 사람에게는 이 흐름이 뜨지 않습니다 — 저장본이 있으면 소개부터 닿지 않습니다
+  const store = { 'worklog.v2': JSON.stringify({ v:2, tourSeen:true,
+    settings:{ basic:2600000, divisor:209 }, extra:[], removed:[] }) };
+  const g = global.window.localStorage.getItem;
+  global.window.localStorage.getItem = k => store[k] || null;
+  const up = new V2({}); up.base = new Date('2026-08-03T09:00:00'); up.t0 = Date.now();
+  global.window.localStorage.getItem = g;
+  ok('쓰던 사람에게는 뜨지 않습니다', up.renderVals().suOn === false && up.renderVals().showTour === false);
+
+  // 물음을 붙였다고 앱이 하던 일을 멈추지는 않습니다. 전부 건너뛴 폰은 설정이
+  // 한 글자도 바뀌지 않았으므로 갓 깐 폰과 같은 답을 내야 합니다.
+  ok('임금 계산은 그대로입니다',
+    JSON.stringify(mk(V2).calc(9, 21, 'day', false)) === JSON.stringify(sk.calc(9, 21, 'day', false)));
+
+  ['ko','en','vi','zh','th','id','ne','km'].forEach(Lg => {
+    ok(Lg + ' 네 물음의 제목이 다 있습니다',
+      !!V2.STR['which_shift_do_you_work'][Lg] && !!V2.STR['your_unpaid_meal_break'][Lg]
+      && !!V2.STR['what_is_your_basic_salary'][Lg] && !!V2.STR['which_days_are_on_one_payslip'][Lg]);
+    ok(Lg + ' 마지막 화면과 건너뛰기가 있습니다',
+      !!V2.STR['that_is_everything_the_app_needs'][Lg] && !!V2.STR['start_punching'][Lg]
+      && !!V2.STR['skip_this'][Lg]);
+    ok(Lg + ' 급여기간 경고가 있습니다', !!V2.STR['changing_this_now_re_buckets_records'][Lg]);
+  });
+}
+
+console.log('\n== 없는 키를 부르면 화면에 키 이름이 그대로 찍힙니다 ==');
+{
+  // 네 물음의 단계 표시가 폰에서 'N_OF_4'로 나왔습니다. this.T('n_of_4', …)를
+  // 써 놓고 그 키를 만들지 않았기 때문입니다. T()는 없는 키에 **던지지 않고 키
+  // 이름을 돌려줍니다** — 그래서 bind.js도, 여덟 언어 렌더도 이것을 잡지
+  // 못합니다. 둘 다 '홀이 채워졌는가'만 보고 '무엇으로 채워졌는가'는 안 봅니다.
+  const fs = require('fs');
+  const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const body = src.slice(src.indexOf('class Component'));
+  const called = new Set();
+  // 이어 붙여 만드는 키는 뺍니다 — this.T('flt_' + f)처럼 앞자락만 리터럴인
+  // 자리가 있습니다. 닫는 따옴표 뒤가 , 나 ) 인 것만 온전한 키입니다.
+  const re = /this\.T\(\s*'([a-z0-9_가-힣]+)'\s*[,)]/g;
+  let m;
+  while ((m = re.exec(body))) called.add(m[1]);
+  ok('T()를 부르는 자리를 찾았습니다', called.size > 200, 'found ' + called.size);
+  const missing = [...called].filter(k => !V2.STR[k]);
+  ok('부르는 키가 전부 STR에 있습니다', missing.length === 0, missing.slice(0, 6).join(', '));
+
+  // 그리고 그 단계 표시 자체 — 숫자와 빗금뿐이라 번역할 것이 없습니다
+  const c = mk(V2, '2026-08-03T09:00:00');
+  c.setState({ setupStep: 2 });
+  ok('단계 표시가 슬러그가 아닙니다', !/^[a-z0-9_]+$/.test(c.renderVals().suNum), c.renderVals().suNum);
+  ok('단계 표시가 2 / 4 입니다', c.renderVals().suNum === '2 / 4', c.renderVals().suNum);
+
+  // 첫 화면에서 앞으로 가는 길이 '건너뛰기'뿐이었습니다 — 주 단추가 있어야 합니다
+  const tpl = src.slice(0, src.indexOf('</x-dc>'));
+  const q1 = tpl.slice(tpl.indexOf('{{ suIs1 }}'), tpl.indexOf('{{ suIs2 }}'));
+  ok('첫 화면에 다음 단추가 있습니다', q1.indexOf('{{ L.suNextBtn }}') >= 0);
+  ok('그 단추가 빨간 주 단추입니다', q1.indexOf('background:var(--color-accent)') >= 0);
 }
 
 console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
