@@ -923,6 +923,10 @@
     "en": "For a month-end cut-off enter 31 — short months fall back to their own last day.",
     "ko": "말일 마감이면 31을 넣으세요 — 짧은 달은 그 달 말일로 자동 조정됩니다."
   },
+  "from_your_payslip_or_contract": {
+    "en": "FROM YOUR PAYSLIP",
+    "ko": "명세서를 보고 적으세요 · FROM YOUR PAYSLIP"
+  },
   "full_days_sent_home": {
     "en": "{p0} full days sent home",
     "ko": "통째로 쉰 날 {p0}일"
@@ -2255,6 +2259,10 @@
     "en": "Service not known yet · 근속",
     "ko": "근속 — 입사일을 적어 주세요"
   },
+  "set_by_law_you_can_leave_these": {
+    "en": "SET BY LAW",
+    "ko": "법이 정한 값 · SET BY LAW"
+  },
   "set_your_clock_in_time": {
     "en": "SET YOUR CLOCK-IN TIME",
     "ko": "출근 시각 직접 입력"
@@ -2870,6 +2878,10 @@
   "you_confirmed_this_is_your_basic": {
     "en": "✓ You confirmed this is your 기본금. It happens to equal {p0} 최저임금 minimum wage {p1} × {p2} hours, which is the most common 기본금 there is. Change it here any time your pay changes.",
     "ko": "✓ 이 금액이 본인의 기본금이라고 확인했습니다. 마침 {p0} 최저임금 {p1} × {p2}시간과 같은 금액이고, 가장 흔한 기본금이기도 합니다. 임금이 바뀌면 언제든 여기서 고치십시오."
+  },
+  "you_do_not_need_to_change_these_the_la": {
+    "en": "You do not need to change these. The law sets them, and the app already has the current figures.",
+    "ko": "고치지 않아도 됩니다. 법이 정하는 값이고, 앱이 지금 값을 이미 갖고 있습니다."
   },
   "you_have_passed_1_year_this_is_owed_wh": {
     "en": "✓ Past 1 year of service — this is owed when you leave. It grows by roughly one more month’s average wage every year; {p0} days to your next anniversary.",

@@ -4131,5 +4131,84 @@ console.log('\n== 보수월액은 명세서의 국민연금에서 되살립니�
   }
 }
 
+console.log('\n== 무엇이 내 것이고 무엇이 법이 정한 것인지 보입니다 ==');
+{
+  // 이 앱을 만든 사람이 말했습니다: 내가 만들지 않았다면, 그냥 쓰는 사람이었다면
+  // 이 설정 화면은 나에게도 너무 많아 보였을 것이다. 어느 것이 법이 정한 값이라
+  // 손댈 필요가 없는지 눈에 보여야 한다. 겁먹고 설정을 아예 안 하게 된다.
+  //
+  // 옳습니다. 흐린 글씨(isDef)는 '내가 손댔는가'를 말할 뿐 '손대야 하는가'를
+  // 말하지 않습니다. 새로 깐 사람은 숫자 열아홉 개를 보고 어느 것이 자기
+  // 것인지 알 수 없습니다. 구역을 갈라 이름을 붙였습니다 — 이미 쓰는 방식입니다
+  // (2026-08-18 주간 휴게 · DAY-SHIFT BREAKS).
+  const fs = require('fs');
+  const src = fs.readFileSync(require('path').join(__dirname, '..', 'WorkLogApp.v2.dc.html'), 'utf8');
+  const c = new V2({});
+  const V = c.renderVals();
+
+  ok('두 구역 이름이 있습니다', !!V.L.secByLaw && !!V.L.secMine2);
+  ok('법정 구역에 안심시키는 한 줄이 붙습니다', !!V.L.byLawNote && V.L.byLawNote.length > 20);
+
+  // ── 내 급여 조건: 기본금은 명세서, 기준시간은 법 ──
+  // {{ L.lBasic }}은 급여 탭의 '기본금이 얼마입니까' 카드에도 있습니다.
+  // 처음 나오는 것을 집으면 설정이 아니라 그 카드를 재게 됩니다 — 한 번 걸렸습니다.
+  const setup = src.indexOf('{{ gPayOpen }}');
+  const at = t => src.indexOf(t, setup);
+  ok('설정 안에서 재고 있습니다', setup > 0 && src.indexOf('{{ L.lBasic }}') < setup);
+  ok('기본금 위에 명세서 구역이 섭니다',
+    at('{{ L.secMine2 }}') < at('{{ L.lBasic }}'));
+  ok('기준시간 위에 법정 구역이 섭니다',
+    at('{{ L.secByLaw }}') < at('{{ L.lDivisor }}') && at('{{ L.lBasic }}') < at('{{ L.secByLaw }}'));
+
+  // ── 4대보험: 보수월액은 명세서, 요율은 법 ──
+  const iBosu = at('{{ L.lBosu }}'), iRows = at('{{ insSetRows }}');
+  const mine2 = [...src.matchAll(/\{\{ L\.secMine2 \}\}/g)].map(m => m.index);
+  const law = [...src.matchAll(/\{\{ L\.secByLaw \}\}/g)].map(m => m.index);
+  ok('구역 이름은 설정 안에만 있습니다', mine2.every(i => i > setup) && law.every(i => i > setup));
+  ok('보수월액 위에도 명세서 구역이 섭니다', mine2.some(i => i < iBosu && i > at('{{ L.lDivisor }}')));
+  ok('보험 요율 위에 법정 구역이 섭니다', law.some(i => i < iRows && i > iBosu));
+  ok('구역 이름은 네 번 나옵니다', mine2.length === 2 && law.length === 2,
+    'mine=' + mine2.length + ' law=' + law.length);
+
+  // ── 배수에는 붙이지 않았습니다 ──
+  // ×1.5·×0.5·×2.0은 법정 '최저'라 회사가 다르면 고쳐야 합니다. 여기에
+  // '그대로 두어도 됩니다'를 붙이면 거짓이 되고, 이 근로자처럼 ×2.0을
+  // 안 주는 회사에서 부족액을 영영 못 찾게 됩니다.
+  ok('배수 구역에는 법정 이름을 붙이지 않았습니다',
+    !law.some(i => i > at('{{ L.secMult }}') && i < at('{{ L.secBonus }}')));
+  ok('배수에는 예전의 설명이 그대로 있습니다', !!V.L.noteMult && at('{{ L.noteMult }}') > 0);
+
+  // ── 법정이라고 이름 붙인 것이 정말 법정값인지 ──
+  // 이름표가 사실과 어긋나면 이름표가 없느니만 못합니다.
+  ok('기준시간 209는 기본값 그대로입니다', V2.DEFAULTS.divisor === 209);
+  ok('보험 요율 넷은 앱이 계산합니다', c.st().insAuto === true);
+  ok('보수월액은 기본값이 없습니다 — 근로자가 넣는 값입니다', V2.DEFAULTS.bosu === 0);
+  ok('기본금 기본값은 최저임금 × 209일 뿐입니다',
+    V2.DEFAULTS.basic === V2.minWageOn(V2.DEFAULT_WAGE_ISO) * V2.DEFAULTS.divisor,
+    String(V2.DEFAULTS.basic));
+
+  // ── 여덟 개 언어 ──
+  ['ko','en','vi','zh','th','id','ne','km'].forEach(L => {
+    ['set_by_law_you_can_leave_these','from_your_payslip_or_contract',
+     'you_do_not_need_to_change_these_the_la'].forEach(k => {
+      ok(L + ' ' + k + ' 있습니다', !!(V2.STR[k] && V2.STR[k][L]));
+    });
+  });
+  // 한국어 낱말이 앞에 섭니다 — 이 저장소의 집 규칙입니다
+  ['vi','zh','th','id','ne','km'].forEach(L => {
+    ok(L + ' 법정 구역은 한국어가 앞에 섭니다',
+      V2.STR['set_by_law_you_can_leave_these'][L].indexOf('법이 정한 값') === 0,
+      V2.STR['set_by_law_you_can_leave_these'][L]);
+    ok(L + ' 명세서 구역도 그렇습니다',
+      V2.STR['from_your_payslip_or_contract'][L].indexOf('명세서를 보고 적으세요') === 0);
+  });
+
+  // ── 이름을 붙였다고 앱이 하던 일을 멈추지는 않습니다 ──
+  ok('기본금 칸은 그대로 있습니다', V.basicVal !== undefined && !!V.setBasic);
+  ok('기준시간 칸도 그대로입니다', V.divisorVal !== undefined && !!V.setDivisor);
+  ok('보수월액 칸도 그대로입니다', V.bosuVal !== undefined && !!V.setBosu);
+  ok('되살리기 칸도 그대로입니다', V.bosuPenVal !== undefined && !!V.setBosuPen);
+}
+
 console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);
