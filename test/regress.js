@@ -658,13 +658,16 @@ console.log('\n== 쓰던 사람의 기본금은 앱이 건드리지 않습니다
 console.log('\n== 설정은 접혀서 열립니다 · 열네 개의 벽이 일곱 줄이 되었습니다 ==');
 { const c=mk(V2,'2026-08-17T10:00:00');
   const v=c.renderVals();
-  ['Lang','Pay','Shift','Money','Ins','Rules','Backup'].forEach(g=>{
+  ['Lang','Me','Pay','Shift','Period','Money','Ins','Rules','Backup'].forEach(g=>{
     ok(g+' 묶음이 접힌 채로 시작합니다', v['g'+g+'Open']===false);
   });
   // 접혀 있어도 값은 보여야 합니다 — 감추는 것이 아니라 접는 것입니다
-  ok('시급이 제목 옆에 적힙니다', v.gPaySum===c.won(c.rate())+'/h', v.gPaySum);
+  // 첫 층 세 묶음은 요약 앞에 ✓ / ! 가 붙습니다(2026-08-29) — 값은 그대로 보입니다
+  ok('시급이 제목 옆에 적힙니다', v.gPaySum.indexOf(c.won(c.rate())+'/h')>=0, v.gPaySum);
   ok('근무조도 적힙니다', /교대|주간|야간/.test(v.gShiftSum), v.gShiftSum);
-  ok('급여기간도 적힙니다', v.gRulesSum===c.period(c.now()).label, v.gRulesSum);
+  // 급여기간은 회사 규칙에서 나와 자기 묶음이 됐습니다(2026-08-29)
+  ok('급여기간도 적힙니다', v.gPeriodSum.indexOf(c.period(c.now()).label)>=0, v.gPeriodSum);
+  ok('회사 규칙은 배수와 휴업률을 말합니다', /×1\.5/.test(v.gRulesSum) && /70/.test(v.gRulesSum), v.gRulesSum);
   ok('보험은 몇 개 켜졌는지까지', /3/.test(v.gInsSum), v.gInsSum);
   // 펼치면 요약이 사라집니다 — 바로 아래 같은 값이 다시 나오니까요
   v.gPayTap();
@@ -3434,7 +3437,9 @@ console.log('\n== 성명과 사업장명은 백업 상자 안에 있을 일이 �
   const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
   const tpl = src.slice(0, src.indexOf('</x-dc>'));
   const cut = (a, b) => tpl.slice(tpl.indexOf(a), tpl.indexOf(b));
-  const me     = cut('{{ gMeTap }}', '{{ gPayTap }}');
+  // 내 정보는 2026-08-29에 '더 정확하게' 층으로 옮겨졌습니다 — 회사 규칙 다음,
+  // 언어·파일 층 머리말 앞입니다. 성명은 어떤 금액도 바꾸지 않습니다.
+  const me     = cut('{{ gMeTap }}', '{{ L.tierRest }}');
   const backup = cut('{{ gBackupTap }}', '{{ L.secLegal }}');
   const pay    = cut('{{ isPay }}', '{{ isRights }}');
 
@@ -3509,9 +3514,21 @@ console.log('\n== 성명과 사업장명은 백업 상자 안에 있을 일이 �
   // 근무내역서는 급여 탭으로 갔습니다
   ok('근무내역서 단추는 급여에 있습니다', pay.indexOf('{{ doEvidence }}')>=0);
   ok('내 정보에는 단추가 없습니다', me.indexOf('{{ doEvidence }}')<0);
-  // 자리는 언어 바로 다음입니다 — 처음 훑어 내려갈 때 가장 먼저 만납니다
-  ok('내 정보는 언어 다음입니다', tpl.indexOf('{{ gLangTap }}')<tpl.indexOf('{{ gMeTap }}'));
-  ok('내 급여 조건보다는 앞입니다', tpl.indexOf('{{ gMeTap }}')<tpl.indexOf('{{ gPayTap }}'));
+  // ── 자리가 바뀌었습니다(2026-08-29) ──
+  // 스무째는 여덟 묶음이 나란한 화면에서 '가장 먼저 만나는 자리'를 우선순위로
+  // 썼습니다. 이제 층이 그 일을 하므로, 성명은 '더 정확하게'로 내려갔습니다 —
+  // 성명은 어떤 금액도 바꾸지 않습니다. **접혀 있어도 빨갛게 말하는 것은 그대로**
+  // 이고(바로 아래 블록), 그것이 스무째가 실제로 지키려던 것입니다.
+  ok('내 정보는 첫 층에 없습니다', tpl.indexOf('{{ L.tierMore }}')<tpl.indexOf('{{ gMeTap }}'));
+  ok('내 정보는 회사 규칙 다음입니다', tpl.indexOf('{{ gRulesTap }}')<tpl.indexOf('{{ gMeTap }}'));
+  ok('언어·파일 층보다는 앞입니다', tpl.indexOf('{{ gMeTap }}')<tpl.indexOf('{{ L.tierRest }}'));
+  // 첫 층은 앱이 꼭 알아야 하는 셋뿐입니다
+  const t1 = tpl.indexOf('{{ L.tierNeed }}'), t2 = tpl.indexOf('{{ L.tierMore }}');
+  ok('첫 층은 근무조·급여조건·급여기간 셋입니다',
+    ['{{ gShiftTap }}','{{ gPayTap }}','{{ gPeriodTap }}']
+      .every(t => tpl.indexOf(t)>t1 && tpl.indexOf(t)<t2)
+    && ['{{ gMeTap }}','{{ gMoneyTap }}','{{ gInsTap }}','{{ gRulesTap }}','{{ gLangTap }}','{{ gBackupTap }}']
+      .every(t => !(tpl.indexOf(t)>t1 && tpl.indexOf(t)<t2)));
 }
 
 console.log('\n== 접혀 있어도 이름이 있는지 없는지가 보입니다 ==');
@@ -3520,9 +3537,17 @@ console.log('\n== 접혀 있어도 이름이 있는지 없는지가 보입니다
   let V = c.renderVals();
   ok('이름이 없으면 요약이 성명 미기재', V.gMeSum==='성명 미기재', V.gMeSum);
   ok('그 줄은 빨갛습니다', V.gMeSumInk==='var(--color-accent)', V.gMeSumInk);
-  // 다른 묶음까지 빨개지지는 않습니다 — 경고를 쌓으면 빨간 줄이 묻힙니다
-  ok('다른 묶음은 조용합니다', V.gPaySumInk==='var(--color-neutral-700)'
-    && V.gBackupSumInk==='var(--color-neutral-700)');
+  // 다른 묶음까지 빨개지지는 않습니다 — 경고를 쌓으면 빨간 줄이 묻힙니다.
+  // 2026-08-29부터 빨강의 뜻이 하나 늘었습니다: 첫 층에서 아직 정하지 않은 것.
+  // 그 둘 말고는 여전히 조용해야 합니다.
+  c.setS({ basicConfirmed:true, shiftConfirmed:true, periodConfirmed:true });
+  V = c.renderVals();
+  ok('첫 층을 다 정하면 그쪽은 조용합니다', V.gPaySumInk==='var(--color-neutral-700)'
+    && V.gShiftSumInk==='var(--color-neutral-700)' && V.gPeriodSumInk==='var(--color-neutral-700)');
+  ok('그래도 성명 미기재는 빨갛습니다', V.gMeSumInk==='var(--color-accent)');
+  ok('나머지 묶음은 언제나 조용합니다', V.gBackupSumInk==='var(--color-neutral-700)'
+    && V.gLangSumInk==='var(--color-neutral-700)' && V.gInsSumInk==='var(--color-neutral-700)'
+    && V.gRulesSumInk==='var(--color-neutral-700)' && V.gMoneySumInk==='var(--color-neutral-700)');
 
   c.setS({ workerName:'NGUYEN VAN A' });
   V = c.renderVals();
@@ -4238,11 +4263,12 @@ console.log('\n== 근무조·휴게와 회사 규칙에도 같은 이름을 붙�
   ok('근로계약서 안내가 제17조를 짚습니다', L.contractNote.indexOf('제17조') >= 0, L.contractNote);
 
   // ── 근무조와 휴게: 통째로 근로계약서 ──
-  // 묶음 차례는 언어·내 정보·급여·근무조·수당·보험·규칙·백업입니다. 근무조의
-  // 끝은 규칙이 아니라 **바로 다음 묶음**입니다 — rules까지 재면 수당과 보험을
+  // 근무조의 끝은 언제나 **바로 다음 묶음**입니다 — 그 이상을 재면 남의 구역을
   // 함께 재게 되고, 거기에는 명세서 구역이 실제로 있습니다(한 번 걸렸습니다).
+  // 2026-08-29에 층이 생기면서 '바로 다음'이 수당에서 내 급여 조건으로 바뀌었고,
+  // 이 줄이 그 자리에서 실패해서 잡혔습니다. 이름이 아니라 순서를 재십시오.
   const shift = src.indexOf('{{ gShiftOpen }}');
-  const shiftEnd = src.indexOf('{{ gMoneyOpen }}');
+  const shiftEnd = src.indexOf('{{ gPayOpen }}');
   const rules = src.indexOf('{{ gRulesOpen }}');
   ok('근무조 묶음의 끝을 제대로 잡았습니다', shift > 0 && shiftEnd > shift && rules > shiftEnd);
   const con = idx('{{ L.secContract }}');
@@ -4259,10 +4285,15 @@ console.log('\n== 근무조·휴게와 회사 규칙에도 같은 이름을 붙�
 
   // ── 회사 규칙: 세 구역이 순서대로 ──
   const at = t => src.indexOf(t, rules);
+  // 급여기간과 월급날은 2026-08-29에 자기 묶음이 됐습니다 — 자기 묶음 안에서 잽니다
+  const period = src.indexOf('{{ gPeriodOpen }}');
+  const atP = t => src.indexOf(t, period);
   ok('급여기간 위에 근로계약서 구역이 섭니다',
-    at('{{ L.secContract }}') < at('{{ L.lPeriod }}'));
+    period > 0 && atP('{{ L.secContract }}') < atP('{{ L.lPeriod }}'));
+  ok('월급날도 같은 묶음에 있습니다', atP('{{ L.lPayday }}') < src.indexOf('{{ gMoneyOpen }}'));
+  ok('회사 규칙에는 급여기간이 남아 있지 않습니다', at('{{ L.lPeriod }}') < 0);
   ok('1일 평균임금 위에 법정 구역이 섭니다',
-    at('{{ L.lPayday }}') < at('{{ L.secByLaw }}') && at('{{ L.secByLaw }}') < at('{{ L.lAvgDaily }}'));
+    at('{{ L.lGrace }}') < at('{{ L.secByLaw }}') && at('{{ L.secByLaw }}') < at('{{ L.lAvgDaily }}'));
   ok('휴업수당률 위에 회사가 하는 것 구역이 섭니다',
     at('{{ L.lAvgDaily }}') < at('{{ L.secDoes }}') && at('{{ L.secDoes }}') < at('{{ L.lShutPct }}'));
   // 법정 구역이 휴업수당률까지 덮어 버리면 거짓말이 됩니다 — 70%는 '최저'입니다
@@ -4625,6 +4656,301 @@ console.log('\n== 퇴직금 줄은 몇 년을 다녔는지 말합니다 ==');
   });
   // 자리가 남아 있으면 화면에 {p2}가 그대로 찍힙니다 — 렌더까지 확인합니다
   ok('화면에 자리 표시가 남지 않습니다', lineA.indexOf('{p') < 0, lineA);
+}
+
+console.log('\n== 단추 위에 아홉 줄이 서 있었습니다 ==');
+{
+  // 매일 아침 지문을 누르러 여는 화면인데, 패드에 닿기 전에 특근·×1.5·×0.5·
+  // 22:00–06:00·30분 올림이 아홉 줄로 서 있었습니다. 문장은 한 조각도 고치지
+  // 않고 두 묶음으로 나눕니다 — 오늘 내 돈이 달라지는 것은 위에 남기고, 왜
+  // 그렇게 되는가는 접습니다.
+  const c = mk(V2, '2026-08-03T07:03:00');   // 월요일 · 평일 · 정규 시작 전
+  const v = c.renderVals();
+
+  ok('접을 것이 있습니다', v.whyHas === true);
+  ok('처음에는 접혀 있습니다', v.whyOpen === false);
+  ok('접힌 쪽이 비어 있지 않습니다', !!v.detectWhy && v.detectWhy.length > 10, v.detectWhy);
+
+  // 나눈 것이지 지운 것이 아닙니다 — 합치면 예전에 있던 조각이 모두 있습니다
+  const both = v.detectReason + ' ' + v.detectWhy;
+  const kind = c.detectShift(7 + 3 / 60);
+  const frag = [
+    c.T('punching_at_logged_as_a_shift_the_near', { p0: c.hhmm(7 + 3 / 60), p1: c.shiftName(kind), p2: c.hhmm(c.schedStart(kind)) }),
+    c.T('anything_past_8h_pays_overtime_1_5_and'),
+    c.T('unpaid_break', { p0: c.breaks(kind).map(b => c.hhmm(b[0]) + '–' + c.hhmm(b[1])).join(', ') }),
+  ];
+  frag.forEach((f, i) => ok('조각 ' + (i + 1) + '이 그대로 남아 있습니다',
+    both.indexOf(f.trim()) >= 0, f.slice(0, 34)));
+
+  // 갈라 놓은 자리가 맞는지 — 법정 배수는 접히고, 언제부터 유급인지는 안 접힙니다
+  ok('법정 배수 설명은 접힌 쪽에 있습니다',
+    v.detectWhy.indexOf(c.T('anything_past_8h_pays_overtime_1_5_and').trim()) >= 0);
+  ok('언제부터 유급인지는 접히지 않습니다',
+    v.detectReason.indexOf(c.hhmm(c.snapIn(7 + 3 / 60))) >= 0, v.detectReason);
+  // 반대 방향도 봅니다 — 한쪽에 있다는 것만으로는 나뉜 것을 증명하지 못합니다
+  ok('법정 배수 설명은 위에 남아 있지 않습니다',
+    v.detectReason.indexOf(c.T('anything_past_8h_pays_overtime_1_5_and').trim()) < 0, v.detectReason);
+  ok('근무조를 고른 근거도 위에 남아 있지 않습니다',
+    v.detectReason.indexOf('가장 가까움') < 0 && v.detectReason.indexOf('nearer of your two') < 0,
+    v.detectReason);
+  ok('접기 전보다 위에 남는 글이 짧습니다',
+    v.detectReason.length < (v.detectReason + v.detectWhy).length * 0.75,
+    v.detectReason.length + ' vs ' + (v.detectReason.length + v.detectWhy.length));
+
+  // 누르면 펴집니다
+  v.toggleWhy();
+  ok('누르면 펴집니다', c.renderVals().whyOpen === true);
+  c.renderVals().toggleWhy();
+  ok('다시 누르면 접힙니다', c.renderVals().whyOpen === false);
+
+  // 화면 상태이지 기록이 아닙니다 — setOpen·rsnOpen·jumpOpen과 같은 자리
+  c.setState({ whyOpen: true });
+  ok('저장되는 값이 아닙니다', JSON.stringify(c.state).indexOf('whyOpen') >= 0
+    && ['v','settings','extra','removed','session','setupDone','tourSeen','tab']
+      .indexOf('whyOpen') < 0);
+
+  // 특근은 접지 않습니다 — 그 하루는 전 시간이 ×1.5입니다
+  const h = mk(V2, '2026-08-15T07:03:00');   // 광복절
+  const hv = h.renderVals();
+  ok('특근인 날은 그 사실이 접히지 않습니다', hv.detectReason.indexOf('특근') >= 0, hv.detectReason);
+  ok('특근 배수 설명은 접힌 쪽입니다',
+    hv.detectWhy.indexOf(h.T('on_even_the_first_8h_pay_1_5_and_every').trim()) >= 0);
+  ok('특근이라는 사실 자체는 접힌 쪽에 없습니다',
+    hv.detectWhy.indexOf('광복절') < 0, hv.detectWhy);
+
+  // 근무중에는 접을 것이 없습니다 — 그 갈래의 문장은 손대지 않았습니다
+  const w = mk(V2, '2026-08-03T13:00:00');
+  w.state.session = { inIso: new Date('2026-08-03T09:00:00').toISOString() };
+  ok('근무중에는 토글이 없습니다', w.renderVals().whyHas === false);
+  ok('근무중 문장은 그대로 나옵니다', !!w.renderVals().detectReason);
+
+  ['ko','en','vi','zh','th','id','ne','km'].forEach(Lg => {
+    const t = V2.STR['why_is_it_counted_this_way'][Lg];
+    ok(Lg + ' 접기 이름이 있습니다', !!t && t.length > 1, t);
+  });
+}
+
+console.log('\n== 정한 적 없는 근무조를 자동판별이라고 부르지 않습니다 ==');
+{
+  // 하루도 적지 않은 폰이 'SHIFT DETECTED · DAY 09:00 start'라고 말했습니다.
+  // 아무것도 판별하지 않았습니다 — DEFAULTS.shifts입니다. 06:00에 시작하는
+  // 사람은 앱이 자신 있게 틀린 말을 하는 것을 보고 자기 앱이 아니라고 읽습니다.
+  const fresh = () => mk(V2, '2026-08-03T07:03:00');
+
+  const c = fresh(), v = c.renderVals();
+  ok('새로 깐 사람에게는 가정이라고 말합니다', v.detectKicker === c.T('shift_assumed'), v.detectKicker);
+  ok('자동판별이라고 하지 않습니다', v.detectKicker !== c.T('shift_detected'));
+  ok('맞는지 물어봅니다', v.shiftAsk === true);
+
+  // 한 번 맞다고 하면 다시 묻지 않습니다 — basicConfirmed와 같은 방식입니다
+  v.confirmShift();
+  const v2 = c.renderVals();
+  ok('맞다고 하면 묻지 않습니다', v2.shiftAsk === false);
+  ok('그 뒤로는 자동판별입니다', v2.detectKicker === c.T('shift_detected'), v2.detectKicker);
+  ok('설정에 남습니다', c.st().shiftConfirmed === true);
+
+  // 값을 손댄 사람에게는 애초에 묻지 않습니다
+  const a = fresh(); a.setS({ dayStart: '06:00' });
+  ok('시작 시각을 고친 사람에게는 묻지 않습니다', a.renderVals().shiftAsk === false);
+  const b = fresh(); b.setS({ shifts: 'night' });
+  ok('근무조를 고른 사람에게도 묻지 않습니다', b.renderVals().shiftAsk === false);
+
+  // 근무중에는 묻지 않습니다 — 이미 찍은 사람에게 설정을 물을 자리가 아닙니다
+  const w = fresh();
+  w.state.session = { inIso: new Date('2026-08-03T06:00:00').toISOString() };
+  ok('근무중에는 묻지 않습니다', w.renderVals().shiftAsk === false);
+
+  // 쓰던 사람에게 새 질문이 생기면 안 됩니다 — breaksTouched와 같은 근거입니다
+  const store = { 'worklog.v2': JSON.stringify({ v: 2, tourSeen: true,
+    settings: { basic: 2156880, divisor: 209, shifts: 'day', dayStart: '09:00' },
+    extra: [], removed: [] }) };
+  const g = global.window.localStorage.getItem;
+  global.window.localStorage.getItem = k => store[k] || null;
+  const up = new V2({}); up.base = new Date('2026-08-03T07:03:00'); up.t0 = Date.now();
+  global.window.localStorage.getItem = g;
+  ok('저장본에 없으면 이미 정한 것으로 봅니다', up.st().shiftConfirmed === true);
+  ok('쓰던 사람에게는 묻지 않습니다', up.renderVals().shiftAsk === false);
+
+  // 물어보는 것과 계산은 별개입니다 — 확인해도 금액은 한 푼도 움직이지 않습니다
+  const m1 = fresh(); const before = JSON.stringify(m1.calc(9, 21, 'day', false));
+  m1.setS({ shiftConfirmed: true });
+  ok('확인해도 계산은 그대로입니다', JSON.stringify(m1.calc(9, 21, 'day', false)) === before);
+  ok('시급도 그대로입니다', m1.rate() === fresh().rate());
+
+  ['ko','en','vi','zh','th','id','ne','km'].forEach(Lg => {
+    ok(Lg + ' 가정 이름이 있습니다', !!V2.STR['shift_assumed'][Lg]);
+    ok(Lg + ' 물음과 두 단추가 있습니다',
+      !!V2.STR['you_have_not_set_a_shift_yet_the_app_i'][Lg]
+      && !!V2.STR['yes_this_is_right'][Lg] && !!V2.STR['change_my_shift'][Lg]);
+  });
+}
+
+console.log('\n== 하루도 적지 않은 폰이 연차 15 / 15라고 말했습니다 ==');
+{
+  // 기록 0일, 입사일도 없고 잔여를 적은 적도 없는 폰에서 출퇴근 탭의 연차
+  // 단추가 빨갛게 '15 / 15'였습니다. 열한째가 대장에서 지운 그 거짓말을
+  // 출퇴근 화면이 그대로 하고 있었습니다.
+  const leave = c => c.renderVals().dayTypeBtns[1];
+
+  const c = mk(V2, '2026-08-03T07:03:00');
+  ok('아무것도 듣지 못했으면 숫자를 적지 않습니다', leave(c).note === '—', leave(c).note);
+  ok('그 자리는 빨갛지 않습니다', leave(c).noteInk.indexOf('accent') < 0, leave(c).noteInk);
+
+  // 하지만 함수는 여전히 숫자입니다 — 대장의 '사용'이 여기서 뺍니다
+  ok('annualLeft()는 그대로 숫자입니다', typeof c.annualLeft() === 'number' && c.annualLeft() === 15);
+
+  // 한 마디라도 들으면 숫자로 말합니다
+  const t1 = mk(V2, '2026-08-03T07:03:00'); t1.setS({ annualBase: 9 });
+  ok('잔여를 적으면 숫자가 나옵니다', leave(t1).note.indexOf('9') === 0, leave(t1).note);
+  const t2 = mk(V2, '2026-08-03T07:03:00'); t2.setS({ annualAsOf: '2026-08-01' });
+  ok('기준일만 적어도 숫자가 나옵니다', leave(t2).note !== '—', leave(t2).note);
+  const t3 = mk(V2, '2026-08-03T07:03:00'); t3.setS({ annualTotal: 11 });
+  ok('총일수를 고쳐도 숫자가 나옵니다', leave(t3).note !== '—', leave(t3).note);
+
+  // 잔여가 적을 때 빨갛게 되던 것은 그대로입니다
+  const low = mk(V2, '2026-08-03T07:03:00'); low.setS({ annualBase: 2 });
+  ok('얼마 안 남으면 여전히 진한 빨강입니다', leave(low).noteInk.indexOf('accent-700') >= 0);
+
+  // 내 권리 대장은 손대지 않았습니다 — 그쪽은 입사일이 없으면 이미 물어봅니다
+  ok('대장의 잔여는 그대로 숫자입니다', mk(V2, '2026-08-03T07:03:00').annualLeft() === 15);
+}
+
+console.log('\n== 여덟 묶음이 똑같은 무게로 서 있었습니다 ==');
+{
+  // 설정 탭은 다 펼치면 9.8화면, 글자 칸 23개였습니다. 그런데 더 나쁜 것은
+  // 길이가 아니라 **무엇을 손대야 하는지 말하는 것이 하나도 없었다**는 점입니다.
+  // 여덟 묶음이 같은 크기·같은 화살표·같은 요약으로 나란히 서 있으면, 새로 깐
+  // 사람은 어느 것이 자기 것인지 알 수 없어 하나도 손대지 않습니다.
+  const fs = require('fs');
+  const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tpl = src.slice(0, src.indexOf('</x-dc>'));
+  const t1 = tpl.indexOf('{{ L.tierNeed }}');
+  const t2 = tpl.indexOf('{{ L.tierMore }}');
+  const t3 = tpl.indexOf('{{ L.tierRest }}');
+
+  ok('층 셋이 차례로 있습니다', t1 > 0 && t2 > t1 && t3 > t2);
+  const tierOf = tap => { const i = tpl.indexOf(tap); return i < t1 ? 0 : i < t2 ? 1 : i < t3 ? 2 : 3; };
+  const want = { gShiftTap:1, gPayTap:1, gPeriodTap:1,
+                 gMoneyTap:2, gInsTap:2, gRulesTap:2, gMeTap:2,
+                 gLangTap:3, gBackupTap:3 };
+  Object.keys(want).forEach(k =>
+    ok(k + ' 는 ' + want[k] + '층입니다', tierOf('{{ ' + k + ' }}') === want[k], 'got ' + tierOf('{{ ' + k + ' }}')));
+
+  // ── 감춘 것이 아니라 순서를 매긴 것입니다 ──
+  // 이 앱은 증거를 만듭니다. 임금체불 진정 중인 근로자가 설정을 열었을 때 칸이
+  // 사라져 있으면 안 됩니다. 아홉 묶음이 전부 있고, 옮긴 칸도 전부 살아 있습니다.
+  ['gLangTap','gMeTap','gPayTap','gShiftTap','gPeriodTap','gMoneyTap','gInsTap','gRulesTap','gBackupTap']
+    .forEach(k => ok(k + ' 묶음이 그대로 있습니다', tpl.indexOf('{{ ' + k + ' }}') > 0));
+  ['{{ periodStartVal }}','{{ paydayVal }}','{{ graceVal }}','{{ avgDailyVal }}','{{ shutPctVal }}',
+   '{{ basicVal }}','{{ divisorVal }}','{{ workerNameVal }}','{{ employerVal }}','{{ bosuVal }}']
+    .forEach(t => ok('칸이 살아 있습니다 ' + t, tpl.indexOf(t) > 0));
+
+  // 옮긴 두 칸은 새 묶음 안에, 원래 있던 묶음에는 없습니다
+  const cut = (a, b) => tpl.slice(tpl.indexOf(a), tpl.indexOf(b));
+  const per = cut('{{ gPeriodTap }}', '{{ L.tierMore }}');
+  const rul = cut('{{ gRulesTap }}', '{{ gMeTap }}');
+  ok('급여기간 시작일은 새 묶음에 있습니다', per.indexOf('{{ periodStartVal }}') >= 0);
+  ok('월급날도 새 묶음에 있습니다', per.indexOf('{{ paydayVal }}') >= 0);
+  ok('회사 규칙에는 둘 다 없습니다',
+    rul.indexOf('{{ periodStartVal }}') < 0 && rul.indexOf('{{ paydayVal }}') < 0);
+  ok('회사 규칙에 남은 것은 그대로입니다',
+    rul.indexOf('{{ graceVal }}') >= 0 && rul.indexOf('{{ avgDailyVal }}') >= 0
+    && rul.indexOf('{{ shutPctVal }}') >= 0);
+
+  // ── 값을 계산해 두는 것과 화면이 그것을 쓰는 것은 다릅니다 ──
+  // ! 를 빨갛게 만들어 놓고 폰에서 보니 회색이었습니다. gMeSumInk만 마크업에
+  // 홀이 있었고 나머지 여덟은 색이 **하드코딩**되어 있었습니다(스무째가 빨간 줄을
+  // 하나로 묶어 두었기 때문입니다). renderVals는 맞는 값을 내고 있었고 그 값을
+  // 보는 시험도 통과했는데, 화면에는 닿지 않았습니다 — 전형적인 헛통과입니다.
+  ['Shift','Pay','Period'].forEach(g => {
+    const i = tpl.indexOf('{{ g' + g + 'Sum }}');
+    const row = tpl.lastIndexOf('<div', i);
+    ok(g + ' 요약 줄이 색 홀을 실제로 씁니다',
+      tpl.slice(row, i).indexOf('{{ g' + g + 'SumInk }}') >= 0, tpl.slice(row, i).slice(-70));
+  });
+}
+
+console.log('\n== 나는 다 한 것입니까 ==');
+{
+  // 근로자가 이 화면에서 실제로 갖는 물음입니다. 예전 화면은 답할 방법이
+  // 아예 없었습니다 — 값만 보고는 '내가 정한 09:00'과 '앱이 넣어 둔 09:00'을
+  // 가를 수 없기 때문입니다. 셋 다 '정했다'는 사실을 따로 적어 둡니다.
+  const fresh = () => mk(V2, '2026-08-03T09:00:00');
+
+  const c = fresh();
+  ok('새로 깐 사람은 셋 다 아직입니다', JSON.stringify(c.setNeededDone()) === '{"done":0,"total":3}',
+    JSON.stringify(c.setNeededDone()));
+  let V = c.renderVals();
+  ok('맨 위가 몇 개인지 말합니다', /0/.test(V.setupStatus) && /3/.test(V.setupStatus), V.setupStatus);
+  ok('아직이면 그 줄이 빨갛습니다', V.setupStatusInk === 'var(--color-accent-700)');
+  ok('첫 층 셋에 ! 가 붙습니다',
+    V.gShiftSum.indexOf('!') === 0 && V.gPaySum.indexOf('!') === 0 && V.gPeriodSum.indexOf('!') === 0,
+    [V.gShiftSum, V.gPaySum, V.gPeriodSum].join(' | '));
+  ok('나머지 묶음에는 안 붙습니다',
+    V.gMoneySum.indexOf('!') !== 0 && V.gInsSum.indexOf('!') !== 0 && V.gBackupSum.indexOf('!') !== 0);
+  // 그리고 그 ! 는 실제로 빨갛습니다
+  ok('아직인 줄은 빨갛습니다', V.gPaySumInk === 'var(--color-accent)', V.gPaySumInk);
+  ok('정해 둔 줄은 조용합니다', fresh().renderVals().gMoneySumInk === 'var(--color-neutral-700)');
+
+  // 하나씩 정하면 하나씩 줄어듭니다
+  c.setS({ shiftConfirmed: true });
+  ok('근무조를 정하면 1', c.setNeededDone().done === 1);
+  c.setS({ periodConfirmed: true });
+  ok('급여기간까지 정하면 2', c.setNeededDone().done === 2);
+  ok('근무조 요약은 이제 ✓ 입니다', c.renderVals().gShiftSum.indexOf('✓') === 0,
+    c.renderVals().gShiftSum);
+
+  // 기본금은 확인해도 되고, 본인 숫자를 적어도 됩니다 — 둘 다 '정한 것'입니다
+  const a = fresh(); a.setS({ shiftConfirmed:true, periodConfirmed:true, basicConfirmed:true });
+  ok('맞다고 하면 셋 다', a.setNeededDone().done === 3);
+  const b = fresh(); b.setS({ shiftConfirmed:true, periodConfirmed:true, basic:2600000 });
+  ok('본인 숫자를 적어도 셋 다', b.setNeededDone().done === 3, JSON.stringify(b.setNeededDone()));
+
+  const Va = a.renderVals();
+  ok('다 정하면 맨 줄이 그렇게 말합니다', Va.setupStatus === a.T('all_set_the_app_can_record_and_price'), Va.setupStatus);
+  ok('그 줄은 더 이상 빨갛지 않습니다', Va.setupStatusInk === 'var(--color-neutral-700)');
+  ok('바탕도 조용해집니다', Va.setupStatusBg === 'transparent');
+  ok('첫 층 셋이 모두 ✓ 입니다',
+    [Va.gShiftSum, Va.gPaySum, Va.gPeriodSum].every(x => x.indexOf('✓') === 0));
+
+  // 값은 접혀 있어도 그대로 보입니다 — 표시를 붙였지 감춘 것이 아닙니다
+  ok('✓ 뒤에 값이 그대로 있습니다', Va.gPeriodSum.indexOf(a.period(a.now()).label) > 0, Va.gPeriodSum);
+
+  // 급여기간도 한 번 누르면 다시 묻지 않습니다
+  const d = fresh();
+  ok('정하기 전에는 물어봅니다', d.renderVals().periodAsk === true);
+  d.renderVals().confirmPeriod();
+  ok('누르면 묻지 않습니다', d.renderVals().periodAsk === false);
+  ok('설정에 남습니다', d.st().periodConfirmed === true);
+
+  // 쓰던 사람에게 새 질문이 생기면 안 됩니다
+  const store = { 'worklog.v2': JSON.stringify({ v:2, tourSeen:true,
+    settings:{ basic:2600000, divisor:209, periodStart:21, payday:25 }, extra:[], removed:[] }) };
+  const g = global.window.localStorage.getItem;
+  global.window.localStorage.getItem = k => store[k] || null;
+  const up = new V2({}); up.base = new Date('2026-08-03T09:00:00'); up.t0 = Date.now();
+  global.window.localStorage.getItem = g;
+  ok('저장본에 없으면 이미 정한 것으로 봅니다', up.st().periodConfirmed === true);
+  ok('쓰던 사람에게는 묻지 않습니다', up.renderVals().periodAsk === false);
+  ok('쓰던 사람은 셋 다 정한 것으로 셉니다', up.setNeededDone().done === 3, JSON.stringify(up.setNeededDone()));
+
+  // 판단하는 자리는 하나입니다 — 요약 줄과 맨 위가 갈라질 길을 만들지 않습니다
+  ok('SET_NEEDED가 셋을 봅니다', Object.keys(V2.SET_NEEDED).join() === 'grp_shift,grp_pay,grp_period');
+
+  // 층을 나눴다고 앱이 하던 일을 멈추지는 않습니다
+  ok('임금 계산은 그대로입니다',
+    JSON.stringify(fresh().calc(9, 21, 'day', false)) === JSON.stringify(a.calc(9, 21, 'day', false)));
+
+  ['ko','en','vi','zh','th','id','ne','km'].forEach(Lg => {
+    ok(Lg + ' 층 이름 셋이 있습니다',
+      !!V2.STR['what_the_app_needs'][Lg] && !!V2.STR['make_it_more_exact'][Lg]
+      && !!V2.STR['language_files_and_legal'][Lg]);
+    ok(Lg + ' 상태 두 문장이 있습니다',
+      !!V2.STR['all_set_the_app_can_record_and_price'][Lg]
+      && V2.STR['n_of_n_set_the_rest_are_marked_below'][Lg].indexOf('{p0}') >= 0);
+    ok(Lg + ' 급여기간 묶음 이름이 있습니다', !!V2.STR['grp_period'][Lg]);
+    ok(Lg + ' 급여기간 물음이 있습니다', !!V2.STR['is_this_your_pay_period_it_is_on_your'][Lg]);
+  });
 }
 
 console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');

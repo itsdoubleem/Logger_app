@@ -684,5 +684,20 @@
   "your_payslip": "Slip gaji Anda",
   "your_payslip_is_always_the_truth_the_c": "Slip gaji Anda selalu jadi acuan yang benar — angka hitungan aplikasi hanya untuk memeriksanya.",
   "your_records_are_still_there_tap_to_st": "Catatan Anda masih ada. Tekan ‹ di atas untuk mundur ke periode {p0}.",
-  "your_records_live_on_this_phone_and_no": "Catatan Anda hanya ada di ponsel ini, tidak di tempat lain. Kehilangan atau mereset ponsel berarti kehilangan catatan — sesekali simpanlah ke berkas."
+  "your_records_live_on_this_phone_and_no": "Catatan Anda hanya ada di ponsel ini, tidak di tempat lain. Kehilangan atau mereset ponsel berarti kehilangan catatan — sesekali simpanlah ke berkas.",
+  "why_is_it_counted_this_way": "Mengapa dihitung begini?",
+  "shift_assumed": "SHIFT PERKIRAAN",
+  "you_have_not_set_a_shift_yet_the_app_i": "Anda belum mengatur 근무조 shift, jadi aplikasi mengira shift di atas. Jika benar, ketuk sekali — aplikasi tidak akan bertanya lagi.",
+  "yes_this_is_right": "Ya, benar",
+  "change_my_shift": "Ubah",
+  "grp_period": "Periode gaji dan hari gajian",
+  "grp_period__en": "PAY PERIOD AND PAYDAY",
+  "overtime_x_shutdown_pct": "Lembur ×{p0} · berhenti {p1}%",
+  "what_the_app_needs": "앱이 꼭 알아야 하는 것 · YANG APLIKASI PERLU",
+  "make_it_more_exact": "더 정확하게 · AGAR LEBIH TEPAT",
+  "the_app_works_without_these_open_one": "Aplikasi tetap berjalan tanpa ini. Buka salah satu jika 급여명세서 slip gaji dan aplikasi berbeda.",
+  "language_files_and_legal": "언어 · 파일 · BAHASA, BERKAS, HUKUM",
+  "all_set_the_app_can_record_and_price": "Ketiganya sudah diatur — aplikasi bisa mencatat shift dan menghitung gaji Anda.",
+  "n_of_n_set_the_rest_are_marked_below": "{p0} dari {p1} sudah diatur. Yang belum ditandai ! di bawah.",
+  "is_this_your_pay_period_it_is_on_your": "Apakah ini 급여기간 periode gaji Anda? Tertulis di 근로계약서 kontrak dan di bagian atas slip gaji. Jika benar, ketuk sekali."
 }

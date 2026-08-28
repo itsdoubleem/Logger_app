@@ -684,5 +684,20 @@
   "your_payslip": "工资单金额",
   "your_payslip_is_always_the_truth_the_c": "工资单上的金额永远是准的 — 计算值只是用来核对的。",
   "your_records_are_still_there_tap_to_st": "你的记录都还在。点上面的 ‹ 可以退回到 {p0}。",
-  "your_records_live_on_this_phone_and_no": "你的记录只存在这部手机里，别处没有。手机丢了或恢复出厂设置，记录也会一起没有 — 请偶尔保存成文件。"
+  "your_records_live_on_this_phone_and_no": "你的记录只存在这部手机里，别处没有。手机丢了或恢复出厂设置，记录也会一起没有 — 请偶尔保存成文件。",
+  "why_is_it_counted_this_way": "为什么这样计算？",
+  "shift_assumed": "假定班别",
+  "you_have_not_set_a_shift_yet_the_app_i": "你还没有设置 근무조 班别，应用暂时假定上面这个。如果没错，点一次即可 — 以后不会再问。",
+  "yes_this_is_right": "没错",
+  "change_my_shift": "去修改",
+  "grp_period": "工资周期与发薪日",
+  "grp_period__en": "PAY PERIOD AND PAYDAY",
+  "overtime_x_shutdown_pct": "加班 ×{p0} · 停工 {p1}%",
+  "what_the_app_needs": "앱이 꼭 알아야 하는 것 · 应用必须知道",
+  "make_it_more_exact": "더 정확하게 · 让它更准确",
+  "the_app_works_without_these_open_one": "留空也不影响使用。当 급여명세서 工资单与应用不一致时再逐项打开。",
+  "language_files_and_legal": "언어 · 파일 · 语言、文件、法律",
+  "all_set_the_app_can_record_and_price": "三项都已设置 — 应用可以记录你的出勤并计算工资。",
+  "n_of_n_set_the_rest_are_marked_below": "已设置 {p1} 项中的 {p0} 项。未完成的在下面以 ! 标出。",
+  "is_this_your_pay_period_it_is_on_your": "这是你的 급여기간 工资周期吗？它写在 근로계약서 劳动合同和工资单顶部。如果没错，点一次即可。"
 }

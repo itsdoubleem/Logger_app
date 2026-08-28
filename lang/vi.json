@@ -684,5 +684,20 @@
   "your_payslip": "Phiếu lương của bạn",
   "your_payslip_is_always_the_truth_the_c": "Phiếu lương luôn là căn cứ đúng — con số ứng dụng tính chỉ để đối chiếu.",
   "your_records_are_still_there_tap_to_st": "Ghi chép của bạn vẫn còn. Bấm ‹ ở trên để lùi về kỳ {p0}.",
-  "your_records_live_on_this_phone_and_no": "Ghi chép của bạn chỉ nằm trên điện thoại này, không ở đâu khác. Mất máy hoặc khôi phục cài đặt gốc là mất luôn — thỉnh thoảng hãy lưu ra tệp."
+  "your_records_live_on_this_phone_and_no": "Ghi chép của bạn chỉ nằm trên điện thoại này, không ở đâu khác. Mất máy hoặc khôi phục cài đặt gốc là mất luôn — thỉnh thoảng hãy lưu ra tệp.",
+  "why_is_it_counted_this_way": "Vì sao tính như vậy?",
+  "shift_assumed": "CA GIẢ ĐỊNH",
+  "you_have_not_set_a_shift_yet_the_app_i": "Bạn chưa đặt 근무조 ca làm, nên ứng dụng đang giả định ca ở trên. Nếu đúng, hãy nhấn một lần — ứng dụng sẽ không hỏi lại.",
+  "yes_this_is_right": "Đúng rồi",
+  "change_my_shift": "Sửa lại",
+  "grp_period": "Kỳ lương và ngày trả lương",
+  "grp_period__en": "PAY PERIOD AND PAYDAY",
+  "overtime_x_shutdown_pct": "Tăng ca ×{p0} · nghỉ việc {p1}%",
+  "what_the_app_needs": "앱이 꼭 알아야 하는 것 · ỨNG DỤNG CẦN BIẾT",
+  "make_it_more_exact": "더 정확하게 · CHÍNH XÁC HƠN",
+  "the_app_works_without_these_open_one": "Ứng dụng vẫn chạy nếu bỏ trống. Hãy mở khi 급여명세서 phiếu lương và ứng dụng khác nhau.",
+  "language_files_and_legal": "언어 · 파일 · NGÔN NGỮ, TỆP, PHÁP LÝ",
+  "all_set_the_app_can_record_and_price": "Đã đặt cả ba — ứng dụng có thể ghi ca làm và tính lương cho bạn.",
+  "n_of_n_set_the_rest_are_marked_below": "Đã đặt {p0}/{p1}. Những mục còn lại được đánh dấu ! bên dưới.",
+  "is_this_your_pay_period_it_is_on_your": "Đây có phải 급여기간 kỳ lương của bạn không? Nó nằm trên 근로계약서 hợp đồng và ở đầu phiếu lương. Nếu đúng, hãy nhấn một lần."
 }

@@ -2938,5 +2938,65 @@
   "your_records_live_on_this_phone_and_no": {
     "en": "Your records live on this phone and nowhere else. Lose it or reset it and they go with it — save a file now and then.",
     "ko": "기록은 이 휴대폰 안에만 있습니다. 휴대폰을 잃어버리거나 초기화하면 기록도 같이 사라집니다 — 가끔 파일로 저장해 두세요."
+  },
+  "why_is_it_counted_this_way": {
+    "en": "Why is it counted this way?",
+    "ko": "왜 이렇게 계산됩니까?"
+  },
+  "shift_assumed": {
+    "en": "ASSUMING A SHIFT",
+    "ko": "근무조 가정값"
+  },
+  "you_have_not_set_a_shift_yet_the_app_i": {
+    "en": "You have not set a 근무조 shift yet, so the app is assuming the one above. If it is right, tap once — it will not ask again.",
+    "ko": "근무조를 아직 정한 적이 없어 앱이 위 값을 가정하고 있습니다. 맞으면 한 번만 눌러 주세요 — 다시 묻지 않습니다."
+  },
+  "yes_this_is_right": {
+    "en": "Yes, this is right",
+    "ko": "맞습니다"
+  },
+  "change_my_shift": {
+    "en": "Change it",
+    "ko": "고치기"
+  },
+  "grp_period": {
+    "en": "Pay period and payday",
+    "ko": "급여기간과 월급날"
+  },
+  "grp_period__en": {
+    "en": "PAY PERIOD AND PAYDAY",
+    "ko": "PAY PERIOD AND PAYDAY"
+  },
+  "overtime_x_shutdown_pct": {
+    "en": "OT ×{p0} · shutdown {p1}%",
+    "ko": "잔업 ×{p0} · 휴업 {p1}%"
+  },
+  "what_the_app_needs": {
+    "en": "앱이 꼭 알아야 하는 것 · WHAT THE APP NEEDS",
+    "ko": "앱이 꼭 알아야 하는 것"
+  },
+  "make_it_more_exact": {
+    "en": "더 정확하게 · MAKE IT MORE EXACT",
+    "ko": "더 정확하게 만들기"
+  },
+  "the_app_works_without_these_open_one": {
+    "en": "The app works without these. Open one when your 급여명세서 payslip and the app disagree.",
+    "ko": "이것들을 비워 두어도 앱은 그대로 돌아갑니다. 급여명세서와 앱이 다를 때 하나씩 열어 보십시오."
+  },
+  "language_files_and_legal": {
+    "en": "언어 · 파일 · LANGUAGE, FILES, LEGAL",
+    "ko": "언어 · 파일 · 법적 고지"
+  },
+  "all_set_the_app_can_record_and_price": {
+    "en": "All three are set — the app can record your shifts and work out your pay.",
+    "ko": "세 가지를 다 정했습니다 — 앱이 출퇴근을 기록하고 급여를 계산할 수 있습니다."
+  },
+  "n_of_n_set_the_rest_are_marked_below": {
+    "en": "{p0} of {p1} set. The ones still open are marked ! below.",
+    "ko": "{p1}가지 가운데 {p0}가지를 정했습니다. 아직인 것은 아래에 ! 로 표시했습니다."
+  },
+  "is_this_your_pay_period_it_is_on_your": {
+    "en": "Is this your 급여기간 pay period? It is on your 근로계약서 contract and at the top of your payslip. If it is right, tap once.",
+    "ko": "이 급여기간이 맞습니까? 근로계약서와 급여명세서 맨 위에 적혀 있습니다. 맞으면 한 번만 눌러 주세요."
   }
 }
