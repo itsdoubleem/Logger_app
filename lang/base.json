@@ -47,6 +47,10 @@
     "en": "8h regular",
     "ko": "8h 정상근무"
   },
+  "a_break_tagged_only_if_late_comes_off": {
+    "ko": "‘연장 시에만’으로 표시한 휴게는 잔업이 있는 날에만 빠집니다 — 실근무 8시간에 퇴근한 날은 한 푼도 빠지지 않습니다. 12시간 교대라도 잔업 없이 8시간만 하고 간 날에는 저녁 휴게를 쓰지 않으므로, 그런 휴게에 이 표를 다십시오.",
+    "en": "A break tagged 연장 시 ONLY IF LATE comes off only on days that ran into overtime — nothing comes off a day you finished on 8 worked hours. On a 12-hour rotating shift, a day you go home after 8 hours has no dinner break, so tag that break here."
+  },
   "a_day_the_company_sent_you_home_is_not": {
     "en": "A day the company sent you home is not your 연차 — it must not come out of your leave. 근로기준법 §46: at least 70% of your average wage. Tag each such day with its reason in 근무기록 so the document says why.",
     "ko": "회사가 돌려보낸 날은 당신의 연차가 아닙니다 — 연차에서 빼면 안 됩니다. 근로기준법 제46조: 평균임금의 70% 이상. 근무기록에서 그 날에 사유를 달아 두면 문서에 이유가 함께 찍힙니다."
@@ -307,6 +311,10 @@
     "en": "Break deducted",
     "ko": "휴게시간 차감"
   },
+  "break_every_day": {
+    "ko": "매일",
+    "en": "매일 EVERY DAY"
+  },
   "breaks_are_unpaid_so_these_times_decid": {
     "en": "Breaks are unpaid, so these times decide your paid hours. They differ by company — enter your own.",
     "ko": "휴게시간은 무급입니다 — 이 시간이 실근무 시간을 결정합니다. 회사마다 다르니 본인 시간을 넣으세요."
@@ -512,8 +520,8 @@
     "ko": "주간만"
   },
   "day_only_workers_never_see_night_field": {
-    "en": "Day-only workers never see night fields — every punch is logged as a day shift.",
-    "ko": "주간만 하는 사람은 야간 설정이 필요 없습니다."
+    "ko": "주간만 하는 사람은 야간 설정이 필요 없습니다 — 모든 출퇴근이 주간 근무로 기록됩니다.",
+    "en": "Day only — night fields stay hidden and every punch is logged as a day shift."
   },
   "day_shift_breaks": {
     "en": "주간 휴게 DAY-SHIFT BREAKS",
@@ -1555,6 +1563,10 @@
     "en": "Night only",
     "ko": "야간만"
   },
+  "night_only_workers_never_see_day_field": {
+    "ko": "야간만 하는 사람은 주간 설정이 필요 없습니다 — 모든 출퇴근이 야간 근무로 기록되고, 22:00~06:00은 야간수당이 붙습니다.",
+    "en": "Night only — day fields stay hidden and every punch is logged as a night shift, with the night premium on 22:00–06:00."
+  },
   "night_premium_0_5": {
     "en": "Night premium ×0.5",
     "ko": "야간심야 ×0.5"
@@ -1978,6 +1990,10 @@
   "rotating": {
     "en": "Rotating",
     "ko": "교대"
+  },
+  "rotating_workers_set_both_shifts": {
+    "ko": "교대로 도는 사람은 두 조를 다 적습니다 — 앱이 출근 시각을 보고 그날이 주간인지 야간인지 스스로 고릅니다.",
+    "en": "Rotating — set both shifts. The app reads your clock-in time and decides for itself whether the day is a day or a night shift."
   },
   "rounds_down_min_grace": {
     "en": "rounds down · {p0} min grace",
@@ -2896,8 +2912,8 @@
     "ko": "고치지 않아도 됩니다. 법이 정하는 값이고, 앱이 지금 값을 이미 갖고 있습니다."
   },
   "you_have_passed_1_year_this_is_owed_wh": {
-    "en": "✓ Past 1 year of service — this is owed when you leave. It grows by roughly one more month’s average wage every year; {p0} days to your next anniversary.",
-    "ko": "✓ 계속근로 1년을 넘겼습니다 — 퇴사할 때 받을 돈입니다. 해마다 평균임금 한 달치쯤 늘어납니다. 다음 입사기념일까지 {p0}일."
+    "ko": "✓ 계속근로 {p0}년 {p1}개월 — 제8조①이 정한 1년을 넘겼습니다. 퇴사할 때 받을 돈이고, 해마다 평균임금 한 달치쯤 늘어납니다. 다음 입사기념일까지 {p2}일.",
+    "en": "✓ {p0} years {p1} months of service — past the 1-year mark §8① requires. This is owed when you leave and grows by roughly one more month’s average wage every year; {p2} days to your next anniversary."
   },
   "your_contract_has_to_state_these_by_la": {
     "en": "Copy these from your 근로계약서. 근로기준법 §17 requires it to state your working hours, breaks and rest days — if it does not, that is worth asking about.",

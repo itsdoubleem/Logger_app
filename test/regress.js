@@ -4303,5 +4303,329 @@ console.log('\n== 근무조·휴게와 회사 규칙에도 같은 이름을 붙�
   ok('배수 세 줄도 그대로입니다', (V.multRows || []).length === 3);
 }
 
+console.log('\n== 근무조 안내가 고른 조를 말합니다 ==');
+{
+  // 폰에서 온 보고입니다: 근무조를 주간만·야간만·교대 어느 것으로 바꿔도 그 아래
+  // 안내가 언제나 '주간만 하는 사람은 야간 설정이 필요 없습니다'였습니다. 야간만을
+  // 고른 사람에게 주간만 이야기를 하고 있었던 것이고, 교대를 고른 사람에게는 아예
+  // 반대말을 하고 있었습니다 — 교대야말로 두 조를 다 적어야 하는 근무조입니다.
+  //
+  // 원인은 한 줄입니다: noteShifts가 갈라지지 않는 리터럴 한 개였습니다.
+  // 2026-08-18 일곱째가 적어 둔 그것과 같은 종류입니다 — 같은 값에서 갈라지는
+  // 문장이 있으면 그 문장도 함께 갈라져야 합니다.
+  const c = new V2({});
+  const noteFor = m => { c.setS({ shifts: m }); return c.renderVals().L.noteShifts; };
+  const dayN = noteFor('day'), nightN = noteFor('night'), rotN = noteFor('both');
+
+  ok('셋이 서로 다른 문장입니다', dayN !== nightN && nightN !== rotN && dayN !== rotN,
+    [dayN, nightN, rotN].map(x => x.slice(0, 12)).join(' | '));
+  ok('주간만은 주간만 이야기를 합니다', dayN.indexOf('주간만') === 0, dayN);
+  ok('야간만은 야간만 이야기를 합니다', nightN.indexOf('야간만') === 0, nightN);
+  ok('교대는 두 조를 다 적으라고 합니다', rotN.indexOf('교대') === 0, rotN);
+  ok('야간만 안내가 야간수당 구간을 짚습니다', nightN.indexOf('22:00') >= 0 && nightN.indexOf('06:00') >= 0);
+  ok('교대 안내는 앱이 스스로 고른다고 말합니다', rotN.indexOf('스스로') >= 0, rotN);
+  // 야간만인 사람에게 '주간'이라고 말하면 안 됩니다 — 처음에 이 assertion이 없어서
+  // 문장 하나를 복사해 붙였다가 반대말을 만들 뻔했습니다
+  ok('야간만 안내에 주간만이라는 말이 없습니다', nightN.indexOf('주간만') < 0, nightN);
+  ok('주간만 안내에 야간만이라는 말이 없습니다', dayN.indexOf('야간만') < 0, dayN);
+
+  // 여덟 개 언어 — 한 언어라도 비면 그 사람은 예전 문장을 계속 봅니다
+  ['ko','en','vi','zh','th','id','ne','km'].forEach(Lg => {
+    ['day_only_workers_never_see_night_field','night_only_workers_never_see_day_field',
+     'rotating_workers_set_both_shifts'].forEach(k => {
+      ok(Lg + ' ' + k + ' 있습니다', !!(V2.STR[k] && V2.STR[k][Lg]));
+    });
+  });
+  // 집 규칙 — 한국어 낱말이 앞에 섭니다
+  ['vi','zh','th','id','ne','km'].forEach(Lg => {
+    ok(Lg + ' 주간만 안내는 한국어가 앞에', V2.STR['day_only_workers_never_see_night_field'][Lg].indexOf('주간만') === 0);
+    ok(Lg + ' 야간만 안내는 한국어가 앞에', V2.STR['night_only_workers_never_see_day_field'][Lg].indexOf('야간만') === 0);
+    ok(Lg + ' 교대 안내는 한국어가 앞에', V2.STR['rotating_workers_set_both_shifts'][Lg].indexOf('교대') === 0);
+  });
+}
+
+console.log('\n== 지운 휴게는 되살아나지 않습니다 ==');
+{
+  // 근로자의 보고입니다: 교대에서 17:00–17:30을 ×로 지워도, 주간만을 눌렀다가
+  // 교대로 돌아오면 그 휴게가 되살아난다.
+  //
+  // 원인이 고약합니다. breaksFor()는 '지금 값이 씨앗과 같으면 손대지 않은 것'으로
+  // 봤는데, **교대에서 저녁 휴게를 지운 목록은 점심 하나만 남아 주간만의 손대지
+  // 않은 기본값과 글자 하나까지 똑같습니다.** 값의 모양으로는 '지웠다'와 '아직
+  // 안 건드렸다'를 구별할 수 없습니다. 그래서 사실 자체를 적어 둡니다.
+  const c = new V2({});
+  ok('새로 깐 폰은 아직 손대지 않았습니다', c.st().breaksTouched === false);
+
+  c.setS(Object.assign({ shifts: 'both' }, c.breaksFor('both')));
+  ok('교대를 고르면 저녁 휴게가 따라옵니다', c.st().breaksDay.length === 2);
+  ok('그 저녁 휴게에는 연장 표가 붙어 있습니다', c.st().breaksDay[1].ot === true);
+  ok('근무조를 고른 것은 휴게를 손댄 것이 아닙니다', c.st().breaksTouched === false);
+
+  c.delBreak('breaksDay', 1);                       // 근로자가 ×를 누릅니다
+  ok('지우면 손댄 것으로 남습니다', c.st().breaksTouched === true);
+  c.setS(Object.assign({ shifts: 'day' }, c.breaksFor('day')));
+  ok('주간만으로 가도 그대로 하나', c.st().breaksDay.length === 1);
+  c.setS(Object.assign({ shifts: 'both' }, c.breaksFor('both')));
+  ok('교대로 돌아와도 되살아나지 않습니다', c.st().breaksDay.length === 1,
+    JSON.stringify(c.st().breaksDay));
+  // 열 번을 오가도 마찬가지여야 합니다 — 한 번만 참는 것으로는 부족합니다
+  for (let i = 0; i < 10; i++) {
+    c.setS(Object.assign({ shifts: i % 2 ? 'both' : 'night' }, c.breaksFor(i % 2 ? 'both' : 'night')));
+  }
+  ok('열 번을 오가도 그대로입니다', c.st().breaksDay.length === 1);
+
+  // 시각을 고쳐도, 줄을 더해도, 표를 달아도 마찬가지입니다
+  ['setBreak', 'addBreak', 'toggleBreakOt', 'addOtBreak'].forEach(fn => {
+    const d = new V2({});
+    if (fn === 'setBreak') d.setBreak('breaksDay', 0, 'from', '12:00');
+    if (fn === 'addBreak') d.addBreak('breaksDay');
+    if (fn === 'toggleBreakOt') d.toggleBreakOt('breaksDay', 'day', 0);
+    if (fn === 'addOtBreak') d.addOtBreak('breaksDay', 'day');
+    ok(fn + ' 뒤에는 손댄 것입니다', d.st().breaksTouched === true);
+  });
+
+  // 아직 손대지 않은 사람에게는 예전 그대로 따라갑니다 — 편의를 잃지 않습니다
+  const f = new V2({});
+  f.setS(Object.assign({ shifts: 'both' }, f.breaksFor('both')));
+  ok('손대지 않았으면 교대에서 둘', f.st().breaksDay.length === 2);
+  f.setS(Object.assign({ shifts: 'day' }, f.breaksFor('day')));
+  ok('손대지 않았으면 주간만에서 하나', f.st().breaksDay.length === 1);
+
+  // 쓰던 사람의 목록은 그 사람의 것입니다 — tourSeen과 같은 근거입니다
+  const up = new V2({ savedJson: null });
+  ok('업그레이드 판단은 저장본에 있습니다',
+    /sv\.breaksTouched === undefined\) sv\.breaksTouched = true/.test(
+      require('fs').readFileSync(require('path').join(__dirname, '..', 'WorkLogApp.v2.dc.html'), 'utf8')));
+  ok('그래도 새 설치는 false입니다', up.st().breaksTouched === false);
+}
+
+console.log('\n== 12시간 교대라도 8시간에 가는 날은 저녁을 먹지 않았습니다 ==');
+{
+  // 근로자의 보고입니다: **교대라도 잔업이 없는 날이 있습니다.** 9시부터 6시까지
+  // 일하면 8시간이고, 그런 날에는 저녁 휴게를 쓰지 않았습니다. 그런데 앱은
+  // 17:00–17:30을 겹치는 구간으로 보고 그대로 30분을 뺐습니다.
+  //
+  //   09:00 → 18:00   실근무 7.5h   ← 8.0h여야 합니다. 매일 30분씩 잃습니다.
+  //
+  // 자리로는 이것을 말할 수 없습니다 — 17:00은 8시간이 차기도 전이라 2026-08-18의
+  // isOtBreak(자리로만 판단)에 걸리지 않습니다. 그래서 근로자가 줄에 표를 답니다.
+  const c = new V2({});
+  c.setS({ shifts: 'both', dayStart: '09:00', nightStart: '21:00',
+    breaksDay: [{ from: '11:30', to: '12:30' }, { from: '17:00', to: '17:30', ot: true }] });
+
+  const day = o => c.calc(9, o, 'day', false);
+  ok('09:00 → 18:00 은 실근무 8.0시간', day(18).net === 8, 'net ' + day(18).net);
+  ok('그 날은 잔업이 0입니다', day(18).ot === 0);
+  ok('그 날은 저녁 휴게가 빠지지 않습니다', day(18).bk === 1, 'bk ' + day(18).bk);
+  ok('09:00 → 21:00 은 예전 그대로 10.5시간', day(21).net === 10.5);
+  ok('그 날은 잔업 2.5시간', day(21).ot === 2.5);
+  ok('그 날은 점심과 저녁이 다 빠집니다', day(21).bk === 1.5);
+
+  // 잔업이 있으면 빠지고 없으면 안 빠지는 것이라, 그 경계에서 실근무가 거꾸로
+  // 줄어들면 안 됩니다 — 30분 더 일하고 돈을 덜 받는 일은 없어야 합니다
+  let prev = -1, mono = true;
+  for (let o = 17; o <= 23; o += 0.5) { const n = day(o).net; if (n < prev - 1e-9) mono = false; prev = n; }
+  ok('늦게까지 일할수록 실근무가 줄지 않습니다', mono);
+  ok('경계에서 뒷걸음질하지 않습니다', day(18.5).net >= day(18).net,
+    day(18).net + ' → ' + day(18.5).net);
+
+  // 야간조도 같습니다 — 21:00 출근, 자정 휴게, 05:00 잔업 휴게
+  const n = new V2({});
+  n.setS({ shifts: 'both', dayStart: '09:00', nightStart: '21:00',
+    breaksNight: [{ from: '00:00', to: '01:00' }, { from: '05:00', to: '05:30', ot: true }] });
+  ok('21:00 → 06:00 은 실근무 8.0시간', n.calc(21, 30, 'night', false).net === 8,
+    'net ' + n.calc(21, 30, 'night', false).net);
+  ok('21:00 → 09:00 은 실근무 10.5시간', n.calc(21, 33, 'night', false).net === 10.5);
+  // 쓰지 않은 휴게를 야간 시간에서 빼도 안 됩니다. 05:00–05:30은 야간 구간
+  // (22:00~06:00) 한가운데이므로, 표를 무시하면 야간이 6.5로 줄어듭니다 —
+  // 자정 휴게 한 시간만 빠진 7.0이 맞습니다.
+  ok('짧은 밤의 야간 시간에서 저녁 휴게가 빠지지 않습니다',
+    n.calc(21, 30, 'night', false).night === 7, 'night ' + n.calc(21, 30, 'night', false).night);
+  ok('긴 밤에는 둘 다 빠집니다', n.calc(21, 33, 'night', false).night === 6.5,
+    'night ' + n.calc(21, 33, 'night', false).night);
+
+  // 표를 달지 않은 휴게는 예전과 한 치도 다르지 않아야 합니다
+  const o1 = new V2({}), o2 = new V2({});
+  o1.setS({ shifts: 'day', breaksDay: [{ from: '11:30', to: '12:30' }] });
+  o2.setS({ shifts: 'day', breaksDay: [{ from: '11:30', to: '12:30' }, { from: '18:00', to: '18:30' }] });
+  ok('점심만 있는 하루는 그대로', o1.calc(9, 18, 'day', false).net === 8);
+  ok('자리로 잡히는 잔업 휴게도 그대로 · 정시', o2.calc(9, 18, 'day', false).net === 8);
+  ok('자리로 잡히는 잔업 휴게도 그대로 · 잔업', o2.calc(9, 20, 'day', false).net === 9.5,
+    'net ' + o2.calc(9, 20, 'day', false).net);
+  ok('자리로 잡히는 줄은 여전히 잔업 휴게로 읽힙니다', o2.isOtBreak('day', o2.breaks('day')[1]));
+
+  // 휴일에도 같은 규칙입니다 — 8시간을 넘겨야 저녁을 먹은 것입니다
+  ok('휴일 8시간짜리 하루도 저녁이 빠지지 않습니다', day(18) && c.calc(9, 18, 'day', true).hol === 8,
+    'hol ' + c.calc(9, 18, 'day', true).hol);
+  ok('휴일 12시간짜리 하루는 빠집니다', c.calc(9, 21, 'day', true).hol === 10.5);
+}
+
+console.log('\n== 표는 눌러서 달고 뗍니다 ==');
+{
+  // 자리로만 판단하면 '평소 하루 안에 있지만 잔업하는 날에만 쓰는 휴게'를 말할
+  // 길이 없습니다. 그래서 줄마다 누를 수 있는 표가 있고, 한 번 누르면 자리가
+  // 아니라 그 표가 이깁니다 — 그러지 않으면 뗀 표가 화면에 반영되지 않습니다.
+  const c = new V2({});
+  c.setS({ shifts: 'day', dayStart: '09:00',
+    breaksDay: [{ from: '11:30', to: '12:30' }, { from: '17:00', to: '17:30' }] });
+  const rows = () => c.renderVals().dayBreakRows;
+
+  ok('두 줄 다 표를 갖고 있습니다', rows().length === 2 && !!rows()[0].tag && !!rows()[1].tag);
+  ok('손대기 전 저녁은 매일 빠집니다', rows()[1].otOnly === false);
+  ok('그래서 표가 매일이라고 읽힙니다', rows()[1].tag === c.T('break_every_day'), rows()[1].tag);
+  ok('그 날은 실근무 7.5시간', c.calc(9, 18, 'day', false).net === 7.5);
+
+  rows()[1].toggleOt();
+  ok('누르면 연장 시에만이 됩니다', rows()[1].otOnly === true);
+  ok('표가 바뀝니다', rows()[1].tag === c.T('only_if_you_work_late'), rows()[1].tag);
+  ok('저장된 줄에 명시적으로 적힙니다', c.st().breaksDay[1].ot === true);
+  ok('그리고 그 날이 8시간이 됩니다', c.calc(9, 18, 'day', false).net === 8);
+
+  rows()[1].toggleOt();
+  ok('다시 누르면 매일로 돌아옵니다', rows()[1].otOnly === false && c.st().breaksDay[1].ot === false);
+  ok('계산도 함께 돌아옵니다', c.calc(9, 18, 'day', false).net === 7.5);
+
+  // 자리로 잡힌 줄을 뗄 수 있어야 합니다 — false를 명시적으로 적지 않으면
+  // 자리가 다시 이겨서, 누른 것이 화면에 아무 일도 일으키지 않습니다
+  const d = new V2({});
+  d.setS({ shifts: 'day', dayStart: '09:00',
+    breaksDay: [{ from: '11:30', to: '12:30' }, { from: '18:00', to: '18:30' }] });
+  const dr = () => d.renderVals().dayBreakRows;
+  ok('자리로 잡힌 줄은 처음부터 연장 시에만', dr()[1].otOnly === true);
+  dr()[1].toggleOt();
+  ok('떼면 실제로 떼어집니다', dr()[1].otOnly === false, JSON.stringify(d.st().breaksDay[1]));
+  ok('undefined가 아니라 false로 적힙니다', d.st().breaksDay[1].ot === false);
+  // 자리로 잡힌 휴게는 정시 퇴근한 날에 겹치는 구간이 0이라, 표를 떼도 금액은
+  // 달라지지 않습니다 — 달라지는 것은 요약 줄입니다. 표를 떼면 그 30분이
+  // '매일 빠지는 몫'으로 옮겨 가고, 그것이 이 표가 하는 말의 전부입니다.
+  ok('금액은 그대로입니다 · 정시', d.calc(9, 18, 'day', false).net === 8);
+  ok('금액은 그대로입니다 · 잔업', d.calc(9, 20, 'day', false).net === 9.5,
+    'net ' + d.calc(9, 20, 'day', false).net);
+  ok('요약이 매일 1.5시간이라고 말합니다', d.breakTotal('day').indexOf('1.5시간') >= 0,
+    d.breakTotal('day'));
+  ok('요약에 잔업 몫이 남지 않습니다', d.breakTotal('day').indexOf('연장 시 +') < 0,
+    d.breakTotal('day'));
+
+  // 야간 줄도 같은 손잡이를 갖습니다
+  const n = new V2({});
+  n.setS({ shifts: 'both', breaksNight: [{ from: '00:00', to: '01:00' }] });
+  const nr = () => n.renderVals().nightBreakRows;
+  ok('야간 줄에도 표가 있습니다', !!nr()[0].tag && !!nr()[0].toggleOt);
+  nr()[0].toggleOt();
+  ok('야간 줄도 눌러서 달립니다', n.st().breaksNight[0].ot === true && nr()[0].otOnly === true);
+
+  // otMark는 표 달린 휴게를 세지 않습니다 — 세면 잔업이 시작되는 자리가 밀립니다.
+  // 그리고 여기서 isOtBreak를 부르면 normalEnd → otMark로 되돌아 무한히 돕니다
+  const m = new V2({});
+  m.setS({ shifts: 'day', dayStart: '09:00',
+    breaksDay: [{ from: '11:30', to: '12:30' }, { from: '17:00', to: '17:30', ot: true }] });
+  ok('표 달린 휴게는 잔업 시작 자리를 밀지 않습니다', m.otMark('day') === 18, m.otMark('day'));
+  ok('normalEnd도 18:00입니다', m.normalEnd('day') === 18);
+  const r2 = new V2({});
+  r2.setS({ shifts: 'both', dayStart: '09:00', nightStart: '21:00',
+    breaksDay: [{ from: '11:30', to: '12:30' }, { from: '17:00', to: '17:30', ot: true }] });
+  ok('교대의 평소 하루는 여전히 21:00에 끝납니다', r2.normalEnd('day') === 21);
+
+  // 요약 줄이 사실을 말해야 합니다 — 교대 기본값은 매일 1시간, 잔업 시 +30분입니다
+  const t = new V2({});
+  t.setS(Object.assign({ shifts: 'both' }, t.breaksFor('both')));
+  ok('요약이 매일 몫과 잔업 몫을 가릅니다',
+    t.breakTotal('day').indexOf('1시간') >= 0 && t.breakTotal('day').indexOf('+30분') >= 0,
+    t.breakTotal('day'));
+  ok('1.5시간이라고 말하지 않습니다', t.breakTotal('day').indexOf('1.5시간') < 0, t.breakTotal('day'));
+
+  // 안내가 여덟 개 언어에 다 있고, 무급 안내는 그대로 남아 있습니다
+  ['ko','en','vi','zh','th','id','ne','km'].forEach(Lg => {
+    ok(Lg + ' 잔업 휴게 안내가 있습니다', !!(V2.STR['a_break_tagged_only_if_late_comes_off'] || {})[Lg]);
+    ok(Lg + ' 매일 표가 있습니다', !!(V2.STR['break_every_day'] || {})[Lg]);
+  });
+  const V = new V2({}).renderVals();
+  ok('무급 휴게 안내는 그대로 있습니다', !!V.L.breaksUnpaidNote && V.L.breaksUnpaidNote.indexOf('제54조') >= 0);
+  ok('잔업 휴게 안내가 그 위에 섭니다', !!V.L.breaksOtNote);
+  // 안내는 칩에 실제로 찍히는 낱말을 그대로 인용해야 합니다 — 근로자가 화면에서
+  // 찾을 수 있어야 하니까요. ko는 '연장 시에만', 나머지 일곱은 '연장 시'입니다.
+  ['ko','en','vi','zh','th','id','ne','km'].forEach(Lg => {
+    const chip = V2.STR['only_if_you_work_late'][Lg];
+    const note = V2.STR['a_break_tagged_only_if_late_comes_off'][Lg];
+    ok(Lg + ' 안내가 칩의 낱말을 그대로 인용합니다', note.indexOf(chip) >= 0, chip);
+  });
+}
+
+console.log('\n== 옆의 빈자리를 눌러도 비과세가 뒤집혔습니다 ==');
+{
+  // 근로자의 보고입니다: 수당을 하나 더하고 이름과 금액을 친 다음 그 아래
+  // 빈자리를 눌렀더니 'TAXED'가 'TAX-FREE'로 바뀌었다. 몇 번을 누르니 계속
+  // 오갔다.
+  //
+  // 원인은 마크업 한 줄입니다. onClick이 칩이 아니라 **칩을 오른쪽으로 미는
+  // 가로 전체 상자**에 붙어 있었습니다 — 칩 왼쪽의 빈자리가 전부 단추였던
+  // 것입니다. 과세·비과세는 세금과 4대보험 기준을 바꾸므로, 모르고 누르면
+  // 실수령 추정이 조용히 틀어집니다.
+  const fs = require('fs');
+  const src = fs.readFileSync(require('path').join(__dirname, '..', 'WorkLogApp.v2.dc.html'), 'utf8');
+  const at = t => src.indexOf(t);
+  const gMoney = at('{{ gMoneyOpen }}');
+  ok('수당 묶음을 찾았습니다', gMoney > 0);
+  const chunk = src.slice(gMoney, at('{{ gInsOpen }}'));
+  ok('구간을 제대로 잡았습니다', chunk.indexOf('{{ r.tfLbl }}') > 0);
+
+  const wrap = chunk.indexOf('justify-content:flex-end;padding:0 0 7px');
+  ok('미는 상자는 그대로 있습니다', wrap > 0);
+  ok('미는 상자에는 onClick이 없습니다',
+    chunk.slice(wrap - 90, wrap).indexOf('r.tf') < 0, chunk.slice(wrap - 90, wrap));
+  const chip = chunk.indexOf('{{ r.tfLbl }}');
+  const chipTag = chunk.lastIndexOf('<div', chip);
+  ok('onClick은 칩에 붙어 있습니다', chunk.slice(chipTag, chip).indexOf('onClick="{{ r.tf }}"') >= 0);
+  ok('손가락 표시도 칩에 붙어 있습니다', chunk.slice(chipTag, chip).indexOf('cursor:pointer') >= 0);
+  // 44px 규칙 — 작아져서도 안 됩니다
+  ok('칩은 여전히 누를 만한 크기입니다', chunk.slice(chipTag, chip).indexOf('min-height:34px') >= 0);
+
+  // 뒤집는 일 자체는 그대로 됩니다 — 자리만 좁혔지 기능을 없앤 것이 아닙니다
+  const c = new V2({});
+  c.setS({ allowances: [{ name: '식대', en: 'Meal', amount: 200000, tf: false }] });
+  const row = () => c.renderVals().allowRows[0];
+  const was = row().tfLbl;
+  row().tf();
+  ok('칩을 누르면 여전히 뒤집힙니다', row().tfLbl !== was);
+  ok('설정에도 남습니다', c.st().allowances[0].tf === true);
+}
+
+console.log('\n== 퇴직금 줄은 몇 년을 다녔는지 말합니다 ==');
+{
+  // 근로자가 물었습니다: 입사일을 2022년으로 바꿔도 '계속근로 1년을 넘겼습니다'
+  // 그대로인데, 이 1년은 내가 다닌 햇수입니까 아니면 퇴직금이 나오는 문턱입니까?
+  //
+  // 문턱입니다 — 근로자퇴직급여 보장법 제8조①. 금액은 재직일수를 그대로 반영해
+  // 처음부터 맞게 계산하고 있었습니다. 틀린 것은 계산이 아니라 **문장이 그 둘을
+  // 갈라 말하지 않은 것**이고, 그래서 4년을 다닌 사람도 자기 기록을 1년으로
+  // 읽었습니다. 열한째의 '발생·사용·잔여'와 같은 자리입니다.
+  const mk2 = iso => { const c = new V2({}); c.base = new Date('2026-08-28T10:00:00'); c.t0 = Date.now();
+    c.setS({ hireDate: iso, basic: 2156880 }); return c; };
+  const a = mk2('2022-03-01'), b = mk2('2025-06-01');
+  const lineA = a.renderVals().sevStatus, lineB = b.renderVals().sevStatus;
+
+  ok('오래 다닌 사람과 갓 넘긴 사람의 줄이 다릅니다', lineA !== lineB, lineA);
+  ok('4년 다닌 사람 줄에 4가 있습니다', /계속근로 4년/.test(lineA), lineA);
+  ok('1년 갓 넘긴 사람 줄에 1이 있습니다', /계속근로 1년/.test(lineB), lineB);
+  ok('문턱은 제8조①이라고 밝힙니다', lineA.indexOf('제8조①') >= 0, lineA);
+  ok('다음 기념일까지 남은 날은 그대로 있습니다', /\d+일\./.test(lineA), lineA);
+
+  // 금액은 예전 그대로여야 합니다 — 고친 것은 문장뿐입니다
+  ok('4년 쪽이 1년 쪽보다 많습니다', a.severancePay() > b.severancePay(),
+    a.severancePay() + ' vs ' + b.severancePay());
+  ok('1년 미만은 여전히 금액이 없습니다', mk2('2026-06-01').severancePay() === 0);
+  ok('1년 미만 문장은 손대지 않았습니다',
+    mk2('2026-06-01').renderVals().sevStatus.indexOf('1년 미만') >= 0);
+
+  // 여덟 개 언어 · 세 자리를 다 받습니다
+  ['ko','en','vi','zh','th','id','ne','km'].forEach(Lg => {
+    const v = V2.STR['you_have_passed_1_year_this_is_owed_wh'][Lg];
+    ok(Lg + ' 퇴직금 줄이 세 자리를 다 받습니다',
+      !!v && v.indexOf('{p0}') >= 0 && v.indexOf('{p1}') >= 0 && v.indexOf('{p2}') >= 0, v && v.slice(0, 24));
+  });
+  // 자리가 남아 있으면 화면에 {p2}가 그대로 찍힙니다 — 렌더까지 확인합니다
+  ok('화면에 자리 표시가 남지 않습니다', lineA.indexOf('{p') < 0, lineA);
+}
+
 console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);
