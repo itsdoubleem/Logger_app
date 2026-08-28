@@ -923,6 +923,10 @@
     "en": "For a month-end cut-off enter 31 — short months fall back to their own last day.",
     "ko": "말일 마감이면 31을 넣으세요 — 짧은 달은 그 달 말일로 자동 조정됩니다."
   },
+  "from_your_contract_or_shift_board": {
+    "en": "FROM YOUR CONTRACT",
+    "ko": "근로계약서를 보고 적으세요 · FROM YOUR CONTRACT"
+  },
   "from_your_payslip_or_contract": {
     "en": "FROM YOUR PAYSLIP",
     "ko": "명세서를 보고 적으세요 · FROM YOUR PAYSLIP"
@@ -2519,6 +2523,10 @@
     "en": "⚠ The meal-allowance exemption stops at {p0} a month. Anything above that is counted as taxable.",
     "ko": "⚠ 비과세는 식대 기준 월 {p0}까지입니다. 초과분은 과세로 계산했습니다."
   },
+  "the_pale_figures_are_the_legal_minimum": {
+    "en": "The pale figures are the legal minimum. If your company does it differently, change them to what actually happens — otherwise the payslip check cannot tell you anything.",
+    "ko": "흐린 값이 법이 정한 최저입니다. 회사가 다르게 한다면 실제대로 고치세요 — 그래야 명세서 대조가 뜻을 갖습니다."
+  },
   "the_payslip_is_less_than_the_app_count": {
     "en": "The payslip is {p0} less than the app counted. Ask the company about the red lines. Tax and insurance in the app are estimates, so a difference there can be normal — a difference in basic, overtime, night or holiday pay is not.",
     "ko": "앱 계산보다 {p0} 적게 지급되었습니다. 빨간 줄을 회사에 물어보세요. 앱의 세금·보험은 추정이라 공제 줄의 차이는 정상일 수 있지만, 기본금·연장·야간·휴일수당의 차이는 그렇지 않습니다."
@@ -2787,6 +2795,10 @@
     "en": "WHAT THE LAW OWES YOU · 내 권리",
     "ko": "내 권리 · MY RIGHTS"
   },
+  "what_your_company_actually_does": {
+    "en": "WHAT YOUR COMPANY DOES",
+    "ko": "회사가 실제로 하는 것 · WHAT YOUR COMPANY DOES"
+  },
   "what_your_company_actually_pays": {
     "en": "WHAT YOUR COMPANY ACTUALLY PAYS · 실제 배수",
     "ko": "회사가 실제로 주는 배수"
@@ -2886,6 +2898,10 @@
   "you_have_passed_1_year_this_is_owed_wh": {
     "en": "✓ Past 1 year of service — this is owed when you leave. It grows by roughly one more month’s average wage every year; {p0} days to your next anniversary.",
     "ko": "✓ 계속근로 1년을 넘겼습니다 — 퇴사할 때 받을 돈입니다. 해마다 평균임금 한 달치쯤 늘어납니다. 다음 입사기념일까지 {p0}일."
+  },
+  "your_contract_has_to_state_these_by_la": {
+    "en": "Copy these from your 근로계약서. 근로기준법 §17 requires it to state your working hours, breaks and rest days — if it does not, that is worth asking about.",
+    "ko": "근로계약서에 적힌 그대로 옮기세요. 근로기준법 제17조는 소정근로시간·휴게·휴일을 계약서에 쓰도록 정합니다 — 적혀 있지 않다면 그것부터 물어볼 만합니다."
   },
   "your_hourly_rate_is_below_the_legal_mi": {
     "en": "⚠ Your hourly rate is {p0} — below the {p1} legal minimum of {p2}. Check 기본금 and the hours divisor.",

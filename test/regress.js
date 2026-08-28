@@ -4167,7 +4167,8 @@ console.log('\n== 무엇이 내 것이고 무엇이 법이 정한 것인지 보�
   ok('구역 이름은 설정 안에만 있습니다', mine2.every(i => i > setup) && law.every(i => i > setup));
   ok('보수월액 위에도 명세서 구역이 섭니다', mine2.some(i => i < iBosu && i > at('{{ L.lDivisor }}')));
   ok('보험 요율 위에 법정 구역이 섭니다', law.some(i => i < iRows && i > iBosu));
-  ok('구역 이름은 네 번 나옵니다', mine2.length === 2 && law.length === 2,
+  // 법정 구역은 셋이 됐습니다 — 회사 규칙의 1일 평균임금이 늘었습니다(스물여덟째).
+  ok('명세서 구역 둘 · 법정 구역 셋', mine2.length === 2 && law.length === 3,
     'mine=' + mine2.length + ' law=' + law.length);
 
   // ── 배수에는 붙이지 않았습니다 ──
@@ -4208,6 +4209,98 @@ console.log('\n== 무엇이 내 것이고 무엇이 법이 정한 것인지 보�
   ok('기준시간 칸도 그대로입니다', V.divisorVal !== undefined && !!V.setDivisor);
   ok('보수월액 칸도 그대로입니다', V.bosuVal !== undefined && !!V.setBosu);
   ok('되살리기 칸도 그대로입니다', V.bosuPenVal !== undefined && !!V.setBosuPen);
+}
+
+console.log('\n== 근무조·휴게와 회사 규칙에도 같은 이름을 붙였습니다 ==');
+{
+  // 스물일곱째를 보고 만든 사람이 말했습니다: 근무조와 휴게, 회사 규칙에도
+  // 같은 것을 해 달라. 그런데 그대로 옮길 수가 없었습니다 —
+  //
+  //   근무조·시작 시각·휴게는 **급여명세서에 없습니다.** 근로기준법 제17조가
+  //   근로계약서에 적게 하는 것들입니다. '명세서를 보고 적으세요'라고 하면
+  //   있지도 않은 종이를 가리키게 됩니다.
+  //
+  //   그리고 휴업수당률·토요일·×2.0 지급은 법정도 명세서도 아닙니다. 법이
+  //   정하는 것이 '최저'뿐이라 회사마다 다릅니다 — 스물일곱째가 배수를 두고
+  //   '세 번째 이름을 만들기 전에 noteMult를 읽으라'고 적었는데, 읽어 보니
+  //   그 말이 바로 이 이름이었습니다.
+  const fs = require('fs');
+  const src = fs.readFileSync(require('path').join(__dirname, '..', 'WorkLogApp.v2.dc.html'), 'utf8');
+  const c = new V2({});
+  const L = c.renderVals().L;
+  // 이 도우미에 이미 이스케이프된 문자열을 넘기면 두 번 이스케이프되어 **아무것도
+  // 못 찾고 빈 배열**을 돌려줍니다. !idx(...).some(...) 꼴의 assertion은 그러면
+  // 조용히 통과합니다 — 처음 쓴 두 줄이 그렇게 헛통과했습니다. 날것을 넘기십시오.
+  const idx = t => { const out = []; let i = -1; while ((i = src.indexOf(t, i + 1)) >= 0) out.push(i); return out; };
+
+  ok('근로계약서 구역이 있습니다', !!L.secContract && !!L.contractNote);
+  ok('회사가 실제로 하는 것 구역이 있습니다', !!L.secDoes && !!L.doesNote);
+  ok('근로계약서 안내가 제17조를 짚습니다', L.contractNote.indexOf('제17조') >= 0, L.contractNote);
+
+  // ── 근무조와 휴게: 통째로 근로계약서 ──
+  // 묶음 차례는 언어·내 정보·급여·근무조·수당·보험·규칙·백업입니다. 근무조의
+  // 끝은 규칙이 아니라 **바로 다음 묶음**입니다 — rules까지 재면 수당과 보험을
+  // 함께 재게 되고, 거기에는 명세서 구역이 실제로 있습니다(한 번 걸렸습니다).
+  const shift = src.indexOf('{{ gShiftOpen }}');
+  const shiftEnd = src.indexOf('{{ gMoneyOpen }}');
+  const rules = src.indexOf('{{ gRulesOpen }}');
+  ok('근무조 묶음의 끝을 제대로 잡았습니다', shift > 0 && shiftEnd > shift && rules > shiftEnd);
+  const con = idx('{{ L.secContract }}');
+  ok('근무조 묶음 맨 위에 근로계약서 구역이 섭니다',
+    con.some(i => i > shift && i < src.indexOf('{{ shiftOpts }}')));
+  ok('근무조 묶음에는 명세서 구역이 없습니다',
+    !idx('{{ L.secMine2 }}').some(i => i > shift && i < shiftEnd));
+  ok('근무조 묶음에는 법정 구역도 없습니다',
+    !idx('{{ L.secByLaw }}').some(i => i > shift && i < shiftEnd));
+  // 기존 세 머리말은 그대로 남아 있어야 합니다(2026-08-18)
+  ok('주간·야간 휴게 머리말은 그대로입니다',
+    [ '{{ L.secDayBreaks }}', '{{ L.secNightBreaks }}', '{{ L.secStarts }}' ]
+      .every(t => { const i = src.indexOf(t); return i > shift && i < shiftEnd; }));
+
+  // ── 회사 규칙: 세 구역이 순서대로 ──
+  const at = t => src.indexOf(t, rules);
+  ok('급여기간 위에 근로계약서 구역이 섭니다',
+    at('{{ L.secContract }}') < at('{{ L.lPeriod }}'));
+  ok('1일 평균임금 위에 법정 구역이 섭니다',
+    at('{{ L.lPayday }}') < at('{{ L.secByLaw }}') && at('{{ L.secByLaw }}') < at('{{ L.lAvgDaily }}'));
+  ok('휴업수당률 위에 회사가 하는 것 구역이 섭니다',
+    at('{{ L.lAvgDaily }}') < at('{{ L.secDoes }}') && at('{{ L.secDoes }}') < at('{{ L.lShutPct }}'));
+  // 법정 구역이 휴업수당률까지 덮어 버리면 거짓말이 됩니다 — 70%는 '최저'입니다
+  ok('법정 구역은 1일 평균임금 하나만 덮습니다',
+    at('{{ L.secDoes }}') < at('{{ L.lSatHol }}') && at('{{ L.secDoes }}') < at('{{ L.lHolOver }}'));
+  ok('배수는 여전히 자기 이름 아래 있습니다',
+    at('{{ L.secMult }}') > at('{{ L.lHolOver }}') && at('{{ L.secMult }}') < at('{{ L.secBonus }}'));
+
+  // ── 이름표가 사실과 어긋나지 않는지 ──
+  ok('휴업수당 70%는 법정 최저라고 화면이 말합니다',
+    L.lShutPctSub.indexOf('70') >= 0 && V2.DEFAULTS.shutdownPct === 70);
+  ok('회사가 하는 것 안내는 최저라고 말합니다',
+    L.doesNote.indexOf('최저') >= 0, L.doesNote);
+  ok('근로계약서 구역에는 그대로 두라고 하지 않습니다',
+    L.contractNote.indexOf('두어도 됩니다') < 0 && L.doesNote.indexOf('두어도 됩니다') < 0);
+
+  // ── 여덟 개 언어 ──
+  ['ko','en','vi','zh','th','id','ne','km'].forEach(Lg => {
+    ['from_your_contract_or_shift_board','your_contract_has_to_state_these_by_la',
+     'what_your_company_actually_does','the_pale_figures_are_the_legal_minimum'].forEach(k => {
+      ok(Lg + ' ' + k + ' 있습니다', !!(V2.STR[k] && V2.STR[k][Lg]));
+    });
+  });
+  ['vi','zh','th','id','ne','km'].forEach(Lg => {
+    ok(Lg + ' 근로계약서 구역은 한국어가 앞에 섭니다',
+      V2.STR['from_your_contract_or_shift_board'][Lg].indexOf('근로계약서를 보고 적으세요') === 0);
+    ok(Lg + ' 회사가 하는 것 구역도 그렇습니다',
+      V2.STR['what_your_company_actually_does'][Lg].indexOf('회사가 실제로 하는 것') === 0);
+    ok(Lg + ' 안내가 근로계약서를 한국어로 짚습니다',
+      V2.STR['your_contract_has_to_state_these_by_la'][Lg].indexOf('근로계약서') >= 0);
+  });
+
+  // ── 이름을 붙였다고 앱이 하던 일을 멈추지는 않습니다 ──
+  const V = c.renderVals();
+  ok('근무조 단추 셋은 그대로입니다', (V.shiftOpts || []).length === 3);
+  ok('급여기간·월급날 칸은 그대로입니다', V.periodStartVal !== undefined && V.paydayVal !== undefined);
+  ok('휴업수당률 칸도 그대로입니다', V.shutPctVal !== undefined && !!V.setShutPct);
+  ok('배수 세 줄도 그대로입니다', (V.multRows || []).length === 3);
 }
 
 console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
