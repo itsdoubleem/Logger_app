@@ -105,6 +105,30 @@ console.log('\n== 모양은 소스가 아니라 ds-tokens.css에 있습니다 ==
   ok('알약이 일곱 개이고 층이 그 모양을 정합니다 (' + chips + '개)',
     chips === 7 && /\[style\*="min-height: 30px"\]\[style\*="display: inline-flex"\][^{]*\{[^}]*--radius-pill/.test(css));
 
+  // 채워진 단추에는 테두리가 없어서 규칙 2가 닿지 않았습니다 — 옆에 나란히 선
+  // 테두리 단추만 둥글고 확인·추가는 네모였습니다. 높이로 잡습니다: 소스가
+  // 단추에 실제로 쓰는 여섯 높이입니다. 색으로 잡으면 조퇴 사유의 저장 단추가
+  // 고른 것이 있을 때만 둥글어집니다.
+  const BTN_H = [44, 46, 48, 50, 52, 56];
+  const btnRule = (css.match(/\[style\*="cursor: pointer"\]\[style\*="min-height: \d+px"\][^{]*\{[^}]*\}/) || [''])[0];
+  ok('단추 규칙이 여섯 높이를 모두 셉니다',
+    BTN_H.every(h => btnRule.indexOf('min-height: ' + h + 'px') > 0)
+    && /--radius-md/.test(btnRule), btnRule.slice(0, 60));
+  // 소스의 단추 높이가 그 여섯 안에 있는지 — 새 높이를 쓰면 그것만 조용히 네모가 됩니다
+  const heights = [...new Set((src.match(/cursor:pointer/g) ? src : '')
+    .split('style="').slice(1)
+    .filter(a => a.indexOf('cursor:pointer') >= 0 && a.indexOf('"') > 0)
+    .map(a => a.slice(0, a.indexOf('"')))
+    .filter(a => /background:(var\(--color-(accent|text)\)|\{\{)/.test(a))
+    .map(a => (a.match(/min-height:(\d+)px/) || [0, 0])[1] * 1)
+    .filter(h => h >= 44))];
+  ok('채워진 단추의 높이가 모두 그 여섯 안에 있습니다 (' + heights.sort((a, b) => a - b).join(',') + ')',
+    heights.every(h => BTN_H.indexOf(h) >= 0));
+  // 30px 알약과 탭바는 이 규칙에 걸리지 않아야 합니다 — 걸리면 알약이 네모가 됩니다
+  ok('알약 높이는 단추 목록에 없습니다', BTN_H.indexOf(30) < 0 && BTN_H.indexOf(34) < 0);
+  ok('탭바는 min-height를 쓰지 않습니다',
+    !/grid-template-columns:1fr 1fr 1fr 1fr 1fr[^>]*>[\s\S]{0,400}?min-height/.test(src));
+
   // 소스에서 바꾼 두 줄
   ok('머리말의 급여기간 칩은 검은 알약입니다',
     /padding:6px 11px;background:var\(--color-text\);color:var\(--color-bg\);font-weight:700">\{\{ monthChip \}\}/.test(src));

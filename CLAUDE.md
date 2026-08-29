@@ -212,6 +212,18 @@ adb devices                              # must say "device", not "unauthorized"
 adb install -r worklog-debug.apk         # -r keeps the worker's records
 ```
 
+**Never launch it with `adb shell monkey`.** `monkey -p app.worklog.punch -c
+android.intent.category.LAUNCHER 1` is the usual one-liner and the trailing `1` is
+**one random event** — it launches the app and then taps somewhere. On this app the
+biggest thing on the first screen is the punch pad, so that stray tap can **clock the
+worker in**. It did exactly that on 2026-08-30 (session at 06:31:35, spotted only
+because a screenshot showed the on-shift card and removed by restoring the backup).
+Launch it with the intent instead, which injects nothing:
+
+```sh
+adb shell am start -n app.worklog.punch/.MainActivity
+```
+
 `unauthorized` means the "Allow USB debugging" prompt has not been accepted on the
 phone — but a *stale daemon* reports the same thing for an already-trusted phone.
 Try `adb kill-server && adb start-server` before going to look for a prompt that
@@ -308,7 +320,7 @@ value afterwards when you have been tapping near real settings.
 
 ## Change log beyond V2.md
 
-### 2026-08-30 (latest, forty-first) — 카드의 마지막 줄에는 밑줄이 없습니다, 그리고 해와 달
+### 2026-08-30 (latest, forty-first) — 카드의 마지막 줄, 해와 달, 그리고 네모난 단추
 
 만든 사람이 출퇴근의 요약 카드를 가리켜 말했습니다: **예상 수령액 아래 여백이 지난
 근무 위 여백보다 넓습니다. 예상 수령액의 밑줄을 빼십시오, 그게 범인입니다.**
@@ -372,6 +384,50 @@ value afterwards when you have been tapping near real settings.
 `09:00 start` 글자뿐입니다. 근무조를 야간으로 두고 보니 검은 `NIGHT` 알약 안에 흰
 달입니다. 근로자의 저장소는 **백업 → 시험 → 복원**했고 파싱한 JSON이 백업과 완전히
 같습니다(기록 32일, `shifts: both` 그대로).
+
+#### 채워진 단추만 네모로 남아 있었습니다
+
+만든 사람이 연차 카드를 열고 말했습니다: **`CONFIRM` 알약에 둥근 모서리가 없습니다.
+채워진 단추는 다 그런 것 같습니다.**
+
+그렇습니다, 그리고 **이유가 규칙 2에 있습니다**: 층은 `border: 2px solid`가 붙은
+것을 둥글게 합니다. 나란히 선 `CANCEL`은 테두리가 있어서 둥글고, `CONFIRM`은
+빨갛게 **채워져 있어 테두리가 없으므로** 아무 규칙도 닿지 않았습니다. 같은 자리에
+같은 크기로 선 두 단추가 서로 다른 모양이었습니다.
+
+**색이 아니라 높이로 잡습니다.** 처음에 `background: var(--color-accent)`로 잡아
+볼까 했는데, 조퇴 사유의 저장 단추는 사유를 고르면 빨강이고 안 고르면
+`neutral-300`입니다 — **고른 뒤에만 둥글어지는 단추**는 둘 다 아닌 것보다 나쁩니다.
+이 앱에서 단추는 **누를 수 있고 44px 이상인 것**이고, 소스가 실제로 쓰는 높이는
+여섯입니다(44 · 46 · 48 · 50 · 52 · 56).
+
+```css
+[style*="cursor: pointer"][style*="min-height: 44px"], … { border-radius: var(--radius-md); }
+```
+
+- **알약은 그대로 알약입니다.** 30px·34px는 그 목록에 없고, 탭바는 `min-height`를
+  아예 쓰지 않습니다 — 둘 다 자기 pill 규칙이 그대로 섭니다(asserted, 양쪽).
+  높이로 잡지 않고 `cursor: pointer` 하나로 잡았다면 **알약 일곱 개가 조용히
+  네모가 됐을 것**입니다(선택자 우선순위가 더 높습니다).
+- **테두리가 있는 단추는 값이 같아 아무 일도 없습니다**(둘 다 `--radius-md` 12px).
+  칠도 테두리도 없는 글자 단추에서는 모서리가 보이지 않습니다.
+- **소스의 채워진 단추 높이가 그 여섯 안에 있는지 시험이 셉니다** — 새 높이로 단추를
+  만들면 그것만 조용히 네모가 되는데, 모양이 안 붙는 것은 오류를 내지 않습니다(마흔째).
+
+`ds-tokens.css` 한 벌만 바뀌었고 **앱 소스는 한 글자도 바뀌지 않았습니다.**
+5 new assertions in `boot.js` (27 → **31**, 하나는 기존 블록 안).
+
+**폰에서 확인**(EN, 실제 기기): 연차 카드를 열어 CDP로 재니 `CANCEL`과 `CONFIRM`이
+**둘 다 12px**, 달력의 날짜 칸과 스테퍼 화살표도 12px, 아래 탭은 999px 그대로입니다.
+
+**그리고 여기서 근로자를 하마터면 출근시킬 뻔했습니다, 적어 둡니다.**
+앱을 다시 띄우는 데 `adb shell monkey … 1`을 썼는데, 그 끝의 `1`은 **무작위 이벤트
+한 번**입니다 — 앱을 열고 아무 데나 한 번 누릅니다. 이 앱의 첫 화면에서 가장 큰
+것은 지문 패드이고, 실제로 **06:31:35에 출근 도장이 찍혔습니다.** 화면을 찍어 보다
+근무중 카드가 뜬 것을 보고 알았고, 백업으로 되돌려 저장소가 백업과 **완전히 같은
+것**을 확인했습니다(기록 32일, `session: null`). 앞으로는
+`adb shell am start -n app.worklog.punch/.MainActivity`로 띄우십시오 — 위의
+'폰에 설치하기'에 적어 두었습니다.
 
 ### 2026-08-30 (fortieth) — 모난 것을 둥글게, 그리고 알약 셋
 

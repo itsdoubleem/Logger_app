@@ -149,6 +149,26 @@
    chip *is*, and it separates them from the buttons around them. */
 [style*="min-height: 30px"][style*="display: inline-flex"] { border-radius: var(--radius-pill); }
 
+/* ── 2c · buttons ───────────────────────────────────────────────────────── */
+/* Rule 2 rounds anything with a border, so the outlined buttons (취소, 나중에)
+   came out curved while the solid ones beside them — 확인, 추가, the red
+   근무내역서 button — stayed square. They are the same control; a filled
+   button has no border to be caught by.
+   A button in this app is a tap target: `cursor: pointer` plus one of the
+   min-heights the source actually uses for one (44 · 46 · 48 · 50 · 52 · 56).
+   Keying on the height rather than the fill matters — 저장 in the 조퇴 사유
+   sheet is accent when a reason is picked and neutral-300 when it is not,
+   and a button that is round only while enabled is worse than either.
+   The 30px/34px chips are not in the list, so their pill (2b) stands; the
+   tab bar sets no min-height at all, so its pill (6) stands too. On a
+   borderless, unfilled button the radius is simply invisible. */
+[style*="cursor: pointer"][style*="min-height: 44px"],
+[style*="cursor: pointer"][style*="min-height: 46px"],
+[style*="cursor: pointer"][style*="min-height: 48px"],
+[style*="cursor: pointer"][style*="min-height: 50px"],
+[style*="cursor: pointer"][style*="min-height: 52px"],
+[style*="cursor: pointer"][style*="min-height: 56px"] { border-radius: var(--radius-md); }
+
 /* ── 3 · the header bar ─────────────────────────────────────────────────── */
 [style*="align-items: flex-end"][style*="padding: 8px 18px 10px"] {
   position: relative;
