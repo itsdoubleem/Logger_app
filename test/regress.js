@@ -5562,5 +5562,115 @@ console.log('\n== 필요해지는 그 자리에서 묻습니다 ==');
   });
 }
 
+console.log('\n== 명세서의 국민연금 한 줄이 보수월액을 되살립니다 ==');
+{
+  // 스물여섯째가 되살리는 산수를 만들어 두었지만, 그 칸은 설정 깊숙이 접혀
+  // 있어서 아무도 찾지 못했습니다. 명세서 대조는 공제를 **뭉친 숫자 하나**로
+  // 받고 있었습니다. 그 밑에 국민연금 한 줄을 두면, 명세서를 옮겨 적는 근로자가
+  // 이미 그 숫자를 앱에 넘겨준 것이 됩니다 — 새로 묻는 것이 하나도 없습니다.
+  const mkP = () => {
+    const c = mk(V2, '2026-08-15T10:00:00');
+    c.state.extra = [{ y:2026, m:8, day:25, kind:'day', type:'shift', inH:9, outH:21,
+      c: c.calc(9, 21, 'day', false) }];
+    return c;
+  };
+
+  const c = mkP();
+  ok('공제 밑에 국민연금 줄이 있습니다',
+    c.slipRows().map(r => r.k).join() === 'basic,ot,night,hol,gross,ded,pension,net',
+    c.slipRows().map(r => r.k).join());
+  ok('그 줄은 한 칸 들여 씁니다', c.slipRows().find(r => r.k === 'pension').pad === '14px');
+  ok('앱 쪽 값은 앱이 계산한 국민연금입니다',
+    c.slipRows().find(r => r.k === 'pension').app === c.insCalc(c.wageFor()).pension);
+
+  // ── 국민연금에 들지 않은 사람에게는 그 줄이 없습니다 ──
+  // 사회보장협정으로 면제된 E-9 근로자가 실제로 있고, 그 사람의 명세서에는 그
+  // 줄이 아예 없습니다. 없는 줄을 물으면 그것대로 틀린 화면입니다.
+  const off = mkP();
+  off.setS({ insOn: { health: true, care: true, pension: false, emp: false } });
+  ok('연금이 꺼져 있으면 줄이 없습니다',
+    off.slipRows().every(r => r.k !== 'pension'), off.slipRows().map(r => r.k).join());
+  ok('그 사람에게는 되살리기도 없습니다', off.renderVals().askPen === false);
+
+  // ── 되살리기 ──
+  c.setSlip('pension', '163110');
+  ok('163,110에서 되살립니다', V2.bosuFromPension(163110) === 3434000, String(V2.bosuFromPension(163110)));
+  ok('권하지만 아직 쓰지는 않습니다', c.renderVals().askPen === true && (+c.st().bosu || 0) === 0);
+  ok('문장이 두 숫자를 다 말합니다',
+    /163,110/.test(c.renderVals().penMsg) && /3,434,000/.test(c.renderVals().penMsg),
+    c.renderVals().penMsg.slice(0, 60));
+  ok('단추에도 그 값이 있습니다', /3,434,000/.test(c.renderVals().penBtn), c.renderVals().penBtn);
+  c.renderVals().applyPen();
+  ok('누르면 그때 씁니다', c.st().bosu === 3434000, String(c.st().bosu));
+  ok('쓰고 나면 다시 권하지 않습니다', c.renderVals().askPen === false);
+  // 그리고 실제로 공제가 명세서에 가까워집니다
+  ok('국민연금이 명세서와 원 단위로 맞습니다',
+    c.slipRows().find(r => r.k === 'pension').app === 163110,
+    String(c.slipRows().find(r => r.k === 'pension').app));
+
+  // ── 풀리지 않으면 지어내지 않습니다 ──
+  const bad = mkP();
+  bad.setSlip('pension', '12345');
+  ok('풀리지 않으면 그렇다고 말합니다', bad.renderVals().penFailed === true);
+  ok('그때는 단추를 내밀지 않습니다', bad.renderVals().askPen === false && bad.renderVals().penBtn === '');
+  ok('보수월액도 건드리지 않습니다', (+bad.st().bosu || 0) === 0);
+
+  // ── 손으로 적어 둔 값을 말없이 갈아치우지 않습니다 ──
+  const hand = mkP();
+  hand.setS({ bosu: 3000000 });
+  hand.setSlip('pension', '163110');
+  ok('다른 값이면 권합니다', hand.renderVals().askPen === true);
+  ok('누르기 전에는 그대로입니다', hand.st().bosu === 3000000, String(hand.st().bosu));
+  hand.renderVals().applyPen();
+  ok('눌러야 바뀝니다', hand.st().bosu === 3434000);
+
+  // ══ 부족액은 한 푼도 움직이지 않습니다 ══
+  // 새 줄은 공제의 조각입니다. slipShortfall은 지급 줄만 세는 allowlist라
+  // 'pension'은 저절로 빠지지만, 그것이 설계라는 것을 붙들어 둡니다.
+  const s1 = mkP();
+  const before = s1.slipShortfall();
+  s1.setSlip('pension', '163110');
+  ok('국민연금을 적어도 부족액은 그대로입니다', s1.slipShortfall() === before,
+    before + ' -> ' + s1.slipShortfall());
+  s1.setSlip('ot', '1000');
+  const withShort = s1.slipShortfall();
+  s1.setSlip('pension', '999999');
+  ok('국민연금을 크게 적어도 부족액은 그대로입니다', s1.slipShortfall() === withShort,
+    withShort + ' -> ' + s1.slipShortfall());
+  ok('부족액을 세는 줄에 pension이 없습니다',
+    (function () {
+      const src = require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+      const i = src.indexOf('slipShortfall(P) {');
+      return src.slice(i, i + 260).indexOf("'pension'") < 0;
+    })());
+
+  // ── 예전에 저장해 둔 대조는 그대로 읽힙니다 ──
+  // slip(P)는 없는 키를 undefined로 돌려주므로 has:false, short:0입니다.
+  const old = mkP();
+  old.setSlip('ded', '520000');
+  const pr = old.slipRows().find(r => r.k === 'pension');
+  ok('국민연금을 안 적은 대조도 그대로입니다', pr.has === false && pr.short === 0);
+  ok('그때는 되살리기가 뜨지 않습니다', old.renderVals().askPen === false);
+
+  // ── 화면 ──
+  const fs = require('fs');
+  const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tpl = src.slice(0, src.indexOf('</x-dc>'));
+  ok('되살리기 카드는 대조표 아래입니다', tpl.indexOf('{{ askPen }}') > tpl.indexOf('{{ slipRows }}'));
+  ok('공제 카드보다 앞에 섭니다', tpl.indexOf('{{ askPen }}') < tpl.indexOf('{{ askDed }}'));
+  ok('단추를 사이에 둡니다', tpl.slice(tpl.indexOf('{{ askPen }}'), tpl.indexOf('{{ penFailed }}')).indexOf('{{ applyPen }}') > 0);
+  ok('줄이 들여쓰기 홀을 씁니다', tpl.indexOf('padding-left:{{ r.pad }}') > 0);
+  // 설정의 그 칸도 그대로입니다 — 옮긴 것이 아닙니다
+  ok('설정에도 국민연금 칸이 그대로 있습니다', tpl.indexOf('{{ setBosuPen }}') > 0);
+
+  ['ko','en','vi','zh','th','id','ne','km'].forEach(Lg => {
+    ok(Lg + ' 되살리기 문장이 두 자리를 받습니다',
+      V2.STR['this_pension_line_points_to_one_wage'][Lg].indexOf('{p0}') >= 0
+      && V2.STR['this_pension_line_points_to_one_wage'][Lg].indexOf('{p1}') >= 0);
+    ok(Lg + ' 단추가 값을 받습니다',
+      V2.STR['use_this_and_recount'][Lg].indexOf('{p0}') >= 0);
+  });
+}
+
 console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);
