@@ -720,11 +720,10 @@
   "changing_this_now_re_buckets_records": "Bạn đã có dữ liệu. Đổi ngày bắt đầu 급여기간 sẽ gom lại các bản ghi cũ, và cơ sở lương cùng bảng đối chiếu phiếu lương đã lưu sẽ không còn khớp kỳ nào.",
   "next_question": "Tiếp theo",
   "go_back": "Quay lại",
-  "a_normal_day_ends_at": "Ngày làm bình thường kết thúc lúc",
-  "clock_out_is_punched_not_set": "Bạn không đặt giờ tan ca — thời điểm bạn quét vân tay chính là 퇴근. Giờ kết thúc ở trên là lúc ứng dụng tính đủ 8 giờ sau khi trừ giờ nghỉ (với 교대 là lúc ca kia bắt đầu). Quá giờ đó là 잔업 tăng ca ×1.5.",
+  "clock_out_is_punched_not_set": "Bạn không đặt giờ tan ca — thời điểm bạn quét vân tay chính là 퇴근. Giờ ở trên là lúc đủ 8 giờ sau khi trừ giờ nghỉ; làm quá giờ đó được trả 잔업 tăng ca ×1.5.",
   "month_end_word": "cuối tháng",
   "unit_day_n": "ngày {p0}",
   "day_to_next_month_day": "Ngày {p0} → ngày {p1} tháng sau",
   "starts_day_ends_day": "Bắt đầu ngày {p0} · kết thúc {p1}",
-  "the_two_shifts_hand_over_to_each_other": "Với 교대, hai ca bàn giao cho nhau — ca ngày kết thúc đúng lúc ca đêm bắt đầu. Vì vậy đổi giờ bắt đầu ca ngày sẽ dời giờ kết thúc của ca đêm, không phải ca ngày. Nếu bạn vào ca ngày sớm hơn, hãy dời giờ bắt đầu ca đêm sớm hơn theo."
+  "eight_hours_reached_at": "Đủ 8 giờ lúc"
 }

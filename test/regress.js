@@ -5170,11 +5170,13 @@ console.log('\n== 네 물음이 절반만 묻고 있었습니다 ==');
   // ── 2. 시작만 묻고 끝을 말해 주지 않았습니다 ──
   // 퇴근 시각은 설정하지 않습니다(2026-08-18) — 하지만 앱은 이미 알고 있습니다.
   const e = fresh(); e.renderVals().shiftOpts[0].set();
-  ok('평소 하루가 끝나는 자리를 보여 줍니다',
-    e.renderVals().suDayEnd === e.hhmm(e.normalEnd('day')), e.renderVals().suDayEnd);
+  // ── 무엇을 보여 주는가 ──
+  // normalEnd()가 아니라 otMark()입니다. 교대의 normalEnd는 야간이 시작하는
+  // 자리라 주간 시작을 바꿔도 움직이지 않고, 근로자는 두 번 그것을 고장이라고
+  // 말했습니다. 이 화면이 답해야 하는 물음은 '내 8시간이 언제 차는가'입니다.
+  ok('8시간이 차는 자리를 보여 줍니다',
+    e.renderVals().suDayEnd === e.hhmm(e.otMark('day')), e.renderVals().suDayEnd);
   ok('9시 시작 · 점심 1시간이면 18:00입니다', e.renderVals().suDayEnd === '18:00', e.renderVals().suDayEnd);
-  ok('교대라면 다른 조가 시작하는 자리입니다',
-    r.renderVals().suDayEnd === r.hhmm(r.normalEnd('day')), r.renderVals().suDayEnd);
   ok('그래도 퇴근 시각 설정은 생기지 않았습니다',
     V2.DEFAULTS.dayEnd === undefined && V2.DEFAULTS.nightEnd === undefined);
 
@@ -5236,7 +5238,7 @@ console.log('\n== 네 물음이 절반만 묻고 있었습니다 ==');
 
   ['ko','en','vi','zh','th','id','ne','km'].forEach(Lg => {
     ok(Lg + ' 뒤로·끝나는 자리·기간 이름표가 있습니다',
-      !!V2.STR['go_back'][Lg] && !!V2.STR['a_normal_day_ends_at'][Lg]
+      !!V2.STR['go_back'][Lg] && !!V2.STR['eight_hours_reached_at'][Lg]
       && !!V2.STR['clock_out_is_punched_not_set'][Lg]
       && V2.STR['day_to_next_month_day'][Lg].indexOf('{p1}') >= 0);
   });
@@ -5342,28 +5344,30 @@ console.log('\n== 네 개로는 모자라고, 안 변하는 것처럼 보였습�
   const a = r.renderVals();
   r.setS({ dayStart: '06:00' });
   const b = r.renderVals();
-  ok('주간의 끝은 야간 시작에 묶여 있습니다', a.suDayEnd === '21:00' && b.suDayEnd === '21:00',
+  // ── 근로자가 두 번 말한 그것 ──
+  // 교대에서 주간 시작을 바꿔도 화면의 끝이 21:00 그대로였습니다. normalEnd를
+  // 적고 있었기 때문입니다. otMark로 바꾸니 세 근무조 모두에서 시작을 따라
+  // 움직입니다 — 이 줄이 그것을 붙들어 둡니다.
+  ok('교대에서도 시작을 따라 움직입니다', a.suDayEnd === '18:00' && b.suDayEnd === '15:00',
     a.suDayEnd + ' / ' + b.suDayEnd);
-  ok('움직이는 것은 야간의 끝입니다', a.suNightEnd === '09:00' && b.suNightEnd === '06:00',
+  ok('야간도 자기 시작을 따라갑니다', a.suNightEnd === b.suNightEnd && a.suNightEnd === '06:00',
     a.suNightEnd + ' / ' + b.suNightEnd);
-  // 그래서 시간 수를 함께 적습니다 — 06:00 → 21:00이 15.0h라는 것이 바로 보입니다
-  ok('9시 시작은 12.0h입니다', a.suDayHours === '12.0h', a.suDayHours);
-  ok('6시 시작은 15.0h로 드러납니다', b.suDayHours === '15.0h', b.suDayHours);
-  ok('야간 시간 수도 함께 적습니다', a.suNightHours === '12.0h', a.suNightHours);
-  ok('교대일 때만 넘겨받는다는 안내가 뜹니다', b.suRotating === true);
+  // 휴게까지 더해 몇 시간 있어야 하는지 — 점심 한 시간이면 9.0h입니다
+  ok('점심 한 시간이면 9.0h입니다', a.suDayHours === '9.0h', a.suDayHours);
+  ok('시작이 달라도 같은 9.0h입니다', b.suDayHours === '9.0h', b.suDayHours);
   const d1 = fresh(); d1.setS({ shifts: 'day' });
-  ok('주간만에는 그 안내가 없습니다', d1.renderVals().suRotating === false);
-  // 주간만은 여전히 시작을 따라 움직입니다 — 묶여 있는 것은 교대뿐입니다
   d1.setS({ dayStart: '06:00', breaksDay: [{ from: '11:30', to: '12:30' }] });
-  ok('주간만은 시작을 따라 끝이 움직입니다', d1.renderVals().suDayEnd === '15:00',
+  ok('주간만도 시작을 따라 움직입니다', d1.renderVals().suDayEnd === '15:00',
     d1.renderVals().suDayEnd);
+  // normalEnd는 그대로입니다 — 잔업 휴게 규칙은 여전히 그것을 씁니다
+  ok('normalEnd 자체는 손대지 않았습니다', r.hhmm(r.normalEnd('day')) === '21:00',
+    r.hhmm(r.normalEnd('day')));
 
   ok('span은 자정을 넘겨도 셉니다', V2.spanH(21, 30) === 9 && V2.spanH(9, 21) === 12
     && V2.spanH(21, 21) === 24);
 
   ['ko','en','vi','zh','th','id','ne','km'].forEach(Lg => {
-    const t = V2.STR['the_two_shifts_hand_over_to_each_other'][Lg];
-    ok(Lg + ' 넘겨받는다는 안내가 있습니다', !!t && t.length > 30);
+    ok(Lg + ' 8시간 자리 이름이 있습니다', !!V2.STR['eight_hours_reached_at'][Lg]);
   });
 
   // ── 화면은 마크다운을 그리지 않습니다 ──
@@ -5378,6 +5382,86 @@ console.log('\n== 네 개로는 모자라고, 안 변하는 것처럼 보였습�
     });
   });
   ok('별표 강조가 남아 있지 않습니다', marks.length === 0, marks.slice(0, 5).join(', '));
+}
+
+console.log('\n== 휴게 시각도 알람처럼 굴려서 고칩니다 ==');
+{
+  // 2/4의 휴게 시각이 글자 칸이었습니다. 시작 시각은 굴림판인데 휴게만 자판을
+  // 올려 치게 하면 한 화면 안에서 두 가지 방식이 됩니다.
+  const c = mk(V2, '2026-08-03T09:00:00');
+  c.setState({ setupStep: 2 });
+  c.setS({ shifts: 'both',
+    breaksDay: [{ from: '11:30', to: '12:30' }, { from: '17:00', to: '17:30', ot: true }],
+    breaksNight: [{ from: '00:00', to: '01:00' }] });
+
+  const rows = () => c.renderVals().dayBreakRows;
+  ok('처음에는 아무 칸도 열려 있지 않습니다', rows().every(r => r.openAny === false));
+
+  // 한 번에 하나만 열립니다
+  rows()[0].tapFrom();
+  ok('누른 칸이 열립니다', rows()[0].openF === true && rows()[0].openT === false);
+  ok('다른 줄은 닫혀 있습니다', rows()[1].openAny === false);
+  rows()[0].tapTo();
+  ok('같은 줄의 다른 칸을 누르면 그쪽이 열립니다',
+    rows()[0].openT === true && rows()[0].openF === false);
+  rows()[1].tapFrom();
+  ok('다른 줄을 누르면 앞 줄은 닫힙니다', rows()[0].openAny === false && rows()[1].openF === true);
+  rows()[1].tapFrom();
+  ok('같은 칸을 다시 누르면 닫힙니다', rows()[1].openAny === false);
+
+  // 열린 칸에만 드럼이 있습니다 — 늘 넷을 펴 두면 화면이 세 배가 됩니다
+  rows()[0].tapFrom();
+  ok('열린 줄에만 드럼이 붙습니다',
+    rows()[0].drumH.length === 24 && rows()[0].drumM.length === 12
+    && rows()[1].drumH.length === 0);
+  ok('지금 값이 든 칸이 굵습니다', rows()[0].drumH.find(x => x.t === '11').sel === true);
+
+  // 눌러서도, 굴려서도 고쳐집니다
+  rows()[0].drumH.find(x => x.t === '10').set();
+  ok('시를 고치면 분은 그대로입니다', c.st().breaksDay[0].from === '10:30', c.st().breaksDay[0].from);
+  const px = i => ({ currentTarget: { scrollTop: i * V2.DRUM_ITEM } });
+  rows()[0].mScroll(px(0));
+  ok('굴려서 분을 고칩니다', c.st().breaksDay[0].from === '10:00', c.st().breaksDay[0].from);
+  ok('끝 시각은 건드리지 않았습니다', c.st().breaksDay[0].to === '12:30');
+  ok('손댔다는 사실이 적힙니다', c.st().breaksTouched === true);
+
+  // ── 표가 붙은 저녁 휴게는 그대로여야 합니다 ──
+  const dinner = JSON.stringify(c.st().breaksDay[1]);
+  rows()[1].tapTo();
+  rows()[1].drumH.find(x => x.t === '18').set();
+  ok('다른 줄을 고쳐도 표는 남습니다', c.st().breaksDay[1].ot === true,
+    JSON.stringify(c.st().breaksDay[1]));
+  ok('첫 줄은 그대로입니다', c.st().breaksDay[0].from === '10:00');
+  ok('고친 것은 그 칸뿐입니다', c.st().breaksDay[1].from === '17:00' && c.st().breaksDay[1].to === '18:30',
+    JSON.stringify(c.st().breaksDay[1]));
+
+  // 야간 줄도 자기 목록을 고칩니다
+  const nrows = () => c.renderVals().nightBreakRows;
+  nrows()[0].tapFrom();
+  nrows()[0].drumH.find(x => x.t === '01').set();
+  ok('야간 휴게는 야간 목록만 고칩니다',
+    c.st().breaksNight[0].from === '01:00' && c.st().breaksDay[0].from === '10:00',
+    c.st().breaksNight[0].from + ' / ' + c.st().breaksDay[0].from);
+
+  // 화면: 2/4에는 휴게 시각을 치는 글자 칸이 없고, 설정 탭에는 그대로 있습니다
+  const fs = require('fs');
+  const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tpl = src.slice(0, src.indexOf('</x-dc>'));
+  const q2 = tpl.slice(tpl.indexOf('{{ suIs2 }}'), tpl.indexOf('{{ suIs3 }}'));
+  ok('2/4에는 r.setFrom을 쓰는 글자 칸이 없습니다', q2.indexOf('{{ r.setFrom }}') < 0);
+  ok('2/4의 시각은 눌러서 엽니다',
+    (q2.match(/\{\{ r\.tapFrom \}\}/g) || []).length === 2
+    && (q2.match(/\{\{ r\.tapTo \}\}/g) || []).length === 2);
+  ok('드럼이 두 벌 붙어 있습니다', (q2.match(/id="brDrumH"/g) || []).length === 2);
+  ok('가운데 띠는 누름을 가로채지 않습니다', (q2.match(/pointer-events:none"/g) || []).length === 2);
+  // 설정 탭의 휴게 줄은 예전 그대로입니다 — 거기까지 바꾸라고 한 적이 없습니다
+  const setBreaks = tpl.slice(tpl.indexOf('{{ dayBreakRows }}', tpl.indexOf('{{ gShiftOpen }}')));
+  ok('설정 탭은 여전히 글자 칸입니다', setBreaks.indexOf('{{ r.setFrom }}') >= 0);
+
+  // 자리 맞추기가 2/4에서도 돕니다
+  const body = src.slice(src.indexOf('class Component'));
+  ok('2/4에서도 자리를 맞춥니다', body.indexOf("step !== 1 && step !== 2") > 0);
+  ok('열린 칸 하나만 맞춥니다', body.indexOf("put('brDrumH'") > 0);
 }
 
 console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');

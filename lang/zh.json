@@ -720,11 +720,10 @@
   "changing_this_now_re_buckets_records": "你已经有记录了。改动 급여기간 起始日会把旧记录重新归入别的周期，已保存的工资基准和工资单对照将不再对应。",
   "next_question": "下一步",
   "go_back": "返回",
-  "a_normal_day_ends_at": "平常一天到这里结束",
-  "clock_out_is_punched_not_set": "你不需要设定下班时间 — 你按指纹的那一刻就是 퇴근。上面的结束时间是应用扣掉休息后算出满 8 小时的位置（교대 则是另一班开始的时间）。超过之后就是 잔업 加班 ×1.5。",
+  "clock_out_is_punched_not_set": "你不需要设定下班时间 — 你按指纹的那一刻就是 퇴근。上面的时刻是扣掉休息后满 8 小时的位置；超过之后的工时按 잔업 加班 ×1.5 计。",
   "month_end_word": "月底",
   "unit_day_n": "{p0} 日",
   "day_to_next_month_day": "{p0} 日 → 次月 {p1} 日",
   "starts_day_ends_day": "起 {p0} 日 · 迄 {p1}",
-  "the_two_shifts_hand_over_to_each_other": "교대 是两班交接 — 白班结束的时刻就是夜班开始的时刻。所以改动白班开始时间，动的是夜班的结束时间，而不是白班的。如果白班提早，请把夜班开始时间也一起提早。"
+  "eight_hours_reached_at": "满 8 小时于"
 }
