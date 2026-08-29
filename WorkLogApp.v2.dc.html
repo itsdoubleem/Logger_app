@@ -406,8 +406,19 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
 
           <div style="font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:var(--color-neutral-700)">{{ detectKicker }}</div>
           <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
-            <div style="flex:none;min-height:30px;display:inline-flex;align-items:center;padding:0 12px;background:{{ detectShiftBg }};color:{{ detectShiftInk }};font-family:var(--font-heading);font-weight:800;font-size:12px;letter-spacing:0.02em;white-space:nowrap">{{ detectShift }}</div>
-            <div style="flex:1;min-width:0;font-size:12px;color:var(--color-neutral-700)">{{ detectWindow }}</div>
+            <!-- 해와 달은 근무기록 줄의 배지가 쓰는 그 그림입니다 — 같은 하루를
+                 두 화면이 다른 그림으로 말하면 안 됩니다. stroke는 currentColor라
+                 알약 안에서는 알약의 글자색을, 시각 줄에서는 그 줄의 회색을 씁니다. -->
+            <div style="flex:none;min-height:30px;display:inline-flex;align-items:center;gap:6px;padding:0 12px;background:{{ detectShiftBg }};color:{{ detectShiftInk }};font-family:var(--font-heading);font-weight:800;font-size:12px;letter-spacing:0.02em;white-space:nowrap">
+              <sc-if value="{{ detectSun }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="flex:none"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg></sc-if>
+              <sc-if value="{{ detectMoon }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="flex:none"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg></sc-if>
+              {{ detectShift }}
+            </div>
+            <div style="flex:1;min-width:0;display:flex;align-items:center;gap:5px;font-size:12px;color:var(--color-neutral-700)">
+              <sc-if value="{{ detectSun }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="flex:none"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg></sc-if>
+              <sc-if value="{{ detectMoon }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="flex:none"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg></sc-if>
+              {{ detectWindow }}
+            </div>
             <sc-if value="{{ detectHol }}" hint-placeholder-val="{{ false }}">
               <div style="flex:none;min-height:30px;display:inline-flex;align-items:center;padding:0 12px;background:var(--color-accent-100);color:var(--color-accent-700);font-family:var(--font-heading);font-weight:800;font-size:12px;white-space:nowrap">{{ L.holChip }}</div>
             </sc-if>
@@ -5280,7 +5291,7 @@ class Component extends DCLogic {
       : (todayRec && todayRec.type === 'annual'
         ? this.T('today_is_marked_annual_leave_no_punch_')
         : '');
-    let padStamp, padTitle, padSub, padBig, detectKicker, detectShift, detectShiftBg, detectShiftInk, detectWindow, detectReason, detectWhy = '', liveRows = [], overrun = false, overrunMsg = '';
+    let padStamp, padTitle, padSub, padBig, detectKicker, detectShift, detectShiftBg, detectShiftInk, detectSun = false, detectMoon = false, detectWindow, detectReason, detectWhy = '', liveRows = [], overrun = false, overrunMsg = '';
     const accent = 'var(--color-accent)';
     if (S) {
       const inD = new Date(S.inIso);
@@ -5310,6 +5321,8 @@ class Component extends DCLogic {
       detectShift = this.shiftName(kind);
       detectShiftBg = this.shiftChipBg(kind);
       detectShiftInk = this.shiftChipInk(kind);
+      detectSun = kind !== 'night';
+      detectMoon = kind === 'night';
       detectWindow = this.hhmm(this.schedStart(kind)) + this.T('start');
       detectReason = onBreak
         ? '지금 휴게시간 — unpaid break ' + this.hhmm(brs.find(b => outH >= b[0] && outH < b[1])[0]) + '–' + this.hhmm(brs.find(b => outH >= b[0] && outH < b[1])[1]) + ', the timer keeps running but these minutes are not paid.'
@@ -5337,6 +5350,8 @@ class Component extends DCLogic {
       detectShift = this.shiftName(kind);
       detectShiftBg = this.shiftChipBg(kind);
       detectShiftInk = this.shiftChipInk(kind);
+      detectSun = kind !== 'night';
+      detectMoon = kind === 'night';
       detectWindow = this.hhmm(this.schedStart(kind)) + this.T('start_2');
       const early = nowH < this.schedStart(kind) && this.schedStart(kind) - nowH <= 4;
       const brList = this.breaks(kind).map(b => this.hhmm(b[0]) + '–' + this.hhmm(b[1])).join(', ');
@@ -5813,7 +5828,7 @@ class Component extends DCLogic {
       todayDate: n.getFullYear() + '.' + pad2(n.getMonth() + 1) + '.' + pad2(n.getDate()),
       todayDow: this.dowLong(n.getDay()),
       nowClock: this.hhmm(nowH),
-      detectKicker, detectShift, detectShiftBg, detectShiftInk, detectWindow, detectReason, overrun, overrunMsg,
+      detectKicker, detectShift, detectShiftBg, detectShiftInk, detectSun, detectMoon, detectWindow, detectReason, overrun, overrunMsg,
       // 특근 알약은 그 날이 특근일 때만 섭니다 — 없는 날에 회색으로 서 있으면
       // '오늘은 특근이 아니다'가 아니라 '이 앱은 특근을 모른다'로 읽힙니다.
       detectHol: todayHol,

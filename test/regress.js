@@ -5787,5 +5787,69 @@ console.log('\n== 카드의 마지막 줄에는 밑줄이 없습니다 ==');
   ok('카드 끝의 여백 상자가 없습니다', secB.indexOf('height:18px') < 0);
 }
 
+console.log('\n== 근무조는 해와 달로도 말합니다 ==');
+{
+  // 근무기록 줄의 배지에는 해와 달이 있는데 출퇴근 카드에는 글자뿐이었습니다.
+  // 같은 하루를 두 화면이 다르게 그리면 안 됩니다 — 그림도 색처럼 한 벌입니다.
+  // 그림은 새로 그리지 않았습니다: 근무기록의 그 path를 그대로 씁니다.
+  const day = mk(V2, '2026-08-03T07:03:00');
+  day.setS({ shifts: 'day', shiftConfirmed: true });
+  const vd = day.renderVals();
+  ok('주간에는 해가 뜹니다', vd.detectSun === true && vd.detectMoon === false,
+    'sun=' + vd.detectSun + ' moon=' + vd.detectMoon);
+
+  const night = mk(V2, '2026-08-03T21:03:00');
+  night.setS({ shifts: 'night', shiftConfirmed: true });
+  const vn = night.renderVals();
+  ok('야간에는 달이 뜹니다', vn.detectMoon === true && vn.detectSun === false,
+    'sun=' + vn.detectSun + ' moon=' + vn.detectMoon);
+  ok('둘이 함께 뜨는 일은 없습니다', !(vn.detectSun && vn.detectMoon));
+
+  // 근무중에도 그대로입니다 — 찍고 나면 그림이 사라지면 안 됩니다
+  const on = mk(V2, '2026-08-03T10:00:00');
+  on.setS({ shifts: 'day', shiftConfirmed: true });
+  on.setState({ session: { inIso: new Date('2026-08-03T09:00:00').toISOString() } });
+  const vo = on.renderVals();
+  ok('근무중에도 해가 그대로 있습니다', vo.detectSun === true && vo.detectMoon === false);
+
+  const onN = mk(V2, '2026-08-03T23:00:00');
+  onN.setS({ shifts: 'night', shiftConfirmed: true });
+  onN.setState({ session: { inIso: new Date('2026-08-03T21:00:00').toISOString() } });
+  const voN = onN.renderVals();
+  ok('근무중 야간에는 달이 그대로 있습니다', voN.detectMoon === true && voN.detectSun === false);
+
+  // 특근은 근무조를 대신하지 않습니다(마흔째) — 그림도 마찬가지입니다
+  const hol = mk(V2, '2026-08-02T07:03:00');            // 일요일 = 특근
+  hol.setS({ shifts: 'day', shiftConfirmed: true });
+  const vh = hol.renderVals();
+  ok('특근인 주간에도 해는 해입니다', vh.detectHol === true && vh.detectSun === true);
+
+  // ── 마크업 ── 근무기록의 그림과 글자 그대로인지 셉니다
+  const fsS = require('fs');
+  const srcS = fsS.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tplS = srcS.slice(0, srcS.indexOf('</x-dc>'));
+  const SUNP = '<circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path>';
+  const MOONP = '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>';
+  ok('해 그림은 근무기록의 그것과 같습니다', (tplS.split(SUNP).length - 1) === 3,
+    'sun=' + (tplS.split(SUNP).length - 1));
+  ok('달 그림도 그렇습니다', (tplS.split(MOONP).length - 1) === 3,
+    'moon=' + (tplS.split(MOONP).length - 1));
+  // 알약 안에 하나, 시작 시각 줄에 하나 — 근무기록의 배지까지 세면 셋입니다
+  const card = tplS.slice(tplS.indexOf('{{ detectKicker }}'), tplS.indexOf('{{ detectReason }}'));
+  ok('알약과 시작 시각 줄에 하나씩 있습니다',
+    (card.split('{{ detectSun }}').length - 1) === 2
+    && (card.split('{{ detectMoon }}').length - 1) === 2);
+  ok('그림이 알약의 글자보다 앞에 섭니다',
+    card.indexOf('{{ detectSun }}') < card.indexOf('{{ detectShift }}'));
+  ok('시작 시각 줄에서도 그림이 앞에 섭니다',
+    card.lastIndexOf('{{ detectSun }}') < card.indexOf('{{ detectWindow }}'));
+  // 색을 새로 고르지 않았습니다 — 알약 안에서는 알약의 글자색입니다
+  ok('그림은 currentColor를 씁니다',
+    (card.split('stroke="currentColor"').length - 1) === 4);
+  // 알약은 일곱 개 그대로입니다(boot.js가 세는 그 수) — 새 알약을 만들지 않았습니다
+  ok('새 알약을 만들지 않았습니다',
+    (srcS.match(/min-height:30px;display:inline-flex/g) || []).length === 7);
+}
+
 console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);
