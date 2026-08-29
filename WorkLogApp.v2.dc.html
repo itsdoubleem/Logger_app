@@ -618,7 +618,7 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
 
         <div style="padding:0 18px">
           <sc-for list="{{ liveRows }}" as="r" hint-placeholder-count="5">
-            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--color-neutral-300)">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid {{ r.bd }}">
               <div style="display:flex;flex-direction:column;gap:2px">
                 <div style="font-size:12px;font-weight:600">{{ r.label }}</div>
                 <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-neutral-600)">{{ r.sub }}</div>
@@ -626,7 +626,6 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
               <div style="font-variant-numeric:tabular-nums;font-family:var(--font-heading);font-weight:800;font-size:15px;color:{{ r.ink }}">{{ r.value }}</div>
             </div>
           </sc-for>
-          <div style="height:18px"></div>
         </div>
       </div>
     </sc-if>
@@ -5384,6 +5383,14 @@ class Component extends DCLogic {
       ]);
       liveRows[liveRows.length - 1].value = this.won(this.payCalc(t).net);
     }
+    // ── 마지막 줄에는 밑줄이 없습니다 ──
+    // 줄마다 1px 밑줄이 있고 마지막 줄에도 있었습니다. 카드의 위는 첫 줄의
+    // 11px 여백뿐인데 아래는 밑줄 + 여백이라, 같은 카드의 위아래가 달랐습니다.
+    // 밑줄은 줄과 줄 사이를 가르는 것이지 카드의 끝을 그리는 것이 아닙니다 —
+    // 카드는 스스로 끝납니다(둥근 모서리와 그림자, 서른째).
+    liveRows = liveRows.map((r, i) => Object.assign({}, r, {
+      bd: i === liveRows.length - 1 ? 'transparent' : 'var(--color-neutral-300)',
+    }));
 
     // the pad says what the pad does: a fingerprint prompt where the phone has
     // one, press-and-hold where it does not. Everything else on it is unchanged.

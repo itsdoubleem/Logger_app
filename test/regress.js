@@ -5732,5 +5732,60 @@ console.log('\n== 명세서의 국민연금 한 줄이 보수월액을 되살립
   });
 }
 
+console.log('\n== 카드의 마지막 줄에는 밑줄이 없습니다 ==');
+{
+  // 출퇴근 카드는 줄마다 1px 밑줄을 그었고 마지막 줄에도 그었습니다. 카드의
+  // 위는 첫 줄의 여백 11px뿐인데 아래는 밑줄 + 여백 18px이라, 한 카드의 위아래가
+  // 달랐습니다. 밑줄은 줄과 줄 사이를 가르는 것이지 카드의 끝을 그리는 것이
+  // 아닙니다 — 카드는 둥근 모서리와 그림자로 스스로 끝납니다(서른째).
+  const rowsOf = c => c.renderVals().liveRows;
+
+  // 퇴근한 뒤의 카드 — 지난 근무 + 누계 다섯 줄
+  const done = mk(V2, '2026-08-25T18:10:00');
+  done.setS({ periodStart:21, payday:25 });
+  done.state.session = { inIso: new Date('2026-08-25T09:00:00').toISOString() };
+  done.punch();
+  const R = rowsOf(done);
+  ok('마지막 줄은 예상 실수령입니다', R[R.length-1].label === '예상 수령액',
+    R[R.length-1].label);
+  ok('마지막 줄에는 밑줄이 없습니다', R[R.length-1].bd === 'transparent', R[R.length-1].bd);
+  ok('그 앞 줄들은 밑줄을 그대로 그립니다',
+    R.slice(0, -1).every(r => r.bd === 'var(--color-neutral-300)'),
+    R.map(r => r.bd).join(' | '));
+
+  // 근무중 카드도 같습니다 — 두 갈래가 한 마크업을 나눠 씁니다
+  const on = mk(V2, '2026-08-25T09:00:00');
+  on.punch();
+  on.base = new Date('2026-08-25T15:00:00'); on.t0 = Date.now();
+  const O = rowsOf(on);
+  ok('근무중 카드도 마지막 줄에 밑줄이 없습니다', O[O.length-1].bd === 'transparent',
+    O[O.length-1].bd);
+  ok('근무중 카드의 앞 줄들은 밑줄이 있습니다',
+    O.slice(0, -1).every(r => r.bd === 'var(--color-neutral-300)'));
+
+  // 처음 쓰는 사람 — 지난 근무 줄이 없어 다섯 줄입니다
+  const fresh = mk(V2, '2026-08-21T09:00:00');
+  fresh.setS({ periodStart:21, payday:25 });
+  const F = rowsOf(fresh);
+  ok('기록이 없어도 마지막 줄에 밑줄이 없습니다', F[F.length-1].bd === 'transparent');
+  ok('줄 수는 그대로 다섯입니다', F.length === 5, 'rows=' + F.length);
+
+  // 값은 하나도 바뀌지 않았습니다 — 더한 것은 밑줄을 그릴지 말지뿐입니다
+  ok('금액도 이름도 그대로입니다',
+    R[0].label === '지난 근무' && R[1].label === '근무일' && R[R.length-1].value.indexOf('₩') === 0,
+    R[R.length-1].value);
+
+  // ── 마크업 ──
+  const fsB = require('fs');
+  const srcB = fsB.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tplB = srcB.slice(0, srcB.indexOf('</x-dc>'));
+  const secB = tplB.slice(tplB.indexOf('{{ liveRows }}'), tplB.indexOf('{{ liveRows }}') + 900);
+  ok('줄의 밑줄 색이 홀입니다', secB.indexOf('border-bottom:1px solid {{ r.bd }}') > 0);
+  ok('그 자리에 색이 박혀 있지 않습니다',
+    secB.indexOf('border-bottom:1px solid var(--color-neutral-300)') < 0);
+  // 카드 아래에 매달려 있던 18px 여백은 없앴습니다 — 위(11px)와 짝이 맞아야 합니다
+  ok('카드 끝의 여백 상자가 없습니다', secB.indexOf('height:18px') < 0);
+}
+
 console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);
