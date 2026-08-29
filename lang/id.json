@@ -725,5 +725,12 @@
   "unit_day_n": "tgl {p0}",
   "day_to_next_month_day": "Tgl {p0} → tgl {p1} bulan depan",
   "starts_day_ends_day": "Mulai tgl {p0} · berakhir {p1}",
-  "eight_hours_reached_at": "8 jam tercapai pukul"
+  "eight_hours_reached_at": "8 jam tercapai pukul",
+  "not_now": "Nanti saja",
+  "whose_record_is_this": "Ini catatan siapa?",
+  "the_document_is_the_only_place_your_na": "근무내역서 adalah satu-satunya tempat nama Anda dicetak. Kalau beberapa pekerja di satu pabrik masing-masing menyerahkan dokumen, tanpa nama tidak bisa dibedakan. Boleh dikosongkan — dokumen tetap dibuat, tapi tertulis «성명 미기재».",
+  "the_deductions_do_not_match": "Potongan tidak cocok",
+  "these_two_are_filed_with_the_agencies": "Selisih ini bukan uang yang kurang dibayarkan — dan tidak masuk hitungan kekurangan. Dua angka di bawah dilaporkan ke 공단 dan 국세청 sehingga aplikasi tidak tahu; mengisinya di sini membuat perkiraan potongan lebih dekat ke slip gaji. 보수월액 juga bisa dipulihkan dari baris 국민연금 di slip gaji (설정 › 4대보험과 세금).",
+  "your_payslip_pays_more_than_the_app": "Slip gaji membayar lebih dari hitungan aplikasi",
+  "a_수당_allowance_the_app_does_not_know": "Mungkin ada 수당 tunjangan yang dibayar perusahaan tapi belum diketahui aplikasi — 식대 uang makan, 교통비 transport, tunjangan masa kerja. Menambahkannya membuat total cocok, dan 식대 yang ditandai bebas pajak juga keluar dari dasar pajak dan asuransi."
 }

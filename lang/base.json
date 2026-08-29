@@ -3102,5 +3102,33 @@
   "eight_hours_reached_at": {
     "en": "8 hours reached at",
     "ko": "8시간이 차는 자리"
+  },
+  "not_now": {
+    "en": "Not now",
+    "ko": "나중에"
+  },
+  "whose_record_is_this": {
+    "en": "Whose record is this?",
+    "ko": "이 문서는 누구의 기록입니까?"
+  },
+  "the_document_is_the_only_place_your_na": {
+    "en": "The 근무내역서 is the only place your name is printed. When several workers at one factory each hand in a document, there is no telling them apart without it. You can leave it empty — the document is still made, but it says «성명 미기재» on itself.",
+    "ko": "근무내역서는 성명이 찍히는 유일한 곳입니다. 한 공장에서 여러 사람이 각자 문서를 내면 이름 없이는 어느 것이 누구 것인지 알 수 없습니다. 비워 두어도 문서는 나오지만, 문서가 스스로 «성명 미기재»라고 밝힙니다."
+  },
+  "the_deductions_do_not_match": {
+    "en": "The deductions do not match",
+    "ko": "공제가 명세서와 다릅니다"
+  },
+  "these_two_are_filed_with_the_agencies": {
+    "en": "This gap is not money you are owed — it never enters the shortfall. The two figures below are filed with the 공단 and 국세청, so the app cannot know them; typing them here brings the deduction estimate closer to your payslip. 보수월액 can also be recovered from the 국민연금 line on your payslip (설정 › 4대보험과 세금).",
+    "ko": "이 차이는 덜 받은 돈이 아닙니다 — 부족액에도 들어가지 않습니다. 아래 두 값은 공단·국세청에 신고된 것이라 앱이 알 수 없고, 여기 적어 넣으면 공제 추정이 명세서에 가까워집니다. 보수월액은 명세서의 국민연금 한 줄에서 되살릴 수도 있습니다(설정 › 4대보험과 세금)."
+  },
+  "your_payslip_pays_more_than_the_app": {
+    "en": "Your payslip pays more than the app counted",
+    "ko": "명세서가 앱보다 많이 줍니다"
+  },
+  "a_수당_allowance_the_app_does_not_know": {
+    "en": "There may be a 수당 allowance your company pays that the app does not know — 식대 meals, 교통비 transport, a service allowance. Adding it makes the gross match, and a 식대 marked tax-free also comes out of the tax and insurance basis.",
+    "ko": "회사가 주는 수당이 앱에 없을 수 있습니다 — 식대, 교통비, 근속수당 같은 것입니다. 적어 넣으면 지급총액이 맞아지고, 비과세로 표시한 식대는 세금과 4대보험 기준에서도 빠집니다."
   }
 }

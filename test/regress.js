@@ -5464,5 +5464,103 @@ console.log('\n== 휴게 시각도 알람처럼 굴려서 고칩니다 ==');
   ok('열린 칸 하나만 맞춥니다', body.indexOf("put('brDrumH'") > 0);
 }
 
+console.log('\n== 필요해지는 그 자리에서 묻습니다 ==');
+{
+  // 급여 탭 맨 위의 기본금 카드가 이미 하는 그것을 세 자리로 넓힙니다. 설정
+  // 깊숙이 접어 두는 대신, 그 값이 처음으로 중요해지는 화면에서 한 번 묻습니다.
+  const mkP = () => {
+    const c = mk(V2, '2026-08-15T10:00:00');
+    c.state.extra = [{ y:2026, m:8, day:3, kind:'day', type:'shift', inH:9, outH:21,
+      c: c.calc(9, 21, 'day', false) }];
+    return c;
+  };
+
+  // ── 1. 성명 · 근무내역서를 만들기 직전 ──
+  // 열여덟째는 문서가 나온 **뒤에** 빨간 «성명 미기재»로 알려 줍니다. 그러면
+  // 그 종이를 다시 만들어야 합니다. 만들기 전에 묻습니다.
+  const n = mkP();
+  ok('이름이 없으면 문서 앞에서 묻습니다', n.renderVals().askName === true);
+  n.setS({ workerName: 'NGUYEN VAN A' });
+  ok('적으면 묻지 않습니다', n.renderVals().askName === false);
+  const n2 = mkP();
+  n2.renderVals().nameLater();
+  ok('나중에를 누르면 이번에는 묻지 않습니다', n2.renderVals().askName === false);
+  ok('나중에는 저장되지 않습니다', (n2.save(), !/nameAsked/.test(n2.lastSaved || '')));
+  ok('그래도 이름은 여전히 비어 있습니다', n2.workerName() === '');
+  // 막지 않습니다 — 문서는 그대로 나오고, 스스로 미기재라고 밝힙니다
+  ok('문서는 그대로 만들어집니다', n2.evidenceHtml(n2.viewPeriod()).indexOf('미기재') > 0);
+
+  // ── 2. 공제가 어긋난 그 자리에서 두 칸 ──
+  const d = mkP();
+  ok('명세서를 안 적었으면 묻지 않습니다', d.renderVals().askDed === false);
+  const app = d.slipRows().find(r => r.k === 'ded').app;
+  d.setSlip('ded', String(app));
+  ok('같으면 묻지 않습니다', d.renderVals().askDed === false);
+  d.setSlip('ded', String(app + 100000));
+  ok('어긋나면 그 자리에서 묻습니다', d.renderVals().askDed === true);
+  d.setSlip('ded', String(app + 500));
+  ok('몇백 원 차이로는 묻지 않습니다', d.renderVals().askDed === false, '500');
+
+  // ── 잔업 줄에는 이런 카드를 붙이지 않습니다 ──
+  // 거기서 어긋난 것은 **부족액**입니다. 앱이 그것을 설명해 없애면 이 앱이 있을
+  // 이유가 사라집니다. 명세서가 잔업을 덜 주어도 새 카드는 뜨지 않고, 빨간
+  // 부족액은 그대로 섭니다.
+  const o = mkP();
+  const otApp = o.slipRows().find(r => r.k === 'ot').app;
+  const paid = Math.max(0, otApp - 50000);
+  o.setSlip('ot', String(paid));
+  const ov = o.renderVals();
+  ok('잔업이 덜 나와도 새 카드는 없습니다', ov.askDed === false && ov.askAllow === false);
+  // 0으로 깎이는 경우가 있으므로 실제 차액으로 셉니다 — 처음에 50,000을 그대로
+  // 기대했다가 걸렸습니다. 앱이 아니라 시험의 산수가 틀렸습니다.
+  ok('부족액은 그대로 섭니다', o.slipShortfall() === otApp - paid,
+    o.slipShortfall() + ' vs ' + (otApp - paid));
+  ok('그리고 0이 아닙니다', o.slipShortfall() > 0, String(o.slipShortfall()));
+  ok('배수를 권하는 문장은 아예 없습니다',
+    Object.keys(V2.STR).every(k => {
+      const v = V2.STR[k] && V2.STR[k].ko;
+      return !(typeof v === 'string' && /배수를 (바꿔|고쳐)/.test(v));
+    }));
+
+  // ── 3. 명세서가 앱보다 많이 줄 때 ──
+  const a = mkP();
+  const gApp = a.slipRows().find(r => r.k === 'gross').app;
+  a.setSlip('gross', String(gApp + 200000));
+  ok('수당이 없으면 그 자리에서 묻습니다', a.renderVals().askAllow === true);
+  a.setS({ allowances: [{ name: '식대', en: 'Meal', amount: 200000, tf: true }] });
+  ok('이미 적어 둔 사람에게는 짐작하지 않습니다', a.renderVals().askAllow === false);
+  const a2 = mkP();
+  a2.setSlip('gross', String(gApp - 200000));
+  ok('명세서가 적을 때는 수당 이야기를 하지 않습니다', a2.renderVals().askAllow === false);
+
+  // ── 화면: 카드가 맞는 자리에 있습니다 ──
+  const fs = require('fs');
+  const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tpl = src.slice(0, src.indexOf('</x-dc>'));
+  ok('성명 카드는 근무내역서 단추 앞에 섭니다',
+    tpl.indexOf('{{ askName }}') < tpl.indexOf('{{ doEvidence }}')
+    && tpl.indexOf('{{ askName }}') > tpl.indexOf('{{ docPeriodSub }}'));
+  ok('공제 카드는 대조표 아래에 섭니다',
+    tpl.indexOf('{{ askDed }}') > tpl.indexOf('{{ slipRows }}'));
+  ok('그 카드가 실제로 두 칸을 내어 놓습니다',
+    tpl.slice(tpl.indexOf('{{ askDed }}'), tpl.indexOf('{{ askAllow }}')).indexOf('{{ setBosu }}') > 0
+    && tpl.slice(tpl.indexOf('{{ askDed }}'), tpl.indexOf('{{ askAllow }}')).indexOf('{{ setDep }}') > 0);
+  ok('수당 카드는 줄을 더하는 단추를 내어 놓습니다',
+    tpl.slice(tpl.indexOf('{{ askAllow }}')).indexOf('{{ addAllow }}') > 0);
+  // 설정에서 지운 것은 없습니다 — 옮긴 것이 아니라 한 번 더 물을 자리를 만든 것입니다
+  ok('보수월액은 설정에도 그대로 있습니다',
+    (tpl.match(/\{\{ setBosu \}\}/g) || []).length === 2);
+  ok('공제대상가족도 그대로입니다', (tpl.match(/\{\{ setDep \}\}/g) || []).length === 2);
+  ok('성명 칸도 설정에 그대로입니다', (tpl.match(/\{\{ setWorkerName \}\}/g) || []).length === 2);
+
+  ['ko','en','vi','zh','th','id','ne','km'].forEach(Lg => {
+    ok(Lg + ' 세 카드의 문장이 다 있습니다',
+      !!V2.STR['whose_record_is_this'][Lg] && !!V2.STR['the_deductions_do_not_match'][Lg]
+      && !!V2.STR['your_payslip_pays_more_than_the_app'][Lg] && !!V2.STR['not_now'][Lg]);
+    ok(Lg + ' 공제 카드가 덜 받은 돈이 아니라고 말합니다',
+      V2.STR['these_two_are_filed_with_the_agencies'][Lg].length > 60);
+  });
+}
+
 console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);
