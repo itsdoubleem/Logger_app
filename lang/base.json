@@ -3064,7 +3064,7 @@
     "ko": "출퇴근 시작하기"
   },
   "day_to_end": {
-    "en": "{p0} → month end",
+    "en": "Day {p0} → month end",
     "ko": "{p0}일 ~ 말일"
   },
   "changing_this_now_re_buckets_records": {
@@ -3074,5 +3074,33 @@
   "next_question": {
     "en": "Next",
     "ko": "다음"
+  },
+  "go_back": {
+    "en": "Back",
+    "ko": "뒤로"
+  },
+  "a_normal_day_ends_at": {
+    "en": "A normal day ends at",
+    "ko": "평소 하루는 여기서 끝납니다"
+  },
+  "clock_out_is_punched_not_set": {
+    "en": "You do not set a clock-out time — the moment you press your fingerprint is your 퇴근. The end time above is where the app works out that 8 hours are reached with breaks taken off (on 교대, where the other shift starts). Anything past it is 잔업 overtime ×1.5.",
+    "ko": "퇴근 시각은 설정하지 않습니다 — 지문으로 찍는 그 시각이 퇴근입니다. 위의 끝나는 시각은 휴게를 빼고 8시간이 차는 자리를 앱이 계산한 것이고(교대라면 다른 조가 시작하는 자리), 그보다 더 일하면 잔업 ×1.5가 붙습니다."
+  },
+  "month_end_word": {
+    "en": "month end",
+    "ko": "말일"
+  },
+  "unit_day_n": {
+    "en": "day {p0}",
+    "ko": "{p0}일"
+  },
+  "day_to_next_month_day": {
+    "en": "Day {p0} → day {p1} next month",
+    "ko": "{p0}일 ~ 다음달 {p1}일"
+  },
+  "starts_day_ends_day": {
+    "en": "Starts day {p0} · ends {p1}",
+    "ko": "시작 {p0}일 · 끝 {p1}"
   }
 }

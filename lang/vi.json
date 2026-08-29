@@ -718,5 +718,12 @@
   "start_punching": "출퇴근 BẮT ĐẦU CHẤM CÔNG",
   "day_to_end": "Ngày {p0} → cuối tháng",
   "changing_this_now_re_buckets_records": "Bạn đã có dữ liệu. Đổi ngày bắt đầu 급여기간 sẽ gom lại các bản ghi cũ, và cơ sở lương cùng bảng đối chiếu phiếu lương đã lưu sẽ không còn khớp kỳ nào.",
-  "next_question": "Tiếp theo"
+  "next_question": "Tiếp theo",
+  "go_back": "Quay lại",
+  "a_normal_day_ends_at": "Ngày làm bình thường kết thúc lúc",
+  "clock_out_is_punched_not_set": "Bạn không đặt giờ tan ca — thời điểm bạn quét vân tay chính là 퇴근. Giờ kết thúc ở trên là lúc ứng dụng tính đủ 8 giờ sau khi trừ giờ nghỉ (với 교대 là lúc ca kia bắt đầu). Quá giờ đó là 잔업 tăng ca ×1.5.",
+  "month_end_word": "cuối tháng",
+  "unit_day_n": "ngày {p0}",
+  "day_to_next_month_day": "Ngày {p0} → ngày {p1} tháng sau",
+  "starts_day_ends_day": "Bắt đầu ngày {p0} · kết thúc {p1}"
 }

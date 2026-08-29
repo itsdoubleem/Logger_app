@@ -718,5 +718,12 @@
   "start_punching": "출퇴근 MULAI ABSEN",
   "day_to_end": "Tgl {p0} → akhir bulan",
   "changing_this_now_re_buckets_records": "Anda sudah punya catatan. Mengubah awal 급여기간 akan mengelompokkan ulang catatan lama, dan dasar upah serta perbandingan slip gaji yang tersimpan tidak lagi cocok dengan periodenya.",
-  "next_question": "Lanjut"
+  "next_question": "Lanjut",
+  "go_back": "Kembali",
+  "a_normal_day_ends_at": "Hari kerja biasa berakhir pukul",
+  "clock_out_is_punched_not_set": "Anda tidak mengatur jam pulang — saat Anda menempelkan sidik jari itulah 퇴근. Jam berakhir di atas adalah titik saat aplikasi menghitung 8 jam tercapai setelah istirahat dipotong (pada 교대, saat shift lain mulai). Lewat dari itu adalah 잔업 lembur ×1.5.",
+  "month_end_word": "akhir bulan",
+  "unit_day_n": "tgl {p0}",
+  "day_to_next_month_day": "Tgl {p0} → tgl {p1} bulan depan",
+  "starts_day_ends_day": "Mulai tgl {p0} · berakhir {p1}"
 }

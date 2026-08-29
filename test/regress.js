@@ -5148,5 +5148,98 @@ console.log('\n== 없는 키를 부르면 화면에 키 이름이 그대로 찍�
   ok('그 단추가 빨간 주 단추입니다', q1.indexOf('background:var(--color-accent)') >= 0);
 }
 
+console.log('\n== 네 물음이 절반만 묻고 있었습니다 ==');
+{
+  // 폰에서 쓰던 사람이 다섯 가지를 들고 왔습니다. 넷은 화면이 빠뜨린 것이고,
+  // 다섯째는 **이름표가 계산과 다른 말을 하고 있던 것**입니다.
+  const fresh = () => { const c = mk(V2, '2026-08-03T09:00:00'); c.setState({ setupStep: 1 }); return c; };
+
+  // ── 1. 교대는 시작이 둘입니다 ──
+  const d = fresh(); d.renderVals().shiftOpts[0].set();
+  ok('주간만은 주간 시작만 묻습니다', d.renderVals().suShowDay === true && d.renderVals().suShowNight === false);
+  const n = fresh(); n.renderVals().shiftOpts[1].set();
+  ok('야간만은 야간 시작만 묻습니다', n.renderVals().suShowDay === false && n.renderVals().suShowNight === true);
+  const r = fresh(); r.renderVals().shiftOpts[2].set();
+  ok('교대는 둘 다 묻습니다', r.renderVals().suShowDay === true && r.renderVals().suShowNight === true);
+  r.renderVals().suNightChips[1].set();
+  ok('야간 칩이 저장됩니다', r.st().nightStart === '19:00', r.st().nightStart);
+  ok('야간 시각 칸도 있습니다', typeof r.renderVals().setNightStart === 'function'
+    && typeof r.renderVals().keyNightStart === 'function');
+
+  // ── 2. 시작만 묻고 끝을 말해 주지 않았습니다 ──
+  // 퇴근 시각은 설정하지 않습니다(2026-08-18) — 하지만 앱은 이미 알고 있습니다.
+  const e = fresh(); e.renderVals().shiftOpts[0].set();
+  ok('평소 하루가 끝나는 자리를 보여 줍니다',
+    e.renderVals().suDayEnd === e.hhmm(e.normalEnd('day')), e.renderVals().suDayEnd);
+  ok('9시 시작 · 점심 1시간이면 18:00입니다', e.renderVals().suDayEnd === '18:00', e.renderVals().suDayEnd);
+  ok('교대라면 다른 조가 시작하는 자리입니다',
+    r.renderVals().suDayEnd === r.hhmm(r.normalEnd('day')), r.renderVals().suDayEnd);
+  ok('그래도 퇴근 시각 설정은 생기지 않았습니다',
+    V2.DEFAULTS.dayEnd === undefined && V2.DEFAULTS.nightEnd === undefined);
+
+  // ── 3. 뒤로 갈 수 없었습니다 ──
+  const b = fresh(); b.setState({ setupStep: 3 });
+  b.renderVals().suBack();
+  ok('뒤로 가면 앞 화면입니다', b.renderVals().suIs2 === true);
+  b.renderVals().suBack();
+  ok('한 번 더 가면 첫 화면입니다', b.renderVals().suIs1 === true);
+  b.renderVals().suBack();
+  ok('첫 화면에서 뒤로 가면 소개로 돌아갑니다',
+    b.renderVals().suOn === false && b.renderVals().showTour === true);
+
+  // ── 4. 휴게 시각을 고칠 수 없었습니다 ──
+  const k = fresh(); k.renderVals().shiftOpts[2].set(); k.setState({ setupStep: 2 });
+  const rows = k.renderVals().dayBreakRows;
+  ok('휴게가 고칠 수 있는 줄로 나옵니다', rows.length === 2
+    && typeof rows[0].setFrom === 'function' && typeof rows[0].setTo === 'function');
+  ok('줄마다 길이가 적힙니다', /60/.test(rows[0].mins), rows[0].mins);
+  ok('잔업 휴게에는 표가 붙어 있습니다', rows[1].otOnly === true);
+  rows[0].setTo({ target: { value: '13:00' } });
+  ok('시각을 고치면 저장됩니다', k.st().breaksDay[0].to === '13:00', k.st().breaksDay[0].to);
+  ok('고치면 손댔다는 사실도 적힙니다', k.st().breaksTouched === true);
+  ok('야간 휴게 줄도 있습니다', k.renderVals().nightBreakRows.length >= 1);
+  // 쉼표로 이어 붙인 한 줄은 더 이상 화면에 없습니다
+  const fs = require('fs');
+  const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tpl = src.slice(0, src.indexOf('</x-dc>'));
+  ok('이어 붙인 문자열은 사라졌습니다', tpl.indexOf('{{ suBreakNow }}') < 0);
+  ok('그 값도 남겨 두지 않았습니다', src.indexOf('suBreakNow:') < 0);
+
+  // ── 5. 이름표가 계산과 다른 말을 하고 있었습니다 ──
+  // 칩이 '21 → 말일'이었습니다. 21일에 시작하는 급여기간은 말일이 아니라
+  // 다음달 20일에 끝납니다. period()는 처음부터 그렇게 세고 있었고, 틀린 것은
+  // 이름표뿐이었습니다. 이제 이름표를 같은 산수에서 만들고, 둘이 갈라지지
+  // 않는지 period()에 직접 물어 확인합니다.
+  [1, 11, 21, 26].forEach(day => {
+    const c = mk(V2, '2026-08-03T09:00:00');
+    c.setS({ periodStart: day });
+    const P = c.period(c.now());
+    const realEnd = P.e.getDate();
+    const lastOfMonth = new Date(P.e.getFullYear(), P.e.getMonth() + 1, 0).getDate();
+    const said = V2.periodEndDay(day);
+    ok('시작 ' + day + '일의 끝을 이름표가 맞게 말합니다',
+      said === 0 ? realEnd === lastOfMonth : said === realEnd,
+      'label says ' + (said || 'month end') + ', period() ends ' + realEnd);
+  });
+  const chips = fresh().renderVals().suPeriodChips;
+  ok('말일에 끝나는 것은 1일뿐입니다',
+    /말일|month end|cuối tháng/.test(chips[0].lbl)
+    && !/말일|month end/.test(chips[1].lbl) && !/말일|month end/.test(chips[2].lbl),
+    chips.map(x => x.lbl).join(' | '));
+  ok('11일 칩이 다음달 10일이라고 말합니다', /10/.test(chips[1].lbl), chips[1].lbl);
+  ok('21일 칩이 다음달 20일이라고 말합니다', /20/.test(chips[2].lbl), chips[2].lbl);
+  const sp = fresh(); sp.setS({ periodStart: 21 });
+  ok('시작하는 날과 끝나는 날을 나란히 적습니다',
+    /21/.test(sp.renderVals().suPeriodSpan) && /20/.test(sp.renderVals().suPeriodSpan),
+    sp.renderVals().suPeriodSpan);
+
+  ['ko','en','vi','zh','th','id','ne','km'].forEach(Lg => {
+    ok(Lg + ' 뒤로·끝나는 자리·기간 이름표가 있습니다',
+      !!V2.STR['go_back'][Lg] && !!V2.STR['a_normal_day_ends_at'][Lg]
+      && !!V2.STR['clock_out_is_punched_not_set'][Lg]
+      && V2.STR['day_to_next_month_day'][Lg].indexOf('{p1}') >= 0);
+  });
+}
+
 console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);
