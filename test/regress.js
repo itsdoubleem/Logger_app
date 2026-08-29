@@ -5830,22 +5830,25 @@ console.log('\n== 근무조는 해와 달로도 말합니다 ==');
   const tplS = srcS.slice(0, srcS.indexOf('</x-dc>'));
   const SUNP = '<circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path>';
   const MOONP = '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>';
-  ok('해 그림은 근무기록의 그것과 같습니다', (tplS.split(SUNP).length - 1) === 3,
+  ok('해 그림은 근무기록의 그것과 같습니다', (tplS.split(SUNP).length - 1) === 2,
     'sun=' + (tplS.split(SUNP).length - 1));
-  ok('달 그림도 그렇습니다', (tplS.split(MOONP).length - 1) === 3,
+  ok('달 그림도 그렇습니다', (tplS.split(MOONP).length - 1) === 2,
     'moon=' + (tplS.split(MOONP).length - 1));
-  // 알약 안에 하나, 시작 시각 줄에 하나 — 근무기록의 배지까지 세면 셋입니다
+  // 그림은 알약 안에 하나뿐입니다 — 근무기록의 배지까지 세면 둘입니다.
+  // 시작 시각 줄에도 한 번 붙여 봤는데, 한 줄에서 같은 말을 두 번 하는 것이라
+  // 뺐습니다: 근무조를 말하는 것은 알약이고 그 옆은 시각입니다.
   const card = tplS.slice(tplS.indexOf('{{ detectKicker }}'), tplS.indexOf('{{ detectReason }}'));
-  ok('알약과 시작 시각 줄에 하나씩 있습니다',
-    (card.split('{{ detectSun }}').length - 1) === 2
-    && (card.split('{{ detectMoon }}').length - 1) === 2);
+  ok('그림은 알약 안에만 있습니다',
+    (card.split('{{ detectSun }}').length - 1) === 1
+    && (card.split('{{ detectMoon }}').length - 1) === 1);
   ok('그림이 알약의 글자보다 앞에 섭니다',
     card.indexOf('{{ detectSun }}') < card.indexOf('{{ detectShift }}'));
-  ok('시작 시각 줄에서도 그림이 앞에 섭니다',
-    card.lastIndexOf('{{ detectSun }}') < card.indexOf('{{ detectWindow }}'));
+  ok('시작 시각 줄에는 그림이 없습니다',
+    card.indexOf('{{ detectSun }}') < card.indexOf('{{ detectWindow }}')
+    && card.slice(card.indexOf('{{ detectShift }}'), card.indexOf('{{ detectReason }}')).indexOf('<svg') < 0);
   // 색을 새로 고르지 않았습니다 — 알약 안에서는 알약의 글자색입니다
   ok('그림은 currentColor를 씁니다',
-    (card.split('stroke="currentColor"').length - 1) === 4);
+    (card.split('stroke="currentColor"').length - 1) === 2);
   // 알약은 일곱 개 그대로입니다(boot.js가 세는 그 수) — 새 알약을 만들지 않았습니다
   ok('새 알약을 만들지 않았습니다',
     (srcS.match(/min-height:30px;display:inline-flex/g) || []).length === 7);
