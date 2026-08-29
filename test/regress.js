@@ -5004,7 +5004,7 @@ console.log('\n== 환영 화면 다음이 여덟 묶음짜리 설정이었습니
     JSON.stringify(a.st().breaksDay[1]));
 
   const t = fresh(); t.renderVals().endTour();
-  t.renderVals().suStartChips[0].set();
+  t.renderVals().suStartChips.find(x => x.t === '06:00').set();
   ok('시각 칩이 정규 문자열을 씁니다', t.st().dayStart === '06:00', t.st().dayStart);
   ok('시각을 고른 것도 확인입니다', t.st().shiftConfirmed === true);
 
@@ -5161,7 +5161,9 @@ console.log('\n== 네 물음이 절반만 묻고 있었습니다 ==');
   ok('야간만은 야간 시작만 묻습니다', n.renderVals().suShowDay === false && n.renderVals().suShowNight === true);
   const r = fresh(); r.renderVals().shiftOpts[2].set();
   ok('교대는 둘 다 묻습니다', r.renderVals().suShowDay === true && r.renderVals().suShowNight === true);
-  r.renderVals().suNightChips[1].set();
+  // 자리로 찾지 않습니다 — 목록이 30분 단위 마흔여덟 개로 늘어났고, 자리를
+  // 세는 시험은 목록이 바뀌는 날 조용히 다른 것을 고릅니다.
+  r.renderVals().suNightChips.find(x => x.t === '19:00').set();
   ok('야간 칩이 저장됩니다', r.st().nightStart === '19:00', r.st().nightStart);
   ok('야간 시각 칸도 있습니다', typeof r.renderVals().setNightStart === 'function'
     && typeof r.renderVals().keyNightStart === 'function');
@@ -5239,6 +5241,88 @@ console.log('\n== 네 물음이 절반만 묻고 있었습니다 ==');
       && !!V2.STR['clock_out_is_punched_not_set'][Lg]
       && V2.STR['day_to_next_month_day'][Lg].indexOf('{p1}') >= 0);
   });
+}
+
+console.log('\n== 네 개로는 모자라고, 안 변하는 것처럼 보였습니다 ==');
+{
+  // 두 가지가 더 나왔습니다. 하나는 고를 것이 모자란 것이고, 하나는 앱이
+  // 맞게 계산하면서 **왜 그런지 말하지 않아** 고장으로 읽힌 것입니다.
+  const fresh = () => { const c = mk(V2, '2026-08-03T09:00:00'); c.setState({ setupStep: 1 }); return c; };
+
+  // ── 시각은 30분 단위로 하루 전부 ──
+  ok('반 시간 단위로 마흔여덟 개입니다', V2.HALF_HOURS.length === 48);
+  ok('00:00에서 시작합니다', V2.HALF_HOURS[0] === '00:00');
+  ok('23:30에서 끝납니다', V2.HALF_HOURS[47] === '23:30');
+  ok('05:30도 있습니다', V2.HALF_HOURS.indexOf('05:30') > 0);
+  ok('14:00도 있습니다', V2.HALF_HOURS.indexOf('14:00') > 0);
+  const c = fresh();
+  ok('주간 목록이 마흔여덟입니다', c.renderVals().suStartChips.length === 48);
+  ok('야간 목록도 마흔여덟입니다', c.renderVals().suNightChips.length === 48);
+  const at = t => c.renderVals().suStartChips.find(x => x.t === t);
+  at('05:30').set();
+  ok('목록에서 고르면 저장됩니다', c.st().dayStart === '05:30', c.st().dayStart);
+  ok('고른 것에 표시가 붙습니다', at('05:30').bg === 'var(--color-text)');
+  ok('안 고른 것에는 안 붙습니다', at('09:00').bg === 'transparent');
+  // 화면에서 굴러가야 합니다 — 마흔여덟 개가 그냥 흘러내리면 단추가 화면 밖입니다
+  const fs = require('fs');
+  const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tpl = src.slice(0, src.indexOf('</x-dc>'));
+  const q1 = tpl.slice(tpl.indexOf('{{ suIs1 }}'), tpl.indexOf('{{ suIs2 }}'));
+  ok('시각 상자가 굴러갑니다', (q1.match(/overflow-y:auto/g) || []).length === 2, q1.match(/overflow-y:auto/g));
+  ok('높이가 묶여 있습니다', (q1.match(/max-height:212px/g) || []).length === 2);
+  // 물음이 열려 있지 않으면 만들지 않습니다 — 시계는 1초마다 돕니다
+  const idle = mk(V2, '2026-08-03T09:00:00');
+  ok('물음이 닫혀 있으면 목록을 만들지 않습니다', idle.renderVals().suStartChips.length === 0);
+
+  // ── 교대에서 주간의 끝이 안 움직이는 것처럼 보였습니다 ──
+  // 계산은 맞습니다. 교대의 normalEnd('day')는 **야간이 시작하는 자리**이고
+  // (2026-08-18), 두 조가 서로 넘겨받기 때문입니다. 주간 시작을 바꾸면 움직이는
+  // 것은 주간의 끝이 아니라 **야간의 끝**입니다 — 화면이 그 말을 하지 않았습니다.
+  const r = mk(V2, '2026-08-03T09:00:00');
+  r.setState({ setupStep: 1 });
+  r.setS({ shifts: 'both', nightStart: '21:00',
+    breaksDay: [{ from: '11:30', to: '12:30' }, { from: '17:00', to: '17:30', ot: true }],
+    breaksNight: [{ from: '00:00', to: '01:00' }] });
+  r.setS({ dayStart: '09:00' });
+  const a = r.renderVals();
+  r.setS({ dayStart: '06:00' });
+  const b = r.renderVals();
+  ok('주간의 끝은 야간 시작에 묶여 있습니다', a.suDayEnd === '21:00' && b.suDayEnd === '21:00',
+    a.suDayEnd + ' / ' + b.suDayEnd);
+  ok('움직이는 것은 야간의 끝입니다', a.suNightEnd === '09:00' && b.suNightEnd === '06:00',
+    a.suNightEnd + ' / ' + b.suNightEnd);
+  // 그래서 시간 수를 함께 적습니다 — 06:00 → 21:00이 15.0h라는 것이 바로 보입니다
+  ok('9시 시작은 12.0h입니다', a.suDayHours === '12.0h', a.suDayHours);
+  ok('6시 시작은 15.0h로 드러납니다', b.suDayHours === '15.0h', b.suDayHours);
+  ok('야간 시간 수도 함께 적습니다', a.suNightHours === '12.0h', a.suNightHours);
+  ok('교대일 때만 넘겨받는다는 안내가 뜹니다', b.suRotating === true);
+  const d1 = fresh(); d1.setS({ shifts: 'day' });
+  ok('주간만에는 그 안내가 없습니다', d1.renderVals().suRotating === false);
+  // 주간만은 여전히 시작을 따라 움직입니다 — 묶여 있는 것은 교대뿐입니다
+  d1.setS({ dayStart: '06:00', breaksDay: [{ from: '11:30', to: '12:30' }] });
+  ok('주간만은 시작을 따라 끝이 움직입니다', d1.renderVals().suDayEnd === '15:00',
+    d1.renderVals().suDayEnd);
+
+  ok('span은 자정을 넘겨도 셉니다', V2.spanH(21, 30) === 9 && V2.spanH(9, 21) === 12
+    && V2.spanH(21, 21) === 24);
+
+  ['ko','en','vi','zh','th','id','ne','km'].forEach(Lg => {
+    const t = V2.STR['the_two_shifts_hand_over_to_each_other'][Lg];
+    ok(Lg + ' 넘겨받는다는 안내가 있습니다', !!t && t.length > 30);
+  });
+
+  // ── 화면은 마크다운을 그리지 않습니다 ──
+  // 이 안내를 쓰면서 **야간의 끝**이라고 적었더니 폰에 별 두 개가 그대로
+  // 찍혔습니다. 템플릿은 문자열을 글자 그대로 내보냅니다 — 강조하고 싶으면
+  // 별표가 아니라 마크업으로 해야 합니다.
+  const marks = [];
+  Object.keys(V2.STR).forEach(k => {
+    const row = V2.STR[k];
+    Object.keys(row).forEach(Lg => {
+      if (typeof row[Lg] === 'string' && row[Lg].indexOf('**') >= 0) marks.push(k + '.' + Lg);
+    });
+  });
+  ok('별표 강조가 남아 있지 않습니다', marks.length === 0, marks.slice(0, 5).join(', '));
 }
 
 console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');

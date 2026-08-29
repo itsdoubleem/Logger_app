@@ -725,5 +725,6 @@
   "month_end_word": "akhir bulan",
   "unit_day_n": "tgl {p0}",
   "day_to_next_month_day": "Tgl {p0} → tgl {p1} bulan depan",
-  "starts_day_ends_day": "Mulai tgl {p0} · berakhir {p1}"
+  "starts_day_ends_day": "Mulai tgl {p0} · berakhir {p1}",
+  "the_two_shifts_hand_over_to_each_other": "Pada 교대, kedua shift saling serah terima — shift siang berakhir tepat saat shift malam mulai. Jadi mengubah jam mulai siang menggeser jam berakhir shift malam, bukan siang. Kalau siang mulai lebih awal, majukan juga jam mulai malam."
 }

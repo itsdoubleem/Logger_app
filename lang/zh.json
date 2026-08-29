@@ -725,5 +725,6 @@
   "month_end_word": "月底",
   "unit_day_n": "{p0} 日",
   "day_to_next_month_day": "{p0} 日 → 次月 {p1} 日",
-  "starts_day_ends_day": "起 {p0} 日 · 迄 {p1}"
+  "starts_day_ends_day": "起 {p0} 日 · 迄 {p1}",
+  "the_two_shifts_hand_over_to_each_other": "교대 是两班交接 — 白班结束的时刻就是夜班开始的时刻。所以改动白班开始时间，动的是夜班的结束时间，而不是白班的。如果白班提早，请把夜班开始时间也一起提早。"
 }

@@ -725,5 +725,6 @@
   "month_end_word": "cuối tháng",
   "unit_day_n": "ngày {p0}",
   "day_to_next_month_day": "Ngày {p0} → ngày {p1} tháng sau",
-  "starts_day_ends_day": "Bắt đầu ngày {p0} · kết thúc {p1}"
+  "starts_day_ends_day": "Bắt đầu ngày {p0} · kết thúc {p1}",
+  "the_two_shifts_hand_over_to_each_other": "Với 교대, hai ca bàn giao cho nhau — ca ngày kết thúc đúng lúc ca đêm bắt đầu. Vì vậy đổi giờ bắt đầu ca ngày sẽ dời giờ kết thúc của ca đêm, không phải ca ngày. Nếu bạn vào ca ngày sớm hơn, hãy dời giờ bắt đầu ca đêm sớm hơn theo."
 }
