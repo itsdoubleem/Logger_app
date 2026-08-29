@@ -132,7 +132,7 @@ python3 build.py v2     # dist-v2/
 ./build_apk.sh v2       # worklog-debug.apk  (needs Gradle from Android Studio)
 ```
 
-`sh test/run.sh` is the gate. It runs the wage-engine equivalence proof, 2035
+`sh test/run.sh` is the gate. It runs the wage-engine equivalence proof, 2048
 regression assertions (each tied to a real bug), a check that every `{{ hole }}` in the
 template resolves, translation validation, a render of all eight languages, both
 builds, and `test/boot.js` — the one test that reads the *built page* rather than the
@@ -293,7 +293,76 @@ value afterwards when you have been tapping near real settings.
 
 ## Change log beyond V2.md
 
-### 2026-08-29 (latest, thirty-fifth) — 안 변하는 것이 아니라 무엇이 변하는지 말하지 않았습니다
+### 2026-08-29 (latest, thirty-sixth) — 시각은 시계 앱의 알람처럼 굴려서 고릅니다
+
+앞 회차에서 시각 칩을 마흔여덟 개짜리 굴러가는 격자로 바꿨더니 만든 사람이
+말했습니다: **그건 내가 말한 굴림이 아닙니다. 폰의 시계 앱에서 알람을 하나
+만들어 보세요. 그 굴림판을 말한 겁니다.**
+
+시계 앱을 열어 봤습니다(`am start -a android.intent.action.SET_ALARM`). 시 칸과
+분 칸이 나란히 서서 가운데 띠에 든 값만 크고 진하고, 위아래 이웃은 흐리고,
+굴리면 값이 바뀝니다. 격자와는 다른 물건입니다.
+
+#### 굴림판
+
+`DRUM_H`(00–23) · `DRUM_M`(5분 단위 열둘) · `DRUM_ITEM = 56`. 한 칸 높이 56px,
+위아래에 56px 여백을 두어 첫 칸과 마지막 칸도 가운데에 설 수 있습니다.
+`scroll-snap-type:y mandatory` + `scroll-snap-align:center`로 물리고, 가운데 띠는
+**`pointer-events:none`** 입니다 — 그렇지 않으면 가운데 칸을 영영 누를 수
+없습니다(asserted).
+
+**분은 5분 단위입니다.** 근무 시작이 :07인 공장은 없고, 그런 값이 필요하면 아래
+손으로 치는 칸이 그대로 받습니다 — `drumIndex()`는 :07을 :05 칸으로 읽어
+보여 주기만 하고 저장된 값을 바꾸지 않습니다.
+
+**`onScroll`이 이 런타임에서 통합니다.** dc 템플릿의 `on*`은 React props로
+그대로 넘어갑니다 — `onClick`·`onChange`와 같은 길입니다. 굴린 자리에서
+`Math.round(scrollTop / DRUM_ITEM)`이 고른 칸이고, 값이 같으면 아무것도 하지
+않으므로 굴리는 동안 setState가 쏟아지지 않습니다.
+
+#### 자리를 맞추는 코드가 손가락과 다퉜습니다 — 이번의 알맹이
+
+09:00인 사람의 칸이 00에서 열리면 그것은 고장입니다. 스크롤 위치는 템플릿으로
+정할 수 없으니 코드가 맞춰야 하는데, **어디서 부르는가가 전부였습니다.**
+
+처음에는 `componentDidUpdate`에서 불렀습니다. 폰에서 굴려 보니:
+
+```
+09:00 → (굴림) → 03:00 → ... → 09:55 → 09:00
+```
+
+**굴릴 때마다 setState가 일어나고, 그 setState가 다시 자리를 맞추면서 손가락과
+앱이 서로 끌어당겼습니다.** 인스턴스에 세워 둔 '이미 놓았다' 깃발은 런타임이
+다시 그릴 때 사라져 막아 주지 못했습니다.
+
+두 가지로 바꿨습니다.
+
+1. **화면에 들어올 때만** 부릅니다 — `endTour` · `openSetupFlow` · `suBack`이
+   1로 돌아올 때 · 근무조를 고를 때(그때 야간 드럼이 처음 붙습니다).
+   `componentDidUpdate`는 이제 드럼을 건드리지 않습니다(asserted).
+2. **아직 아무도 굴리지 않은 칸만** 맞춥니다(`scrollTop === 0`). 이미 굴린 칸은
+   건드리지 않으므로 다툴 길이 아예 없습니다. 값이 00시/00분인 사람은 맞출
+   자리도 0이라 아무 일이 없습니다.
+
+폰에서 다시: 504(09:00)에서 열리고, 굴리면 672(12:00)로 가서 **2.5초 동안
+그대로 있습니다.** 파생된 줄도 `12:00 → 21:00 · 9.0h`로 따라옵니다.
+
+#### 시험이 자리로 칩을 집고 있었습니다 — 또
+
+`suStartChips[0]`처럼 자리로 집던 두 줄이 목록이 바뀌면서 조용히 다른 것을
+고르게 됐습니다. 값으로 찾도록 고쳤습니다. **마크업과 코드가 같은 칸 높이를
+쓰는지도 셉니다** — `DRUM_ITEM`이 56인데 마크업이 60이면 굴린 자리를 잘못
+세는데, 화면은 멀쩡해 보입니다.
+
+13 new assertions (2035 → **2048**). 키는 그대로 777 — **새 문장이 없습니다**
+(숫자와 `:` 뿐입니다). **임금 계산식은 손대지 않았습니다.**
+
+**다음 사람에게.** 스크롤 위치를 코드로 정하는 자리에서는 **누가 마지막으로
+움직였는가**를 물으십시오. 렌더마다 맞추면 손가락과 다투고, 그 다툼은
+`componentDidUpdate`라는 자리 자체에서 나옵니다 — 값이 바뀔 때마다 다시 그리는
+앱에서 '다시 그릴 때 맞춘다'는 곧 '근로자가 만질 때마다 되돌린다'입니다.
+
+### 2026-08-29 (thirty-fifth) — 안 변하는 것이 아니라 무엇이 변하는지 말하지 않았습니다
 
 두 가지가 더 나왔습니다. 하나는 고를 것이 모자란 것이고, **하나는 앱이 맞게
 계산하면서 왜 그런지 말하지 않아 고장으로 읽힌 것**입니다.

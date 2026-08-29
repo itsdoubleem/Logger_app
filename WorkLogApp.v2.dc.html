@@ -113,10 +113,28 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
             <sc-if value="{{ suShowDay }}" hint-placeholder-val="{{ true }}">
               <div>
                 <div style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--color-neutral-600);margin-top:20px">{{ L.lDayStart }}</div>
-                <div style="max-height:212px;overflow-y:auto;border:2px solid var(--color-neutral-300);padding:7px;margin-top:8px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
-                  <sc-for list="{{ suStartChips }}" as="ch" hint-placeholder-count="48">
-                    <div onClick="{{ ch.set }}" style="min-height:44px;display:flex;align-items:center;justify-content:center;border:2px solid var(--color-text);background:{{ ch.bg }};color:{{ ch.ink }};font-family:var(--font-heading);font-weight:800;font-size:13px;cursor:pointer">{{ ch.t }}</div>
-                  </sc-for>
+                <!-- 시계 앱의 알람과 같은 굴림판. 가운데 띠에 든 값이 고른 값입니다.
+                     띠는 그리기만 하고 누름을 받지 않습니다(pointer-events:none) —
+                     그렇지 않으면 가운데 칸을 영영 누를 수 없습니다. -->
+                <div style="position:relative;height:168px;margin-top:8px;border:2px solid var(--color-neutral-300);background:var(--color-bg)">
+                  <div style="position:absolute;left:0;right:0;top:56px;height:56px;border-top:2px solid var(--color-text);border-bottom:2px solid var(--color-text);pointer-events:none"></div>
+                  <div style="display:flex;align-items:stretch;height:100%">
+                    <div id="drumDayH" onScroll="{{ dayDrumHScroll }}" style="flex:1;min-width:0;height:100%;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none">
+                      <div style="height:56px"></div>
+                      <sc-for list="{{ dayDrumH }}" as="o" hint-placeholder-count="24">
+                        <div onClick="{{ o.set }}" style="height:56px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;cursor:pointer;font-family:var(--font-heading);font-weight:{{ o.wgt }};font-size:{{ o.size }};color:{{ o.ink }};font-variant-numeric:tabular-nums">{{ o.t }}</div>
+                      </sc-for>
+                      <div style="height:56px"></div>
+                    </div>
+                    <div style="flex:none;width:14px;display:flex;align-items:center;justify-content:center;font-family:var(--font-heading);font-weight:800;font-size:22px;color:var(--color-text)">:</div>
+                    <div id="drumDayM" onScroll="{{ dayDrumMScroll }}" style="flex:1;min-width:0;height:100%;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none">
+                      <div style="height:56px"></div>
+                      <sc-for list="{{ dayDrumM }}" as="o" hint-placeholder-count="12">
+                        <div onClick="{{ o.set }}" style="height:56px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;cursor:pointer;font-family:var(--font-heading);font-weight:{{ o.wgt }};font-size:{{ o.size }};color:{{ o.ink }};font-variant-numeric:tabular-nums">{{ o.t }}</div>
+                      </sc-for>
+                      <div style="height:56px"></div>
+                    </div>
+                  </div>
                 </div>
                 <div style="display:flex;align-items:center;gap:10px;margin-top:9px">
                   <div style="flex:1;font-size:11.5px;color:var(--color-neutral-700)">{{ L.suOwnTime }}</div>
@@ -132,10 +150,28 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
             <sc-if value="{{ suShowNight }}" hint-placeholder-val="{{ false }}">
               <div>
                 <div style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--color-neutral-600);margin-top:20px">{{ L.lNightStart }}</div>
-                <div style="max-height:212px;overflow-y:auto;border:2px solid var(--color-neutral-300);padding:7px;margin-top:8px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
-                  <sc-for list="{{ suNightChips }}" as="ch" hint-placeholder-count="48">
-                    <div onClick="{{ ch.set }}" style="min-height:44px;display:flex;align-items:center;justify-content:center;border:2px solid var(--color-text);background:{{ ch.bg }};color:{{ ch.ink }};font-family:var(--font-heading);font-weight:800;font-size:13px;cursor:pointer">{{ ch.t }}</div>
-                  </sc-for>
+                <!-- 시계 앱의 알람과 같은 굴림판. 가운데 띠에 든 값이 고른 값입니다.
+                     띠는 그리기만 하고 누름을 받지 않습니다(pointer-events:none) —
+                     그렇지 않으면 가운데 칸을 영영 누를 수 없습니다. -->
+                <div style="position:relative;height:168px;margin-top:8px;border:2px solid var(--color-neutral-300);background:var(--color-bg)">
+                  <div style="position:absolute;left:0;right:0;top:56px;height:56px;border-top:2px solid var(--color-text);border-bottom:2px solid var(--color-text);pointer-events:none"></div>
+                  <div style="display:flex;align-items:stretch;height:100%">
+                    <div id="drumNightH" onScroll="{{ nightDrumHScroll }}" style="flex:1;min-width:0;height:100%;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none">
+                      <div style="height:56px"></div>
+                      <sc-for list="{{ nightDrumH }}" as="o" hint-placeholder-count="24">
+                        <div onClick="{{ o.set }}" style="height:56px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;cursor:pointer;font-family:var(--font-heading);font-weight:{{ o.wgt }};font-size:{{ o.size }};color:{{ o.ink }};font-variant-numeric:tabular-nums">{{ o.t }}</div>
+                      </sc-for>
+                      <div style="height:56px"></div>
+                    </div>
+                    <div style="flex:none;width:14px;display:flex;align-items:center;justify-content:center;font-family:var(--font-heading);font-weight:800;font-size:22px;color:var(--color-text)">:</div>
+                    <div id="drumNightM" onScroll="{{ nightDrumMScroll }}" style="flex:1;min-width:0;height:100%;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none">
+                      <div style="height:56px"></div>
+                      <sc-for list="{{ nightDrumM }}" as="o" hint-placeholder-count="12">
+                        <div onClick="{{ o.set }}" style="height:56px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;cursor:pointer;font-family:var(--font-heading);font-weight:{{ o.wgt }};font-size:{{ o.size }};color:{{ o.ink }};font-variant-numeric:tabular-nums">{{ o.t }}</div>
+                      </sc-for>
+                      <div style="height:56px"></div>
+                    </div>
+                  </div>
                 </div>
                 <div style="display:flex;align-items:center;gap:10px;margin-top:9px">
                   <div style="flex:1;font-size:11.5px;color:var(--color-neutral-700)">{{ L.suOwnTime }}</div>
@@ -1938,6 +1974,7 @@ class Component extends DCLogic {
     } catch (e) { /* private mode or full — keep working in memory */ }
   }
   componentDidUpdate() {
+    // 여기서 placeDrums()를 부르면 안 됩니다 — 굴릴 때마다 되돌아옵니다(placeDrums 주석)
     // 열려 있는 기간에 도장을 찍습니다 — 같으면 아무것도 쓰지 않습니다
     this.stampWage();
     clearTimeout(this.saveT);
@@ -2635,6 +2672,74 @@ class Component extends DCLogic {
   // '기본금이 얼마입니까?' 카드는 화면 위로 밀려 올라가 있습니다. 머리글은
   // 고정이라 화면은 멀쩡해 보입니다 — 그래서 카드가 있다는 사실조차 모릅니다.
   // 근무기록에서 '고치기'를 눌러 출퇴근으로 건너뛸 때도 같습니다(editDay).
+  // ── 굴러가는 시각 칸 ──
+  // 한 칸의 목록. 지금 값이 든 칸에 표시가 붙고, 눌러서도 고를 수 있습니다 —
+  // 굴리는 것이 본길이지만, 정확히 한 칸을 집고 싶은 사람도 있습니다.
+  drumCol(key, part) {
+    if (this.state.setupStep !== 1) return [];
+    const cur = Component.drumIndex(this.st()[key]);
+    const list = part === 'h' ? Component.DRUM_H : Component.DRUM_M;
+    return list.map((t, i) => ({
+      t,
+      sel: cur[part] === i,
+      ink: cur[part] === i ? 'var(--color-text)' : 'var(--color-neutral-500)',
+      wgt: cur[part] === i ? '800' : '500',
+      size: cur[part] === i ? '30px' : '22px',
+      set: () => this.drumSet(key, part, i),
+    }));
+  }
+  drumSet(key, part, i) {
+    const cur = Component.drumIndex(this.st()[key]);
+    const h = part === 'h' ? i : cur.h;
+    const m = part === 'm' ? i : cur.m;
+    const v = Component.DRUM_H[h] + ':' + Component.DRUM_M[m];
+    if (this.st()[key] === v) return;
+    this.setS({ [key]: v, shiftConfirmed: true });
+  }
+  // 굴린 자리에서 가장 가까운 칸이 고른 값입니다. 같으면 아무것도 하지 않으므로
+  // 굴리는 동안 setState가 쏟아지지 않습니다.
+  drumScroll(key, part, e) {
+    const el = e && (e.currentTarget || e.target);
+    if (!el) return;
+    const i = Math.round(el.scrollTop / Component.DRUM_ITEM);
+    const list = part === 'h' ? Component.DRUM_H : Component.DRUM_M;
+    if (i < 0 || i >= list.length) return;
+    this.drumSet(key, part, i);
+  }
+  // ── 드럼은 지금 값에 맞춰 열려야 합니다 ──
+  // 09:00인 사람의 칸이 00에서 열리면 그것은 고장으로 읽힙니다. 스크롤 위치는
+  // 템플릿으로 정할 수 없으므로 코드가 맞춰야 하는데, **어디서 부르는가가
+  // 전부입니다.**
+  //
+  // 처음에는 componentDidUpdate에서 불렀습니다. 폰에서 굴려 보니 값이 03:00으로
+  // 갔다가 곧바로 09:00으로 되돌아왔습니다 — 굴릴 때마다 setState가 일어나고,
+  // 그 setState가 다시 이 함수를 불러 근로자의 손가락과 앱이 서로 끌어당겼기
+  // 때문입니다. 인스턴스에 세워 둔 '이미 놓았다' 깃발은 런타임이 다시 그릴 때
+  // 사라져서 막아 주지 못했습니다.
+  //
+  // 그래서 두 가지로 바꿨습니다.
+  //   1. **화면에 들어올 때만** 부릅니다(componentDidUpdate가 아니라).
+  //   2. **아직 아무도 굴리지 않은 칸**(scrollTop === 0)만 맞춥니다. 이미 굴린
+  //      칸은 건드리지 않으므로, 손가락과 다툴 길이 아예 없습니다.
+  // 값이 00시/00분인 사람은 자리가 0이고 맞출 자리도 0이라 아무 일이 없습니다.
+  placeDrums() {
+    if (typeof document === 'undefined' || !document.getElementById) return;
+    if (this.state.setupStep !== 1) return;
+    const put = (id, idx) => {
+      const el = document.getElementById(id);
+      if (!el || idx === 0 || el.scrollTop !== 0) return;
+      el.scrollTop = idx * Component.DRUM_ITEM;
+    };
+    const d = Component.drumIndex(this.st().dayStart);
+    const n = Component.drumIndex(this.st().nightStart);
+    put('drumDayH', d.h); put('drumDayM', d.m);
+    put('drumNightH', n.h); put('drumNightM', n.m);
+  }
+  // 그려진 뒤에 맞춥니다 — setState는 곧바로 그리지 않습니다(scrollTabTop과 같은 이유)
+  placeDrumsSoon() {
+    if (typeof requestAnimationFrame !== 'function') return this.placeDrums();
+    requestAnimationFrame(() => { this.placeDrums(); requestAnimationFrame(() => this.placeDrums()); });
+  }
   scrollTabTop() {
     if (typeof document === 'undefined' || !document.getElementById) return;
     const el = document.getElementById('tabScroll');
@@ -3093,9 +3198,22 @@ class Component extends DCLogic {
       ? T('day_to_end', { p0: d })
       : T('day_to_next_month_day', { p0: d, p1: Component.periodEndDay(d) });
   }
-  // 하루를 30분 단위로 — 시각 고르는 상자가 굴러갑니다
-  static HALF_HOURS = Array.from({ length: 48 }, (_, i) =>
-    String(Math.floor(i / 2)).padStart(2, '0') + ':' + (i % 2 ? '30' : '00'));
+  // ── 시각은 시계 앱의 알람처럼 고릅니다 ──
+  // 칩을 늘어놓는 대신 시 칸과 분 칸을 굴립니다. 가운데 띠에 든 값이 고른
+  // 값이고, 굴리면 그 값이 바뀝니다 — 폰의 알람이 하는 그대로입니다.
+  // 분은 5분 단위입니다: 근무 시작이 :07인 공장은 없고, 그런 값이 필요하면
+  // 아래 손으로 치는 칸이 그대로 받습니다(parseHM은 아무 분이나 읽습니다).
+  static DRUM_H = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
+  static DRUM_M = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
+  static DRUM_ITEM = 56;    // 한 칸의 높이(px) — 템플릿과 같은 값이어야 합니다
+  // 'HH:MM'을 두 칸의 자리로. 5분 격자에 없는 분은 가장 가까운 칸으로 봅니다.
+  static drumIndex(hhmm) {
+    const m = /^(\d{1,2}):(\d{2})$/.exec(String(hhmm || ''));
+    if (!m) return { h: 0, m: 0 };
+    const hh = Math.min(23, Math.max(0, +m[1]));
+    const mm = Math.min(11, Math.max(0, Math.round(+m[2] / 5)));
+    return { h: hh, m: mm === 12 ? 11 : mm };
+  }
   // 시작에서 끝까지 몇 시간인가. 야간은 normalEnd가 24를 넘겨 돌아오므로
   // 그대로 빼면 되고, 그렇지 않은 경우만 하루를 더합니다.
   static spanH(a, z) { let d = z - a; if (d <= 0) d += 24; return d; }
@@ -6059,9 +6177,9 @@ class Component extends DCLogic {
       showNight: this.worksNight(),
       showDay: this.st().shifts !== 'night',
       shiftOpts: [
-        { ko: this.T('day_only'), en: this.T('k_7'), set: () => this.setS(Object.assign({ shifts: 'day', shiftConfirmed: true }, this.breaksFor('day'))), bg: this.st().shifts === 'day' ? 'var(--color-accent)' : 'transparent', ink: this.st().shifts === 'day' ? 'var(--color-bg)' : 'var(--color-text)' },
-        { ko: this.T('night_only'), en: this.T('k_8'), set: () => this.setS(Object.assign({ shifts: 'night', shiftConfirmed: true }, this.breaksFor('night'))), bg: this.st().shifts === 'night' ? 'var(--color-accent)' : 'transparent', ink: this.st().shifts === 'night' ? 'var(--color-bg)' : 'var(--color-text)' },
-        { ko: this.T('rotating'), en: this.T('k_9'), set: () => this.setS(Object.assign({ shifts: 'both', shiftConfirmed: true }, this.breaksFor('both'))), bg: this.st().shifts === 'both' ? 'var(--color-accent)' : 'transparent', ink: this.st().shifts === 'both' ? 'var(--color-bg)' : 'var(--color-text)' },
+        { ko: this.T('day_only'), en: this.T('k_7'), set: () => { this.setS(Object.assign({ shifts: 'day', shiftConfirmed: true }, this.breaksFor('day'))); this.placeDrumsSoon(); }, bg: this.st().shifts === 'day' ? 'var(--color-accent)' : 'transparent', ink: this.st().shifts === 'day' ? 'var(--color-bg)' : 'var(--color-text)' },
+        { ko: this.T('night_only'), en: this.T('k_8'), set: () => { this.setS(Object.assign({ shifts: 'night', shiftConfirmed: true }, this.breaksFor('night'))); this.placeDrumsSoon(); }, bg: this.st().shifts === 'night' ? 'var(--color-accent)' : 'transparent', ink: this.st().shifts === 'night' ? 'var(--color-bg)' : 'var(--color-text)' },
+        { ko: this.T('rotating'), en: this.T('k_9'), set: () => { this.setS(Object.assign({ shifts: 'both', shiftConfirmed: true }, this.breaksFor('both'))); this.placeDrumsSoon(); }, bg: this.st().shifts === 'both' ? 'var(--color-accent)' : 'transparent', ink: this.st().shifts === 'both' ? 'var(--color-bg)' : 'var(--color-text)' },
       ],
       applyIns: () => this.applyIns(),
       undoIns: () => this.undoIns(),
@@ -6723,9 +6841,9 @@ class Component extends DCLogic {
       // ── 환영 다음은 설정 탭이 아닙니다 ──
       // 소개 카드 1번이 '먼저 설정할 것은 없습니다'라고 말해 놓고 여덟 묶음짜리
       // 설정 화면으로 내보내고 있었습니다. 이제 한 화면에 하나씩 넷을 묻습니다.
-      endTour: () => { this.scrollTabTop(); this.setState({ tourSeen: true, setupStep: 1 }); },
+      endTour: () => { this.scrollTabTop(); this.setState({ tourSeen: true, setupStep: 1 }); this.placeDrumsSoon(); },
       openTour: () => this.setState({ tourSeen: false }),
-      openSetupFlow: () => this.setState({ setupStep: 1 }),
+      openSetupFlow: () => { this.setState({ setupStep: 1 }); this.placeDrumsSoon(); },
 
       // ══ 네 개의 물음 ══
       // 한 화면에 하나씩. setupStep은 저장하지 않습니다 — 도중에 앱을 닫으면
@@ -6747,6 +6865,7 @@ class Component extends DCLogic {
         const n = (this.state.setupStep || 0) - 1;
         if (n < 1) return this.setState({ setupStep: 0, tourSeen: false });
         this.setState({ setupStep: n });
+        if (n === 1) this.placeDrumsSoon();
       },
       suProg: [1, 2, 3, 4].map(n => ({ bg: (this.state.setupStep || 0) >= n ? 'var(--color-accent)' : 'var(--color-neutral-300)' })),
       // 숫자와 빗금뿐이라 번역할 것이 없습니다. T()로 두었다가 키를 만들지 않아
@@ -6770,22 +6889,19 @@ class Component extends DCLogic {
       // 06·07·08·09만 내어 놓으면 05:30이나 14:00에 시작하는 사람은 고를 것이
       // 없습니다. 30분 단위로 하루를 전부 내어 놓고 상자를 굴립니다 — 손으로
       // 치는 칸은 그대로 두되, 대부분은 굴려서 찾는 편이 빠릅니다.
-      suStartChips: this.state.setupStep === 1 ? Component.HALF_HOURS.map(t => ({
-        t,
-        bg: this.st().dayStart === t ? 'var(--color-text)' : 'transparent',
-        ink: this.st().dayStart === t ? 'var(--color-bg)' : 'var(--color-text)',
-        set: () => this.setS({ dayStart: t, shiftConfirmed: true }),
-      })) : [],
+      dayDrumH: this.drumCol('dayStart', 'h'),
+      dayDrumM: this.drumCol('dayStart', 'm'),
+      nightDrumH: this.drumCol('nightStart', 'h'),
+      nightDrumM: this.drumCol('nightStart', 'm'),
+      dayDrumHScroll: e => this.drumScroll('dayStart', 'h', e),
+      dayDrumMScroll: e => this.drumScroll('dayStart', 'm', e),
+      nightDrumHScroll: e => this.drumScroll('nightStart', 'h', e),
+      nightDrumMScroll: e => this.drumScroll('nightStart', 'm', e),
       // ── 교대는 시작이 둘입니다 ──
       // 교대를 고르고도 야간 시작을 물어보지 않으면, 그 근로자는 자기 근무조의
       // 절반만 앱에 말한 셈입니다. schedStart('night')이 주야 판정과 normalEnd에
       // 모두 들어가므로 비워 두면 21:00이 조용히 쓰입니다.
-      suNightChips: this.state.setupStep === 1 ? Component.HALF_HOURS.map(t => ({
-        t,
-        bg: this.st().nightStart === t ? 'var(--color-text)' : 'transparent',
-        ink: this.st().nightStart === t ? 'var(--color-bg)' : 'var(--color-text)',
-        set: () => this.setS({ nightStart: t, shiftConfirmed: true }),
-      })) : [],
+
       suShowDay: this.st().shifts !== 'night',
       suShowNight: this.worksNight(),
       // ── 퇴근 시각은 묻지 않습니다 — 보여 줍니다 ──

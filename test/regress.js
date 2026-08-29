@@ -5004,8 +5004,8 @@ console.log('\n== 환영 화면 다음이 여덟 묶음짜리 설정이었습니
     JSON.stringify(a.st().breaksDay[1]));
 
   const t = fresh(); t.renderVals().endTour();
-  t.renderVals().suStartChips.find(x => x.t === '06:00').set();
-  ok('시각 칩이 정규 문자열을 씁니다', t.st().dayStart === '06:00', t.st().dayStart);
+  t.renderVals().dayDrumH.find(x => x.t === '06').set();
+  ok('시각이 정규 문자열로 저장됩니다', t.st().dayStart === '06:00', t.st().dayStart);
   ok('시각을 고른 것도 확인입니다', t.st().shiftConfirmed === true);
 
   // ── 2. 휴게는 첫 줄만 건드립니다 ──
@@ -5161,10 +5161,9 @@ console.log('\n== 네 물음이 절반만 묻고 있었습니다 ==');
   ok('야간만은 야간 시작만 묻습니다', n.renderVals().suShowDay === false && n.renderVals().suShowNight === true);
   const r = fresh(); r.renderVals().shiftOpts[2].set();
   ok('교대는 둘 다 묻습니다', r.renderVals().suShowDay === true && r.renderVals().suShowNight === true);
-  // 자리로 찾지 않습니다 — 목록이 30분 단위 마흔여덟 개로 늘어났고, 자리를
-  // 세는 시험은 목록이 바뀌는 날 조용히 다른 것을 고릅니다.
-  r.renderVals().suNightChips.find(x => x.t === '19:00').set();
-  ok('야간 칩이 저장됩니다', r.st().nightStart === '19:00', r.st().nightStart);
+  // 자리로 찾지 않습니다 — 목록이 바뀌는 날 조용히 다른 것을 고릅니다.
+  r.renderVals().nightDrumH.find(x => x.t === '19').set();
+  ok('야간 시가 저장됩니다', r.st().nightStart === '19:00', r.st().nightStart);
   ok('야간 시각 칸도 있습니다', typeof r.renderVals().setNightStart === 'function'
     && typeof r.renderVals().keyNightStart === 'function');
 
@@ -5249,30 +5248,86 @@ console.log('\n== 네 개로는 모자라고, 안 변하는 것처럼 보였습�
   // 맞게 계산하면서 **왜 그런지 말하지 않아** 고장으로 읽힌 것입니다.
   const fresh = () => { const c = mk(V2, '2026-08-03T09:00:00'); c.setState({ setupStep: 1 }); return c; };
 
-  // ── 시각은 30분 단위로 하루 전부 ──
-  ok('반 시간 단위로 마흔여덟 개입니다', V2.HALF_HOURS.length === 48);
-  ok('00:00에서 시작합니다', V2.HALF_HOURS[0] === '00:00');
-  ok('23:30에서 끝납니다', V2.HALF_HOURS[47] === '23:30');
-  ok('05:30도 있습니다', V2.HALF_HOURS.indexOf('05:30') > 0);
-  ok('14:00도 있습니다', V2.HALF_HOURS.indexOf('14:00') > 0);
+  // ── 시각은 시계 앱의 알람처럼 굴려서 고릅니다 ──
+  ok('시 칸은 스물넷입니다', V2.DRUM_H.length === 24 && V2.DRUM_H[0] === '00' && V2.DRUM_H[23] === '23');
+  ok('분 칸은 5분 단위 열둘입니다', V2.DRUM_M.length === 12 && V2.DRUM_M[1] === '05' && V2.DRUM_M[11] === '55');
   const c = fresh();
-  ok('주간 목록이 마흔여덟입니다', c.renderVals().suStartChips.length === 48);
-  ok('야간 목록도 마흔여덟입니다', c.renderVals().suNightChips.length === 48);
-  const at = t => c.renderVals().suStartChips.find(x => x.t === t);
-  at('05:30').set();
-  ok('목록에서 고르면 저장됩니다', c.st().dayStart === '05:30', c.st().dayStart);
-  ok('고른 것에 표시가 붙습니다', at('05:30').bg === 'var(--color-text)');
-  ok('안 고른 것에는 안 붙습니다', at('09:00').bg === 'transparent');
-  // 화면에서 굴러가야 합니다 — 마흔여덟 개가 그냥 흘러내리면 단추가 화면 밖입니다
+  ok('주간 드럼 두 칸이 있습니다',
+    c.renderVals().dayDrumH.length === 24 && c.renderVals().dayDrumM.length === 12);
+  ok('야간 드럼 두 칸도 있습니다',
+    c.renderVals().nightDrumH.length === 24 && c.renderVals().nightDrumM.length === 12);
+  // 지금 값이 든 칸에 표시가 붙습니다
+  c.setS({ dayStart: '09:00' });
+  ok('지금 값이 든 시 칸이 굵습니다', c.renderVals().dayDrumH.find(x => x.t === '09').sel === true);
+  ok('다른 칸은 흐립니다', c.renderVals().dayDrumH.find(x => x.t === '14').sel === false);
+  // 눌러도 고를 수 있습니다
+  c.renderVals().dayDrumH.find(x => x.t === '05').set();
+  c.renderVals().dayDrumM.find(x => x.t === '30').set();
+  ok('시와 분을 따로 고르면 합쳐집니다', c.st().dayStart === '05:30', c.st().dayStart);
+  ok('고르면 근무조도 확인됩니다', c.st().shiftConfirmed === true);
+  // 굴리면 가장 가까운 칸이 고른 값입니다
+  const px = i => ({ currentTarget: { scrollTop: i * V2.DRUM_ITEM } });
+  c.renderVals().dayDrumHScroll(px(14));
+  ok('굴리면 그 자리의 시가 됩니다', c.st().dayStart === '14:30', c.st().dayStart);
+  c.renderVals().dayDrumMScroll(px(0));
+  ok('분 칸을 굴려도 같습니다', c.st().dayStart === '14:00', c.st().dayStart);
+  c.renderVals().nightDrumHScroll(px(22));
+  ok('야간 드럼도 자기 값만 고칩니다',
+    c.st().nightStart === '22:00' && c.st().dayStart === '14:00',
+    c.st().nightStart + ' / ' + c.st().dayStart);
+  // 목록 밖으로 굴러가도 아무 일이 없습니다
+  const before = c.st().dayStart;
+  c.renderVals().dayDrumHScroll(px(99));
+  c.renderVals().dayDrumHScroll(px(-3));
+  ok('목록 밖이면 아무것도 안 바뀝니다', c.st().dayStart === before, c.st().dayStart);
+  // 5분 격자에 없는 값도 가장 가까운 칸으로 읽습니다 — 손으로 친 값이 그렇습니다
+  ok('09:07은 09시 05분 칸으로 읽습니다',
+    JSON.stringify(V2.drumIndex('09:07')) === JSON.stringify({ h: 9, m: 1 }),
+    JSON.stringify(V2.drumIndex('09:07')));
+  ok('빈 값은 00:00으로 읽습니다', JSON.stringify(V2.drumIndex('')) === JSON.stringify({ h: 0, m: 0 }));
+
+  // 화면에서 굴러가야 하고, 가운데 띠는 누름을 가로채면 안 됩니다
   const fs = require('fs');
   const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
   const tpl = src.slice(0, src.indexOf('</x-dc>'));
   const q1 = tpl.slice(tpl.indexOf('{{ suIs1 }}'), tpl.indexOf('{{ suIs2 }}'));
-  ok('시각 상자가 굴러갑니다', (q1.match(/overflow-y:auto/g) || []).length === 2, q1.match(/overflow-y:auto/g));
-  ok('높이가 묶여 있습니다', (q1.match(/max-height:212px/g) || []).length === 2);
+  ok('네 칸이 다 굴러갑니다', (q1.match(/scroll-snap-type:y mandatory/g) || []).length === 4);
+  ok('칸마다 가운데로 물립니다', (q1.match(/scroll-snap-align:center/g) || []).length === 4);
+  // 주석에도 같은 글자가 있으므로 style 속성이 닫히는 자리까지 셉니다
+  ok('가운데 띠가 누름을 가로채지 않습니다', (q1.match(/pointer-events:none"/g) || []).length === 2,
+    String((q1.match(/pointer-events:none"/g) || []).length));
+  // 칸 높이는 코드와 마크업이 같은 값이어야 합니다 — 다르면 굴린 자리를 잘못 셉니다
+  ok('칸 높이가 코드와 같습니다',
+    (q1.match(new RegExp('height:' + V2.DRUM_ITEM + 'px', 'g')) || []).length >= 8,
+    'DRUM_ITEM=' + V2.DRUM_ITEM);
+  ok('드럼마다 id가 있습니다',
+    ['drumDayH','drumDayM','drumNightH','drumNightM'].every(id => q1.indexOf('id="' + id + '"') >= 0));
   // 물음이 열려 있지 않으면 만들지 않습니다 — 시계는 1초마다 돕니다
   const idle = mk(V2, '2026-08-03T09:00:00');
-  ok('물음이 닫혀 있으면 목록을 만들지 않습니다', idle.renderVals().suStartChips.length === 0);
+  ok('물음이 닫혀 있으면 목록을 만들지 않습니다', idle.renderVals().dayDrumH.length === 0);
+
+  // ── 자리를 맞추는 코드가 손가락과 다투면 안 됩니다 ──
+  // 처음에는 componentDidUpdate에서 맞췄습니다. 폰에서 굴리니 03:00으로 갔다가
+  // 곧바로 09:00으로 되돌아왔습니다 — 굴릴 때마다 setState가 일어나고 그 setState가
+  // 다시 자리를 맞췄기 때문입니다. 이제 화면에 들어올 때만, 그것도 아직 아무도
+  // 굴리지 않은 칸(scrollTop === 0)만 맞춥니다.
+  const srcAll = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const body = srcAll.slice(srcAll.indexOf('class Component'));
+  const cdu = body.slice(body.indexOf('componentDidUpdate() {'), body.indexOf('componentDidUpdate() {') + 400);
+  ok('componentDidUpdate는 드럼을 건드리지 않습니다', cdu.indexOf('this.placeDrums()') < 0, cdu.slice(0, 90));
+  ok('화면에 들어올 때 맞춥니다', (body.match(/placeDrumsSoon\(\)/g) || []).length >= 5,
+    String((body.match(/placeDrumsSoon\(\)/g) || []).length));
+  ok('이미 굴린 칸은 건드리지 않습니다', body.indexOf('el.scrollTop !== 0') > 0);
+  ok('0번 칸은 맞출 것이 없습니다', body.indexOf('idx === 0') > 0);
+
+  // 굴려서 고른 값은 그대로 남습니다 — 다시 그려도 되돌아오지 않습니다
+  const keep = fresh();
+  keep.setS({ dayStart: '09:00' });
+  keep.renderVals().dayDrumHScroll(px(3));
+  ok('굴린 값이 저장됩니다', keep.st().dayStart === '03:00', keep.st().dayStart);
+  keep.renderVals();                      // 다시 그려도
+  keep.renderVals();
+  ok('다시 그려도 되돌아오지 않습니다', keep.st().dayStart === '03:00', keep.st().dayStart);
 
   // ── 교대에서 주간의 끝이 안 움직이는 것처럼 보였습니다 ──
   // 계산은 맞습니다. 교대의 normalEnd('day')는 **야간이 시작하는 자리**이고
