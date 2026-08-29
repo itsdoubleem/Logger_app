@@ -23,13 +23,13 @@
 
   /* surfaces */
   --color-bg: #f3f2f2;
-  --color-surface: #eae9e9;
+  --color-surface: #ffffff;   /* card white — was #eae9e9 (flat era) */
   --color-text: #201e1d;
 
   /* neutral ramp — #201e1d over #f3f2f2 */
   --color-neutral-100: #eeecec;
   --color-neutral-200: #e5e3e3;
-  --color-neutral-300: #d7d3d3; /* 1px hairlines */
+  --color-neutral-300: #e0dddd; /* 1px hairlines — softened for the card era */
   --color-neutral-400: #c4c1c1;
   --color-neutral-500: #a9a7a6;
   --color-neutral-600: #747372; /* α .60 — secondary label ink */
@@ -43,4 +43,175 @@
   --color-accent-300: #f1b5ab;  /* in-range calendar fill */
   --color-accent-600: #cb240a;  /* pressed / hover on accent */
   --color-accent-700: #ae1800;  /* accent ink on a tinted panel */
+
+  /* ── shape · added 2026-08-30 ─────────────────────────────────────────
+   * The flat era set no border-radius and no box-shadow anywhere, so these
+   * two properties are free: a stylesheet rule wins over the 937 inline
+   * styles without !important, because the inline styles never mention them.
+   * That is what makes the layer below possible without touching the source.
+   */
+  --radius-sm: 9px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  --color-card: #ffffff;
+
+  --shadow-card: 0 1px 2px rgba(32, 30, 29, .05), 0 4px 12px rgba(32, 30, 29, .06);
+  --shadow-bar: 0 1px 14px rgba(32, 30, 29, .07);
+
+  --card-inset: 8px;   /* card margin from the screen edge */
+  --card-gap: 9px;     /* space between two cards */
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * SHAPE LAYER — 2026-08-30
+ *
+ * The app is one 1.09MB file with 937 inline style="…" attributes and no
+ * class names. Rewriting them all to add corners and shadows would touch
+ * every screen and every one of the 2,152 assertions that read those
+ * strings. It is not necessary: `border-radius` and `box-shadow` appear
+ * **zero** times in the source, so a plain stylesheet rule sets them with
+ * no !important at all. Where a rule does need !important it is because the
+ * inline style names that exact property, and each one says why below.
+ *
+ * Selectors lean on two facts, both verified against the rendered DOM:
+ *   · <sc-if> renders no element, so a tab's sections really are
+ *     `#tabScroll > div > div`;
+ *   · React re-serialises the inline style, so attribute selectors must
+ *     match the **normalised** form — `border: 2px solid …`, with spaces.
+ *
+ * build.py inlines this whole file into the document head, ahead of the app
+ * markup, so the shape
+ * is there on the first paint (see the 2026-08-28 thirtieth entry).
+ * ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1 · every top-level block in a tab becomes a floating card ─────────── */
+#tabScroll > div > div {
+  position: relative;
+  overflow: hidden;                       /* clip inner hairlines to the corner.
+                                             Safe for the LOGS/PAY sticky band:
+                                             that band is itself a top-level
+                                             card, so the scroll container is
+                                             still an unclipped ancestor. */
+  border-radius: var(--radius-lg);
+  background: var(--color-card);          /* an inline background still wins —
+                                             the pink, red and tinted panels
+                                             keep their meaning */
+  box-shadow: var(--shadow-card);
+  /* Sections were spaced by a 2px rule and, later, by ad-hoc inline margins
+     (14px 18px, 14px 18px 0, none at all). Cards need one rhythm, and every
+     one of those inline margins would win, so this is the one place the
+     layer takes the property outright. */
+  margin: 0 var(--card-inset) var(--card-gap) !important;
+  /* the 2px section rule is what separated sections when they were flush;
+     cards separate themselves, so it goes. */
+  border-bottom-color: transparent !important;
+}
+#tabScroll > div > div:first-child { margin-top: var(--card-gap) !important; }
+#tabScroll > div > div:last-child  { margin-bottom: 18px !important; }
+
+/* A card that already draws its own grey box would show border *and* shadow.
+   Only the structural grey goes — a red or black border is saying something
+   (a warning, the payslip comparison) and stays. */
+#tabScroll > div > div[style*="border: 2px solid var(--color-divider)"],
+#tabScroll > div > div[style*="border: 2px solid var(--color-neutral-300)"] {
+  border-color: transparent !important;
+}
+
+/* `background: transparent` inline is the *unselected* state of a row or a
+   tile — it never meant "show the page through me". Flush against the old
+   flat background it read as white; on a card it reads as a hole. */
+#tabScroll > div > div[style*="background: transparent"] { background: var(--color-card) !important; }
+
+/* Sections were also separated by rules on top — a 2px black one marks each
+   SETUP tier, a grey one each group row. Cards separate themselves, and a
+   straight rule across a rounded corner is worse than no rule at all. */
+#tabScroll > div > div { border-top-color: transparent !important; }
+
+/* spacer divs (`height: 20px`, no children) must not become blank cards */
+#tabScroll > div > div:empty { background: none; box-shadow: none; }
+
+/* ── 2 · anything with a border gets corners ────────────────────────────── */
+[style*="border: 2px solid"] { border-radius: var(--radius-md); }
+[style*="border: 1px solid"] { border-radius: var(--radius-sm); }
+
+/* the language chip is the only 1px hairline box left in the header — a pill.
+   The period chip beside it is a solid dark pill, set in the template. */
+[style*="border: 1px solid var(--color-divider)"] { border-radius: var(--radius-pill); }
+[style*="letter-spacing: 0.12em"][style*="padding: 6px 11px"] { border-radius: var(--radius-pill); }
+
+/* ── 2b · chips ─────────────────────────────────────────────────────────── */
+/* Seven elements in the app are `min-height: 30px` + `inline-flex`: the four
+   근무기록 row badges (특 / 중 / 주간 / 야간) and the three on the 출퇴근 card
+   (요일·시각, 근무조, 특근 ×1.5). They are all the same idea — one fact,
+   coloured — so they take one shape. A pill, not a rounded box: it is what a
+   chip *is*, and it separates them from the buttons around them. */
+[style*="min-height: 30px"][style*="display: inline-flex"] { border-radius: var(--radius-pill); }
+
+/* ── 3 · the header bar ─────────────────────────────────────────────────── */
+[style*="align-items: flex-end"][style*="padding: 8px 18px 10px"] {
+  position: relative;
+  z-index: 3;
+  background: var(--color-card);
+  box-shadow: var(--shadow-bar);
+  border-bottom-color: transparent !important;
+}
+
+/* ── 4 · the six day-type tiles become six cards ────────────────────────── */
+/* The container was one bordered grid with hairlines between cells. It is
+   now a transparent frame holding six tiles. Each tile carries an inline
+   `background: transparent` (or accent-100 when picked), so white needs
+   !important — and the picked state is restored by the more specific rule
+   right after it, which is why the tint is not lost. */
+#tabScroll > div > div[style*="grid-template-columns: 1fr 1fr 1fr;"] {
+  background: transparent;
+  box-shadow: none;
+  gap: var(--card-gap);
+}
+#tabScroll > div > div[style*="grid-template-columns: 1fr 1fr 1fr;"] > div {
+  background: var(--color-card) !important;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  border-right-color: transparent !important;
+  border-bottom-color: transparent !important;
+}
+#tabScroll > div > div[style*="grid-template-columns: 1fr 1fr 1fr;"] > div[style*="background: var(--color-accent-100)"] {
+  background: var(--color-accent-100) !important;
+}
+
+/* ── 5 · the punch pad's fingerprint tile ───────────────────────────────── */
+/* The green mark itself is untouched — it is the identity. Only the box it
+   sits in changes: a rounded tile instead of a hard square. The 2px ring
+   stays, because its colour is how the pad says clocked-in / clocked-out. */
+[style*="width: 96px"][style*="height: 96px"] {
+  border-radius: 26px;
+  background: var(--color-bg);
+  /* the hard 2px square ring goes; the pad already says clocked-in three
+     more times — the 출근/퇴근 stamp, the title and the big clock all take
+     padInk — so the ring was the one place the state could be dropped
+     without losing the signal. */
+  border-color: transparent !important;
+  box-shadow: inset 0 0 0 1px var(--color-neutral-300), var(--shadow-card);
+}
+
+/* ── 6 · the tab bar ────────────────────────────────────────────────────── */
+[style*="grid-template-columns: 1fr 1fr 1fr 1fr 1fr"] {
+  position: relative;
+  z-index: 3;
+  background: var(--color-card) !important;   /* inline sets --color-bg */
+  border-top-color: var(--color-neutral-200) !important;
+  box-shadow: 0 -1px 14px rgba(32, 30, 29, .07);
+  padding: 6px 6px 8px !important;            /* inline sets padding-bottom */
+  gap: 3px;
+}
+[style*="grid-template-columns: 1fr 1fr 1fr 1fr 1fr"] > div {
+  border-radius: var(--radius-pill);
+  align-items: center;                        /* the tab bar centres; the
+                                                 no-centred-labels rule is
+                                                 about buttons, not this */
+  border-right-color: transparent !important;
+  border-top-color: transparent !important;
+}
+/* the active tab is the one whose inline style names the accent bar */
+[style*="border-top: 3px solid var(--color-accent)"] { background: var(--color-accent-100); }

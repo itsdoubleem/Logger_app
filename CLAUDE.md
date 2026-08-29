@@ -108,11 +108,26 @@ Two things follow, and both are easy to forget when adding a field:
 
 Easiest safe route: copy an existing row rather than writing a new input from scratch.
 
-### Design system — do not redesign
+### Design system — the shape lives in `ds-tokens.css`, not in the source
 
-"Modernist": flat, **zero border-radius**, 2px rules, near-mono red `#ec3013` on
-`#f3f2f2`, Archivo throughout. Every tap target ≥ 44px. Do not round corners, do not
-centre button labels. Colours, type, spacing and copy are final.
+Near-mono red `#ec3013` on `#f3f2f2`, Archivo throughout, every tap target ≥ 44px.
+Colours, type and copy are final.
+
+**Shape is not flat any more** (2026-08-30, the fortieth entry). White cards on the
+grey ground, 16px corners, a soft shadow, pill chips and a pill tab bar. That whole
+layer is a **stylesheet at the bottom of `ds-tokens.css`** — the source still has
+zero `border-radius` and zero `box-shadow` in its 937 inline styles, which is exactly
+what makes the layer possible: those two properties are unclaimed, so a plain rule
+wins without `!important`. Read the comments in that file before changing shape;
+each `!important` in there says which inline style it is overruling and why.
+
+Two things follow:
+- **Add shape in `ds-tokens.css`, not inline.** An inline `border-radius` would be
+  the first one in the file and would quietly opt that element out of the layer.
+- **`background: transparent` inline means "unselected", not "see through me".**
+  The layer turns it back into card white and restores the tinted state on top
+  (`#tabScroll > div > div[style*="background: transparent"]`). If you add a row
+  that way, check it on a card and not against the old flat ground.
 
 ### Wording
 
@@ -293,7 +308,152 @@ value afterwards when you have been tapping near real settings.
 
 ## Change log beyond V2.md
 
-### 2026-08-29 (latest, thirty-ninth) — 명세서의 국민연금 한 줄이 보수월액을 되살립니다
+### 2026-08-30 (latest, fortieth) — 모난 것을 둥글게, 그리고 알약 셋
+
+만든 사람이 Claude Design이 낸 시안 한 장을 들고 왔습니다: **카드에 둥근 모서리가
+있고 그림자가 조금 있습니다. 이렇게 만들 수 있습니까?**
+
+#### 937개의 인라인 스타일을 고치지 않아도 되는 이유
+
+이 앱은 한 파일이고 클래스 이름이 하나도 없습니다. 모양은 전부
+`style="…"` 안에 있고 그것이 **937개**입니다. 전부 고치면 모든 화면과, 그
+문자열을 읽는 **2,152개의 시험**을 함께 건드리게 됩니다.
+
+그럴 필요가 없었습니다. `redesign-brief/02`가 세어 둔 그대로
+**`border-radius`가 소스에 0개, `box-shadow`도 0개**입니다. 아무도 쓰지 않는
+속성이라 **스타일시트 한 줄이 `!important` 없이 이깁니다.** 인라인이 그 속성을
+말한 적이 없으니 다툴 일이 없습니다. 이번 변경이 가능한 것이 그 한 가지
+사실 덕분이고, 그래서 앱 소스는 **두 줄만** 바뀌었습니다.
+
+층은 `ds-tokens.css` 아래에 있습니다 — `build.py`가 이미 그 파일을 통째로
+head에 박아 넣으므로(서른째) 모양 없는 첫 프레임이 아예 없습니다.
+
+#### 선택자가 기대는 두 가지 — 둘 다 실제 DOM에서 확인했습니다
+
+1. **`<sc-if>`는 DOM에 아무 요소도 만들지 않습니다.** 그래서 한 탭의 구역들이
+   정말로 `#tabScroll > div > div`입니다. 카드 하나가 곧 구역 하나입니다.
+2. **React가 인라인 스타일을 다시 직렬화합니다.** 소스에는
+   `border:2px solid`라고 적혀 있어도 DOM의 속성값은
+   `border: 2px solid` — **콜론 뒤에 공백**입니다. 속성 선택자는 정규화된
+   쪽에 맞춰야 합니다. 소스를 보고 선택자를 쓰면 아무것도 안 잡히는데,
+   화면은 그냥 예전 모양이라 **고장으로 보이지 않습니다.**
+
+#### `!important`는 넷뿐이고, 각각 무엇을 이기는지 적어 두었습니다
+
+| 무엇 | 왜 |
+|---|---|
+| `margin` | 구역마다 `14px 18px`·`14px 18px 0`·없음이 섞여 있었습니다. 카드는 한 박자여야 합니다 |
+| `border-bottom-color` · `border-top-color` | 붙어 있던 구역을 가르던 2px 줄. 카드는 스스로 갈라지고, 둥근 모서리를 가로지르는 직선은 줄이 없느니만 못합니다 |
+| `background: transparent` → 카드 흰색 | 아래를 보십시오 |
+| 지문 타일의 테두리 | 아래를 보십시오 |
+
+**`background: transparent`가 이번의 함정이었습니다.** 설정의 묶음 줄도,
+출퇴근의 여섯 칸도 인라인으로 `transparent`입니다. 그것은 *'고르지 않은 상태'*라는
+뜻이지 *'나를 통해 뒤를 보여 달라'*가 아닙니다. 예전 평면 배경에서는 그 둘이
+같은 것이었고, 카드 위에서 비로소 갈라졌습니다 — 화면에 **구멍**이 뚫려
+보였습니다. 흰색으로 덮고, 고른 상태(`accent-100`)는 더 좁은 선택자로 되살립니다.
+**칠하고 되살리는 두 줄이 한 벌입니다.**
+
+#### 지문 타일의 테두리는 뺐고, 지문 자체는 손대지 않았습니다
+
+96px 정사각형의 2px 테두리를 없애고 둥근 타일로 바꿨습니다. 그 테두리는
+`padInk`로 근무중을 말하고 있었는데, **같은 것을 패드가 세 번 더 말합니다** —
+출근/퇴근 도장, 제목, 큰 시계가 모두 `padInk`입니다. 그래서 여기서만 뺄 수
+있었습니다. **초록 지문 그림은 한 글자도 바뀌지 않았습니다.**
+
+#### 소스에서 바꾼 두 줄
+
+- 머리말의 급여기간 칩이 **검은 알약**이 됐습니다(시안 그대로). 하얀 머리말
+  위에서 하나만 진해야 어디를 보는지가 분명합니다.
+- `이미 출근했습니다` 줄에 `accent-100`을 얹었습니다. 시안에서 분홍인 그
+  줄이고, 지문을 못 찍은 사람이 찾아가는 자리라 눈에 띄어야 합니다.
+
+#### 시험이 하나 걸렸습니다 — 주석이 시험을 깼습니다
+
+`boot.js`는 `template.split('<body')[0]`으로 head를 잘라 봅니다. 새로 쓴 주석에
+`<body>`라고 적었더니 **거기서 잘려서** 그 뒤의 `html, body { … }`가 사라졌고,
+*'갈아 끼운 문서의 html/body가 곧바로 앱 바탕색입니다'*가 실패했습니다. head에
+들어가는 파일에는 태그 이름을 꺾쇠와 함께 적지 마십시오.
+
+**임금 계산식은 손대지 않았습니다** — 바뀐 것은 모양뿐이라 v1 등가 증명과
+2152개가 그대로 통과하고(0 failed), 여덟 언어 렌더도 throws:0입니다. 토큰은
+19 → **28개**(전부 **추가**, 이름은 하나도 안 바꿨습니다). 값은 둘 바꿨습니다:
+`--color-surface` #eae9e9 → **#ffffff**(카드 흰색), `--color-neutral-300`
+#d7d3d3 → **#e0dddd**(머리카락 선을 부드럽게). **`--color-bg`는 그대로
+#f3f2f2입니다** — `boot.js`가 그 값을 정확히 셉니다.
+
+**폰에서 확인**(EN, 실제 기기): 다섯 탭 모두 흰 카드에 16px 모서리와 그림자,
+머리말의 `EN ▾`와 검은 `08.01 → 08.31` 알약, 아래 탭은 고른 것만 분홍 알약.
+탭 높이 49px, 이 화면에서 44px 미만인 누를 것 **0개**. 근로자의 저장소는 열지도
+쓰지도 않았고 `adb install -r`로 얹었습니다 — 설정 42칸 그대로입니다.
+
+#### 그리고 알약 — 오늘이 어떤 날인지는 산문이 아니라 색이 말합니다
+
+시안을 다시 보고 만든 사람이 말했습니다: **알약도 해 주십시오.**
+
+날짜와 근무조가 **두 구역**으로 떨어져 있었습니다. 붙어 있을 때는 얇은 줄
+하나였는데, 카드가 되고 나니 그 사이에 그림자가 한 겹 생겨서 **한 가지를
+말하는 것이 두 가지처럼** 보였습니다. *오늘이 며칠인가*와 *오늘이 어떤
+날인가*는 한 물음입니다. 한 카드로 합치고 안에서 얇은 줄로 나눕니다.
+
+| | 예전 | 지금 |
+|---|---|---|
+| 요일과 시각 | 날짜 밑 회색 대문자 한 줄 | 날짜 오른쪽 **회색 알약** |
+| 근무조 | 19px 굵은 글씨 `DAY` | **노랑(주간) / 검정(야간) 알약** |
+| 특근 | **설명 문단 한가운데** | **분홍 알약** `특근 ×1.5` |
+
+**색을 새로 고르지 않았습니다.** 근무기록 줄의 배지가 쓰는 그 색입니다 —
+주간이면 노랑 `oklch(0.84 0.16 92)`, 야간이면 검정. `shiftChipBg()` 하나를
+두 화면이 나눠 쓰고, **시험이 값이 아니라 그 함수에 물어봅니다.** 두 화면이
+같은 하루를 다른 색으로 말하면 안 됩니다.
+
+**특근은 근무조를 대신하지 않습니다 — 이것이 이번의 판단입니다.** 근무기록
+줄의 배지는 특근이면 배지 **자체**가 빨강이 됩니다(`:5482`). 여기서 그것을
+그대로 베끼면 **특근인 주간이 주간이 아니게 됩니다.** 특근인 야간도 있습니다.
+그래서 알약이 둘입니다 — 근무조 위에 특근이 겹쳐지는 것이지 근무조를 밀어내는
+것이 아닙니다. `shiftChipBg()`는 특근을 아예 보지 않고, *'특근이어도 노랑
+그대로'*를 시험이 셉니다(되돌려 돌리니 네 줄이 실패합니다).
+
+**특근 알약은 그 날만 섭니다.** 없는 날에 회색으로 서 있으면 *'오늘은 특근이
+아니다'*가 아니라 *'이 앱은 특근을 모른다'*로 읽힙니다.
+
+**새 문장이 없습니다** — 알약의 글자는 급여명세서가 이미 쓰는
+`holiday_work_1_5`(`특근 ×1.5`)입니다. 근로자가 종이에서 찾을 수 있어야 한다는
+그 규칙이 여기서도 공짜로 지켜집니다. 키 수 그대로 **785**.
+
+**`SHIFT DETECTED` 줄은 지우지 않았습니다.** 시안에는 없지만, 그 자리는
+서른한째가 *'판별한 적 없는 근무조를 자동판별이라고 부르지 않는다'*고 세워 둔
+`근무조 가정값 ASSUMING A SHIFT`가 나오는 자리입니다. 9px 한 줄을 아끼자고
+그것을 버릴 수는 없습니다 — 시안과 다른 유일한 줄이고, 일부러 다릅니다.
+
+22 new assertions (2152 → **2174**). **임금 계산식은 손대지 않았습니다** —
+`detectShift()`도 `autoHoliday()`도 읽기만 하고, 더한 것은 그 답을 어떤 색으로
+그리는가입니다.
+
+**알약을 한 번 네모로 내보냈습니다, 적어 둡니다.** 알약 모양은 층이 정하는데
+`border-radius` 규칙이 **테두리 있는 상자**에만 걸려 있었고, 새 알약 셋에는
+테두리가 없어서 아무 규칙도 닿지 않았습니다. 폰에서 보고서야 알았습니다 —
+**모양이 안 붙은 것은 오류를 내지 않습니다.** `min-height: 30px` +
+`inline-flex`인 일곱 개를 한 규칙으로 묶고, 소스에 그런 것이 정말 일곱 개인지
+세는 줄을 `boot.js`에 걸었습니다.
+
+**그리고 그것을 확인하다 또 한 번 걸렸습니다.** 근무기록 배지를 손으로
+만들어 재 봤더니 `0px`가 나왔습니다. `setAttribute('style', 소스의 문자열)`은
+**정규화를 하지 않습니다** — `min-height:30px` 그대로 남아서 선택자가 안
+잡힙니다. React처럼 `style` 프로퍼티를 하나씩 세우니 `999px`입니다. 이 층을
+확인할 때는 **React가 만드는 길로 만들어서** 재십시오.
+
+**폰에서 확인**(EN, 실제 기기): 한 카드 안에 `2026.08.30`과 회색
+`SUNDAY · 05:11` 알약, 얇은 줄 아래 노란 `DAY` · `16:00 start` · 분홍
+`Holiday work ×1.5`. 셋 다 실제로 `border-radius 999px`입니다(CDP로 잼).
+근로자의 저장소는 열지도 쓰지도 않았습니다.
+
+**다음 사람에게.** 모양을 더 손보고 싶어지면 **인라인에 `border-radius`를 적지
+마십시오.** 그 순간 그것이 파일의 첫 번째가 되고, 그 요소만 조용히 층 바깥으로
+나갑니다. 그리고 새 선택자를 쓸 때는 소스가 아니라 **DOM의 정규화된 속성값**을
+보십시오 — 안 잡히는 선택자는 오류를 내지 않고 그냥 예전 모양을 남깁니다.
+
+### 2026-08-29 (thirty-ninth) — 명세서의 국민연금 한 줄이 보수월액을 되살립니다
 
 스물여섯째가 되살리는 산수를 만들어 두었습니다: `bosuFromPension()`은 명세서의
 국민연금 한 줄에서 보수월액을 **원 단위까지 정확히** 풀어냅니다. 기준소득월액이

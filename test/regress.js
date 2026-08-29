@@ -4737,6 +4737,66 @@ console.log('\n== 단추 위에 아홉 줄이 서 있었습니다 ==');
   });
 }
 
+console.log('\n== 오늘이 어떤 날인지는 알약 두 개가 말합니다 ==');
+{
+  // 근무조와 특근이 문장 안에만 있었습니다. 근무조는 19px 글씨였고 특근은
+  // 설명 문단 한가운데였습니다 — 지문을 찍으러 여는 화면에서 오늘 돈이
+  // 달라지는 사실이 산문에 묻혀 있었습니다. 둘 다 알약으로 세웁니다.
+  const day = mk(V2, '2026-08-03T07:03:00');            // 월요일, 특근 아님
+  day.setS({ shifts: 'day', shiftConfirmed: true });
+  const vd = day.renderVals();
+
+  ok('주간 알약은 근무기록 배지와 같은 노랑입니다',
+    vd.detectShiftBg === 'oklch(0.84 0.16 92)', vd.detectShiftBg);
+  ok('주간 알약의 글씨는 어둡습니다', vd.detectShiftInk === 'var(--color-text)');
+  ok('평일에는 특근 알약이 없습니다', vd.detectHol === false, String(vd.detectHol));
+
+  // 야간 — 근무기록 줄의 배지와 같은 검정
+  const night = mk(V2, '2026-08-03T22:10:00');
+  night.setS({ shifts: 'night', shiftConfirmed: true });
+  const vn = night.renderVals();
+  ok('야간 알약은 검정입니다', vn.detectShiftBg === 'var(--color-text)', vn.detectShiftBg);
+  ok('야간 알약의 글씨는 밝습니다', vn.detectShiftInk === 'var(--color-bg)');
+
+  // 두 화면이 같은 하루를 다른 색으로 말하면 안 됩니다. 근무기록 줄의 배지가
+  // 쓰는 그 규칙을 그대로 부르는지, 값이 아니라 **함수로** 확인합니다.
+  ok('알약 색은 한 곳에서 나옵니다 (주간)', day.shiftChipBg('day') === vd.detectShiftBg);
+  ok('알약 색은 한 곳에서 나옵니다 (야간)', night.shiftChipBg('night') === vn.detectShiftBg);
+
+  // ── 특근은 근무조를 대신하지 않습니다 ──
+  // 근무기록 줄의 배지는 특근이면 배지 자체가 빨강이 됩니다(:5482). 여기서는
+  // 알약이 둘이라 그러면 안 됩니다 — 특근인 주간은 여전히 주간입니다.
+  const hol = mk(V2, '2026-08-02T07:03:00');            // 일요일 = 특근
+  hol.setS({ shifts: 'day', shiftConfirmed: true });
+  const vh = hol.renderVals();
+  ok('일요일에는 특근 알약이 섭니다', vh.detectHol === true);
+  ok('특근이어도 주간 알약은 노랑 그대로입니다',
+    vh.detectShiftBg === 'oklch(0.84 0.16 92)', vh.detectShiftBg);
+  ok('특근이어도 근무조 알약이 빨강이 되지 않습니다',
+    vh.detectShiftBg !== 'var(--color-accent)');
+
+  // 알약의 글자는 새로 쓴 것이 아니라 급여명세서가 쓰는 그 말입니다
+  const L = hol.renderVals().L;
+  ok('특근 알약은 명세서의 낱말을 씁니다', L.holChip === hol.T('holiday_work_1_5'), L.holChip);
+  ['ko', 'en', 'vi', 'zh', 'th', 'id', 'ne', 'km'].forEach(Lg => {
+    const t = V2.STR['holiday_work_1_5'][Lg];
+    ok(Lg + ' 특근 알약에 글자가 있습니다', !!t && t.length > 1, t);
+  });
+  ok('한국어 알약은 특근이라고 씁니다', V2.STR['holiday_work_1_5']['ko'].indexOf('특근') === 0);
+
+  // 근무중에도 알약은 그대로 섭니다 — 찍고 나면 색이 사라지면 안 됩니다
+  const on = mk(V2, '2026-08-03T10:00:00');
+  on.setS({ shifts: 'day', shiftConfirmed: true });
+  on.setState({ session: { inIso: new Date('2026-08-03T09:00:00').toISOString() } });
+  const vo = on.renderVals();
+  ok('근무중에도 근무조 알약이 있습니다', vo.detectShiftBg === 'oklch(0.84 0.16 92)', vo.detectShiftBg);
+
+  // 서른한째가 세워 둔 것 — 판별하지 않은 근무조를 자동판별이라고 부르지
+  // 않는다는 그 줄은 알약이 생겨도 그대로 화면에 있어야 합니다.
+  ok('가정값이라는 말은 알약 옆에 그대로 남아 있습니다',
+    typeof vd.detectKicker === 'string' && vd.detectKicker.length > 1);
+}
+
 console.log('\n== 정한 적 없는 근무조를 자동판별이라고 부르지 않습니다 ==');
 {
   // 하루도 적지 않은 폰이 'SHIFT DETECTED · DAY 09:00 start'라고 말했습니다.

@@ -53,6 +53,12 @@ for (const dist of ['dist', 'dist-v2']) {
   ok('갈아 끼운 문서의 html/body가 곧바로 앱 바탕색입니다',
     /html,\s*body\s*\{[^}]*background:\s*var\(--color-bg\)/.test(head));
 
+  // ── 모양 층 · 2026-08-30 ───────────────────────────────────────────────
+  // 카드·모서리·그림자는 ds-tokens.css 아래의 스타일시트 한 벌이고, 여기도
+  // 같은 자리에 인라인되므로 첫 페인트에 모양이 있습니다.
+  ok('모양 층이 첫 페인트에 있습니다 — 카드 규칙과 모서리 값',
+    /#tabScroll\s*>\s*div\s*>\s*div\s*\{/.test(head) && head.includes('--radius-lg:'));
+
   // ── 첫째 프레임: 번들러 자신의 화면 ────────────────────────────────────
   const loaderHead = built.split('</head>')[0];
   ok('로더 화면도 앱 바탕색입니다 (크림색 #faf9f5 아님)',
@@ -64,6 +70,46 @@ for (const dist of ['dist', 'dist-v2']) {
   ok('진행 표시는 지운 것이 아니라 늦춘 것입니다',
     /#__bundler_loading\s*\{[^}]*animation:\s*__bundler_late/.test(loaderHead)
     && built.includes("setStatus('Error unpacking: '"));
+}
+
+// ══ 모양 층이 서 있는 단 하나의 사실 ══════════════════════════════════════
+// 인라인 스타일 937개 가운데 border-radius도 box-shadow도 **하나도 없기**
+// 때문에 스타일시트가 !important 없이 이깁니다. 소스에 하나라도 생기면 그
+// 요소만 조용히 층 바깥으로 나갑니다 — 화면은 그냥 예전 모양이라 고장으로
+// 보이지 않습니다. 그래서 세어 둡니다.
+console.log('\n== 모양은 소스가 아니라 ds-tokens.css에 있습니다 ==');
+{
+  const src = fs.readFileSync(path.join(ROOT, 'WorkLogApp.v2.dc.html'), 'utf8');
+  const tpl = src.split('class Component')[0];   // 템플릿 구간만
+  ok('템플릿에 인라인 border-radius가 하나도 없습니다',
+    !/border-radius/.test(tpl));
+  ok('템플릿에 인라인 box-shadow가 하나도 없습니다',
+    !/box-shadow/.test(tpl));
+
+  const css = fs.readFileSync(path.join(ROOT, 'ds-tokens.css'), 'utf8');
+  // React가 인라인 스타일을 다시 직렬화하므로 DOM의 속성값은 콜론 뒤에 공백이
+  // 있습니다. 소스를 보고 `[style*="border:2px"]`라고 쓰면 아무것도 안 잡히고,
+  // 안 잡히는 선택자는 오류를 내지 않습니다.
+  const bad = (css.match(/\[style\*="[^"]*"\]/g) || [])
+    .filter(sel => /:[^ "]/.test(sel));
+  ok('속성 선택자가 정규화된 형태(콜론 뒤 공백)를 씁니다', bad.length === 0, bad.join(' '));
+
+  // 층이 이기려면 이 파일이 head에 통째로 들어가야 하고, boot.js는 head를
+  // `<` + `body`에서 자릅니다 — 그 글자가 파일에 있으면 뒤가 통째로 잘립니다.
+  ok('토큰 파일에 head를 자르는 태그 이름이 없습니다',
+    !css.includes('<' + 'body') && !css.includes('<' + 'head'));
+
+  // 알약 일곱 개 — 근무기록의 배지 넷과 출퇴근 카드의 셋이 한 모양입니다.
+  // 이 선택자가 놓치면 알약이 조용히 네모가 됩니다(실제로 한 번 그랬습니다).
+  const chips = (src.match(/min-height:30px;display:inline-flex/g) || []).length;
+  ok('알약이 일곱 개이고 층이 그 모양을 정합니다 (' + chips + '개)',
+    chips === 7 && /\[style\*="min-height: 30px"\]\[style\*="display: inline-flex"\][^{]*\{[^}]*--radius-pill/.test(css));
+
+  // 소스에서 바꾼 두 줄
+  ok('머리말의 급여기간 칩은 검은 알약입니다',
+    /padding:6px 11px;background:var\(--color-text\);color:var\(--color-bg\);font-weight:700">\{\{ monthChip \}\}/.test(src));
+  ok('이미 출근했습니다 줄은 분홍 카드입니다',
+    /openBackIn[^>]*background:var\(--color-accent-100\)/.test(src));
 }
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
