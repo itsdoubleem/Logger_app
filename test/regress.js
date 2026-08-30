@@ -1003,14 +1003,17 @@ console.log('\n== 목록 맨 위에 연도까지 적힌 기간이 붙어 있습�
   ];
   const v=c.renderVals();
   ok('이번 기간에도 연도가 있습니다', v.viewPeriodFull==='2026.08.21 → 2026.09.20', v.viewPeriodFull);
-  ok('이번 기간은 조용합니다', v.viewPeriodBg==='var(--color-neutral-200)' && v.viewPeriodInk==='var(--color-text)');
+  // 예전에는 이 줄이 '이번 기간은 조용합니다'(회색)였습니다. 2026-08-30에
+  // 만든 사람이 폰에서 그 회색을 보고 어긋난 것으로 읽어, 두 상태를 한 색으로
+  // 모았습니다 — 지금 어느 기간에 있는지는 스테퍼가 말합니다.
+  ok('이번 기간도 빨강입니다', v.viewPeriodBg==='var(--color-accent)' && v.viewPeriodInk==='var(--color-bg)');
 
   // 근로자가 겪은 그 자리 — 2023년 08월
   const map=c.periodMap();
   c.goPeriod(map[2023*100+8]);
   const p=c.renderVals();
   ok('2023년 08월을 고르면 연도가 보입니다', p.viewPeriodFull==='2023.08.21 → 2023.09.20', p.viewPeriodFull);
-  ok('지난 기간이면 빨강입니다', p.viewPeriodBg==='var(--color-accent)' && p.viewPeriodInk==='var(--color-bg)');
+  ok('지난 기간도 같은 빨강입니다', p.viewPeriodBg==='var(--color-accent)' && p.viewPeriodInk==='var(--color-bg)');
   ok('줄 자체는 예전 그대로 월.일', p.logRows[0].date.length===5, p.logRows[0].date);
 
   // 해를 넘기는 기간 — 연도가 가장 헷갈리는 자리라 양쪽을 다 적습니다
@@ -1024,9 +1027,38 @@ console.log('\n== 목록 맨 위에 연도까지 적힌 기간이 붙어 있습�
   ok('머리띠는 값 하나뿐입니다', typeof c.renderVals().viewPeriodFull==='string'
     && c.renderVals().logPeriodFull===undefined);
 
-  // 돌아오면 다시 조용해집니다
+  // 돌아와도 색이 바뀌지 않습니다 — 그것이 이번에 고친 것입니다
   c.renderVals().payNow();
-  ok('이번 기간으로 돌아오면 빨강이 걷힙니다', c.renderVals().viewPeriodBg==='var(--color-neutral-200)');
+  ok('이번 기간으로 돌아와도 빨강 그대로', c.renderVals().viewPeriodBg==='var(--color-accent)');
+  ok('돌아와도 글자색 그대로', c.renderVals().viewPeriodInk==='var(--color-bg)');
+  // 회색은 이제 이 머리띠에 쓰이지 않습니다 — 되돌리면 여기서 걸립니다
+  ok('머리띠에 회색이 남아 있지 않습니다',
+    c.renderVals().viewPeriodBg!=='var(--color-neutral-200)'
+    && c.renderVals().viewPeriodInk!=='var(--color-text)');
+  // 두 머리띠는 값 하나를 나눠 쓰므로 근무기록과 급여가 어긋날 길이 없습니다.
+  // 마크업이 그 값을 정말 두 번 쓰는지는 아래 블록이 셉니다.
+  ok('기간을 옮겨도 두 상태가 같은 색입니다',
+    (function(){ const a=c.renderVals().viewPeriodBg; c.goPeriod(map[2023*100+8]);
+      const b=c.renderVals().viewPeriodBg; c.renderVals().payNow(); return a===b; })());
+}
+
+// ── 2026-08-30 · 마크업이 그 값을 정말 쓰는지 ──
+// 서른두째가 겪은 자리입니다 — renderVals()는 맞는 색을 내는데 마크업이 색을
+// 하드코딩해 두어 화면에 닿지 않았습니다. 값이 맞고 화면이 틀린 것은 가장 잡기
+// 어려운 종류라, 머리띠 둘이 실제로 그 홀을 쓰는지 소스에서 셉니다.
+console.log('\n== 두 탭의 머리띠가 같은 홀을 씁니다 ==');
+{ const fs=require('fs');
+  const src=fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const bg=(src.match(/\{\{ viewPeriodBg \}\}/g)||[]).length;
+  const ink=(src.match(/\{\{ viewPeriodInk \}\}/g)||[]).length;
+  const full=(src.match(/\{\{ viewPeriodFull \}\}/g)||[]).length;
+  ok('머리띠는 근무기록과 급여 둘입니다', full===2, String(full));
+  ok('두 머리띠 모두 색을 홀로 받습니다', bg===2 && ink===2, bg+'/'+ink);
+  // 머리띠 줄에 색을 박아 두면 홀이 닿지 않습니다
+  const bands=src.split('\n').filter(l => l.indexOf('{{ viewPeriodFull }}')!==-1);
+  ok('머리띠 줄에 색을 박아 두지 않았습니다',
+    bands.length===2 && bands.every(l => l.indexOf('neutral-200')===-1
+      && l.indexOf('background:{{ viewPeriodBg }}')!==-1));
 }
 
 // ── 예정 · 스테퍼가 닿지 않는 유일한 자리 ──

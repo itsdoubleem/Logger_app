@@ -211,5 +211,52 @@ console.log('\n== 모양은 소스가 아니라 ds-tokens.css에 있습니다 ==
     /openBackIn[^>]*background:var\(--color-accent-100\)/.test(src));
 }
 
+// ══ 카드 안의 여백은 margin이 아니라 padding입니다 ═══════════════════════
+// 만든 사람이 내 권리와 설정을 열고 말했습니다: 글자가 잘려 있습니다.
+// 셋 다 같은 모양이었습니다 — 평면 시대에 좌우 여백을 `margin:14px 18px 0`의
+// 18px로 주고 글자를 그 안에 바로 담은 구역들입니다. 마흔째의 카드 층이
+// margin을 !important로 통째로 가져가면서(구역마다 제각각이던 여백을 한
+// 박자로 모으려고) 그 18px가 죽었고, 카드는 overflow:hidden이라 글자가
+// 가장자리에서 **잘렸습니다**. 층이 margin을 소유하므로, 카드 안쪽의 여백은
+// 그 카드가 padding으로 스스로 가져야 합니다.
+console.log('\n== 카드 안의 여백은 padding입니다 ==');
+{
+  const src = fs.readFileSync(path.join(ROOT, 'WorkLogApp.v2.dc.html'), 'utf8');
+  const tpl = src.split('class Component')[0];
+
+  // 고친 셋
+  ok('내 권리의 가리키는 한 줄이 스스로 여백을 갖습니다',
+    /padding:12px 18px;text-wrap:pretty">\{\{ L\.rightsEvidence \}\}/.test(tpl));
+  const tiers = (tpl.match(/border-top:2px solid var\(--color-divider\);padding:13px 18px 14px/g) || []).length;
+  ok('설정의 법적 고지와 정보 카드가 좌우 여백을 갖습니다 (' + tiers + '개)', tiers === 2);
+  // 되돌리면 여기서 걸립니다 — 예전 모양은 좌우가 0이었습니다
+  ok('좌우가 0인 예전 모양이 남아 있지 않습니다',
+    !/margin:14px 18px 0;border-top:2px solid var\(--color-divider\);padding:13px 0 0/.test(tpl));
+
+  // 그리고 같은 함정을 다시 파지 않도록: 좌우 여백을 margin에 맡긴 채
+  // padding의 좌우를 0으로 적어 둔 구역이 하나도 없어야 합니다.
+  const hz = [];
+  (tpl.match(/style="[^"]*"/g) || []).forEach(function (a) {
+    const st = a.slice(7, -1);
+    const m = /(?:^|;)\s*margin\s*:\s*([^;]+)/.exec(st);
+    if (!m) return;
+    const parts = m[1].trim().split(/\s+/);
+    const mx = parts.length >= 2 ? parts[1] : parts[0];
+    if (!/^18px$/.test(mx)) return;                 // 구역의 그 좌우 여백만
+    const pd = /(?:^|;)\s*padding\s*:\s*([^;]+)/.exec(st);
+    if (!pd) { hz.push(st); return; }               // 여백을 아예 안 적은 것
+    const pp = pd[1].trim().split(/\s+/);
+    const px = pp.length >= 2 ? pp[1] : pp[0];
+    if (/^0(px)?$/.test(px)) hz.push('ZERO ' + st); // 좌우를 0으로 못 박은 것
+  });
+  ok('좌우 여백을 0으로 못 박은 구역이 없습니다',
+    hz.filter(function (x) { return x.indexOf('ZERO ') === 0; }).length === 0,
+    hz.filter(function (x) { return x.indexOf('ZERO ') === 0; }).join(' | '));
+  // 여백을 안 적은 셋은 안쪽 줄이 저마다 padding을 갖고 있어서 괜찮습니다
+  // (주 52시간 경고 둘 · 명세서 대조의 검은 띠). 넷째가 생기면 이 수가 늘고,
+  // 그때 그 카드의 글자가 가장자리에 붙는지 눈으로 보게 됩니다.
+  ok('여백을 스스로 적지 않은 구역은 셋뿐입니다 (' + hz.length + '개)', hz.length === 3);
+}
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);
