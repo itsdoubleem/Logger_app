@@ -114,23 +114,26 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
               <div>
                 <div style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--color-neutral-600);margin-top:20px">{{ L.lDayStart }}</div>
                 <!-- 시계 앱의 알람과 같은 굴림판. 가운데 띠에 든 값이 고른 값입니다.
-                     띠는 그리기만 하고 누름을 받지 않습니다(pointer-events:none) —
-                     그렇지 않으면 가운데 칸을 영영 누를 수 없습니다. -->
-                <div style="position:relative;height:168px;margin-top:8px;border:2px solid var(--color-neutral-300);background:var(--color-bg)">
-                  <div style="position:absolute;left:0;right:0;top:56px;height:56px;border-top:2px solid var(--color-text);border-bottom:2px solid var(--color-text);pointer-events:none"></div>
-                  <div style="display:flex;align-items:stretch;height:100%">
-                    <div id="drumDayH" onScroll="{{ dayDrumHScroll }}" style="flex:1;min-width:0;height:100%;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none">
+                     세 겹입니다 — 빛을 받는 흰 띠, 그 위의 숫자, 그리고 원통이
+                     굽어 들어가는 그늘 한 겹. 띠도 그늘도 그리기만 하고 누름을
+                     받지 않습니다: 하나라도 받으면 그 줄을 영영 누를 수 없습니다.
+                     기울기는 무는 칸이 아니라 그 안의 글자가 집니다(drumFace). -->
+                <div style="position:relative;height:168px;margin-top:8px;border:2px solid var(--color-neutral-300);background:var(--color-neutral-100);overflow:hidden">
+                  <div style="position:absolute;left:0;right:0;top:56px;height:56px;background:var(--color-surface);border-top:1px solid var(--color-neutral-400);border-bottom:1px solid var(--color-neutral-400);pointer-events:none"></div>
+                  <div style="position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(180deg,rgba(32,30,29,0.24) 0%,rgba(32,30,29,0.11) 13%,rgba(32,30,29,0.03) 25%,rgba(32,30,29,0) 34%,rgba(32,30,29,0) 66%,rgba(32,30,29,0.03) 75%,rgba(32,30,29,0.11) 87%,rgba(32,30,29,0.24) 100%)"></div>
+                  <div style="position:relative;display:flex;align-items:stretch;height:100%">
+                    <div id="drumDayH" onScroll="{{ dayDrumHScroll }}" style="flex:1;min-width:0;height:100%;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;perspective:620px">
                       <div style="height:56px"></div>
                       <sc-for list="{{ dayDrumH }}" as="o" hint-placeholder-count="24">
-                        <div onClick="{{ o.set }}" style="height:56px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;cursor:pointer;font-family:var(--font-heading);font-weight:{{ o.wgt }};font-size:{{ o.size }};color:{{ o.ink }};font-variant-numeric:tabular-nums">{{ o.t }}</div>
+                        <div onClick="{{ o.set }}" style="height:56px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;cursor:pointer;transform-style:preserve-3d"><div style="font-family:var(--font-heading);font-weight:{{ o.wgt }};font-size:{{ o.size }};color:{{ o.ink }};font-variant-numeric:tabular-nums;transform:{{ o.tf }};opacity:{{ o.op }}">{{ o.t }}</div></div>
                       </sc-for>
                       <div style="height:56px"></div>
                     </div>
                     <div style="flex:none;width:14px;display:flex;align-items:center;justify-content:center;font-family:var(--font-heading);font-weight:800;font-size:22px;color:var(--color-text)">:</div>
-                    <div id="drumDayM" onScroll="{{ dayDrumMScroll }}" style="flex:1;min-width:0;height:100%;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none">
+                    <div id="drumDayM" onScroll="{{ dayDrumMScroll }}" style="flex:1;min-width:0;height:100%;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;perspective:620px">
                       <div style="height:56px"></div>
                       <sc-for list="{{ dayDrumM }}" as="o" hint-placeholder-count="12">
-                        <div onClick="{{ o.set }}" style="height:56px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;cursor:pointer;font-family:var(--font-heading);font-weight:{{ o.wgt }};font-size:{{ o.size }};color:{{ o.ink }};font-variant-numeric:tabular-nums">{{ o.t }}</div>
+                        <div onClick="{{ o.set }}" style="height:56px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;cursor:pointer;transform-style:preserve-3d"><div style="font-family:var(--font-heading);font-weight:{{ o.wgt }};font-size:{{ o.size }};color:{{ o.ink }};font-variant-numeric:tabular-nums;transform:{{ o.tf }};opacity:{{ o.op }}">{{ o.t }}</div></div>
                       </sc-for>
                       <div style="height:56px"></div>
                     </div>
@@ -151,23 +154,26 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
               <div>
                 <div style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--color-neutral-600);margin-top:20px">{{ L.lNightStart }}</div>
                 <!-- 시계 앱의 알람과 같은 굴림판. 가운데 띠에 든 값이 고른 값입니다.
-                     띠는 그리기만 하고 누름을 받지 않습니다(pointer-events:none) —
-                     그렇지 않으면 가운데 칸을 영영 누를 수 없습니다. -->
-                <div style="position:relative;height:168px;margin-top:8px;border:2px solid var(--color-neutral-300);background:var(--color-bg)">
-                  <div style="position:absolute;left:0;right:0;top:56px;height:56px;border-top:2px solid var(--color-text);border-bottom:2px solid var(--color-text);pointer-events:none"></div>
-                  <div style="display:flex;align-items:stretch;height:100%">
-                    <div id="drumNightH" onScroll="{{ nightDrumHScroll }}" style="flex:1;min-width:0;height:100%;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none">
+                     세 겹입니다 — 빛을 받는 흰 띠, 그 위의 숫자, 그리고 원통이
+                     굽어 들어가는 그늘 한 겹. 띠도 그늘도 그리기만 하고 누름을
+                     받지 않습니다: 하나라도 받으면 그 줄을 영영 누를 수 없습니다.
+                     기울기는 무는 칸이 아니라 그 안의 글자가 집니다(drumFace). -->
+                <div style="position:relative;height:168px;margin-top:8px;border:2px solid var(--color-neutral-300);background:var(--color-neutral-100);overflow:hidden">
+                  <div style="position:absolute;left:0;right:0;top:56px;height:56px;background:var(--color-surface);border-top:1px solid var(--color-neutral-400);border-bottom:1px solid var(--color-neutral-400);pointer-events:none"></div>
+                  <div style="position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(180deg,rgba(32,30,29,0.24) 0%,rgba(32,30,29,0.11) 13%,rgba(32,30,29,0.03) 25%,rgba(32,30,29,0) 34%,rgba(32,30,29,0) 66%,rgba(32,30,29,0.03) 75%,rgba(32,30,29,0.11) 87%,rgba(32,30,29,0.24) 100%)"></div>
+                  <div style="position:relative;display:flex;align-items:stretch;height:100%">
+                    <div id="drumNightH" onScroll="{{ nightDrumHScroll }}" style="flex:1;min-width:0;height:100%;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;perspective:620px">
                       <div style="height:56px"></div>
                       <sc-for list="{{ nightDrumH }}" as="o" hint-placeholder-count="24">
-                        <div onClick="{{ o.set }}" style="height:56px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;cursor:pointer;font-family:var(--font-heading);font-weight:{{ o.wgt }};font-size:{{ o.size }};color:{{ o.ink }};font-variant-numeric:tabular-nums">{{ o.t }}</div>
+                        <div onClick="{{ o.set }}" style="height:56px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;cursor:pointer;transform-style:preserve-3d"><div style="font-family:var(--font-heading);font-weight:{{ o.wgt }};font-size:{{ o.size }};color:{{ o.ink }};font-variant-numeric:tabular-nums;transform:{{ o.tf }};opacity:{{ o.op }}">{{ o.t }}</div></div>
                       </sc-for>
                       <div style="height:56px"></div>
                     </div>
                     <div style="flex:none;width:14px;display:flex;align-items:center;justify-content:center;font-family:var(--font-heading);font-weight:800;font-size:22px;color:var(--color-text)">:</div>
-                    <div id="drumNightM" onScroll="{{ nightDrumMScroll }}" style="flex:1;min-width:0;height:100%;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none">
+                    <div id="drumNightM" onScroll="{{ nightDrumMScroll }}" style="flex:1;min-width:0;height:100%;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;perspective:620px">
                       <div style="height:56px"></div>
                       <sc-for list="{{ nightDrumM }}" as="o" hint-placeholder-count="12">
-                        <div onClick="{{ o.set }}" style="height:56px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;cursor:pointer;font-family:var(--font-heading);font-weight:{{ o.wgt }};font-size:{{ o.size }};color:{{ o.ink }};font-variant-numeric:tabular-nums">{{ o.t }}</div>
+                        <div onClick="{{ o.set }}" style="height:56px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;cursor:pointer;transform-style:preserve-3d"><div style="font-family:var(--font-heading);font-weight:{{ o.wgt }};font-size:{{ o.size }};color:{{ o.ink }};font-variant-numeric:tabular-nums;transform:{{ o.tf }};opacity:{{ o.op }}">{{ o.t }}</div></div>
                       </sc-for>
                       <div style="height:56px"></div>
                     </div>
@@ -208,21 +214,22 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
                       <div onClick="{{ r.del }}" style="flex:none;min-width:36px;min-height:48px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:var(--color-neutral-600)">×</div>
                     </div>
                     <sc-if value="{{ r.openAny }}" hint-placeholder-val="{{ false }}">
-                      <div style="position:relative;height:168px;margin-top:8px;border:2px solid var(--color-neutral-300);background:var(--color-bg)">
-                        <div style="position:absolute;left:0;right:0;top:56px;height:56px;border-top:2px solid var(--color-text);border-bottom:2px solid var(--color-text);pointer-events:none"></div>
-                        <div style="display:flex;align-items:stretch;height:100%">
-                          <div id="brDrumH" onScroll="{{ r.hScroll }}" style="flex:1;min-width:0;height:100%;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none">
+                      <div style="position:relative;height:168px;margin-top:8px;border:2px solid var(--color-neutral-300);background:var(--color-neutral-100);overflow:hidden">
+                        <div style="position:absolute;left:0;right:0;top:56px;height:56px;background:var(--color-surface);border-top:1px solid var(--color-neutral-400);border-bottom:1px solid var(--color-neutral-400);pointer-events:none"></div>
+                  <div style="position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(180deg,rgba(32,30,29,0.24) 0%,rgba(32,30,29,0.11) 13%,rgba(32,30,29,0.03) 25%,rgba(32,30,29,0) 34%,rgba(32,30,29,0) 66%,rgba(32,30,29,0.03) 75%,rgba(32,30,29,0.11) 87%,rgba(32,30,29,0.24) 100%)"></div>
+                        <div style="position:relative;display:flex;align-items:stretch;height:100%">
+                          <div id="brDrumH" onScroll="{{ r.hScroll }}" style="flex:1;min-width:0;height:100%;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;perspective:620px">
                             <div style="height:56px"></div>
                             <sc-for list="{{ r.drumH }}" as="o" hint-placeholder-count="24">
-                              <div onClick="{{ o.set }}" style="height:56px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;cursor:pointer;font-family:var(--font-heading);font-weight:{{ o.wgt }};font-size:{{ o.size }};color:{{ o.ink }};font-variant-numeric:tabular-nums">{{ o.t }}</div>
+                              <div onClick="{{ o.set }}" style="height:56px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;cursor:pointer;transform-style:preserve-3d"><div style="font-family:var(--font-heading);font-weight:{{ o.wgt }};font-size:{{ o.size }};color:{{ o.ink }};font-variant-numeric:tabular-nums;transform:{{ o.tf }};opacity:{{ o.op }}">{{ o.t }}</div></div>
                             </sc-for>
                             <div style="height:56px"></div>
                           </div>
                           <div style="flex:none;width:14px;display:flex;align-items:center;justify-content:center;font-family:var(--font-heading);font-weight:800;font-size:22px;color:var(--color-text)">:</div>
-                          <div id="brDrumM" onScroll="{{ r.mScroll }}" style="flex:1;min-width:0;height:100%;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none">
+                          <div id="brDrumM" onScroll="{{ r.mScroll }}" style="flex:1;min-width:0;height:100%;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;perspective:620px">
                             <div style="height:56px"></div>
                             <sc-for list="{{ r.drumM }}" as="o" hint-placeholder-count="12">
-                              <div onClick="{{ o.set }}" style="height:56px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;cursor:pointer;font-family:var(--font-heading);font-weight:{{ o.wgt }};font-size:{{ o.size }};color:{{ o.ink }};font-variant-numeric:tabular-nums">{{ o.t }}</div>
+                              <div onClick="{{ o.set }}" style="height:56px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;cursor:pointer;transform-style:preserve-3d"><div style="font-family:var(--font-heading);font-weight:{{ o.wgt }};font-size:{{ o.size }};color:{{ o.ink }};font-variant-numeric:tabular-nums;transform:{{ o.tf }};opacity:{{ o.op }}">{{ o.t }}</div></div>
                             </sc-for>
                             <div style="height:56px"></div>
                           </div>
@@ -249,21 +256,22 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
                       <div onClick="{{ r.del }}" style="flex:none;min-width:36px;min-height:48px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:var(--color-neutral-600)">×</div>
                     </div>
                     <sc-if value="{{ r.openAny }}" hint-placeholder-val="{{ false }}">
-                      <div style="position:relative;height:168px;margin-top:8px;border:2px solid var(--color-neutral-300);background:var(--color-bg)">
-                        <div style="position:absolute;left:0;right:0;top:56px;height:56px;border-top:2px solid var(--color-text);border-bottom:2px solid var(--color-text);pointer-events:none"></div>
-                        <div style="display:flex;align-items:stretch;height:100%">
-                          <div id="brDrumH" onScroll="{{ r.hScroll }}" style="flex:1;min-width:0;height:100%;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none">
+                      <div style="position:relative;height:168px;margin-top:8px;border:2px solid var(--color-neutral-300);background:var(--color-neutral-100);overflow:hidden">
+                        <div style="position:absolute;left:0;right:0;top:56px;height:56px;background:var(--color-surface);border-top:1px solid var(--color-neutral-400);border-bottom:1px solid var(--color-neutral-400);pointer-events:none"></div>
+                  <div style="position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(180deg,rgba(32,30,29,0.24) 0%,rgba(32,30,29,0.11) 13%,rgba(32,30,29,0.03) 25%,rgba(32,30,29,0) 34%,rgba(32,30,29,0) 66%,rgba(32,30,29,0.03) 75%,rgba(32,30,29,0.11) 87%,rgba(32,30,29,0.24) 100%)"></div>
+                        <div style="position:relative;display:flex;align-items:stretch;height:100%">
+                          <div id="brDrumH" onScroll="{{ r.hScroll }}" style="flex:1;min-width:0;height:100%;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;perspective:620px">
                             <div style="height:56px"></div>
                             <sc-for list="{{ r.drumH }}" as="o" hint-placeholder-count="24">
-                              <div onClick="{{ o.set }}" style="height:56px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;cursor:pointer;font-family:var(--font-heading);font-weight:{{ o.wgt }};font-size:{{ o.size }};color:{{ o.ink }};font-variant-numeric:tabular-nums">{{ o.t }}</div>
+                              <div onClick="{{ o.set }}" style="height:56px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;cursor:pointer;transform-style:preserve-3d"><div style="font-family:var(--font-heading);font-weight:{{ o.wgt }};font-size:{{ o.size }};color:{{ o.ink }};font-variant-numeric:tabular-nums;transform:{{ o.tf }};opacity:{{ o.op }}">{{ o.t }}</div></div>
                             </sc-for>
                             <div style="height:56px"></div>
                           </div>
                           <div style="flex:none;width:14px;display:flex;align-items:center;justify-content:center;font-family:var(--font-heading);font-weight:800;font-size:22px;color:var(--color-text)">:</div>
-                          <div id="brDrumM" onScroll="{{ r.mScroll }}" style="flex:1;min-width:0;height:100%;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none">
+                          <div id="brDrumM" onScroll="{{ r.mScroll }}" style="flex:1;min-width:0;height:100%;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;perspective:620px">
                             <div style="height:56px"></div>
                             <sc-for list="{{ r.drumM }}" as="o" hint-placeholder-count="12">
-                              <div onClick="{{ o.set }}" style="height:56px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;cursor:pointer;font-family:var(--font-heading);font-weight:{{ o.wgt }};font-size:{{ o.size }};color:{{ o.ink }};font-variant-numeric:tabular-nums">{{ o.t }}</div>
+                              <div onClick="{{ o.set }}" style="height:56px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;cursor:pointer;transform-style:preserve-3d"><div style="font-family:var(--font-heading);font-weight:{{ o.wgt }};font-size:{{ o.size }};color:{{ o.ink }};font-variant-numeric:tabular-nums;transform:{{ o.tf }};opacity:{{ o.op }}">{{ o.t }}</div></div>
                             </sc-for>
                             <div style="height:56px"></div>
                           </div>
@@ -2818,13 +2826,11 @@ class Component extends DCLogic {
     if (this.state.setupStep !== 1) return [];
     const cur = Component.drumIndex(this.st()[key]);
     const list = part === 'h' ? Component.DRUM_H : Component.DRUM_M;
-    return list.map((t, i) => ({
-      t,
-      sel: cur[part] === i,
-      ink: cur[part] === i ? 'var(--color-text)' : 'var(--color-neutral-500)',
-      wgt: cur[part] === i ? '800' : '500',
-      size: cur[part] === i ? '30px' : '22px',
-      set: () => this.drumSet(key, part, i),
+    return list.map((t, i) => Object.assign({ t }, Component.drumFace(i - cur[part]), {
+      set: () => {
+        this.drumSet(key, part, i);
+        this.drumRollTo(Component.drumElId(key, part), i);
+      },
     }));
   }
   // 휴게 줄의 드럼 — 한 번에 하나만 열립니다
@@ -2850,6 +2856,25 @@ class Component extends DCLogic {
     const list = part === 'h' ? Component.DRUM_H : Component.DRUM_M;
     if (j < 0 || j >= list.length) return;
     this.setBreakDrum(which, i, field, part, j);
+  }
+  // ── 누른 칸으로 바퀴가 굴러가야 합니다 ──
+  // 누르는 것과 굴리는 것은 다른 일입니다. 굴려서 고르면 바퀴는 이미 그 자리에
+  // 있는데, **눌러서** 고르면 값만 바뀌고 바퀴는 서 있었습니다 — 빛을 받는 띠
+  // 안에는 예전 값이 그대로 있고 고른 값은 그 위 칸에서 굵어집니다. 평면일
+  // 때는 '굵어진 칸'이 답이라 읽혔지만, 띠가 렌즈가 된 지금은 **화면이 두
+  // 가지를 말하는 것**이 됩니다.
+  //
+  // 그래서 누른 자리에서만 굴립니다. 굴려서 고르는 쪽(drumScroll)에서는 절대
+  // 부르지 않습니다 — 던져서 굴러가는 중에 자리를 잡으면 손가락과 다툽니다
+  // (placeDrums가 componentDidUpdate에서 겪은 그것입니다).
+  drumRollTo(id, i) {
+    if (typeof document === 'undefined' || !document.getElementById) return;
+    const el = document.getElementById(id);
+    if (!el) return;
+    const top = i * Component.DRUM_ITEM;
+    if (el.scrollTop === top) return;
+    if (el.scrollTo) el.scrollTo({ top, behavior: 'smooth' });
+    else el.scrollTop = top;
   }
   drumSet(key, part, i) {
     const cur = Component.drumIndex(this.st()[key]);
@@ -3392,7 +3417,55 @@ class Component extends DCLogic {
   static DRUM_H = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
   static DRUM_M = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
   static DRUM_ITEM = 56;    // 한 칸의 높이(px) — 템플릿과 같은 값이어야 합니다
+  static DRUM_STEP = 30;    // 한 칸이 도는 각도(°) — 원통의 한 눈금
+  // ── 굴림판은 목록이 아니라 바퀴입니다 ──
+  // 칸을 세로로 늘어놓고 굴리기만 하면, 아무리 굴려도 그것은 종이에 적힌
+  // 표입니다. 시계 앱의 알람이 바퀴로 읽히는 까닭은 하나뿐입니다 —
+  // **가운데에서 멀어진 칸이 눕습니다.**
+  //
+  // 칸의 자리는 스크롤이 정합니다(가운데에서 d칸 떨어진 것은 y = d × 56).
+  // 여기서 하는 일은 그 자리에 선 칸을 원통의 겉면으로 옮겨 놓는 것뿐입니다:
+  //
+  //   반지름 R = 칸높이 ÷ 한 눈금의 각(라디안) = 56 ÷ 30° = 107.0px
+  //   겉면 위의 자리   y = R·sin(dθ)   z = R·cos(dθ) − R   기울기 = −dθ
+  //
+  // y는 이미 d × 56에 서 있으므로 **그 차이만큼만** 끌어당깁니다. transform은
+  // 자리를 바꾸지 않으므로 레이아웃도, 스크롤이 물리는 자리(scroll-snap)도
+  // 한 픽셀도 움직이지 않습니다 — 굴린 자리를 세는 산수(drumScroll)가 그대로
+  // 맞는 이유가 그것입니다.
+  //
+  // 기울기의 부호: CSS의 rotateX(+)는 아래쪽을 앞으로, 위쪽을 뒤로 보냅니다.
+  // 가운데보다 **위**에 있는 칸(d < 0)은 자기 위쪽이 뒤로 넘어가야 하므로
+  // 각이 양수라야 합니다. 그래서 −d입니다.
+  //
+  // 두 곳(설정 흐름의 근무조 시각, 휴게 줄)이 이 하나를 나눠 씁니다. 각각
+  // 제 손으로 모양을 정하면 같은 바퀴가 두 화면에서 다르게 굽습니다.
+  static drumFace(d) {
+    const th = Component.DRUM_STEP * Math.PI / 180;
+    const R = Component.DRUM_ITEM / th;
+    const n = Math.abs(d);
+    const r1 = v => Math.round(v * 10) / 10;
+    return {
+      sel: d === 0,
+      // 색은 하나입니다 — 흐려 보이는 것은 물감이 아니라 **누워서 멀어졌기**
+      // 때문이고, 그 일은 opacity가 합니다.
+      ink: d === 0 ? 'var(--color-text)' : 'var(--color-neutral-800)',
+      wgt: d === 0 ? '800' : '600',
+      size: d === 0 ? '30px' : '26px',
+      op: n === 0 ? '1' : n === 1 ? '0.66' : n === 2 ? '0.22' : '0',
+      // 넉 칸 너머는 어차피 보이지 않습니다. 각이 90°를 넘으면 칸이 뒤집히므로
+      // 거기서는 아예 세우지 않습니다.
+      tf: n >= 4 ? 'none'
+        : 'translateY(' + r1(R * Math.sin(d * th) - d * Component.DRUM_ITEM) + 'px)'
+          + ' translateZ(' + r1(R * Math.cos(d * th) - R) + 'px)'
+          + ' rotateX(' + r1(-d * Component.DRUM_STEP) + 'deg)',
+    };
+  }
   // 'HH:MM'을 두 칸의 자리로. 5분 격자에 없는 분은 가장 가까운 칸으로 봅니다.
+  // 굴림판의 id — 자리를 맞추는 코드와 눌러서 고르는 코드가 같은 이름을 봅니다
+  static drumElId(key, part) {
+    return (key === 'nightStart' ? 'drumNight' : 'drumDay') + (part === 'h' ? 'H' : 'M');
+  }
   static drumIndex(hhmm) {
     const m = /^(\d{1,2}):(\d{2})$/.exec(String(hhmm || ''));
     if (!m) return { h: 0, m: 0 };
@@ -4514,13 +4587,13 @@ class Component extends DCLogic {
       const openT = this.state.brEdit === eid + ':to';
       const drumFor = field => {
         const cur = Component.drumIndex(field === 'from' ? b.from : b.to);
-        const col = part => (part === 'h' ? Component.DRUM_H : Component.DRUM_M).map((t, j) => ({
-          t, sel: cur[part] === j,
-          ink: cur[part] === j ? 'var(--color-text)' : 'var(--color-neutral-500)',
-          wgt: cur[part] === j ? '800' : '500',
-          size: cur[part] === j ? '30px' : '22px',
-          set: () => this.setBreakDrum(which, i, field, part, j),
-        }));
+        const col = part => (part === 'h' ? Component.DRUM_H : Component.DRUM_M)
+          .map((t, j) => Object.assign({ t }, Component.drumFace(j - cur[part]), {
+            set: () => {
+              this.setBreakDrum(which, i, field, part, j);
+              this.drumRollTo(part === 'h' ? 'brDrumH' : 'brDrumM', j);
+            },
+          }));
         return { h: col('h'), m: col('m') };
       };
       const dF = openF ? drumFor('from') : { h: [], m: [] };

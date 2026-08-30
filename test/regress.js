@@ -6107,5 +6107,134 @@ console.log('\n== 열리는 것과 열리지 않는 것 ==');
     && bal(tplQ.slice(tplQ.indexOf('{{ L.tierRest }}'), tplQ.indexOf('{{ L.secLegal }}'))) === 0);
 }
 
+console.log('\n== 굴림판이 종이에 그린 표였습니다 ==');
+{
+  // 만든 사람이 폰의 시각 굴림판을 보고 말했습니다: **아주 2D로 보입니다.
+  // 3D로, 더 다듬어 보이게 해 주십시오.**
+  //
+  // 맞습니다. 칸을 세로로 늘어놓고 굴리기만 하면, 아무리 굴려도 그것은 종이에
+  // 적힌 표입니다. 시계 앱의 알람이 **바퀴**로 읽히는 까닭은 하나뿐입니다 —
+  // 가운데에서 멀어진 칸이 눕습니다.
+  const fs = require('fs');
+  const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tpl = src.slice(0, src.indexOf('</x-dc>'));
+  const q1 = tpl.slice(tpl.indexOf('{{ suIs1 }}'), tpl.indexOf('{{ suIs2 }}'));
+
+  // ── 1 · 칸은 원통의 겉면 위에 섭니다 ──
+  const f0 = V2.drumFace(0), fu = V2.drumFace(-1), fd = V2.drumFace(1);
+  ok('가운데 칸은 눕지 않습니다', /rotateX\(0deg\)/.test(f0.tf) && f0.op === '1' && f0.sel === true, f0.tf);
+  // 부호가 이 자리의 전부입니다. CSS의 rotateX(+)는 아래쪽을 앞으로, 위쪽을
+  // 뒤로 보냅니다 — 가운데보다 **위**에 있는 칸은 자기 위쪽이 뒤로 넘어가야
+  // 하므로 각이 양수라야 합니다. 뒤집으면 바퀴가 바깥으로 부풀어 보입니다.
+  ok('위 칸은 위쪽이 뒤로 넘어갑니다', fu.tf.indexOf('rotateX(' + V2.DRUM_STEP + 'deg)') > 0, fu.tf);
+  ok('아래 칸은 그 반대입니다', fd.tf.indexOf('rotateX(-' + V2.DRUM_STEP + 'deg)') > 0, fd.tf);
+  const z = t => +(/translateZ\((-?[\d.]+)px\)/.exec(t) || [0, 0])[1];
+  ok('가운데 칸만 앞에 있습니다', z(f0.tf) === 0 && z(fu.tf) < 0 && z(fd.tf) < 0,
+    z(f0.tf) + ' / ' + z(fu.tf));
+  ok('위아래가 똑같이 멀어집니다', z(fu.tf) === z(fd.tf), z(fu.tf) + ' / ' + z(fd.tf));
+  ok('멀어질수록 흐려집니다', +f0.op > +fu.op && +fu.op > +V2.drumFace(2).op);
+  // 넉 칸 너머는 어차피 보이지 않고, 각이 90°를 넘으면 칸이 뒤집힙니다
+  ok('넉 칸 너머는 아예 세우지 않습니다', V2.drumFace(4).tf === 'none' && V2.drumFace(4).op === '0');
+  ok('넉 칸 너머는 뒤에서도 마찬가지입니다', V2.drumFace(-4).tf === 'none' && V2.drumFace(-4).op === '0');
+
+  // ── 2 · 두 화면이 바퀴 하나를 나눠 씁니다 ──
+  // 같은 굴림판이 설정 흐름(근무조 시각)과 휴게 줄 양쪽에 있습니다. 각각
+  // 제 손으로 모양을 정하면 같은 바퀴가 두 화면에서 다르게 굽습니다.
+  const c = mk(V2, '2026-08-03T09:00:00');
+  c.setState({ setupStep: 1 });
+  c.setS({ dayStart: '09:00' });
+  const col = c.renderVals().dayDrumH;
+  ok('설정 흐름의 칸이 바퀴 위에 섭니다',
+    col[9].tf === f0.tf && col[8].tf === fu.tf && col[10].tf === fd.tf, col[8].tf);
+  const b = mk(V2, '2026-08-03T09:00:00');
+  b.setState({ setupStep: 2, brEdit: 'breaksDay:0:from' });
+  b.setS({ shifts: 'day', breaksDay: [{ from: '11:30', to: '12:30' }] });
+  const brow = b.renderVals().dayBreakRows[0];
+  ok('휴게 줄의 칸도 같은 바퀴입니다',
+    brow.drumH[11].tf === f0.tf && brow.drumH[10].tf === fu.tf && brow.drumH[12].tf === fd.tf,
+    brow.drumH[10].tf);
+  ok('두 화면이 같은 한 곳에서 모양을 받습니다',
+    (src.slice(src.indexOf('class Component')).match(/Component\.drumFace\(/g) || []).length === 2);
+
+  // ── 3 · 기울기는 물리는 자리를 옮기면 안 됩니다 ──
+  // 이것이 이번에 폰이 아니라 **화면에서** 잡힌 것입니다. 처음에는 칸 자체에
+  // transform을 걸었습니다. 헤드리스에서 08을 눌러 보니 값이 08:00이 됐다가
+  // 곧바로 09:00으로 되돌아왔습니다 — scroll-snap이 무는 자리는 요소의
+  // **변형된** 테두리 상자라, 고른 값이 바뀌어 기울기가 다시 계산되는 순간
+  // 무는 자리가 통째로 움직이고 크롬이 다시 뭅니다. 그 스크롤을 drumScroll이
+  // **근로자가 굴린 것으로 읽고** 예전 값을 도로 씁니다.
+  //
+  // 그래서 무는 칸은 손대지 않고, 기울기는 그 안의 글자가 집니다. 칸은
+  // preserve-3d라 바퀴의 소실점은 여전히 하나입니다(칸마다 따로 두면 줄마다
+  // 제자리에서 도는 것으로 보입니다).
+  const cell = q1.slice(q1.indexOf('scroll-snap-align:center') - 220,
+                        q1.indexOf('scroll-snap-align:center') + 420);
+  const snapDiv = cell.slice(cell.lastIndexOf('<div', cell.indexOf('scroll-snap-align:center')),
+                             cell.indexOf('>', cell.indexOf('scroll-snap-align:center')) + 1);
+  ok('무는 칸에는 기울기가 없습니다', snapDiv.indexOf('transform:{{') < 0, snapDiv.slice(-120));
+  ok('무는 칸은 3D를 평평하게 누르지 않습니다', snapDiv.indexOf('transform-style:preserve-3d') > 0);
+  ok('기울기는 그 안의 글자가 집니다',
+    (q1.match(/transform:\{\{ o\.tf \}\};opacity:\{\{ o\.op \}\}/g) || []).length === 4);
+  ok('소실점은 굴리는 칸 하나가 냅니다', (q1.match(/perspective:620px/g) || []).length === 4);
+  // 소스 전체로도 — 굴림판은 넷입니다(근무조 둘 · 휴게 줄 둘)
+  ok('굴림판 넷이 다 바퀴입니다', (tpl.match(/perspective:620px/g) || []).length === 8);
+  ok('기울기를 짓는 자리도 넷뿐입니다', (tpl.match(/transform:\{\{ o\.tf \}\}/g) || []).length === 8);
+
+  // ── 4 · 그림자를 그리는 두 겹은 누름을 받지 않습니다 ──
+  // 가운데 띠는 이제 **빛을 받는 면**(흰 바닥)이고, 그 위로 원통이 굽어
+  // 들어가는 그늘 한 겹이 더 덮입니다. 둘 다 그리기만 해야 합니다 — 하나라도
+  // 누름을 받으면 그 줄을 영영 누를 수 없습니다.
+  ok('띠가 누름을 가로채지 않습니다', (q1.match(/pointer-events:none"/g) || []).length === 2,
+    String((q1.match(/pointer-events:none"/g) || []).length));
+  ok('그늘은 글자 위에 덮입니다', (q1.match(/z-index:2;pointer-events:none/g) || []).length === 2);
+  ok('숫자가 띠 위에 올라섭니다',
+    (q1.match(/position:relative;display:flex;align-items:stretch;height:100%/g) || []).length === 2);
+  ok('띠는 검은 두 줄이 아니라 빛을 받는 면입니다',
+    q1.indexOf('top:56px;height:56px;background:var(--color-surface)') > 0
+    && q1.indexOf('border-top:2px solid var(--color-text);border-bottom:2px solid var(--color-text)') < 0);
+  // 통은 스스로 모서리를 자릅니다 — 안 그러면 띠와 그늘이 둥근 모서리 밖으로 삐져나갑니다
+  ok('통이 자기 모서리로 자릅니다',
+    (tpl.match(/height:168px;margin-top:8px;border:2px solid var\(--color-neutral-300\);background:var\(--color-neutral-100\);overflow:hidden/g) || []).length === 4);
+
+  // ── 5 · 굴린 자리를 세는 산수는 그대로입니다 ──
+  // transform은 자리를 바꾸지 않으므로 레이아웃도 스크롤도 한 픽셀도 움직이지
+  // 않습니다. 바퀴가 되었다고 굴려서 고르는 일이 달라지면 안 됩니다.
+  const px = i => ({ currentTarget: { scrollTop: i * V2.DRUM_ITEM } });
+  c.renderVals().dayDrumHScroll(px(6));
+  ok('굴린 자리가 그대로 그 시각입니다', c.st().dayStart === '06:00', c.st().dayStart);
+  c.renderVals().dayDrumH.find(x => x.t === '14').set();
+  ok('눌러서 고르는 것도 그대로입니다', c.st().dayStart === '14:00', c.st().dayStart);
+  ok('가운데 칸이 그 값으로 옮겨 왔습니다',
+    c.renderVals().dayDrumH[14].sel === true && c.renderVals().dayDrumH[14].op === '1');
+  // ── 6 · 누른 칸으로 바퀴가 굴러갑니다 ──
+  // 폰에서 잡힌 것입니다. 08을 손가락으로 눌렀더니 값은 08:00이 됐는데 **바퀴는
+  // 서 있었습니다** — 빛을 받는 띠 안에는 09가 그대로 있고, 굵어진 08은 그 위
+  // 칸에 있었습니다. 평면일 때는 '굵어진 칸'이 답이라 읽혔지만, 띠가 렌즈가 된
+  // 지금은 화면이 두 가지를 말합니다.
+  const rolled = [];
+  const stub = { getElementById: id => ({ scrollTop: 0, scrollTo: o => rolled.push(id + '@' + o.top) }) };
+  const realDoc = global.document; global.document = stub;
+  c.renderVals().dayDrumH.find(x => x.t === '07').set();
+  ok('누르면 그 칸으로 굴러갑니다', rolled.join(',') === 'drumDayH@' + (7 * V2.DRUM_ITEM), rolled.join(','));
+  rolled.length = 0;
+  c.renderVals().nightDrumM.find(x => x.t === '30').set();
+  ok('굴림판마다 제 것만 굴립니다', rolled.join(',') === 'drumNightM@' + (6 * V2.DRUM_ITEM), rolled.join(','));
+  rolled.length = 0;
+  // 굴려서 고르는 쪽에서는 절대 굴리지 않습니다 — 던져서 굴러가는 중에 자리를
+  // 잡으면 손가락과 다툽니다(placeDrums가 componentDidUpdate에서 겪은 그것)
+  c.renderVals().dayDrumHScroll(px(11));
+  ok('굴려서 고를 때는 자리를 잡지 않습니다', rolled.length === 0 && c.st().dayStart === '11:00',
+    rolled.join(',') + ' / ' + c.st().dayStart);
+  global.document = realDoc;
+  const bodySrc = src.slice(src.indexOf('class Component'));
+  const scrollFn = bodySrc.slice(bodySrc.indexOf('  drumScroll(key, part, e) {'),
+                                bodySrc.indexOf('  drumScroll(key, part, e) {') + 420);
+  ok('굴리는 갈래에 그 부름이 없습니다', scrollFn.indexOf('drumRollTo') < 0, scrollFn.slice(0, 60));
+
+  ok('칸 높이도 각도도 코드와 마크업이 같습니다',
+    V2.DRUM_ITEM === 56 && V2.DRUM_STEP === 30
+    && (q1.match(/height:56px/g) || []).length >= 8);
+}
+
 console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);

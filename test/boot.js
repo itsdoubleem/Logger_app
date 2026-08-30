@@ -326,5 +326,53 @@ console.log('\n== 설정 · 열리는 것과 열리지 않는 것 ==');
     && css.indexOf('"padding:0 18px 7px"') < 0);
 }
 
+// 굴림판이 바퀴로 읽히려면 두 가지가 필요하고, 소스는 그 둘을 말할 수 없습니다 —
+// border-radius도 box-shadow도 소스에 0개라는 것이 마흔째의 층이 서 있는 근거이고,
+// 그 둘이 여기서 하는 일이 통을 파묻고 띠를 들어 올리는 것입니다.
+console.log('\n== 굴림판은 파묻힌 통이고 띠는 그 위에 뜹니다 ==');
+{
+  const css = fs.readFileSync(path.join(ROOT, 'ds-tokens.css'), 'utf8');
+  const src = fs.readFileSync(path.join(ROOT, 'WorkLogApp.v2.dc.html'), 'utf8');
+  const tpl = src.split('class Component')[0];
+  const built = fs.readFileSync(path.join(ROOT, 'dist-v2', 'index.html'), 'utf8');
+  const tm = built.match(/<script type="__bundler\/template">([\s\S]*?)<\/script>/);
+  const head = tm ? JSON.parse(tm[1]).split('<body')[0] : '';
+
+  // ── 1 · 통은 페이지 안으로 파여 있습니다 ──
+  // 그림자가 **inset**이고 위아래에만 있는 것이 요점입니다 — 진짜 드럼이
+  // 제 통 속으로 사라지는 자리가 거기입니다.
+  const well = (css.match(/\[style\*="height: 168px"\]\s*\{[^}]*\}/) || [''])[0];
+  ok('층이 통을 파묻습니다', /inset/.test(well) && (well.match(/inset/g) || []).length === 2, well.slice(0, 70));
+  ok('띠는 반대로 떠 있습니다',
+    /\[style\*="top: 56px"\]\[style\*="height: 56px"\]\s*\{[^}]*box-shadow:[^}]*\}/.test(css)
+    && !/\[style\*="top: 56px"\]\[style\*="height: 56px"\]\s*\{[^}]*inset/.test(css));
+  // 모서리는 규칙 2가 이미 줍니다 — 통이 2px 회색 테두리를 두르고 있기 때문입니다.
+  // 인라인에 border-radius를 적으면 그 순간 파일의 첫 번째가 되고 통만 층
+  // 바깥으로 나갑니다(마흔째).
+  ok('통의 모서리는 규칙 2가 줍니다',
+    (tpl.match(/height:168px;margin-top:8px;border:2px solid var\(--color-neutral-300\)/g) || []).length === 4
+    && src.indexOf('border-radius') < 0 && src.indexOf('box-shadow') < 0);
+
+  // 소스에 그런 상자가 정말 넷인지 — 다섯째가 생기면 이 수가 늘고, 그때 그것도
+  // 파묻히는지 눈으로 보게 됩니다(마흔넷째가 세운 그 습관입니다)
+  const wells = (src.match(/height:168px/g) || []).length;
+  ok('168px 상자는 넷뿐입니다 (' + wells + '개)', wells === 4);
+  const bands = (src.match(/top:56px;height:56px/g) || []).length;
+  ok('그 통의 띠도 넷뿐입니다 (' + bands + '개)', bands === 4);
+  // 굴리는 칸의 56px 칸(수십 개)이 이 선택자에 걸리면 줄마다 그림자가 집니다 —
+  // 그 칸들은 top을 쓰지 않으므로 걸리지 않습니다
+  ok('굴리는 칸은 이 선택자에 걸리지 않습니다',
+    (src.match(/height:56px;display:flex/g) || []).length >= 8
+    && src.indexOf('top:56px;height:56px;display:flex') < 0);
+
+  ok('두 규칙 다 첫 페인트에 있습니다',
+    head.indexOf('"height: 168px"') > 0 && head.indexOf('"top: 56px"') > 0);
+  // 소스는 `height:168px`인데 React는 `height: 168px`로 다시 씁니다 — 소스를 보고
+  // 선택자를 쓰면 아무것도 안 잡히고, 화면은 그냥 예전 모양이라 고장으로
+  // 보이지 않습니다(마흔째)
+  ok('선택자가 정규화된 값을 씁니다',
+    css.indexOf('"height: 168px"') > 0 && css.indexOf('"height:168px"') < 0);
+}
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

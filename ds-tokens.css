@@ -233,6 +233,27 @@
    next to the glyph it inverts with. Only the shape belongs to the layer. */
 #tabScroll [style*="width: 30px"][style*="height: 30px"] { border-radius: var(--radius-pill); }
 
+/* ── 2i · the time drum is a wheel, not a list ──────────────────────────── */
+/* The picker read as a flat table: three rows, two hard black rules, nothing
+   between the numbers and the page. The curvature is set in the source
+   (drumFace — each cell is placed on a cylinder of radius 133.7px), and the
+   two things the source is not allowed to say are exactly the two this layer
+   owns. The well is sunk into the page — the shadow is *inset*, top and
+   bottom only, where a real drum disappears into its housing — and the lit
+   band across the middle is lifted off it. Rule 2 already rounds the well:
+   it carries `border: 2px solid var(--color-neutral-300)`.
+   `height: 168px` is the four drum boxes and nothing else in the source, and
+   `top: 56px` + `height: 56px` is their four bands (both asserted). If a
+   fifth 168px box ever appears it will quietly become a well, which is why
+   the count is a test and not a comment. */
+[style*="height: 168px"] {
+  box-shadow: inset 0 7px 9px -7px rgba(32, 30, 29, .30),
+              inset 0 -7px 9px -7px rgba(32, 30, 29, .30);
+}
+[style*="top: 56px"][style*="height: 56px"] {
+  box-shadow: 0 1px 3px rgba(32, 30, 29, .10), 0 -1px 3px rgba(32, 30, 29, .06);
+}
+
 /* ── 2e · the 급여기간 stepper ──────────────────────────────────────────── */
 /* The stepper is the one card a worker touches on the way to somewhere else,
    and it was the tallest thing above the records: its own label line, 11/12px
