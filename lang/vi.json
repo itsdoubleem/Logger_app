@@ -448,7 +448,7 @@
   "pt_holiday": "특근 Đã làm ngày nghỉ",
   "pt_shutdown": "휴업 Ngừng việc",
   "pt_vacation": "휴가 Nghỉ phép",
-  "pt_work": "근무 Ca đã làm",
+  "pt_work": "지난 근무 Ca đã làm",
   "public_holiday": "ngày lễ",
   "punch_in_with_your_fingerprint_on_the_": "Chấm vân tay vào ca ở màn hình 출퇴근, hoặc dùng nút 근무 để thêm các ca bạn đã làm.",
   "punch_on_a_saturday_a_sunday_a_public_": "Chấm công vào thứ Bảy, Chủ nhật, ngày lễ hoặc ngày bạn đã đặt là 휴가 thì ứng dụng tự ghi ngày đó là 특근 — bạn không bao giờ cần thẻ 특근. Đó là ngày bạn không phải đi làm mà bị gọi vào, nên mọi giờ đều trả ×1.5, kể cả 8 giờ đầu. 연차 phép năm không tính vào đây: đó là ngày thường bạn tự xin nghỉ, nên đi làm ngày đó chỉ là ca bình thường. Hãy tắt mục này nếu công ty bạn tự đánh dấu 특근 — những ngày bạn đã đánh dấu bằng thẻ 특근 vẫn giữ nguyên.",

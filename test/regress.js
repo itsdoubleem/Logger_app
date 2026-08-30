@@ -6236,5 +6236,149 @@ console.log('\n== 굴림판이 종이에 그린 표였습니다 ==');
     && (q1.match(/height:56px/g) || []).length >= 8);
 }
 
+console.log('\n== 베트남어 근로자가 근무 밑에서 근무를 또 봤습니다 ==');
+{
+  // 만든 사람이 폰의 언어를 베트남어로 두고 출퇴근을 열었습니다: 여섯 칸이
+  // `근무 Ca đã làm` 위에 `근무`, `연차 Phép` 위에 `연차`였습니다.
+  //
+  // 두 규칙이 부딪힌 자리입니다. 집 규칙은 **한 줄짜리 이름표에서 한국어가 앞에
+  // 선다**는 것이고(`잔업 Tăng ca ×1.5`), 그래서 여섯 언어의 값이 전부 한국어로
+  // 시작합니다. 그런데 이 카드의 이름표는 **두 줄**이고, 아랫줄이 이미 그 한국어를
+  // 나릅니다. 두 규칙이 각자 맞는데 겹치면 같은 낱말이 두 번 섭니다.
+  //
+  // 아랫줄을 지우는 것이 아니라 **윗줄에서 앞머리를 뗍니다** — 그래야 여덟 언어가
+  // 영어와 같은 모양이 됩니다(윗줄은 읽는 사람의 말, 아랫줄은 한국어).
+  const langs = ['ko', 'en', 'vi', 'zh', 'th', 'id', 'ne', 'km'];
+  const cnt = (h, n) => h.split(n).length - 1;
+
+  ok('앞머리를 재는 자리가 하나입니다',
+    V2.leads('근무 Ca đã làm', '근무') === true
+    && V2.leads('과일', '과') === false                    // 낱말 한가운데는 앞머리가 아닙니다
+    && V2.leads('Past shift', '근무') === false
+    && V2.leads('근무', '근무') === false                  // 똑같으면 뗄 것이 없습니다
+    && V2.dropLead('근무 Ca đã làm', '근무') === 'Ca đã làm'
+    && V2.dropLead('Past shift', '근무') === 'Past shift'
+    && V2.dropLead('결근 공제 Khấu trừ', '결근 공제') === 'Khấu trừ'
+    && V2.dropLead('Overtime', '') === 'Overtime');
+
+  langs.forEach(L => {
+    const c = mk(V2, '2026-08-30T10:00:00'); c.setS({ lang: L });
+    const btns = c.renderVals().dayTypeBtns;
+    ok('여섯 칸 그대로입니다 · ' + L, btns.length === 6, String(btns.length));
+    ok('윗줄이 아랫줄을 다시 말하지 않습니다 · ' + L,
+      btns.every(b => b.ko && b.en && b.ko !== b.en && !V2.leads(b.ko, b.en)),
+      btns.map(b => b.ko + ' / ' + b.en).join(' | '));
+    // 아랫줄은 그대로 한국어라야 합니다 — 앞머리를 떼면서 한국어를 잃으면
+    // 근로자가 종이에서 찾을 낱말이 화면에서 사라집니다
+    if (L !== 'ko') {
+      ok('아랫줄은 그대로 한국어입니다 · ' + L,
+        btns.map(b => b.en).join(',') === '근무,연차,휴가,특근,결근,휴업',
+        btns.map(b => b.en).join(','));
+    }
+  });
+
+  // 영어와 한국어는 애초에 앞머리가 없어 한 글자도 달라지지 않습니다
+  const en = mk(V2, '2026-08-30T10:00:00'); en.setS({ lang: 'en' });
+  ok('영어는 예전 그대로입니다',
+    en.renderVals().dayTypeBtns.map(b => b.ko).join(',')
+    === 'Past shift,Leave,Vacation,Holiday work,Absent,Shutdown');
+  const ko = mk(V2, '2026-08-30T10:00:00'); ko.setS({ lang: 'ko' });
+  ok('한국어도 예전 그대로입니다',
+    ko.renderVals().dayTypeBtns.map(b => b.ko).join(',') === '근무,연차,휴가,특근,결근,휴업'
+    && ko.renderVals().dayTypeBtns[0].en === 'Past shift');
+
+  // ── 연차 칸은 pair()를 지나지 않습니다 ──
+  // 그 한 칸만 손으로 지어져 있어서(잔여 / 총계를 함께 적습니다) pair()를 고쳐도
+  // 저 혼자 예전 모양으로 남았습니다. 다섯 칸이 고쳐지고 하나가 남으면 그것은
+  // 고장으로 읽힙니다.
+  const vi = mk(V2, '2026-08-30T10:00:00'); vi.setS({ lang: 'vi' });
+  ok('연차 칸도 함께 고쳐졌습니다', vi.renderVals().dayTypeBtns[1].ko === 'Phép',
+    vi.renderVals().dayTypeBtns[1].ko);
+  ok('기본금 줄도 같은 자리였습니다',
+    vi.renderVals().earnRows[0].ko.indexOf('기본금') < 0
+    && vi.renderVals().earnRows[0].en === '기본금',
+    vi.renderVals().earnRows[0].ko);
+
+  // ── 한 줄로 붙는 제목도 같은 일을 하고 있었습니다 ──
+  // dual()은 같은 줄 **뒤에** 한국어를 붙입니다. 칸을 누르면 열리는 제목이
+  // `근무 Ca đã làm 지난 근무`였습니다 — 한 줄에 한국어가 두 번입니다.
+  ['work', 'annual', 'vacation', 'holiday', 'absent', 'shutdown'].forEach(t => {
+    langs.forEach(L => {
+      const c = mk(V2, '2026-08-30T10:00:00'); c.setS({ lang: L });
+      c.state.pending = t;
+      const title = c.renderVals().pendingTitle;
+      const koWord = V2.STR['pt_' + t].ko;
+      ok('제목에 한국어가 한 번뿐입니다 · ' + t + ' · ' + L,
+        !!title && cnt(title, koWord) === 1, title);
+    });
+  });
+  // 그리고 그 제목의 한국어가 카드 아랫줄과 같은 낱말이라야 합니다 — 여섯 언어의
+  // pt_work가 `근무 …`라고 적혀 있어서 제목만 다른 말을 하고 있었습니다
+  ok('제목의 한국어가 기록의 낱말과 같습니다',
+    ['vi', 'zh', 'th', 'id', 'ne', 'km'].every(L => {
+      const c = mk(V2, '2026-08-30T10:00:00'); c.setS({ lang: L });
+      c.state.pending = 'work';
+      return c.renderVals().pendingTitle.indexOf('지난 근무 ') === 0;
+    }));
+
+  // ── 앞머리가 아니라 다른 낱말이면 그대로 둡니다 ──
+  // 급여 줄의 아랫줄은 이름표의 번역이 아니라 **명세서에 실제로 찍히는 낱말**
+  // 입니다(`잔업 Tăng ca ×1.5` 아래 `포괄잔업수당`). 그 둘은 다른 말이라 떼면
+  // 근로자가 종이에서 찾을 낱말을 잃습니다. 지우는 규칙이 여기까지 번지지
+  // 않는지 셉니다.
+  const ot = vi.renderVals().earnRows.filter(r => r.en === '포괄잔업수당')[0];
+  ok('명세서 낱말은 그대로 남습니다',
+    !!ot && ot.ko.indexOf('잔업 ') === 0, ot && ot.ko);
+
+  // ── 손으로 지은 줄이 다섯 군데 더 있었습니다 ──
+  // pair()를 고치고 폰에서 급여를 열어 보니 소득세·건강보험·장기요양·국민연금과
+  // 명세서 대조의 두 줄이 예전 모양 그대로였습니다. 전부 pair()를 지나지 않고
+  // 손으로 `{ ko, en }`을 짓던 자리입니다. **한 군데를 고치는 것으로는 화면이
+  // 고쳐지지 않습니다** — 그래서 이제 자리마다 세지 않고, 다섯 탭 · 여덟 언어의
+  // renderVals()를 통째로 훑어 그런 짝이 하나도 없는지 셉니다. 새로 손으로
+  // 지은 줄이 생기면 여기서 잡힙니다.
+  {
+    const dbl = [];
+    langs.forEach(L => ['punch', 'logs', 'pay', 'rights', 'set'].forEach(tab => {
+      const c = mk(V2, '2026-08-30T10:00:00'); c.setS({ lang: L }); c.state.tab = tab;
+      const seen = [];
+      (function walk(o, d) {
+        if (!o || d > 4 || typeof o !== 'object' || seen.indexOf(o) !== -1) return;
+        seen.push(o);
+        if (typeof o.ko === 'string' && typeof o.en === 'string' && o.ko && o.en
+            && (o.ko === o.en || V2.leads(o.ko, o.en))) dbl.push(L + '/' + tab + ' ' + o.ko + ' | ' + o.en);
+        Object.keys(o).forEach(k => walk(o[k], d + 1));
+      })(c.renderVals(), 0);
+    }));
+    ok('어느 탭 어느 언어에도 같은 낱말이 두 줄에 서지 않습니다', dbl.length === 0,
+      dbl.slice(0, 4).join(' // '));
+  }
+  // 그 자리들이 한국어를 잃지는 않았는지 — 아랫줄은 여전히 명세서의 낱말입니다
+  ok('공제 줄의 아랫줄은 그대로 한국어입니다',
+    vi.renderVals().dedRows.map(r => r.en).slice(0, 5).join(',')
+    === '소득세,주민세,건강보험,장기요양,국민연금',
+    vi.renderVals().dedRows.map(r => r.en).join(','));
+  ok('공제 줄의 윗줄에서 그 낱말이 사라졌습니다',
+    vi.renderVals().dedRows.slice(0, 5).every(r => r.ko.indexOf(r.en) < 0),
+    vi.renderVals().dedRows.map(r => r.ko).join(' | '));
+  // '· 계산됨' 같은 꼬리는 앞머리를 뗀 뒤에도 그대로 붙어 있어야 합니다
+  ok('계산됐다는 꼬리는 그대로입니다',
+    vi.renderVals().dedRows[2].ko.indexOf(vi.T('calculated')) > 0,
+    vi.renderVals().dedRows[2].ko);
+  const slip = vi.renderVals().slipRows;
+  ok('명세서 대조도 같은 자리였습니다',
+    slip[0].ko.indexOf('기본금') < 0 && slip[0].en === '기본금'
+    && slip.filter(r => r.k === 'pension').every(r => r.ko.indexOf('국민연금') < 0),
+    slip[0].ko);
+  // 그리고 그 표의 금액은 한 원도 움직이지 않았습니다 — 바꾼 것은 이름표뿐입니다
+  {
+    const a = mk(V2, '2026-08-30T10:00:00'); a.setS({ lang: 'ko' });
+    const b = mk(V2, '2026-08-30T10:00:00'); b.setS({ lang: 'vi' });
+    const strip = rs => JSON.stringify(rs.map(r => [r.k, r.app, r.short]));
+    ok('언어를 바꿔도 금액은 그대로입니다',
+      strip(a.slipRows()) === strip(b.slipRows()), strip(b.slipRows()).slice(0, 80));
+  }
+}
+
 console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);

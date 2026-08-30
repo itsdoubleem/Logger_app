@@ -448,7 +448,7 @@
   "pt_holiday": "특근 Kerja hari libur",
   "pt_shutdown": "휴업 Berhenti kerja",
   "pt_vacation": "휴가 Libur",
-  "pt_work": "근무 Shift lampau",
+  "pt_work": "지난 근무 Shift lampau",
   "public_holiday": "hari libur nasional",
   "punch_in_with_your_fingerprint_on_the_": "Absen masuk dengan sidik jari di layar 출퇴근, atau gunakan tombol 근무 untuk menambahkan shift yang sudah Anda kerjakan.",
   "punch_on_a_saturday_a_sunday_a_public_": "Absen pada hari Sabtu, Minggu, hari libur nasional, atau hari yang Anda tandai 휴가 maka aplikasi otomatis mencatatnya sebagai 특근 — Anda tidak perlu kartu 특근. Itu hari Anda seharusnya tidak masuk tetapi dipanggil, jadi setiap jam dibayar ×1.5, termasuk 8 jam pertama. 연차 cuti tahunan tidak termasuk: itu hari kerja biasa yang Anda ambil sendiri, jadi bekerja di hari itu hanyalah shift biasa. Matikan ini jika perusahaan Anda menandai 특근 secara manual — hari yang Anda tandai dengan kartu 특근 tetap tertandai.",
