@@ -188,6 +188,51 @@
    chips in a list, and they live outside the tab scroller. */
 #tabScroll [style*="width: 26px"][style*="height: 26px"] { border-radius: var(--radius-sm); }
 
+/* ── 2f · SETUP · the tier label is not a card ──────────────────────────── */
+/* SETUP had eighteen top-level blocks and every one of them was the same white
+   16px card with the same shadow: nine opened when tapped and nine did not, and
+   nothing in the box said which. Two changes split them apart.
+   The first is here. `앱이 꼭 알아야 하는 것` / `더 정확하게` / `언어·파일` are
+   headings *for* the card below them, not objects in their own right, so they
+   come off the card and sit on the grey ground — the one thing on this screen
+   that is not in a box. `padding: 0 18px 7px` is theirs alone (three in the
+   source, asserted), and the 18px keeps the label aligned with the row titles
+   inside the card, whose 8px card inset plus 18px padding land at the same x.
+   The margin needs !important only because rule 1 took the property outright. */
+#tabScroll > div > div[style*="padding: 0px 18px 7px"] {
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+  overflow: visible;
+  margin: 16px 8px 0 !important;
+}
+#tabScroll > div > div[style*="padding: 0px 18px 7px"]:first-child { margin-top: 9px !important; }
+
+/* ── 2h · SETUP · a group row is a row, not a button ────────────────────── */
+/* Rule 2c rounds anything tappable and 44px tall, which is right for a button
+   standing on its own — and wrong the moment the same element becomes one row
+   inside a card. Each row came out a 12px-rounded box, so the 1px hairline
+   between two rows followed that curve and hooked inward at both ends: one
+   card holding three rows read as three cards stacked with gaps. The rule is
+   the 마흔두째 mistake in a new place — a border that is *dividing* two things
+   was being drawn as though it were *framing* one.
+   `padding: 13px 18px` is the nine group rows and nothing else in the source
+   (asserted), and three attributes out-weigh 2c's two. */
+#tabScroll [style*="cursor: pointer"][style*="min-height: 44px"][style*="padding: 13px 18px"] {
+  border-radius: 0;
+}
+
+/* ── 2g · SETUP · the chevron is a drawn button ─────────────────────────── */
+/* The second change. The only affordance a group row had was `▸` — 11px, grey,
+   14px wide, floating at the right edge next to a summary in the same grey at
+   the same size. It reads as punctuation, not as a control. It is a filled
+   30px circle now, and 30×30 appears nowhere else in the source (asserted), so
+   this rounds that button and nothing else: the 26px 근무기록 badge (2d) and
+   the 30px-min-height chips (2b) are both untouched.
+   The colour — grey when closed, accent when open — is set in setGroupVals,
+   next to the glyph it inverts with. Only the shape belongs to the layer. */
+#tabScroll [style*="width: 30px"][style*="height: 30px"] { border-radius: var(--radius-pill); }
+
 /* ── 2e · the 급여기간 stepper ──────────────────────────────────────────── */
 /* The stepper is the one card a worker touches on the way to somewhere else,
    and it was the tallest thing above the records: its own label line, 11/12px

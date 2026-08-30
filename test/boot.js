@@ -258,5 +258,73 @@ console.log('\n== 카드 안의 여백은 padding입니다 ==');
   ok('여백을 스스로 적지 않은 구역은 셋뿐입니다 (' + hz.length + '개)', hz.length === 3);
 }
 
+// ══ 설정 · 카드가 '누를 수 있다'는 뜻을 잃었습니다 ═════════════════════════
+// 마흔째의 층은 탭 안의 top-level 블록을 **전부** 같은 흰 카드로 만듭니다.
+// 설정에서는 그것이 열여덟 개였고, 아홉은 눌러서 열리고 아홉은 열리지 않는데
+// 상자가 똑같아 가를 길이 없었습니다. 모양이 뜻을 나르지 않으면 문법이
+// 없는 것과 같습니다. 셋으로 갈랐고, 그 셋을 여기서 셉니다.
+console.log('\n== 설정 · 열리는 것과 열리지 않는 것 ==');
+{
+  const css = fs.readFileSync(path.join(ROOT, 'ds-tokens.css'), 'utf8');
+  const src = fs.readFileSync(path.join(ROOT, 'WorkLogApp.v2.dc.html'), 'utf8');
+  const tpl = src.split('class Component')[0];
+  const built = fs.readFileSync(path.join(ROOT, 'dist-v2', 'index.html'), 'utf8');
+  // 첫 페인트의 head는 로더가 갈아 끼우는 템플릿 **안**에 있습니다 — 파일을
+  // 그냥 <body로 자르면 번들러 셸의 head(1.8KB)를 보게 됩니다.
+  const tm = built.match(/<script type="__bundler\/template">([\s\S]*?)<\/script>/);
+  const head = tm ? JSON.parse(tm[1]).split('<body')[0] : '';
+
+  // ── 1 · 층의 이름표는 카드가 아닙니다 ──
+  // 다음 카드의 머리말이지 그 자체로 하나의 물건이 아니라, 바닥에 놓입니다 —
+  // 이 화면에서 상자에 들어 있지 않은 유일한 것입니다.
+  const tierRule = (css.match(/#tabScroll > div > div\[style\*="padding: 0px 18px 7px"\]\s*\{[^}]*\}/) || [''])[0];
+  ok('층의 이름표는 카드가 아닙니다 — 바탕도 그림자도 모서리도 없습니다',
+    /background:\s*none/.test(tierRule) && /box-shadow:\s*none/.test(tierRule)
+    && /border-radius:\s*0/.test(tierRule), tierRule.slice(0, 70));
+  // margin은 층이 !important로 가져간 속성이라 되찾으려면 같은 무게가 필요합니다
+  ok('그 이름표의 여백이 층의 !important를 이깁니다',
+    /margin:[^;]*!important/.test(tierRule));
+  // 소스에 그런 이름표가 정말 셋인지 — 넷째가 생기면 이 수가 늘고, 그때 그것도
+  // 바닥에 놓이는지 눈으로 보게 됩니다
+  ok('바닥에 놓인 이름표는 셋입니다 (' + (tpl.split('padding:0 18px 7px').length - 1) + '개)',
+    (tpl.split('padding:0 18px 7px').length - 1) === 3);
+  // 층이 첫 페인트에 있어야 이름표가 한 프레임 동안 카드로 번쩍이지 않습니다
+  ok('그 규칙도 첫 페인트에 있습니다', head.indexOf('padding: 0px 18px 7px') > 0);
+
+  // ── 2 · 동그라미는 그린 단추입니다 ──
+  // 30×30은 소스에 이 아홉 개뿐입니다. 26px 근무기록 배지(2d)도, min-height
+  // 30px 알약(2b)도 이 선택자에 걸리지 않습니다.
+  ok('층이 동그라미의 모양을 정합니다',
+    /#tabScroll \[style\*="width: 30px"\]\[style\*="height: 30px"\][^{]*\{[^}]*--radius-pill/.test(css));
+  const circles = (src.match(/width:30px;height:30px/g) || []).length;
+  ok('30px 상자는 아홉뿐입니다 (' + circles + '개)', circles === 9);
+  // 모양은 층이, 색은 setGroupVals가 — 인라인에 모서리를 적으면 그 요소만
+  // 조용히 층 바깥으로 나갑니다(마흔째)
+  ok('동그라미의 색은 홀이고 마크업에 박혀 있지 않습니다',
+    (src.match(/background:\{\{ g\w+ChevBg \}\};color:\{\{ g\w+ChevInk \}\}/g) || []).length === 9);
+
+  // ── 3 · 묶음 줄은 줄이지 단추가 아닙니다 ──
+  // 규칙 2c는 '누를 수 있고 44px 이상'인 것을 둥글게 합니다. 홀로 선 단추에는
+  // 맞고, 같은 것이 카드 **안의 한 줄**이 되는 순간 틀립니다: 줄마다 12px
+  // 모서리가 생겨 줄 사이의 1px 실선이 그 곡선을 따라 양끝에서 안으로
+  // 휘었고, 세 줄을 담은 카드 하나가 카드 셋을 쌓아 둔 것으로 읽혔습니다.
+  // 마흔두째와 같은 잘못입니다 — 가르는 선을 두르는 선처럼 그린 것.
+  const rowRule = (css.match(/#tabScroll \[style\*="cursor: pointer"\]\[style\*="min-height: 44px"\]\[style\*="padding: 13px 18px"\]\s*\{[^}]*\}/) || [''])[0];
+  ok('층이 묶음 줄의 모서리를 다시 네모로 만듭니다', /border-radius:\s*0/.test(rowRule), rowRule.slice(0, 60));
+  // 속성 셋이라 2c(둘)를 무게로 이깁니다 — 그래도 뒤에 있는지 함께 봅니다
+  const btnAt = css.indexOf('[style*="cursor: pointer"][style*="min-height: 44px"],');
+  ok('그 규칙이 단추 규칙보다 뒤에 있습니다', rowRule && css.indexOf(rowRule) > btnAt && btnAt > 0);
+  const rows = (src.match(/padding:13px 18px;min-height:44px/g) || []).length;
+  ok('그 선택자가 가리키는 줄은 아홉뿐입니다 (' + rows + '개)', rows === 9);
+
+  // ── 4 · 정규화된 형태로 적었는지 ──
+  // 소스는 `padding:0 18px 7px`인데 React는 `padding: 0px 18px 7px`로 다시
+  // 씁니다. 소스를 보고 선택자를 쓰면 아무것도 안 잡히는데, 화면은 그냥 예전
+  // 모양이라 고장으로 보이지 않습니다(마흔째).
+  ok('설정의 새 선택자들이 정규화된 값을 씁니다',
+    css.indexOf('"padding: 0px 18px 7px"') > 0 && css.indexOf('"padding: 13px 18px"') > 0
+    && css.indexOf('"padding:0 18px 7px"') < 0);
+}
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

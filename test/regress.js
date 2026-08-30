@@ -5945,5 +5945,167 @@ console.log('\n== 근무조는 해와 달로도 말합니다 ==');
     (srcS.match(/min-height:30px;display:inline-flex/g) || []).length === 7);
 }
 
+// ══ 설정: 열리는 것과 열리지 않는 것이 같은 흰 상자였습니다 ═════════════════
+// 만든 사람이 설정을 훑어 내려가고 말했습니다: 색도 모양도 다 같은데 눌러서
+// 펴지는 것이 있고 안 펴지는 것이 있어 몹시 헷갈립니다.
+//
+// 맞습니다, 그리고 원인은 마흔째의 카드 층입니다. 이 탭의 top-level 블록이
+// **열여덟**이었고 층이 그 전부를 같은 흰 카드로 만들었습니다 — 아홉은 눌러서
+// 열리고 아홉은 열리지 않는데, 상자만 보고는 가를 길이 없었습니다.
+// '카드'가 아무 뜻도 나르지 않게 된 것입니다.
+//
+// 문법을 셋으로 갈랐습니다:
+//   · 바닥에 놓인 이름표  = 다음 카드의 머리말이다 (카드가 아닙니다)
+//   · 동그라미가 달린 줄  = 누르면 열린다
+//   · 동그라미가 없는 카드 = 읽는 것이다
+console.log('\n== 열리는 것과 열리지 않는 것 ==');
+{
+  const fs = require('fs');
+  const srcQ = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tplQ = srcQ.slice(0, srcQ.indexOf('</x-dc>'));
+  const GRP = ['Shift','Pay','Period','Money','Ins','Rules','Me','Lang','Backup'];
+
+  // ── 1 · 층마다 카드가 하나입니다 ──
+  // 예전에는 묶음 줄 하나가 카드 하나였고, 열면 본문이 **또 다른 카드**로 따로
+  // 떨어져 나왔습니다(재 보니 1691px짜리 흰 상자 하나). 어느 줄의 본문인지
+  // 화면이 말해 주지 않았습니다. 이제 한 층이 카드 하나이고 줄들은 그 안에
+  // 있으므로, 본문은 자기 줄 **바로 아래**에서 펴집니다.
+  const label = 'style="padding:0 18px 7px"';
+  ok('층의 이름표는 셋뿐입니다', (tplQ.split(label).length - 1) === 3,
+    'got ' + (tplQ.split(label).length - 1));
+  // 이름표가 예전처럼 검은 줄과 흰 바탕을 달고 있으면 그것은 카드입니다
+  ok('이름표에 카드의 옷이 남아 있지 않습니다',
+    tplQ.indexOf('padding:15px 18px 9px;border-top:2px solid var(--color-text)') < 0);
+
+  // 층의 슬라이스마다 <div>와 </div>가 맞아떨어져야 감싼 것입니다
+  const bal = t => (t.match(/<div\b/g) || []).length - (t.match(/<\/div>/g) || []).length;
+  const secs = [['{{ L.tierNeed }}', '{{ L.tierMore }}'],
+                ['{{ L.tierMore }}', '{{ L.tierRest }}'],
+                ['{{ L.tierRest }}', '{{ L.secLegal }}']];
+  secs.forEach(([a, b], i) => {
+    const seg = tplQ.slice(tplQ.indexOf(a), tplQ.indexOf(b));
+    ok((i + 1) + '층이 카드 하나로 감싸여 있습니다', bal(seg) === 0, 'balance ' + bal(seg));
+    // 그 안에 정말 그 층의 줄들이 들어 있는지 — 빈 껍데기를 통과시키지 않습니다
+    const want = [['gShiftTap','gPayTap','gPeriodTap'],
+                  ['gMoneyTap','gInsTap','gRulesTap','gMeTap'],
+                  ['gLangTap','gBackupTap']][i];
+    ok((i + 1) + '층의 줄이 모두 그 카드 안입니다',
+      want.every(k => seg.indexOf('{{ ' + k + ' }}') > 0));
+  });
+
+  // ── 2 · 누를 수 있다는 말은 그려야 합니다 ──
+  // 예전 표시는 11px 회색 글리프 하나였고, 바로 옆 요약도 같은 크기의 같은
+  // 회색이었습니다. 그것은 단추가 아니라 문장부호로 읽힙니다.
+  const circle = 'width:30px;height:30px';
+  ok('동그라미는 아홉 개 — 묶음 줄마다 하나입니다',
+    (tplQ.split(circle).length - 1) === 9, 'got ' + (tplQ.split(circle).length - 1));
+  ok('예전의 14px 글리프 자리가 남아 있지 않습니다',
+    tplQ.indexOf('flex:none;width:14px;text-align:center') < 0);
+
+  // ── 3 · 값이 맞는 것과 마크업이 그것을 쓰는 것은 다릅니다 ──
+  // 서른두째가 겪은 헛통과입니다: renderVals는 맞는 색을 내는데 마크업이 색을
+  // 하드코딩해 두어 화면에는 닿지 않았습니다. 그래서 마크업부터 셉니다.
+  GRP.forEach(g => {
+    const i = tplQ.indexOf('{{ g' + g + 'Chev }}');
+    const row = tplQ.lastIndexOf('<div', i);
+    const cell = tplQ.slice(row, i);
+    ok(g + ' 동그라미가 색 홀 둘을 실제로 씁니다',
+      cell.indexOf('{{ g' + g + 'ChevBg }}') >= 0 && cell.indexOf('{{ g' + g + 'ChevInk }}') >= 0,
+      cell.slice(-70));
+  });
+
+  // ── 4 · 그 색이 열림과 닫힘을 말합니다 ──
+  const c0 = mk(V2, '2026-08-03T09:00:00');
+  const V0 = c0.renderVals();
+  ok('닫힌 동그라미는 회색입니다', V0.gShiftChevBg === 'var(--color-neutral-200)', V0.gShiftChevBg);
+  ok('닫힌 줄에는 띠가 없습니다', V0.gShiftBg === 'transparent', V0.gShiftBg);
+  c0.toggleSetGroup('grp_shift');
+  const V1 = c0.renderVals();
+  ok('열린 동그라미는 빨갛고 글자가 반전됩니다',
+    V1.gShiftChevBg === 'var(--color-accent)' && V1.gShiftChevInk === 'var(--color-bg)',
+    V1.gShiftChevBg + ' / ' + V1.gShiftChevInk);
+  // 예전 열림 값 var(--color-surface)는 카드 흰색과 같은 값이라 아무 일도 하지
+  // 않는 죽은 값이었습니다 — 줄이 카드 안으로 들어오면서 그렇게 됐습니다.
+  ok('열린 줄은 옅은 띠를 갖습니다', V1.gShiftBg === 'var(--color-neutral-100)', V1.gShiftBg);
+  ok('죽은 흰색이 남아 있지 않습니다', V1.gShiftBg !== 'var(--color-surface)');
+  ok('옆 줄은 그대로 닫혀 있습니다',
+    V1.gPayChevBg === 'var(--color-neutral-200)' && V1.gPayBg === 'transparent');
+
+  // ── 4b · 폰에서 걸린 것: 손을 떼도 hover가 남습니다 ──
+  // 열린 줄에 옅은 회색 띠를 주고 나서, hover도 같은 회색으로 바꿨습니다.
+  // 폰에서 줄을 눌러 **닫고** 보니 그 줄이 여전히 회색이었습니다 — 터치에서는
+  // :hover가 다른 곳을 누를 때까지 붙어 있고, 그래서 닫힌 줄이 열린 줄과
+  // 똑같이 보였습니다(인라인은 background: transparent인데 화면은 회색).
+  // 띠는 '열렸다'는 말이라야 하므로, 그 말을 할 수 있는 것은 하나뿐입니다.
+  // 예전 값 var(--color-surface)는 카드 흰색과 같아 마흔째 이후로 이미 아무
+  // 일도 하지 않았으므로, 잃는 것도 없습니다.
+  GRP.forEach(g => {
+    const i = tplQ.indexOf('{{ g' + g + 'Tap }}');
+    const row = tplQ.slice(tplQ.lastIndexOf('<div', i), tplQ.indexOf('>', i));
+    ok(g + ' 줄에는 hover가 없습니다 — 띠는 열림만 말합니다',
+      row.indexOf('style-hover') < 0, row.slice(-60));
+  });
+
+  // ── 5 · 줄과 줄 사이는 1px, 카드와 카드 사이의 2px가 아닙니다 ──
+  // 층마다 첫 줄에는 줄이 없어야 합니다(카드의 위 가장자리가 이미 끝입니다).
+  ok('줄 사이 실선은 여섯입니다 (아홉 줄 - 층 셋)',
+    (tplQ.split('min-height:44px;border-top:1px solid var(--color-neutral-300);cursor:pointer').length - 1) === 6);
+  ok('묶음 줄에 2px 구역선이 남아 있지 않습니다',
+    tplQ.indexOf('min-height:44px;border-top:2px solid var(--color-divider);cursor:pointer') < 0);
+
+  // ── 5b · 마지막 칸은 밑줄을 긋지 않습니다 ──
+  // 내 급여 조건과 급여기간, 두 본문이 **똑같은 모양**으로 틀려 있었습니다:
+  // 첫 칸은 1px 머리카락 선(칸과 칸을 가릅니다)인데 **마지막 칸**은
+  // 2px --color-divider — 평면 시대에 칸 묶음을 닫던 구역선입니다. 그 시절에는
+  // 아래가 다른 구역이라 말이 됐는데, 이제는 같은 카드 안에서 곧바로 설명
+  // 문단이 이어집니다. 마흔한째가 세운 규칙 그대로입니다: **밑줄은 줄과 줄
+  // 사이를 가르는 것이지 묶음의 끝을 그리는 것이 아닙니다.**
+  // 한쪽만 고치면 같은 층 카드 안에서 두 묶음이 서로 다른 모양이 됩니다.
+  // 두 본문 안에서만 셉니다 — 이 padding 문자열은 앱 곳곳에 흔합니다.
+  [['gPayOpen', 'gPeriodTap', 'padding:7px 0"'],
+   ['gPeriodOpen', 'L.tierMore', 'padding:6px 0"']].forEach(([a, b, last]) => {
+    const body = tplQ.slice(tplQ.indexOf('{{ ' + a + ' }}'), tplQ.indexOf('{{ ' + b + ' }}'));
+    const hair = body.split('border-bottom:1px solid var(--color-neutral-300)').length - 1;
+    ok(a.replace('Open', '') + ' 본문에 칸을 가르는 머리카락 선이 하나입니다', hair === 1, 'got ' + hair);
+    // 마지막 칸의 style이 padding에서 끝납니다 = 밑줄이 없습니다
+    ok(a.replace('Open', '') + ' 본문의 마지막 칸은 아무 줄도 긋지 않습니다',
+      body.indexOf(last) >= 0);
+  });
+
+  // 그리고 어느 묶음 본문에도 2px 구역선이 남아 있으면 안 됩니다 — 본문은 이제
+  // 카드 **안**이라, 층이 지워 주던 그 선이 여기서는 그대로 그려집니다.
+  const bodies = [['gShiftOpen','gPayTap'], ['gPayOpen','gPeriodTap'], ['gPeriodOpen','L.tierMore'],
+                  ['gMoneyOpen','gInsTap'], ['gInsOpen','gRulesTap'], ['gRulesOpen','gMeTap'],
+                  ['gMeOpen','L.tierRest'], ['gLangOpen','gBackupTap'], ['gBackupOpen','L.secLegal']];
+  bodies.forEach(([a, b]) => {
+    const seg = tplQ.slice(tplQ.indexOf('{{ ' + a + ' }}'), tplQ.indexOf('{{ ' + b + ' }}'));
+    ok(a.replace('Open', '') + ' 본문에 2px 구역선이 없습니다',
+      seg.length > 0 && seg.indexOf('border-bottom:2px solid var(--color-divider)') < 0);
+  });
+
+  // ── 6 · 보이지 않는 줄은 여백만 먹습니다 ──
+  // 백업 묶음과 법적 고지 사이에 평면 시대의 2px 구역선이 하나 남아 있었습니다.
+  // 카드가 된 뒤로 층이 색을 지워 **그리는 것은 없으면서** 2px + 여백 9px를
+  // 그대로 먹고 있었습니다. 마흔한째의 height:18px 상자와 같은 종류입니다.
+  ok('죽은 2px 구역선이 없어졌습니다',
+    tplQ.indexOf('border-top:2px solid var(--color-divider);margin-top:14px') < 0);
+
+  // ── 7 · 아홉 묶음도, 칸도 하나 사라지지 않았습니다 ──
+  // 서른두째가 세워 둔 규칙입니다: 이 앱은 증거를 만들고, 임금체불 진정 중인
+  // 근로자가 설정을 열었을 때 칸이 없어져 있으면 안 됩니다. 모양만 바꿨습니다.
+  GRP.forEach(g => ok('g' + g + ' 묶음이 그대로 있습니다', tplQ.indexOf('{{ g' + g + 'Tap }}') > 0));
+  ['{{ periodStartVal }}','{{ paydayVal }}','{{ graceVal }}','{{ avgDailyVal }}','{{ shutPctVal }}',
+   '{{ basicVal }}','{{ divisorVal }}','{{ workerNameVal }}','{{ employerVal }}','{{ bosuVal }}']
+    .forEach(t => ok('칸이 살아 있습니다 ' + t, tplQ.indexOf(t) > 0));
+
+  // ── 8 · 접히지 않는 것은 접히지 않은 채입니다 ──
+  // 법적 고지는 열일곱째가 일부러 접히지 않게 만든 카드입니다. 층을 감싸면서
+  // 그 카드를 딸려 넣으면 접히는 것이 됩니다.
+  const restSeg = tplQ.slice(tplQ.indexOf('{{ L.tierRest }}'), tplQ.indexOf('{{ L.secAbout }}'));
+  ok('법적 고지는 층 카드 바깥입니다',
+    restSeg.indexOf('{{ L.secLegal }}') > restSeg.indexOf('{{ gBackupTap }}')
+    && bal(tplQ.slice(tplQ.indexOf('{{ L.tierRest }}'), tplQ.indexOf('{{ L.secLegal }}'))) === 0);
+}
+
 console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);

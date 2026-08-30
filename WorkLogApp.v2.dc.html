@@ -1152,16 +1152,22 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
           <div style="font-size:11.5px;line-height:1.45;font-weight:700;color:{{ setupStatusInk }};text-wrap:pretty">{{ setupStatus }}</div>
         </div>
 
-        <div style="padding:15px 18px 9px;border-top:2px solid var(--color-text);background:var(--color-surface)">
+        <div style="padding:0 18px 7px">
           <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;font-weight:700;color:var(--color-text)">{{ L.tierNeed }}</div>
         </div>
-        <div onClick="{{ gShiftTap }}" style="display:flex;align-items:center;gap:10px;padding:13px 18px;min-height:44px;cursor:pointer;background:{{ gShiftBg }}" style-hover="background:var(--color-surface)">
+        <!-- 층의 묶음들은 카드 **하나**에 든 줄입니다. 카드가 하나씩이던 때는
+             누르면 열리는 줄과 열리지 않는 머리말이 똑같은 흰 상자라 구별할 길이
+             없었고, 열면 본문이 **따로 떨어진 카드**로 나와 어느 줄의 것인지
+             말해 주지 않았습니다. 한 카드 안에 담으면 본문이 자기 줄 바로
+             아래에서 펴지고, 층의 이름표는 카드 바깥 바닥으로 나갑니다. -->
+        <div>
+        <div onClick="{{ gShiftTap }}" style="display:flex;align-items:center;gap:10px;padding:13px 18px;min-height:44px;cursor:pointer;background:{{ gShiftBg }}">
           <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
             <div style="font-family:var(--font-heading);font-weight:800;font-size:14.5px;line-height:1.15;letter-spacing:-0.01em">{{ gShiftKo }}</div>
             <div style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--color-neutral-600)">{{ gShiftEn }}</div>
           </div>
           <div style="flex:none;max-width:42%;text-align:right;font-size:11px;line-height:1.35;color:{{ gShiftSumInk }};font-variant-numeric:tabular-nums;text-wrap:pretty">{{ gShiftSum }}</div>
-          <div style="flex:none;width:14px;text-align:center;font-size:11px;color:var(--color-neutral-600)">{{ gShiftChev }}</div>
+          <div style="flex:none;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:13px;background:{{ gShiftChevBg }};color:{{ gShiftChevInk }}">{{ gShiftChev }}</div>
         </div>
         <sc-if value="{{ gShiftOpen }}" hint-placeholder-val="{{ false }}">
           <div>
@@ -1253,13 +1259,13 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
         </div>
           </div>
         </sc-if>
-        <div onClick="{{ gPayTap }}" style="display:flex;align-items:center;gap:10px;padding:13px 18px;min-height:44px;border-top:2px solid var(--color-divider);cursor:pointer;background:{{ gPayBg }}" style-hover="background:var(--color-surface)">
+        <div onClick="{{ gPayTap }}" style="display:flex;align-items:center;gap:10px;padding:13px 18px;min-height:44px;border-top:1px solid var(--color-neutral-300);cursor:pointer;background:{{ gPayBg }}">
           <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
             <div style="font-family:var(--font-heading);font-weight:800;font-size:14.5px;line-height:1.15;letter-spacing:-0.01em">{{ gPayKo }}</div>
             <div style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--color-neutral-600)">{{ gPayEn }}</div>
           </div>
           <div style="flex:none;max-width:42%;text-align:right;font-size:11px;line-height:1.35;color:{{ gPaySumInk }};font-variant-numeric:tabular-nums;text-wrap:pretty">{{ gPaySum }}</div>
-          <div style="flex:none;width:14px;text-align:center;font-size:11px;color:var(--color-neutral-600)">{{ gPayChev }}</div>
+          <div style="flex:none;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:13px;background:{{ gPayChevBg }};color:{{ gPayChevInk }}">{{ gPayChev }}</div>
         </div>
         <sc-if value="{{ gPayOpen }}" hint-placeholder-val="{{ false }}">
           <div>
@@ -1270,7 +1276,7 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
             <input type="text" inputmode="decimal" enterkeyhint="done" onKeyDown="{{ keyBasic }}" value="{{ basicVal }}" onFocus="{{ focBasic }}" onBlur="{{ blurBasic }}" onChange="{{ setBasic }}" style="width:112px;min-height:44px;padding:0 8px;border:2px solid var(--color-neutral-300);background:var(--color-bg);font-family:var(--font-heading);font-weight:{{ wgtBasic }};font-size:13px;text-align:right;color:{{ inkBasic }}" />
           </div>
           <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:var(--color-text);padding:14px 0 6px">{{ L.secByLaw }}</div>
-          <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:2px solid var(--color-divider)">
+          <div style="display:flex;align-items:center;gap:10px;padding:7px 0">
             <div style="flex:1;font-size:12.5px;font-weight:600">{{ L.lDivisor }} <span style="font-weight:400;color:var(--color-neutral-600)">{{ L.lDivisorSub }}</span></div>
             <input type="text" inputmode="decimal" enterkeyhint="done" onKeyDown="{{ keyDivisor }}" value="{{ divisorVal }}" onFocus="{{ focDivisor }}" onBlur="{{ blurDivisor }}" onChange="{{ setDivisor }}" style="width:112px;min-height:44px;padding:0 8px;border:2px solid var(--color-neutral-300);background:var(--color-bg);font-family:var(--font-heading);font-weight:{{ wgtDivisor }};font-size:13px;text-align:right;color:{{ inkDivisor }}" />
           </div>
@@ -1282,13 +1288,13 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
             </div>
           </div>
         </sc-if>
-        <div onClick="{{ gPeriodTap }}" style="display:flex;align-items:center;gap:10px;padding:13px 18px;min-height:44px;border-top:2px solid var(--color-divider);cursor:pointer;background:{{ gPeriodBg }}" style-hover="background:var(--color-surface)">
+        <div onClick="{{ gPeriodTap }}" style="display:flex;align-items:center;gap:10px;padding:13px 18px;min-height:44px;border-top:1px solid var(--color-neutral-300);cursor:pointer;background:{{ gPeriodBg }}">
           <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
             <div style="font-family:var(--font-heading);font-weight:800;font-size:14.5px;line-height:1.15;letter-spacing:-0.01em">{{ gPeriodKo }}</div>
             <div style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--color-neutral-600)">{{ gPeriodEn }}</div>
           </div>
           <div style="flex:none;max-width:42%;text-align:right;font-size:11px;line-height:1.35;color:{{ gPeriodSumInk }};font-variant-numeric:tabular-nums;text-wrap:pretty">{{ gPeriodSum }}</div>
-          <div style="flex:none;width:14px;text-align:center;font-size:11px;color:var(--color-neutral-600)">{{ gPeriodChev }}</div>
+          <div style="flex:none;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:13px;background:{{ gPeriodChevBg }};color:{{ gPeriodChevInk }}">{{ gPeriodChev }}</div>
         </div>
         <sc-if value="{{ gPeriodOpen }}" hint-placeholder-val="{{ false }}">
           <div>
@@ -1298,7 +1304,7 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
             <div style="flex:1;font-size:12.5px;font-weight:600">{{ L.lPeriod }} <span style="font-weight:400;color:var(--color-neutral-600)">{{ L.lPeriodSub }}</span></div>
             <input type="text" inputmode="decimal" enterkeyhint="done" onKeyDown="{{ keyPeriodStart }}" value="{{ periodStartVal }}" onFocus="{{ focPeriodStart }}" onBlur="{{ blurPeriodStart }}" onChange="{{ setPeriodStart }}" style="width:112px;min-height:44px;padding:0 8px;border:2px solid var(--color-neutral-300);background:var(--color-bg);font-family:var(--font-heading);font-weight:{{ wgtPeriodStart }};font-size:13px;text-align:right;color:{{ inkPeriodStart }}" />
           </div>
-          <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:2px solid var(--color-divider)">
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 0">
             <div style="flex:1;font-size:12.5px;font-weight:600">{{ L.lPayday }} <span style="font-weight:400;color:var(--color-neutral-600)">{{ L.lPaydaySub }}</span></div>
             <input type="text" inputmode="decimal" enterkeyhint="done" onKeyDown="{{ keyPayday }}" value="{{ paydayVal }}" onFocus="{{ focPayday }}" onBlur="{{ blurPayday }}" onChange="{{ setPayday }}" style="width:112px;min-height:44px;padding:0 8px;border:2px solid var(--color-neutral-300);background:var(--color-bg);font-family:var(--font-heading);font-weight:{{ wgtPayday }};font-size:13px;text-align:right;color:{{ inkPayday }}" />
           </div>
@@ -1313,17 +1319,24 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
           </sc-if>
           </div>
         </sc-if>
-        <div style="padding:15px 18px 9px;border-top:2px solid var(--color-text);background:var(--color-surface)">
+        </div>
+        <div style="padding:0 18px 7px">
           <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;font-weight:700;color:var(--color-text)">{{ L.tierMore }}</div>
           <div style="font-size:10.5px;line-height:1.45;color:var(--color-neutral-700);margin-top:5px;text-wrap:pretty">{{ L.tierMoreSub }}</div>
         </div>
-        <div onClick="{{ gMoneyTap }}" style="display:flex;align-items:center;gap:10px;padding:13px 18px;min-height:44px;cursor:pointer;background:{{ gMoneyBg }}" style-hover="background:var(--color-surface)">
+        <!-- 층의 묶음들은 카드 **하나**에 든 줄입니다. 카드가 하나씩이던 때는
+             누르면 열리는 줄과 열리지 않는 머리말이 똑같은 흰 상자라 구별할 길이
+             없었고, 열면 본문이 **따로 떨어진 카드**로 나와 어느 줄의 것인지
+             말해 주지 않았습니다. 한 카드 안에 담으면 본문이 자기 줄 바로
+             아래에서 펴지고, 층의 이름표는 카드 바깥 바닥으로 나갑니다. -->
+        <div>
+        <div onClick="{{ gMoneyTap }}" style="display:flex;align-items:center;gap:10px;padding:13px 18px;min-height:44px;cursor:pointer;background:{{ gMoneyBg }}">
           <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
             <div style="font-family:var(--font-heading);font-weight:800;font-size:14.5px;line-height:1.15;letter-spacing:-0.01em">{{ gMoneyKo }}</div>
             <div style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--color-neutral-600)">{{ gMoneyEn }}</div>
           </div>
           <div style="flex:none;max-width:42%;text-align:right;font-size:11px;line-height:1.35;color:var(--color-neutral-700);font-variant-numeric:tabular-nums;text-wrap:pretty">{{ gMoneySum }}</div>
-          <div style="flex:none;width:14px;text-align:center;font-size:11px;color:var(--color-neutral-600)">{{ gMoneyChev }}</div>
+          <div style="flex:none;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:13px;background:{{ gMoneyChevBg }};color:{{ gMoneyChevInk }}">{{ gMoneyChev }}</div>
         </div>
         <sc-if value="{{ gMoneyOpen }}" hint-placeholder-val="{{ false }}">
           <div>
@@ -1361,13 +1374,13 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
         </div>
           </div>
         </sc-if>
-        <div onClick="{{ gInsTap }}" style="display:flex;align-items:center;gap:10px;padding:13px 18px;min-height:44px;border-top:2px solid var(--color-divider);cursor:pointer;background:{{ gInsBg }}" style-hover="background:var(--color-surface)">
+        <div onClick="{{ gInsTap }}" style="display:flex;align-items:center;gap:10px;padding:13px 18px;min-height:44px;border-top:1px solid var(--color-neutral-300);cursor:pointer;background:{{ gInsBg }}">
           <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
             <div style="font-family:var(--font-heading);font-weight:800;font-size:14.5px;line-height:1.15;letter-spacing:-0.01em">{{ gInsKo }}</div>
             <div style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--color-neutral-600)">{{ gInsEn }}</div>
           </div>
           <div style="flex:none;max-width:42%;text-align:right;font-size:11px;line-height:1.35;color:var(--color-neutral-700);font-variant-numeric:tabular-nums;text-wrap:pretty">{{ gInsSum }}</div>
-          <div style="flex:none;width:14px;text-align:center;font-size:11px;color:var(--color-neutral-600)">{{ gInsChev }}</div>
+          <div style="flex:none;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:13px;background:{{ gInsChevBg }};color:{{ gInsChevInk }}">{{ gInsChev }}</div>
         </div>
         <sc-if value="{{ gInsOpen }}" hint-placeholder-val="{{ false }}">
           <div>
@@ -1458,13 +1471,13 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
         </div>
           </div>
         </sc-if>
-        <div onClick="{{ gRulesTap }}" style="display:flex;align-items:center;gap:10px;padding:13px 18px;min-height:44px;border-top:2px solid var(--color-divider);cursor:pointer;background:{{ gRulesBg }}" style-hover="background:var(--color-surface)">
+        <div onClick="{{ gRulesTap }}" style="display:flex;align-items:center;gap:10px;padding:13px 18px;min-height:44px;border-top:1px solid var(--color-neutral-300);cursor:pointer;background:{{ gRulesBg }}">
           <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
             <div style="font-family:var(--font-heading);font-weight:800;font-size:14.5px;line-height:1.15;letter-spacing:-0.01em">{{ gRulesKo }}</div>
             <div style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--color-neutral-600)">{{ gRulesEn }}</div>
           </div>
           <div style="flex:none;max-width:42%;text-align:right;font-size:11px;line-height:1.35;color:var(--color-neutral-700);font-variant-numeric:tabular-nums;text-wrap:pretty">{{ gRulesSum }}</div>
-          <div style="flex:none;width:14px;text-align:center;font-size:11px;color:var(--color-neutral-600)">{{ gRulesChev }}</div>
+          <div style="flex:none;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:13px;background:{{ gRulesChevBg }};color:{{ gRulesChevInk }}">{{ gRulesChev }}</div>
         </div>
         <sc-if value="{{ gRulesOpen }}" hint-placeholder-val="{{ false }}">
           <div>
@@ -1545,13 +1558,13 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
              생각해 본 적 없는 사람이 그 칸을 영영 만나지 못했습니다 — 그리고
              성명 미기재는 근무내역서가 나온 뒤에야 보입니다. 여기서는 묶음이
              접혀 있어도 요약 줄이 이름을 말하고, 없으면 빨갛게 말합니다. -->
-        <div onClick="{{ gMeTap }}" style="display:flex;align-items:center;gap:10px;padding:13px 18px;min-height:44px;border-top:2px solid var(--color-divider);cursor:pointer;background:{{ gMeBg }}" style-hover="background:var(--color-surface)">
+        <div onClick="{{ gMeTap }}" style="display:flex;align-items:center;gap:10px;padding:13px 18px;min-height:44px;border-top:1px solid var(--color-neutral-300);cursor:pointer;background:{{ gMeBg }}">
           <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
             <div style="font-family:var(--font-heading);font-weight:800;font-size:14.5px;line-height:1.15;letter-spacing:-0.01em">{{ gMeKo }}</div>
             <div style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--color-neutral-600)">{{ gMeEn }}</div>
           </div>
           <div style="flex:none;max-width:42%;text-align:right;font-size:11px;line-height:1.35;color:{{ gMeSumInk }};font-variant-numeric:tabular-nums;text-wrap:pretty">{{ gMeSum }}</div>
-          <div style="flex:none;width:14px;text-align:center;font-size:11px;color:var(--color-neutral-600)">{{ gMeChev }}</div>
+          <div style="flex:none;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:13px;background:{{ gMeChevBg }};color:{{ gMeChevInk }}">{{ gMeChev }}</div>
         </div>
         <sc-if value="{{ gMeOpen }}" hint-placeholder-val="{{ false }}">
           <div style="padding:14px 18px 16px">
@@ -1563,16 +1576,23 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
             <div style="font-size:10.5px;line-height:1.5;color:var(--color-neutral-700);margin-top:7px;text-wrap:pretty">{{ L.employerHint }}</div>
           </div>
         </sc-if>
-        <div style="padding:15px 18px 9px;border-top:2px solid var(--color-text);background:var(--color-surface)">
+        </div>
+        <div style="padding:0 18px 7px">
           <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;font-weight:700;color:var(--color-text)">{{ L.tierRest }}</div>
         </div>
-        <div onClick="{{ gLangTap }}" style="display:flex;align-items:center;gap:10px;padding:13px 18px;min-height:44px;cursor:pointer;background:{{ gLangBg }}" style-hover="background:var(--color-surface)">
+        <!-- 층의 묶음들은 카드 **하나**에 든 줄입니다. 카드가 하나씩이던 때는
+             누르면 열리는 줄과 열리지 않는 머리말이 똑같은 흰 상자라 구별할 길이
+             없었고, 열면 본문이 **따로 떨어진 카드**로 나와 어느 줄의 것인지
+             말해 주지 않았습니다. 한 카드 안에 담으면 본문이 자기 줄 바로
+             아래에서 펴지고, 층의 이름표는 카드 바깥 바닥으로 나갑니다. -->
+        <div>
+        <div onClick="{{ gLangTap }}" style="display:flex;align-items:center;gap:10px;padding:13px 18px;min-height:44px;cursor:pointer;background:{{ gLangBg }}">
           <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
             <div style="font-family:var(--font-heading);font-weight:800;font-size:14.5px;line-height:1.15;letter-spacing:-0.01em">{{ gLangKo }}</div>
             <div style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--color-neutral-600)">{{ gLangEn }}</div>
           </div>
           <div style="flex:none;max-width:42%;text-align:right;font-size:11px;line-height:1.35;color:var(--color-neutral-700);font-variant-numeric:tabular-nums;text-wrap:pretty">{{ gLangSum }}</div>
-          <div style="flex:none;width:14px;text-align:center;font-size:11px;color:var(--color-neutral-600)">{{ gLangChev }}</div>
+          <div style="flex:none;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:13px;background:{{ gLangChevBg }};color:{{ gLangChevInk }}">{{ gLangChev }}</div>
         </div>
         <sc-if value="{{ gLangOpen }}" hint-placeholder-val="{{ false }}">
           <div style="padding:12px 18px 16px">
@@ -1587,13 +1607,13 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
             <div style="font-size:10.5px;line-height:1.5;color:var(--color-neutral-700);margin-top:9px;text-wrap:pretty">{{ L.noteLang }}</div>
           </div>
         </sc-if>
-        <div onClick="{{ gBackupTap }}" style="display:flex;align-items:center;gap:10px;padding:13px 18px;min-height:44px;border-top:2px solid var(--color-divider);cursor:pointer;background:{{ gBackupBg }}" style-hover="background:var(--color-surface)">
+        <div onClick="{{ gBackupTap }}" style="display:flex;align-items:center;gap:10px;padding:13px 18px;min-height:44px;border-top:1px solid var(--color-neutral-300);cursor:pointer;background:{{ gBackupBg }}">
           <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
             <div style="font-family:var(--font-heading);font-weight:800;font-size:14.5px;line-height:1.15;letter-spacing:-0.01em">{{ gBackupKo }}</div>
             <div style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--color-neutral-600)">{{ gBackupEn }}</div>
           </div>
           <div style="flex:none;max-width:42%;text-align:right;font-size:11px;line-height:1.35;color:var(--color-neutral-700);font-variant-numeric:tabular-nums;text-wrap:pretty">{{ gBackupSum }}</div>
-          <div style="flex:none;width:14px;text-align:center;font-size:11px;color:var(--color-neutral-600)">{{ gBackupChev }}</div>
+          <div style="flex:none;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:13px;background:{{ gBackupChevBg }};color:{{ gBackupChevInk }}">{{ gBackupChev }}</div>
         </div>
         <sc-if value="{{ gBackupOpen }}" hint-placeholder-val="{{ false }}">
           <div>
@@ -1618,7 +1638,8 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
           </div>
         </sc-if>
 
-        <div style="border-top:2px solid var(--color-divider);margin-top:14px"></div>
+        </div>
+
         <!-- ── 법적 고지와 도움 ── 접히지 않습니다. 이 앱이 만든 문서를 들고
              근로감독관 앞에 서는 사람이 있고, 그 사람은 이 앱이 무엇이고
              무엇이 아닌지를 알아야 합니다. 접어 두면 아무도 열지 않습니다.
@@ -3115,7 +3136,18 @@ class Component extends DCLogic {
       V['g' + pfx + 'SumInk'] = ((key === 'grp_me' && !this.workerName()) || done === false)
         ? 'var(--color-accent)' : 'var(--color-neutral-700)';
       V['g' + pfx + 'Chev'] = on ? '▾' : '▸';
-      V['g' + pfx + 'Bg'] = on ? 'var(--color-surface)' : 'transparent';
+      // ── 누를 수 있다는 말은 그려야 합니다 ──
+      // 예전에는 11px 회색 글리프 하나가 오른쪽 끝 허공에 떠 있었고, 그 옆의
+      // 요약도 같은 크기의 회색 글씨였습니다. 근로자에게 그것은 단추가 아니라
+      // 문장부호로 읽힙니다. 이제 30px 동그라미가 그 자리를 채웁니다 — 이
+      // 화면에서 동그라미는 이것 하나뿐이고, 열려 있으면 빨갛게 반전됩니다.
+      // 모양(동그라미)은 층이 정합니다. 여기서 정하는 것은 색뿐입니다.
+      V['g' + pfx + 'ChevBg'] = on ? 'var(--color-accent)' : 'var(--color-neutral-200)';
+      V['g' + pfx + 'ChevInk'] = on ? 'var(--color-bg)' : 'var(--color-neutral-700)';
+      // 줄은 이제 카드가 아니라 카드 **안의** 줄입니다. 예전의 열림 값
+      // var(--color-surface)는 카드 흰색과 같은 값이 되어 아무 일도 하지 않는
+      // 죽은 값이었습니다 — 열린 줄은 옅은 회색 띠로 자기 본문을 붙듭니다.
+      V['g' + pfx + 'Bg'] = on ? 'var(--color-neutral-100)' : 'transparent';
       V['g' + pfx + 'Tap'] = () => this.toggleSetGroup(key);
     });
     return V;
