@@ -53,6 +53,7 @@
   --radius-sm: 9px;
   --radius-md: 12px;
   --radius-lg: 16px;
+  --radius-xl: 20px;
   --radius-pill: 999px;
 
   --color-card: #ffffff;
@@ -104,9 +105,6 @@
      one of those inline margins would win, so this is the one place the
      layer takes the property outright. */
   margin: 0 var(--card-inset) var(--card-gap) !important;
-  /* the 2px section rule is what separated sections when they were flush;
-     cards separate themselves, so it goes. */
-  border-bottom-color: transparent !important;
 }
 #tabScroll > div > div:first-child { margin-top: var(--card-gap) !important; }
 #tabScroll > div > div:last-child  { margin-bottom: 18px !important; }
@@ -124,10 +122,21 @@
    flat background it read as white; on a card it reads as a hole. */
 #tabScroll > div > div[style*="background: transparent"] { background: var(--color-card) !important; }
 
-/* Sections were also separated by rules on top — a 2px black one marks each
-   SETUP tier, a grey one each group row. Cards separate themselves, and a
-   straight rule across a rounded corner is worse than no rule at all. */
-#tabScroll > div > div { border-top-color: transparent !important; }
+/* Sections were separated by rules on top and bottom — a 2px black one marks
+   each SETUP tier, a grey one each group row, a grey one the end of a block.
+   Cards separate themselves, and a straight rule across a rounded corner is
+   worse than no rule at all, so those go.
+   `:not([style*="border: "])` is what keeps this off a card that draws a whole
+   frame — the 주 52시간 warning, the 명세서 대조 box, the 근무기록 band. Their
+   border is not a separator between sections, it is the card saying something,
+   and blanking two of its four sides left the 52-hour card red down the left
+   and right and open top and bottom, with the radius rendering the leftovers
+   as two red hooks at the corners. Rule 2's grey frames still go transparent —
+   the rule right above this one takes all four of their sides. */
+#tabScroll > div > div:not([style*="border: "]) {
+  border-top-color: transparent !important;
+  border-bottom-color: transparent !important;
+}
 
 /* spacer divs (`height: 20px`, no children) must not become blank cards */
 #tabScroll > div > div:empty { background: none; box-shadow: none; }
@@ -168,6 +177,34 @@
 [style*="cursor: pointer"][style*="min-height: 50px"],
 [style*="cursor: pointer"][style*="min-height: 52px"],
 [style*="cursor: pointer"][style*="min-height: 56px"] { border-radius: var(--radius-md); }
+
+/* ── 2d · the 근무기록 row badge ────────────────────────────────────────── */
+/* Every row in 근무기록 opens with a 26px coloured tile — the sun or the moon
+   for a worked shift, one Korean letter for the rest (특 · 공 · 결 · 휴 · 연).
+   It carries no border and no min-height, so not one rule above reached it:
+   it was the last hard square left in the list, sitting against rounded cards.
+   Scoped to #tabScroll on purpose — the welcome screen's numbered cards are
+   the same 26px box and are *not* this. They are numerals in a document, not
+   chips in a list, and they live outside the tab scroller. */
+#tabScroll [style*="width: 26px"][style*="height: 26px"] { border-radius: var(--radius-sm); }
+
+/* ── 2e · the 급여기간 stepper ──────────────────────────────────────────── */
+/* The stepper is the one card a worker touches on the way to somewhere else,
+   and it was the tallest thing above the records: its own label line, 11/12px
+   padding and 14px margins put ~117px between the header and the first number.
+   The card is tight now (the label folded into the middle column, where it
+   costs nothing — that column is shorter than the 44px arrows either way) and
+   its corners are rounder than a normal card, so the height it lost does not
+   read as a squashed box.
+   The 44px floor under `‹` and `›` is *not* negotiable — this app is used with
+   a thumb, often with gloves on — so the arrows keep their size and only their
+   shape changes: a circle, which reads lighter than the square did.
+   `cursor: pointer` is in the selector to out-weigh rule 2c (same two-attribute
+   specificity, and this comes later), or the buttons' 12px would win.
+   The 근무일 calendar's month arrows match this pair and are caught too; they
+   carry no border and no fill, so there the radius is simply invisible. */
+[style*="cursor: pointer"][style*="min-height: 44px; min-width: 44px"] { border-radius: var(--radius-pill); }
+#tabScroll > div > div[style*="padding: 5px 7px"] { border-radius: var(--radius-xl); }
 
 /* ── 3 · the header bar ─────────────────────────────────────────────────── */
 [style*="align-items: flex-end"][style*="padding: 8px 18px 10px"] {

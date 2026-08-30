@@ -5787,6 +5787,65 @@ console.log('\n== 카드의 마지막 줄에는 밑줄이 없습니다 ==');
   ok('카드 끝의 여백 상자가 없습니다', secB.indexOf('height:18px') < 0);
 }
 
+console.log('\n== 누계 네 칸도 카드의 끝을 두 번 그리고 있었습니다 ==');
+{
+  // 근무기록의 REGULAR · OVERTIME · NIGHT · HOLIDAY 네 칸이 저마다 밑줄과
+  // 오른줄을 그렸습니다. 안쪽의 두 줄은 칸을 가르는 것이라 맞지만, 마지막 줄의
+  // 밑줄과 오른쪽 칸의 오른줄은 카드의 가장자리에 그대로 얹힙니다 — 위는 12px
+  // 여백뿐인데 아래는 12px + 1px이라 카드가 비뚤어 보였습니다. 마흔한째의
+  // 요약 카드와 같은 자리이고, 답도 같습니다: 카드는 스스로 끝납니다.
+  const c = mk(V2, '2026-08-25T18:10:00');
+  c.setS({ periodStart:21, payday:25 });
+  const C = c.renderVals().totalCells;
+
+  ok('누계는 네 칸입니다', C.length === 4, 'cells=' + C.length);
+  ok('첫 줄 두 칸은 밑줄을 그립니다',
+    C[0].bd === 'var(--color-neutral-300)' && C[1].bd === 'var(--color-neutral-300)',
+    C.map(x => x.bd).join(' | '));
+  ok('마지막 줄 두 칸에는 밑줄이 없습니다',
+    C[2].bd === 'transparent' && C[3].bd === 'transparent',
+    C.map(x => x.bd).join(' | '));
+  ok('왼쪽 칸은 오른줄을 그립니다',
+    C[0].rt === 'var(--color-neutral-300)' && C[2].rt === 'var(--color-neutral-300)',
+    C.map(x => x.rt).join(' | '));
+  ok('오른쪽 칸에는 오른줄이 없습니다',
+    C[1].rt === 'transparent' && C[3].rt === 'transparent',
+    C.map(x => x.rt).join(' | '));
+
+  // 값은 하나도 바뀌지 않았습니다 — 더한 것은 줄을 그릴지 말지뿐입니다
+  ok('네 칸의 이름은 그대로입니다',
+    C[0].label === '정상근무' && C[3].label === '특근',
+    C.map(x => x.label).join(' | '));
+  ok('네 칸의 값은 그대로 시간입니다',
+    C.every(x => /h$/.test(x.value)), C.map(x => x.value).join(' | '));
+
+  // 기록이 하나도 없어도 같습니다 — 빈 칸도 카드의 끝은 그리지 않습니다
+  const e = mk(V2, '2026-08-21T09:00:00');
+  e.setS({ periodStart:21, payday:25 });
+  const E = e.renderVals().totalCells;
+  ok('기록이 없어도 마지막 줄에 밑줄이 없습니다',
+    E[2].bd === 'transparent' && E[3].bd === 'transparent');
+
+  // ── 마크업 ── 값이 맞아도 마크업이 그 홀을 쓰지 않으면 화면은 그대로입니다
+  // (서른두째의 헛통과). 그래서 두 홀을 소스에서 셉니다.
+  const fsT = require('fs');
+  const srcT = fsT.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tplT = srcT.slice(0, srcT.indexOf('</x-dc>'));
+  const at = tplT.indexOf('{{ totalCells }}');
+  const secT = tplT.slice(at, at + 700);
+  ok('누계 칸의 밑줄 색이 홀입니다', secT.indexOf('border-bottom:1px solid {{ c.bd }}') > 0);
+  ok('누계 칸의 오른줄 색도 홀입니다', secT.indexOf('border-right:1px solid {{ c.rt }}') > 0);
+  ok('그 자리에 색이 박혀 있지 않습니다',
+    secT.indexOf('border-bottom:1px solid var(--color-neutral-300)') < 0
+    && secT.indexOf('border-right:1px solid var(--color-neutral-300)') < 0);
+  // 격자를 감싼 상자에는 평면 시대의 구역 줄이 하나 더 있었습니다. 카드가 된
+  // 뒤로 층이 그 색을 지워 보이지 않는데 2px 자리는 그대로 남아, 위가 12px일
+  // 때 아래가 12px + 2px이었습니다. 보이지 않는 줄은 여백만 먹습니다.
+  const boxT = tplT.slice(tplT.lastIndexOf('<div style="display:grid', at), at);
+  ok('누계 격자에 죽은 구역 줄이 없습니다',
+    boxT.indexOf('border-bottom:2px solid var(--color-divider)') < 0, boxT.trim());
+}
+
 console.log('\n== 근무조는 해와 달로도 말합니다 ==');
 {
   // 근무기록 줄의 배지에는 해와 달이 있는데 출퇴근 카드에는 글자뿐이었습니다.

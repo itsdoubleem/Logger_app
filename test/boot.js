@@ -126,8 +126,83 @@ console.log('\n== 모양은 소스가 아니라 ds-tokens.css에 있습니다 ==
     heights.every(h => BTN_H.indexOf(h) >= 0));
   // 30px 알약과 탭바는 이 규칙에 걸리지 않아야 합니다 — 걸리면 알약이 네모가 됩니다
   ok('알약 높이는 단추 목록에 없습니다', BTN_H.indexOf(30) < 0 && BTN_H.indexOf(34) < 0);
+
+  // 근무기록 줄 머리의 26px 배지 — 테두리도 min-height도 없어 위 규칙이 하나도
+  // 닿지 않았고, 둥근 카드 위에 마지막으로 남은 네모였습니다. #tabScroll로 좁힌
+  // 이유는 환영 화면의 번호 배지가 같은 26px 상자이기 때문입니다 — 그것은 목록의
+  // 배지가 아니라 문서의 번호라 그대로 두고, 탭 스크롤 상자 바깥에 있습니다.
+  ok('근무기록 배지의 모서리를 층이 정합니다',
+    /#tabScroll \[style\*="width: 26px"\]\[style\*="height: 26px"\][^{]*\{[^}]*--radius-sm/.test(css));
+  const tiles = (src.split('width:26px;height:26px').length - 1);
+  const scrollAt = src.indexOf('id="tabScroll"');
+  const badgeAt = src.indexOf('width:26px;height:26px;flex:none');
+  ok('26px 상자는 둘뿐입니다 (' + tiles + '개)', tiles === 2);
+  ok('근무기록 배지는 #tabScroll 안이고 환영 화면의 번호는 바깥입니다',
+    scrollAt > 0 && badgeAt > scrollAt
+    && src.indexOf('flex:none;width:26px;height:26px') < scrollAt);
+
+  // 급여기간 스테퍼 — 근무기록과 급여가 한 마크업을 나눠 씁니다(스무째). 한쪽만
+  // 줄이면 다른 탭이 예전 크기로 남으므로 **둘 다** 셉니다.
+  // 바깥 여백은 손대지 않았습니다 — 카드 층이 `margin`을 !important로 가져가므로
+  // 인라인으로 적어 봐야 죽은 값입니다. 얇아진 것은 카드 **안쪽**입니다.
+  ok('스테퍼가 두 탭에서 다 얇아졌습니다 (padding 11/12 → 5px 7px)',
+    (src.split('border:2px solid var(--color-divider);padding:5px 7px').length - 1) === 2);
+  ok('스테퍼의 예전 여백이 한 곳도 남아 있지 않습니다',
+    !src.includes('padding:11px 12px 12px'));
+  // 이름표는 지운 것이 아니라 가운데 칸으로 접어 넣었습니다 — 그 칸은 44px 화살표보다
+  // 짧아서 줄 하나를 더 얹어도 카드가 높아지지 않습니다.
+  ok('급여기간 이름표는 그대로 두 탭에 있습니다',
+    (src.split('{{ L.payPeriodLbl }}').length - 1) === 2);
+  // 화살표는 44px 그대로입니다 — 이 앱에서 누를 것의 바닥이고, 얇아진 것은
+  // 카드이지 손가락이 닿는 자리가 아닙니다.
+  ok('‹ › 는 여전히 44px입니다 (스테퍼 넷 + 달력 둘)',
+    (src.split('min-height:44px;min-width:44px').length - 1) === 6);
+  ok('층이 그 화살표를 동그랗게 만듭니다',
+    /\[style\*="cursor: pointer"\]\[style\*="min-height: 44px; min-width: 44px"\][^{]*\{[^}]*--radius-pill/.test(css));
+  // 규칙 2c(단추 12px)와 선택자 무게가 같으므로 **뒤에** 있어야 이깁니다.
+  ok('그 규칙이 단추 규칙보다 뒤에 있습니다',
+    css.indexOf('min-height: 44px; min-width: 44px') > css.indexOf('[style*="cursor: pointer"][style*="min-height: 56px"]'));
+  ok('스테퍼 카드는 보통 카드보다 둥급니다 (--radius-xl)',
+    /#tabScroll > div > div\[style\*="padding: 5px 7px"\][^{]*\{[^}]*--radius-xl/.test(css)
+    && /--radius-xl:\s*20px/.test(css));
   ok('탭바는 min-height를 쓰지 않습니다',
     !/grid-template-columns:1fr 1fr 1fr 1fr 1fr[^>]*>[\s\S]{0,400}?min-height/.test(src));
+
+  // 층은 카드의 위아래 테두리 색을 지웁니다 — 그것이 구역을 가르던 2px 줄이기
+  // 때문입니다. 그런데 테두리를 **통째로** 두른 카드에도 그 규칙이 닿아서, 주
+  // 52시간 경고가 왼쪽과 오른쪽만 빨갛고 위아래는 뚫린 채로 섰습니다. 둥근
+  // 모서리가 남은 두 변을 이어 그리니 아래쪽에 빨간 갈고리가 둘 생겼습니다.
+  // `:not([style*="border: "])`가 그 카드들을 빼 줍니다.
+  ok('위아래 테두리를 지우는 규칙이 통째로 두른 카드를 뺍니다',
+    /#tabScroll > div > div:not\(\[style\*="border: "\]\)[^{]*\{[^}]*border-top-color:\s*transparent[^}]*border-bottom-color:\s*transparent/.test(css));
+  // 규칙 1의 맨몸 선택자에 그 선언이 남아 있으면 :not이 아무 일도 못 합니다 —
+  // 두 규칙이 같은 속성을 다투고, 무게가 낮은 맨몸 쪽이 뒤에 있으면 이깁니다.
+  ok('규칙 1의 맨몸 선택자는 그 색을 더 이상 지우지 않습니다',
+    !/#tabScroll > div > div \{[^}]*border-(top|bottom)-color/.test(css));
+  // 카드를 고르는 규칙 가운데 그 색을 지우는 것은 :not 하나뿐이어야 합니다.
+  // (탭바·여섯 칸 타일·머리말도 같은 속성을 지우지만 그것들은 카드가 아닙니다.)
+  // 카드 자신을 고르는 규칙만 셉니다 — `>`가 둘. 여섯 칸 타일의 규칙은
+  // `… > div`가 하나 더 붙은 자식 선택자라 카드가 아니고, 그쪽은 타일마다
+  // 하나씩인 하드 사각형을 지우는 다른 일을 합니다(규칙 4).
+  const cardRules = (css.match(/#tabScroll > div > div[^{]*\{[^}]*\}/g) || [])
+    .filter(r => (r.split('{')[0].match(/>/g) || []).length === 2)
+    .filter(r => /border-(top|bottom)-color:\s*transparent/.test(r));
+  ok('카드의 위아래 테두리를 지우는 규칙은 하나뿐이고 그것이 :not입니다',
+    cardRules.length === 1 && cardRules[0].indexOf(':not([style*="border: "])') > 0,
+    cardRules.length + ' rule(s)');
+  // 구조용 회색 테두리는 여전히 네 변 모두 사라져야 합니다 — 그 규칙이
+  // border-color 하나로 가져가므로 위 :not에서 빠져도 달라지지 않습니다.
+  ok('회색 테두리 카드는 네 변 모두 그대로 투명합니다',
+    /#tabScroll > div > div\[style\*="border: 2px solid var\(--color-divider\)"\][\s\S]{0,160}?border-color:\s*transparent\s*!important/.test(css));
+  // 소스에 그런 카드가 실제로 몇 개인지 — 새로 만들면 이 수가 늘고, 그때
+  // 위 규칙이 그것도 함께 지켜 주는지 눈으로 보게 됩니다.
+  const framed = (src.match(/margin:\d+px 18px[^"]*;border:[23]px solid var\(--color-(accent|text)\)/g) || []).length;
+  ok('통째로 두른 카드는 다섯입니다 (' + framed + '개)', framed === 5);
+
+  // 근무기록의 누계 네 칸 — 마지막 줄의 밑줄과 오른쪽 칸의 오른줄이 카드의
+  // 가장자리에 얹혀 카드의 끝을 두 번 그렸습니다. 색은 이제 홀입니다.
+  ok('누계 네 칸의 줄 색이 마크업에 박혀 있지 않습니다',
+    !/\{\{ totalCells \}\}[\s\S]{0,500}?border-bottom:1px solid var\(--color-neutral-300\)/.test(src));
 
   // 소스에서 바꾼 두 줄
   ok('머리말의 급여기간 칩은 검은 알약입니다',
