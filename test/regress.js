@@ -6321,14 +6321,41 @@ console.log('\n== 베트남어 근로자가 근무 밑에서 근무를 또 봤�
       return c.renderVals().pendingTitle.indexOf('지난 근무 ') === 0;
     }));
 
-  // ── 앞머리가 아니라 다른 낱말이면 그대로 둡니다 ──
-  // 급여 줄의 아랫줄은 이름표의 번역이 아니라 **명세서에 실제로 찍히는 낱말**
-  // 입니다(`잔업 Tăng ca ×1.5` 아래 `포괄잔업수당`). 그 둘은 다른 말이라 떼면
-  // 근로자가 종이에서 찾을 낱말을 잃습니다. 지우는 규칙이 여기까지 번지지
-  // 않는지 셉니다.
-  const ot = vi.renderVals().earnRows.filter(r => r.en === '포괄잔업수당')[0];
-  ok('명세서 낱말은 그대로 남습니다',
-    !!ot && ot.ko.indexOf('잔업 ') === 0, ot && ot.ko);
+  // ── 아랫줄이 그 낱말을 품고 있으면 그것도 앞머리입니다 ──
+  // 이 자리는 한 번 반대로 세워 두었습니다. `잔업 Tăng ca ×1.5` 위/`포괄잔업수당`
+  // 아래를 보고 *'그 둘은 다른 말이라 떼면 근로자가 종이에서 찾을 낱말을
+  // 잃는다'*고 판단했는데, **잃지 않습니다** — 찾는 낱말이 아랫줄 안에 그대로
+  // 들어 있습니다(잔업 ⊂ 포괄잔업수당, 야간 ⊂ 야간심야, 특근 ⊂ 특근수당).
+  // 잃는 것이 없으므로 두 번 그릴 이유도 없습니다. 앞머리를 정확히 그 낱말일
+  // 때만 재던 것이 이 여섯 줄을 놓치고 있었습니다.
+  ok('품고 있어도 앞머리입니다',
+    V2.leads('야간 夜班津贴 ×0.5', '야간심야') === true
+    && V2.leads('잔업 加班 ×1.5', '포괄잔업수당') === true      // 낱말 한가운데라도
+    && V2.leads('특근 休息日津贴', '휴일(특근)수당') === true    // 괄호 안이라도
+    && V2.dropLead('야간 夜班津贴 ×0.5', '야간심야') === '夜班津贴 ×0.5'
+    && V2.dropLead('잔업 加班 ×1.5', '포괄잔업수당') === '加班 ×1.5'
+    // 앞머리는 **낱말 하나**이고 통째로 한글이라야 합니다 — 숫자가 섞이면 아닙니다
+    && V2.leadWord('1일 평균임금 Lương') === ''
+    && V2.leadWord('야간 夜班') === '야간'
+    && V2.leadWord('야간') === ''
+    // 아랫줄이 그 낱말을 안 나르면 그대로 둡니다
+    && V2.leads('야간 夜班津贴', '기본금') === false
+    && V2.dropLead('야간 夜班津贴', '기본금') === '야간 夜班津贴');
+
+  // 그 여섯 줄이 실제로 화면에서 한 번씩만 섭니다 — 그리고 아랫줄의 명세서 낱말은
+  // 한 글자도 잃지 않았습니다. 뗀 것은 윗줄의 앞머리뿐입니다.
+  ['vi', 'zh', 'th', 'id', 'ne', 'km'].forEach(L => {
+    const c = mk(V2, '2026-08-30T10:00:00'); c.setS({ lang: L });
+    const R = c.renderVals();
+    const rows = R.earnRows.concat(R.slipRows).filter(r => /[가-힣]/.test(r.en || ''));
+    ok('명세서 낱말은 그대로, 앞머리만 뗐습니다 · ' + L,
+      rows.length >= 6 && rows.every(r => !/[가-힣]/.test(r.ko)),
+      rows.filter(r => /[가-힣]/.test(r.ko)).map(r => r.ko + ' | ' + r.en).join(' // '));
+  });
+  ok('아랫줄의 명세서 낱말은 하나도 사라지지 않았습니다',
+    vi.renderVals().earnRows.map(r => r.en).join(',')
+      === '기본금,포괄잔업수당,야간심야,특근수당',
+    vi.renderVals().earnRows.map(r => r.en).join(','));
 
   // ── 손으로 지은 줄이 다섯 군데 더 있었습니다 ──
   // pair()를 고치고 폰에서 급여를 열어 보니 소득세·건강보험·장기요양·국민연금과
@@ -6353,6 +6380,77 @@ console.log('\n== 베트남어 근로자가 근무 밑에서 근무를 또 봤�
     ok('어느 탭 어느 언어에도 같은 낱말이 두 줄에 서지 않습니다', dbl.length === 0,
       dbl.slice(0, 4).join(' // '));
   }
+  // ── 야간만 자리마다 다른 대접을 받고 있었습니다 ──
+  // 만든 사람이 폰을 베트남어로 두고 보낸 화면입니다. 근무기록의 칸은
+  // `야간 Đêm`인데 출퇴근의 같은 줄은 `Số giờ đêm` — **같은 것을 말하는 두
+  // 화면이 서로 다른 모양**이었습니다. 그리고 잔업은 두 곳 모두 앞머리를
+  // 답니다. 한 카드 안에서 이웃한 줄이 갈리면 근로자는 그 차이를 규칙이 아니라
+  // 어긋남으로 읽습니다.
+  //
+  // 산문에서도 같은 일이 있었습니다 — 한 문장 안에서 잔업·특근·기본금은 남고
+  // **야간만** 번역어로 지워져 있었습니다. 여섯 언어 전부에서 그랬습니다.
+  ['vi', 'zh', 'th', 'id', 'ne', 'km'].forEach(L => {
+    const c = mk(V2, '2026-08-30T10:00:00'); c.setS({ lang: L });
+    const R = c.renderVals();
+    const cell = R.totalCells[2].label, row = R.liveRows.filter(r => /야간|đêm|夜班|กะดึก|malam|रात|យប់/i.test(r.label))[0];
+    ok('두 화면이 야간을 같게 부릅니다 · ' + L,
+      cell.indexOf('야간 ') === 0 && !!row && row.label.indexOf('야간 ') === 0,
+      cell + ' | ' + (row && row.label));
+    // 이웃한 잔업 줄도 그대로 앞머리를 답니다 — 한쪽만 고치면 갈린 채로 남습니다
+    ok('잔업 줄은 그대로입니다 · ' + L,
+      R.totalCells[1].label.indexOf('잔업 ') === 0
+      && R.liveRows.filter(r => r.label.indexOf('잔업 ') === 0).length === 1,
+      R.totalCells[1].label);
+    // 지난 근무는 명세서에 없는 말입니다 — 같은 카드의 이웃 셋도 앞머리가 없습니다
+    ok('지난 근무는 앞머리를 달지 않습니다 · ' + L,
+      R.liveRows[0].label.indexOf('지난 근무') !== 0
+        && !/[가-힣]/.test(R.liveRows[0].label),
+      R.liveRows[0].label);
+  });
+  // ── 야간은 번역이 안 되는 낱말이라, 숫자가 무엇인지 밑줄이 말합니다 ──
+  // `야간`은 '야간조에서 일한 시간'이 아니라 **22:00–06:00 구간**입니다.
+  // 21:00→09:00 근무는 실근무 11시간인데 야간은 7시간입니다. 그런데 번역어는
+  // 여섯 언어 가운데 셋(zh·th·km)이 아예 '야간조 시간'이라고 말하고, 나머지도
+  // '밤 시간'이라 넓습니다 — 한국어를 건너뛰고 읽으면 숫자가 모자라 보입니다.
+  // 그래서 앞머리를 그대로 두고, 밑줄이 구간을 못 박습니다.
+  {
+    const c = mk(V2, '2026-08-02T10:00:00');
+    c.state.extra = [{ y: 2026, m: 8, day: 2, kind: 'night', type: 'shift',
+      inH: 21, outH: 33, c: c.calc(21, 33, 'night', false) }];
+    ok('야간은 근무시간이 아니라 22:00–06:00입니다',
+      c.calc(21, 33, 'night', false).net === 11
+      && c.calc(21, 33, 'night', false).night === 7);
+  }
+  ['ko', 'en', 'vi', 'zh', 'th', 'id', 'ne', 'km'].forEach(L => {
+    const c = mk(V2, '2026-08-02T10:00:00'); c.setS({ lang: L });
+    c.state.extra = [{ y: 2026, m: 8, day: 2, kind: 'night', type: 'shift',
+      inH: 21, outH: 33, c: c.calc(21, 33, 'night', false) }];
+    const R = c.renderVals(), ot = R.liveRows[3], ni = R.liveRows[4];
+    ok('야간 줄의 밑줄이 구간을 말합니다 · ' + L,
+      ni.sub.indexOf('22:00–06:00 · ') === 0, ni.sub);
+    // 잔업 줄은 손대지 않았습니다 — 그쪽은 구간이 아니라 8시간 초과분입니다
+    ok('잔업 줄의 밑줄은 그대로입니다 · ' + L,
+      ot.sub.indexOf('22:00') === -1 && ni.sub.indexOf(ot.sub) !== -1, ot.sub);
+  });
+  // 새 문장이 아니라 이미 있던 구절 앞에 숫자를 붙인 것입니다 — 키가 늘지 않습니다
+  ok('두 밑줄은 같은 구절을 나눠 씁니다',
+    V2.STR.period_to_date_2.ko === '22:00–06:00 · ' + V2.STR.period_to_date.ko
+    && V2.STR.period_to_date_2.en === '22:00–06:00 · ' + V2.STR.period_to_date.en);
+
+  // 산문 넉 줄: 한 문장 안에서 야간이 형제와 같은 대접을 받는지
+  [['anything_past_8h_pays_overtime_1_5_and', '잔업'],
+   ['on_even_the_first_8h_pay_1_5_and_every', '특근'],
+   ['days_worked_ot_night_as_of_basic_and_f', '잔업'],
+   ['days_worked_ot_night_whole_period', '잔업']].forEach(([k, sib]) => {
+    ['vi', 'zh', 'th', 'id', 'ne', 'km'].forEach(L => {
+      const v = V2.STR[k][L];
+      ok('한 문장 안에서 야간이 형제와 같습니다 · ' + k + ' · ' + L,
+        v.indexOf('야간') !== -1 && v.indexOf(sib) !== -1, v);
+    });
+    // 한국어와 영어는 손대지 않았습니다
+    ok('한국어 원문은 그대로입니다 · ' + k, V2.STR[k].ko.indexOf('야간') !== -1);
+  });
+
   // 그 자리들이 한국어를 잃지는 않았는지 — 아랫줄은 여전히 명세서의 낱말입니다
   ok('공제 줄의 아랫줄은 그대로 한국어입니다',
     vi.renderVals().dedRows.map(r => r.en).slice(0, 5).join(',')
