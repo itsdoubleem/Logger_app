@@ -53,6 +53,16 @@ for (const dist of ['dist', 'dist-v2']) {
   ok('갈아 끼운 문서의 html/body가 곧바로 앱 바탕색입니다',
     /html,\s*body\s*\{[^}]*background:\s*var\(--color-bg\)/.test(head));
 
+  // ── 상태 표시줄 밑 ─────────────────────────────────────────────────────
+  // 이 앱은 가장자리까지 그립니다. 그래서 뿌리도 전면 오버레이도
+  // `env(safe-area-inset-*)`로 시계와 제스처 바를 피하는데, **그 값은
+  // viewport-fit=cover일 때만 0이 아닙니다.** 이것이 빠지면 여백이 전부
+  // 0으로 계산되어 화면이 조용히 예전으로 돌아갑니다 — 오류는 나지 않습니다.
+  // 여기서 세는 것은 **셸이 들고 있는 한 벌**입니다(앱 소스의 helmet은
+  // gzip 자산 안이라 이 파일에서는 보이지 않고, 그쪽은 regress가 셉니다).
+  ok('갈아 끼운 문서가 viewport-fit=cover를 답니다',
+    (template.match(/viewport-fit=cover/g) || []).length === 1);
+
   // ── 모양 층 · 2026-08-30 ───────────────────────────────────────────────
   // 카드·모서리·그림자는 ds-tokens.css 아래의 스타일시트 한 벌이고, 여기도
   // 같은 자리에 인라인되므로 첫 페인트에 모양이 있습니다.
@@ -127,17 +137,21 @@ console.log('\n== 모양은 소스가 아니라 ds-tokens.css에 있습니다 ==
   // 30px 알약과 탭바는 이 규칙에 걸리지 않아야 합니다 — 걸리면 알약이 네모가 됩니다
   ok('알약 높이는 단추 목록에 없습니다', BTN_H.indexOf(30) < 0 && BTN_H.indexOf(34) < 0);
 
-  // 근무기록 줄 머리의 26px 배지 — 테두리도 min-height도 없어 위 규칙이 하나도
-  // 닿지 않았고, 둥근 카드 위에 마지막으로 남은 네모였습니다. #tabScroll로 좁힌
-  // 이유는 환영 화면의 번호 배지가 같은 26px 상자이기 때문입니다 — 그것은 목록의
-  // 배지가 아니라 문서의 번호라 그대로 두고, 탭 스크롤 상자 바깥에 있습니다.
-  ok('근무기록 배지의 모서리를 층이 정합니다',
-    /#tabScroll \[style\*="width: 26px"\]\[style\*="height: 26px"\][^{]*\{[^}]*--radius-sm/.test(css));
+  // 26px 배지 둘 — 근무기록 줄머리의 해·달과 환영 화면 카드의 번호. 테두리도
+  // min-height도 없어 위 규칙이 하나도 닿지 않았고, 둥근 카드 위에 마지막으로
+  // 남은 네모였습니다. 처음에는 #tabScroll로 좁혀 근무기록 쪽만 둥글게 했는데,
+  // 갓 깐 폰의 첫 화면이 바로 그 번호 넷이라 만든 사람이 그것을 보고 말했습니다.
+  // 이제 선택자에 #tabScroll이 없고 둘 다 9px입니다 — 그 조각이 되살아나면
+  // 환영 화면만 조용히 네모로 돌아가는데, 모양이 안 붙는 것은 오류를 내지
+  // 않습니다(마흔째). 그래서 없다는 것을 따로 셉니다.
+  const badgeRule = (css.match(/^[^\n]*\[style\*="width: 26px"\]\[style\*="height: 26px"\][^\n]*$/m) || [''])[0];
+  ok('26px 배지의 모서리를 층이 정합니다', /--radius-sm/.test(badgeRule));
+  ok('그 규칙은 #tabScroll로 좁혀져 있지 않습니다', badgeRule.indexOf('#tabScroll') < 0);
   const tiles = (src.split('width:26px;height:26px').length - 1);
   const scrollAt = src.indexOf('id="tabScroll"');
   const badgeAt = src.indexOf('width:26px;height:26px;flex:none');
   ok('26px 상자는 둘뿐입니다 (' + tiles + '개)', tiles === 2);
-  ok('근무기록 배지는 #tabScroll 안이고 환영 화면의 번호는 바깥입니다',
+  ok('하나는 #tabScroll 안, 하나는 환영 화면이라 바깥입니다',
     scrollAt > 0 && badgeAt > scrollAt
     && src.indexOf('flex:none;width:26px;height:26px') < scrollAt);
 
@@ -155,8 +169,8 @@ console.log('\n== 모양은 소스가 아니라 ds-tokens.css에 있습니다 ==
     (src.split('{{ L.payPeriodLbl }}').length - 1) === 2);
   // 화살표는 44px 그대로입니다 — 이 앱에서 누를 것의 바닥이고, 얇아진 것은
   // 카드이지 손가락이 닿는 자리가 아닙니다.
-  ok('‹ › 는 여전히 44px입니다 (스테퍼 넷 + 달력 둘)',
-    (src.split('min-height:44px;min-width:44px').length - 1) === 6);
+  ok('‹ › 는 여전히 44px입니다 (스테퍼 넷 + 달력 둘 + 설정 흐름의 칩 둘)',
+    (src.split('min-height:44px;min-width:44px').length - 1) === 8);
   ok('층이 그 화살표를 동그랗게 만듭니다',
     /\[style\*="cursor: pointer"\]\[style\*="min-height: 44px; min-width: 44px"\][^{]*\{[^}]*--radius-pill/.test(css));
   // 규칙 2c(단추 12px)와 선택자 무게가 같으므로 **뒤에** 있어야 이깁니다.
@@ -341,37 +355,96 @@ console.log('\n== 굴림판은 파묻힌 통이고 띠는 그 위에 뜹니다 =
   // ── 1 · 통은 페이지 안으로 파여 있습니다 ──
   // 그림자가 **inset**이고 위아래에만 있는 것이 요점입니다 — 진짜 드럼이
   // 제 통 속으로 사라지는 자리가 거기입니다.
-  const well = (css.match(/\[style\*="height: 168px"\]\s*\{[^}]*\}/) || [''])[0];
+  const well = (css.match(/\[style\*="height: 132px"\]\s*\{[^}]*\}/) || [''])[0];
   ok('층이 통을 파묻습니다', /inset/.test(well) && (well.match(/inset/g) || []).length === 2, well.slice(0, 70));
   ok('띠는 반대로 떠 있습니다',
-    /\[style\*="top: 56px"\]\[style\*="height: 56px"\]\s*\{[^}]*box-shadow:[^}]*\}/.test(css)
-    && !/\[style\*="top: 56px"\]\[style\*="height: 56px"\]\s*\{[^}]*inset/.test(css));
+    /\[style\*="top: 44px"\]\[style\*="height: 44px"\]\s*\{[^}]*box-shadow:[^}]*\}/.test(css)
+    && !/\[style\*="top: 44px"\]\[style\*="height: 44px"\]\s*\{[^}]*inset/.test(css));
   // 모서리는 규칙 2가 이미 줍니다 — 통이 2px 회색 테두리를 두르고 있기 때문입니다.
   // 인라인에 border-radius를 적으면 그 순간 파일의 첫 번째가 되고 통만 층
   // 바깥으로 나갑니다(마흔째).
   ok('통의 모서리는 규칙 2가 줍니다',
-    (tpl.match(/height:168px;margin-top:8px;border:2px solid var\(--color-neutral-300\)/g) || []).length === 4
+    (tpl.match(/height:132px;margin-top:6px;border:2px solid var\(--color-neutral-300\)/g) || []).length === 4
     && src.indexOf('border-radius') < 0 && src.indexOf('box-shadow') < 0);
 
   // 소스에 그런 상자가 정말 넷인지 — 다섯째가 생기면 이 수가 늘고, 그때 그것도
   // 파묻히는지 눈으로 보게 됩니다(마흔넷째가 세운 그 습관입니다)
-  const wells = (src.match(/height:168px/g) || []).length;
-  ok('168px 상자는 넷뿐입니다 (' + wells + '개)', wells === 4);
-  const bands = (src.match(/top:56px;height:56px/g) || []).length;
+  const wells = (src.match(/height:132px/g) || []).length;
+  ok('132px 상자는 넷뿐입니다 (' + wells + '개)', wells === 4);
+  const bands = (src.match(/top:44px;height:44px/g) || []).length;
   ok('그 통의 띠도 넷뿐입니다 (' + bands + '개)', bands === 4);
-  // 굴리는 칸의 56px 칸(수십 개)이 이 선택자에 걸리면 줄마다 그림자가 집니다 —
+  // 굴리는 칸의 44px 칸(수십 개)이 이 선택자에 걸리면 줄마다 그림자가 집니다 —
   // 그 칸들은 top을 쓰지 않으므로 걸리지 않습니다
   ok('굴리는 칸은 이 선택자에 걸리지 않습니다',
-    (src.match(/height:56px;display:flex/g) || []).length >= 8
-    && src.indexOf('top:56px;height:56px;display:flex') < 0);
+    (src.match(/height:44px;display:flex/g) || []).length >= 8
+    && src.indexOf('top:44px;height:44px;display:flex') < 0);
 
   ok('두 규칙 다 첫 페인트에 있습니다',
-    head.indexOf('"height: 168px"') > 0 && head.indexOf('"top: 56px"') > 0);
-  // 소스는 `height:168px`인데 React는 `height: 168px`로 다시 씁니다 — 소스를 보고
+    head.indexOf('"height: 132px"') > 0 && head.indexOf('"top: 44px"') > 0);
+  // 소스는 `height:132px`인데 React는 `height: 132px`로 다시 씁니다 — 소스를 보고
   // 선택자를 쓰면 아무것도 안 잡히고, 화면은 그냥 예전 모양이라 고장으로
   // 보이지 않습니다(마흔째)
   ok('선택자가 정규화된 값을 씁니다',
-    css.indexOf('"height: 168px"') > 0 && css.indexOf('"height:168px"') < 0);
+    css.indexOf('"height: 132px"') > 0 && css.indexOf('"height:132px"') < 0);
+}
+
+// 층이 모양만 말하는 것이 아니라 **눌린 순간**도 말합니다. 소스에는 :active가
+// 한 번도 없었고 filter도 0개라, 그 둘은 border-radius·box-shadow와 같은 뜻에서
+// 비어 있는 속성입니다 — 규칙 한 줄이 !important 없이 이깁니다.
+console.log('\n== 설정 흐름의 단추가 눌린 티를 냅니다 ==');
+{
+  const css = fs.readFileSync(path.join(ROOT, 'ds-tokens.css'), 'utf8');
+  const src = fs.readFileSync(path.join(ROOT, 'WorkLogApp.v2.dc.html'), 'utf8');
+  const built = fs.readFileSync(path.join(ROOT, 'dist-v2', 'index.html'), 'utf8');
+  const tm = built.match(/<script type="__bundler\/template">([\s\S]*?)<\/script>/);
+  const head = tm ? JSON.parse(tm[1]).split('<body')[0] : '';
+
+  const act = (css.match(/\[style\*="z-index: 22"\][^{]*:active\s*\{[^}]*\}/) || [''])[0];
+  ok('층이 눌린 상태를 정합니다', /filter:\s*brightness/.test(act), act.slice(0, 80));
+  // 채워진 단추는 인라인 background가 이기므로 filter가, 테두리만 있는 단추는
+  // 인라인 background가 없으므로 background-color가 답합니다. 둘 다 있어야
+  // 이 화면의 두 종류가 모두 대답합니다.
+  ok('칠한 단추와 빈 단추 양쪽에 답이 있습니다', /background-color:/.test(act), act.slice(0, 120));
+  ok('되돌아오는 데 시간이 걸립니다 — 그래서 눌린 것으로 읽힙니다',
+    /\[style\*="z-index: 22"\][^{]*\{[^}]*transition:[^}]*filter/.test(css));
+
+  // !important가 하나도 없어야 합니다 — 비어 있는 속성이라 다툴 일이 없습니다
+  ok('그 규칙에는 !important가 없습니다', act.indexOf('!important') < 0);
+  // 소스가 그 둘을 한 번도 쓰지 않는다는 것이 이 규칙이 서 있는 근거입니다
+  ok('소스에 :active도 filter도 없습니다',
+    src.indexOf(':active') < 0 && !/[^-]filter:/.test(src));
+
+  // min-height를 함께 요구하는 것이 이번의 판단입니다 — 굴리는 칸은 height라
+  // 걸리지 않습니다. 던져서 굴리는 중에 바탕이 번쩍이면 되먹임이 아니라 고장으로
+  // 읽히고, 거기에 transform을 걸면 무는 자리가 옮겨 갑니다(마흔다섯째).
+  ok('선택자가 min-height를 함께 요구합니다',
+    /\[style\*="z-index: 22"\] \[style\*="cursor: pointer"\]\[style\*="min-height:"\]:active/.test(css));
+  ok('그 규칙은 transform을 건드리지 않습니다', !/transform/.test(act));
+
+  // 열쇠는 오버레이의 z-index 하나입니다 — 다섯 탭에는 닿지 않습니다
+  ok('z-index 22는 설정 흐름 하나뿐입니다',
+    (src.match(/z-index:22/g) || []).length === 1);
+  ok('그 규칙도 첫 페인트에 있습니다', head.indexOf('"z-index: 22"') > 0);
+  // 소스는 `z-index:22`인데 React는 `z-index: 22`로 다시 씁니다(마흔째)
+  ok('선택자가 정규화된 값을 씁니다',
+    css.indexOf('"z-index: 22"') > 0 && css.indexOf('"z-index:22"') < 0);
+
+  // 검은 것은 더 어두워질 수 없습니다 — #201e1d에 .86을 곱하면 #1b1a19이고,
+  // 그것이 근로자가 '아무 일도 안 일어난다'고 말한 그 화면입니다. 그래서 검은
+  // 것만 반대 방향으로 갑니다(뒤로·건너뛰기 칩 둘 + 4/4에서 고른 급여기간·월급날 칩).
+  const lift = (css.match(/\[style\*="z-index: 22"\][^{]*background: var\(--color-text\)"\]:active\s*\{[^}]*\}/) || [''])[0];
+  ok('검은 것은 어두워지는 대신 밝아집니다', /brightness\(1\./.test(lift), lift.slice(0, 90));
+  // 무게가 같으면 앞 규칙의 .86이 이기고, 칩만 조용히 예전처럼 아무 일도 하지
+  // 않게 됩니다 — 그것은 오류를 내지 않습니다(마흔째). 선택자가 하나 더 많아야 합니다
+  const attrs = t => (t.match(/\[style\*=/g) || []).length;
+  ok('그 규칙이 앞 규칙보다 무겁습니다', attrs(lift.split('{')[0]) === attrs(act.split('{')[0]) + 1,
+    attrs(lift.split('{')[0]) + ' vs ' + attrs(act.split('{')[0]));
+  ok('그리고 뒤에 있습니다', css.indexOf(lift) > css.indexOf(act));
+
+  // 검은 칩 둘은 층의 알약 규칙(2e)이 잡습니다 — min-height가 min-width보다
+  // 앞에 적혀야 걸리고, 안 걸리면 조용히 네모가 됩니다(마흔째)
+  ok('뒤로·건너뛰기 칩이 그 알약 규칙의 모양대로 적혀 있습니다',
+    (src.match(/min-height:44px;min-width:44px;display:flex;align-items:center;justify-content:center;padding:0;background:var\(--color-text\)/g) || []).length === 2);
 }
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');

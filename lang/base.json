@@ -3138,5 +3138,13 @@
   "use_this_and_recount": {
     "en": "Use 보수월액 {p0} and recount",
     "ko": "보수월액 {p0}으로 다시 계산합니다"
+  },
+  "comes_off_every_shift": {
+    "ko": "날마다 실근무에서 빠집니다.",
+    "en": "Comes off your hours every shift."
+  },
+  "comes_off_only_on_overtime_days": {
+    "ko": "잔업이 있는 날에만 빠집니다.",
+    "en": "Comes off only on days with overtime."
   }
 }

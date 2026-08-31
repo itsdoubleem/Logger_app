@@ -1681,6 +1681,69 @@ console.log('\n== 탭을 바꾸면 맨 위에서 시작합니다 ==');
   ok('근무기록에서 어느 탭으로 가도 맨 위', allTop, where.join(','));
 }
 
+console.log('\n== 앞 탭의 픽셀이 새 탭 밑에 남아 있었습니다 ==');
+{ // 실제 폰에서 찾았습니다. 급여를 끝까지 내려 읽고 내 권리로 옮겨 다시 끝까지
+  // 내리면, 내 권리의 마지막 카드 자리에 급여의 '명세서 대조' 검은 띠가
+  // 그려졌습니다. DOM은 멀쩡했습니다 — 자식 하나, scrollHeight는 내 권리의
+  // 높이 그대로. 남아 있던 것은 웹뷰가 구워 둔 타일입니다. 다섯 탭이 스크롤
+  // 상자 하나를 나눠 쓰는데, 탭을 바꿀 때 화면 밖 타일이 무효화되지 않습니다.
+  const H=require('./harness2.js'); const box=H.tabScroll;
+  const c=mk(V2);
+
+  H.flushRaf();                                      // 앞 블록이 남긴 것을 비웁니다
+  box.seen.length=0; box.style.display=''; box.scrollTop=703;
+  c.setState({tab:'pay'});
+  c.renderVals().tabs[3].go();                       // 급여 → 내 권리
+  ok('탭은 실제로 바뀌었습니다', c.state.tab==='rights', 'got '+c.state.tab);
+  ok('상자를 숨긴 채 레이아웃을 다시 쟀습니다', box.seen.length===1 && box.seen[0]==='none',
+    JSON.stringify(box.seen));
+  // ── 언제 했는가가 절반입니다 ──
+  // 하네스의 rAF는 모아 두기만 합니다. 그러니 **바로 위 assertion이 통과한다는
+  // 것 자체가** rAF를 기다리지 않고 누름을 처리하는 그 자리에서 했다는 뜻입니다.
+  // 처음에는 rAF 안에서 했는데, 폰을 20배 느리게 해 놓으니 90번 가운데 86번이
+  // 아예 스크롤되지 않았습니다 — rAF가 늦게 오면 이미 굴리고 있던 손가락에게서
+  // 자리를 빼앗습니다(2026-08-30, 마흔여덟째).
+  for(let i=0;i<8&&H.flushRaf();i++);
+  ok('한 프레임 뒤에 또 그리지는 않습니다', box.seen.length===1, JSON.stringify(box.seen));
+  // 숨긴 채로 두면 화면이 통째로 사라집니다 — 되돌려 놓는 것이 절반입니다
+  ok('그리고 곧바로 되돌려 놓습니다', box.style.display==='', JSON.stringify(box.style.display));
+  ok('맨 위에서 시작하는 것은 그대로입니다', box.scrollTop===0, 'scrollTop='+box.scrollTop);
+
+  // 어느 탭으로 옮겨도 마찬가지입니다 — 급여만 고치면 다른 짝에서 그대로 남습니다
+  let all=true;
+  [0,1,2,4].forEach(i=>{
+    box.seen.length=0; box.style.display=''; c.setState({tab:'rights'});
+    c.renderVals().tabs[i].go();
+    if(!(box.seen.length===1 && box.seen[0]==='none' && box.style.display==='')) all=false;
+  });
+  ok('내 권리에서 어느 탭으로 가도 다시 그립니다', all, JSON.stringify(box.seen));
+
+  // 보던 탭을 다시 누르는 것은 이동이 아닙니다 — 읽던 자리를 빼앗지 않으므로
+  // 다시 그릴 것도 없습니다
+  box.seen.length=0; box.scrollTop=300;
+  c.renderVals().tabs[4].go();
+  ok('같은 탭을 다시 눌러도 다시 그리지 않습니다', box.seen.length===0 && box.scrollTop===300,
+    JSON.stringify(box.seen)+' scrollTop='+box.scrollTop);
+
+  // 근무기록의 '고치기'도 같은 상자를 건너뜁니다(editDay → scrollTabTop)
+  box.seen.length=0; box.style.display=''; c.setState({tab:'logs'}); box.scrollTop=612;
+  c.state.extra=[{y:2026,m:8,day:2,kind:'day',type:'shift',inH:9,outH:21,c:c.calc(9,21,'day',false)}];
+  c.editDay(c.state.extra[0]);
+  ok('고치기로 건너뛸 때도 다시 그립니다', box.seen.length===1 && box.seen[0]==='none' && box.style.display==='',
+    JSON.stringify(box.seen));
+
+  // 상자가 없는 자리에서도 던지지 않습니다 — 시험 하네스와 첫 프레임이 그렇습니다
+  let threw=false;
+  try { V2.repaintBox(null); V2.repaintBox({}); } catch(e){ threw=true; }
+  ok('상자가 없으면 조용히 아무것도 하지 않습니다', threw===false);
+
+  // display를 원래 값으로 되돌립니다 — ''로 못 박으면 나중에 누가 이 상자에
+  // display를 세웠을 때 그것을 조용히 지웁니다
+  const fake={ style:{display:'flex'}, offsetHeight:0 };
+  V2.repaintBox(fake);
+  ok('원래 display를 그대로 되돌려 놓습니다', fake.style.display==='flex', fake.style.display);
+}
+
 console.log('\n== 고치기를 누르면 손으로 적는 칸이 보여야 합니다 ==');
 { // 근무기록 아래쪽 줄에서 '고치기'를 누르면 출퇴근으로 건너뜁니다. 그때도
   // 스크롤이 남아 있으면, 보내 놓은 입력 칸이 화면 위로 밀려 있습니다 —
@@ -4621,6 +4684,64 @@ console.log('\n== 표는 눌러서 달고 뗍니다 ==');
   });
 }
 
+console.log('\n== 표 옆에 그 표가 무슨 뜻인지 적습니다 ==');
+{
+  // 만든 사람이 갓 깐 폰의 2/4 화면을 찍어 보내며 말했습니다: '연장 시 ONLY IF
+  // LATE'가 무슨 뜻인지 근로자가 모릅니다, 나도 헷갈립니다. 옆에 설명을 붙여
+  // 주십시오 — '매일 EVERY DAY'가 무슨 뜻인지도.
+  //
+  // 표는 낱말 둘뿐이라 **언제 빠지는가**를 말할 수 없습니다. 설정 탭에는 긴
+  // 안내가 있었지만 설정 흐름의 2/4에는 없었고, 있더라도 그것은 '연장 시에만'
+  // 하나만 설명하고 '매일'은 설명하지 않았습니다.
+  const c = new V2({});
+  c.setS({ shifts: 'both', dayStart: '09:00', nightStart: '21:00',
+    breaksDay: [{ from: '11:30', to: '12:30' }, { from: '17:00', to: '17:30' }] });
+  const rows = () => c.renderVals().dayBreakRows;
+
+  ok('매일 줄 옆에 한 줄이 붙습니다', rows()[0].tagNote === c.T('comes_off_every_shift'),
+    rows()[0].tagNote);
+  ok('그 한 줄이 비어 있지 않습니다', (rows()[0].tagNote || '').length > 5);
+  rows()[1].toggleOt();
+  ok('표를 달면 그 한 줄도 함께 바뀝니다',
+    rows()[1].tagNote === c.T('comes_off_only_on_overtime_days'), rows()[1].tagNote);
+  ok('두 문장은 서로 다릅니다', rows()[0].tagNote !== rows()[1].tagNote);
+  rows()[1].toggleOt();
+  ok('떼면 그 한 줄도 돌아옵니다', rows()[1].tagNote === c.T('comes_off_every_shift'));
+  ok('야간 줄에도 붙습니다', !!c.renderVals().nightBreakRows[0].tagNote);
+
+  // 여덟 언어 모두 — 여섯 언어에서만 빈 자리가 나면 그 근로자만 예전 화면입니다
+  ['ko','en','vi','zh','th','id','ne','km'].forEach(Lg => {
+    ok(Lg + ' 매일 설명이 있습니다', !!(V2.STR['comes_off_every_shift'] || {})[Lg]);
+    ok(Lg + ' 연장 시 설명이 있습니다', !!(V2.STR['comes_off_only_on_overtime_days'] || {})[Lg]);
+    ok(Lg + ' 두 설명이 서로 다릅니다',
+      V2.STR['comes_off_every_shift'][Lg] !== V2.STR['comes_off_only_on_overtime_days'][Lg]);
+  });
+
+  // 마크업 — 표가 서는 자리가 넷이고(설정 흐름 주·야, 설정 탭 주·야) 넷 다
+  // 설명을 달아야 합니다. 한 곳만 고치면 다른 화면이 예전 모양으로 남습니다.
+  const fs = require('fs');
+  const src = fs.readFileSync(require('path').join(__dirname, '..', 'WorkLogApp.v2.dc.html'), 'utf8');
+  const cnt = (h, t) => h.split(t).length - 1;
+  ok('표가 서는 자리는 넷입니다', cnt(src, '{{ r.toggleOt }}') === 4, cnt(src, '{{ r.toggleOt }}'));
+  ok('설명도 넷입니다', cnt(src, '{{ r.tagNote }}') === 4, cnt(src, '{{ r.tagNote }}'));
+  // 밑이 아니라 옆입니다 — 표를 닫는 자리 바로 뒤에 섭니다
+  ok('넷 다 표 바로 옆입니다',
+    cnt(src, '{{ r.tag }}</div><div style="flex:1;min-width:0;align-self:center;') === 4);
+  ok('설정 흐름 쪽 둘', cnt(src, 'font-size:9px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">{{ r.tag }}</div><div') === 2);
+  ok('설정 탭 쪽 둘', cnt(src, 'font-size:8.5px;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;cursor:pointer">{{ r.tag }}</div><div') === 2);
+  // 옆에 글이 서면 표가 눌려 찌그러집니다 — flex:none이 그것을 막습니다.
+  // 그리고 층의 알약 규칙(2b)이 읽는 두 조각은 그대로 남아 있어야 합니다.
+  ok('표는 줄어들지 않습니다', cnt(src, '{{ r.toggleOt }}" style="flex:none;min-height:30px;display:inline-flex;') === 4);
+  ok('알약 규칙이 읽는 두 조각은 그대로입니다',
+    cnt(src, 'min-height:30px;display:inline-flex') >= 4);
+
+  // 설정 탭의 긴 안내는 지우지 않았습니다 — 표를 어떤 휴게에 달아야 하는지는
+  // 옆의 한 줄이 말할 수 있는 것이 아닙니다
+  const V = new V2({}).renderVals();
+  ok('설정 탭의 긴 안내는 그대로입니다', !!V.L.breaksOtNote);
+  ok('무급 안내도 그대로입니다', !!V.L.breaksUnpaidNote);
+}
+
 console.log('\n== 옆의 빈자리를 눌러도 비과세가 뒤집혔습니다 ==');
 {
   // 근로자의 보고입니다: 수당을 하나 더하고 이름과 금액을 친 다음 그 아래
@@ -6175,9 +6296,9 @@ console.log('\n== 굴림판이 종이에 그린 표였습니다 ==');
   ok('무는 칸은 3D를 평평하게 누르지 않습니다', snapDiv.indexOf('transform-style:preserve-3d') > 0);
   ok('기울기는 그 안의 글자가 집니다',
     (q1.match(/transform:\{\{ o\.tf \}\};opacity:\{\{ o\.op \}\}/g) || []).length === 4);
-  ok('소실점은 굴리는 칸 하나가 냅니다', (q1.match(/perspective:620px/g) || []).length === 4);
+  ok('소실점은 굴리는 칸 하나가 냅니다', (q1.match(/perspective:490px/g) || []).length === 4);
   // 소스 전체로도 — 굴림판은 넷입니다(근무조 둘 · 휴게 줄 둘)
-  ok('굴림판 넷이 다 바퀴입니다', (tpl.match(/perspective:620px/g) || []).length === 8);
+  ok('굴림판 넷이 다 바퀴입니다', (tpl.match(/perspective:490px/g) || []).length === 8);
   ok('기울기를 짓는 자리도 넷뿐입니다', (tpl.match(/transform:\{\{ o\.tf \}\}/g) || []).length === 8);
 
   // ── 4 · 그림자를 그리는 두 겹은 누름을 받지 않습니다 ──
@@ -6190,11 +6311,11 @@ console.log('\n== 굴림판이 종이에 그린 표였습니다 ==');
   ok('숫자가 띠 위에 올라섭니다',
     (q1.match(/position:relative;display:flex;align-items:stretch;height:100%/g) || []).length === 2);
   ok('띠는 검은 두 줄이 아니라 빛을 받는 면입니다',
-    q1.indexOf('top:56px;height:56px;background:var(--color-surface)') > 0
+    q1.indexOf('top:44px;height:44px;background:var(--color-surface)') > 0
     && q1.indexOf('border-top:2px solid var(--color-text);border-bottom:2px solid var(--color-text)') < 0);
   // 통은 스스로 모서리를 자릅니다 — 안 그러면 띠와 그늘이 둥근 모서리 밖으로 삐져나갑니다
   ok('통이 자기 모서리로 자릅니다',
-    (tpl.match(/height:168px;margin-top:8px;border:2px solid var\(--color-neutral-300\);background:var\(--color-neutral-100\);overflow:hidden/g) || []).length === 4);
+    (tpl.match(/height:132px;margin-top:6px;border:2px solid var\(--color-neutral-300\);background:var\(--color-neutral-100\);overflow:hidden/g) || []).length === 4);
 
   // ── 5 · 굴린 자리를 세는 산수는 그대로입니다 ──
   // transform은 자리를 바꾸지 않으므로 레이아웃도 스크롤도 한 픽셀도 움직이지
@@ -6232,8 +6353,49 @@ console.log('\n== 굴림판이 종이에 그린 표였습니다 ==');
   ok('굴리는 갈래에 그 부름이 없습니다', scrollFn.indexOf('drumRollTo') < 0, scrollFn.slice(0, 60));
 
   ok('칸 높이도 각도도 코드와 마크업이 같습니다',
-    V2.DRUM_ITEM === 56 && V2.DRUM_STEP === 30
-    && (q1.match(/height:56px/g) || []).length >= 8);
+    V2.DRUM_ITEM === 44 && V2.DRUM_STEP === 30
+    && (q1.match(/height:44px/g) || []).length >= 8);}
+
+console.log('\n== 화면 한 장이 근로자의 화면 한 장 반이었습니다 ==');
+{
+  // 만든 사람이 1/4 화면을 보내며 말했습니다: **페이지가 너무 큽니다. 알약과
+  // 카드와 시각 굴림판을 줄여 주십시오.** 재 보니 그 화면의 내용이 745px가
+  // 아니라 871px이었습니다 — 674px 폰에서 한 화면 반입니다.
+  //
+  // 줄인 것은 자리와 글자이지 **손가락이 닿는 자리가 아닙니다.** 이 앱에서
+  // 누를 것은 44px 아래로 내려가지 않고(마흔한째), 굴림판은 칸마다 누를 수
+  // 있으므로 DRUM_ITEM 자체가 그 바닥에 닿아 있습니다.
+  const src = require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tpl = src.split('class Component')[0];
+  // 끝은 설정 흐름이 닫히는 자리입니다 — 머리말까지 재면 EN ▾ 칩(30px)이
+  // 딸려 들어와, 이 흐름을 잰다고 생각하면서 다른 화면을 재게 됩니다(스물일곱째)
+  const su = tpl.slice(tpl.indexOf('{{ suOn }}'),
+    tpl.indexOf('display:flex;align-items:flex-end;justify-content:space-between;padding:8px 18px 10px'));
+
+  ok('굴림판의 칸이 바닥 아래로 내려가지 않았습니다', V2.DRUM_ITEM >= 44, String(V2.DRUM_ITEM));
+  // 통은 세 칸입니다 — 가운데와 위아래 이웃. 통이 칸의 세 배가 아니면 띠가
+  // 가운데에 서지 않고, 그것은 오류를 내지 않습니다(마흔째).
+  ok('통은 칸 셋의 높이입니다',
+    su.indexOf('height:' + (3 * V2.DRUM_ITEM) + 'px;margin-top:6px;border:2px solid var(--color-neutral-300)') > 0,
+    String(3 * V2.DRUM_ITEM));
+  ok('빈칸도 칸 하나입니다', (su.match(new RegExp('<div style="height:' + V2.DRUM_ITEM + 'px"></div>', 'g')) || []).length === 16);
+  ok('띠도 칸 하나이고 그 자리에 섭니다',
+    (su.match(new RegExp('top:' + V2.DRUM_ITEM + 'px;height:' + V2.DRUM_ITEM + 'px;background:var\\(--color-surface\\)', 'g')) || []).length === 4);
+
+  // 여기가 이번의 알맹이입니다 — 줄이다 보면 44를 넘겨 내려가기 쉽고, 그때
+  // 화면은 그냥 조금 더 작아 보일 뿐 아무 오류도 나지 않습니다.
+  // 알약은 여기서 빠집니다 — 30px·inline-flex는 층의 pill 규칙이 따로 맡는
+  // 것이고(마흔째), 단추가 아니라 줄에 붙은 표입니다(휴게 줄의 연장 시 표).
+  const pills = (su.match(/min-height:30px;display:inline-flex/g) || []).length;
+  ok('알약은 둘뿐이고 단추가 아닙니다 (' + pills + '개)', pills === 2);
+  const mins = (su.match(/min-height:([\d.]+)px/g) || []).map(x => +x.slice(11, -2)).filter(h => h !== 30);
+  const low = mins.filter(h => h < 44);
+  ok('설정 흐름에 44px 밑인 누를 것이 없습니다 (' + mins.length + '개)', low.length === 0, low.join(','));
+  // 그리고 그 높이는 층이 아는 여섯 가운데 하나라야 합니다 — 아니면 그 단추만
+  // 조용히 네모가 됩니다(마흔한째)
+  const known = [44, 46, 48, 50, 52, 56];
+  const odd = [...new Set(mins)].filter(h => known.indexOf(h) < 0);
+  ok('그 높이는 층이 아는 여섯 가운데 하나입니다', odd.length === 0, odd.join(','));
 }
 
 console.log('\n== 베트남어 근로자가 근무 밑에서 근무를 또 봤습니다 ==');
@@ -6476,6 +6638,179 @@ console.log('\n== 베트남어 근로자가 근무 밑에서 근무를 또 봤�
     ok('언어를 바꿔도 금액은 그대로입니다',
       strip(a.slipRows()) === strip(b.slipRows()), strip(b.slipRows()).slice(0, 80));
   }
+}
+
+console.log('\n== 다음 단추가 눌린 티를 내지 않았습니다 ==');
+{
+  // 만든 사람이 갓 깐 앱의 네 물음을 손가락으로 넘겨 보고 말했습니다:
+  // **다음을 눌러도 색이 안 바뀝니다. 정말 누른 것 같지가 않습니다. 그리고
+  // 뒤로와 건너뛰기를 아래로, 진행 막대를 위로 옮겨 주십시오. 그 둘은 검은
+  // 바탕의 칩으로.**
+  //
+  // 셋 다 같은 화면의 것이고, 답이 둘로 갈립니다 — 무엇이 어디에 서는가는
+  // 마크업이, 눌렸을 때 어떻게 보이는가는 층이 말합니다(마흔째).
+  const src = require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tpl = src.split('class Component')[0];
+  const su = tpl.slice(tpl.indexOf('{{ suOn }}'),
+    tpl.indexOf('display:flex;align-items:flex-end;justify-content:space-between;padding:8px 18px 10px'));
+
+  // ── 진행 막대는 위, 누를 것은 아래 ──────────────────────────────────
+  const iProg = su.indexOf('{{ suProg }}');
+  const iBack = su.indexOf('{{ suBack }}');
+  const iSkip = su.indexOf('{{ L.suSkip }}');
+  ok('진행 막대가 흐름의 맨 위에 섭니다', iProg > 0 && iProg < iBack, String(iProg));
+  ok('뒤로가 진행 막대보다 아래에 있습니다', iBack > iProg, String(iBack));
+  ok('건너뛰기도 아래에 있습니다', iSkip > iProg, String(iSkip));
+  // 막대는 한 벌뿐입니다 — 위아래 양쪽에 그리면 같은 말을 두 번 합니다
+  ok('진행 막대는 한 번만 그려집니다',
+    (su.match(/\{\{ suProg \}\}/g) || []).length === 1);
+  // 단계 표시는 막대를 읽는 이름표라 막대와 같은 자리에 있어야 합니다
+  ok('단계 표시가 막대 옆에 남았습니다',
+    su.indexOf('{{ suNum }}') > iProg && su.indexOf('{{ suNum }}') < iBack);
+
+  // ── 뒤로·건너뛰기는 검은 칩입니다 ──────────────────────────────────
+  const chip = 'min-height:44px;min-width:44px;display:flex;align-items:center;justify-content:center;'
+    + 'padding:0;background:var(--color-text);color:var(--color-bg)';
+  ok('두 칩이 검은 바탕에 밝은 글자입니다',
+    (su.split(chip).length - 1) === 2, String(su.split(chip).length - 1));
+  // 44px은 이 앱에서 누를 것의 바닥입니다(마흔한째). 그리고 min-height가
+  // min-width보다 **앞에** 적혀야 층의 알약 규칙이 잡습니다 — 순서가 뒤집히면
+  // 칩이 조용히 네모가 되고, 그것은 오류를 내지 않습니다(마흔째).
+  ok('두 칩이 44px 바닥에 섭니다',
+    !/min-width:44px;min-height:44px/.test(su));
+  // 예전 머리말의 회색 글자 단추는 남아 있지 않습니다
+  ok('예전 머리말의 회색 뒤로 단추가 없습니다',
+    !/\{\{ suBack \}\}[^>]*color:var\(--color-neutral-600\)/.test(su));
+
+  // ── 마지막 화면에는 건너뛰기가 없습니다 ────────────────────────────
+  // 큰 단추와 같은 일을 하는 두 번째 단추이고, 그것을 '건너뛰기'라고 부르면
+  // 거짓말입니다. 옮기면서 그 문지기를 떨어뜨리기 쉬운 자리입니다.
+  const skipBlk = su.slice(su.lastIndexOf('{{ suAsking }}'));
+  ok('건너뛰기는 여전히 suAsking 안에 있습니다',
+    skipBlk.indexOf('{{ L.suSkip }}') > 0 && skipBlk.indexOf('{{ L.suSkip }}') < skipBlk.indexOf('</sc-if>'));
+  {
+    const c = mk(V2, '2026-08-03T09:00:00');
+    c.setState({ setupStep: 4 });
+    ok('넷째 물음에는 건너뛰기가 있습니다', c.renderVals().suAsking === true);
+    c.setState({ setupStep: 5 });
+    ok('마지막 화면에는 없습니다', c.renderVals().suAsking === false);
+  }
+
+  // ── 눌린 티는 층이 냅니다 ──────────────────────────────────────────
+  // 색을 마크업에 박으면 누를 것마다 제 손으로 정하게 되고, 그러면 같은
+  // 화면의 단추 둘이 서로 다르게 눌립니다(마흔한째의 네모 단추).
+  ok('소스는 누름 색을 말하지 않습니다', !/:active|filter:brightness/.test(su));
+  // 굴리는 칸은 height이지 min-height가 아니라 그 규칙에 걸리지 않습니다 —
+  // 던져서 굴리는 중에 바탕이 번쩍이면 그것은 되먹임이 아니라 고장입니다
+  ok('굴리는 칸은 min-height를 쓰지 않습니다',
+    /height:44px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;cursor:pointer/.test(su)
+    && !/min-height:44px;display:flex;align-items:center;justify-content:center;scroll-snap-align/.test(su));
+  // 이 흐름을 잡는 열쇠는 오버레이의 z-index 하나뿐입니다(소스에 한 자리)
+  ok('설정 흐름의 z-index는 소스에 하나뿐입니다',
+    (src.match(/z-index:22/g) || []).length === 1);
+}
+
+console.log('\n== 갓 깐 앱의 첫 두 화면이 상태 표시줄 밑에 깔려 있었습니다 ==');
+{
+  // 만든 사람이 갓 깐 폰의 1/4 화면을 찍어 보내며 말했습니다: **앱이 상태
+  // 표시줄과 겹칩니다.**
+  //
+  // 뿌리는 처음부터 제 여백을 갖고 있었습니다 —
+  // `padding-top:env(safe-area-inset-top)`. 그런데 **자리를 잡아 준 조상의
+  // 안여백 상자가 곧 절대 배치의 기준 상자**라, `inset:0`인 오버레이는 그
+  // 여백을 건너뛰고 시계와 배터리 밑으로 되돌아갑니다. 탭 화면은 멀쩡한데
+  // 환영 화면과 네 물음만 겹쳐 보이던 것이 그래서입니다 — 그 둘이 이 앱에서
+  // 유일한 전면 오버레이입니다.
+  //
+  // 뿌리가 같은 바탕색을 칠하므로 오버레이를 내려세워도 잃는 것이 없습니다:
+  // 상태 표시줄 뒤는 여전히 #f3f2f2이고, 내용만 그 밑에서 빠져나옵니다.
+  const src = require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tpl = src.split('class Component')[0];
+  const over = z => (tpl.match(new RegExp('style="position:absolute;[^"]*z-index:' + z + ';')) || [''])[0];
+
+  ok('환영 화면이 상태 표시줄만큼 내려섭니다',
+    /top:env\(safe-area-inset-top\)/.test(over(20)), over(20).slice(0, 60));
+  ok('네 물음의 화면도 그렇습니다',
+    /top:env\(safe-area-inset-top\)/.test(over(22)), over(22).slice(0, 60));
+  // 아래도 같은 이유입니다 — 제스처 바 밑에 깔리면 건너뛰기를 누를 수 없습니다
+  ok('두 화면 모두 아래쪽 제스처 바도 피합니다',
+    /bottom:env\(safe-area-inset-bottom\)/.test(over(20))
+    && /bottom:env\(safe-area-inset-bottom\)/.test(over(22)));
+  // 맨몸 inset:0으로 되돌리면 조용히 예전 화면이 됩니다 — 오류를 내지 않습니다
+  ok('그 둘 가운데 맨몸 inset:0으로 남은 것이 없습니다',
+    !/position:absolute;inset:0;z-index:2[02]/.test(tpl));
+  // 뿌리의 여백이 탭 화면을 지킵니다. 이것이 없어지면 오버레이가 아니라
+  // 앱 전체가 시계 밑으로 들어갑니다.
+  ok('뿌리는 여전히 제 여백을 갖습니다',
+    /padding-top:env\(safe-area-inset-top\);padding-bottom:env\(safe-area-inset-bottom\)/.test(tpl));
+  // env()가 0이 아닌 값을 내놓는 것은 viewport-fit=cover일 때뿐입니다 —
+  // 그것이 빠지면 위의 넷이 전부 통과하면서 화면은 예전 그대로입니다.
+  ok('viewport-fit=cover가 있어야 그 값이 0이 아닙니다',
+    src.includes('viewport-fit=cover'));
+
+  // ── 칩은 좁아졌고, 손가락이 닿는 자리는 그대로입니다 ────────────────
+  // 44px은 이 앱에서 누를 것의 바닥입니다(마흔한째). 줄인 것은 글자 둘레의
+  // 여백뿐이고, 글자 크기는 한 픽셀도 건드리지 않았습니다.
+  const su = tpl.slice(tpl.indexOf('{{ suOn }}'),
+    tpl.indexOf('display:flex;align-items:flex-end;justify-content:space-between;padding:8px 18px 10px'));
+  // 여백은 그 뒤로 한 번 더 줄어 0이 됐습니다 — 아래 쉰두째를 보십시오.
+  ok('두 칩의 여백이 좁아졌습니다',
+    (su.split('padding:0;background:var(--color-text)').length - 1) === 2);
+  ok('예전 여백이 남아 있지 않습니다',
+    !su.includes('padding:0 16px;background:var(--color-text)'));
+  ok('그래도 44px 바닥에는 그대로 섭니다',
+    (su.split('min-height:44px;min-width:44px').length - 1) === 2);
+}
+
+console.log('\n== 칩은 바닥에 닿았고, 바닥의 줄은 머리카락이 됐습니다 ==');
+{
+  // 만든 사람이 갓 깐 폰의 1/4 화면을 다시 찍어 보내며 말했습니다: **뒤로·
+  // 건너뛰기 칩을 더 줄여 주십시오. 그리고 그 밑의 칸막이가 쓸데없이 큽니다.**
+  //
+  // 쉰한째는 글자 둘레의 여백을 16 → 10px으로 줄여 칩을 76 → 64px으로 만들
+  // 었습니다. 이번에는 그 여백을 아예 없앴고, **거기가 바닥입니다.**
+  //
+  // 까닭은 상자 셈법 한 줄입니다. 이 앱에는 `box-sizing` 재설정이 없어서
+  // `min-width: 44px`는 **안쪽 상자**에 걸립니다 — 그래서 칩의 실제 너비가
+  // `44 + 여백 × 2`였습니다(재서 확인: 여백 10 → 64px, 여백 2 → 48px).
+  // 여백을 0으로 두면 44px, 그리고 **44px 아래로는 내려갈 수 없습니다**
+  // (마흔한째). 60~70%를 줄이면 19~26px인데, 그것은 장갑 낀 엄지가 누를 수
+  // 있는 크기가 아니고 층의 알약 규칙(2e)도 `min-width: 44px`를 함께
+  // 요구하므로 칩이 조용히 네모가 됩니다.
+  const src = require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tpl = src.split('class Component')[0];
+  const su = tpl.slice(tpl.indexOf('{{ suOn }}'),
+    tpl.indexOf('display:flex;align-items:flex-end;justify-content:space-between;padding:8px 18px 10px'));
+
+  ok('두 칩에 글자 둘레의 여백이 없습니다',
+    (su.split('padding:0;background:var(--color-text)').length - 1) === 2);
+  ok('예전 여백 둘이 남아 있지 않습니다',
+    !su.includes('padding:0 10px;background:var(--color-text)')
+    && !su.includes('padding:0 16px;background:var(--color-text)'));
+  // 여백이 0이므로 이제 44px을 지키는 것은 min-width 하나뿐입니다. 그것이
+  // 빠지면 칩이 글자 너비(‹ BACK 35px · SKIP 26px)로 쪼그라들고, 같은 줄에서
+  // 층의 알약 규칙도 함께 놓칩니다 — 둘 다 오류를 내지 않습니다(마흔째).
+  ok('44px 바닥이 그 둘을 붙들고 있습니다',
+    (su.split('min-height:44px;min-width:44px').length - 1) === 2);
+  ok('적는 순서도 그대로입니다', !/min-width:44px;min-height:44px/.test(su));
+  // 글자는 10 → 9px입니다. 너비는 어차피 바닥에 걸려 있으므로 줄어든 것은
+  // 너비가 아니라 **글자와 알약 가장자리 사이의 숨통**입니다(1.6 → 4.6px).
+  ok('글자가 9px로 줄었습니다',
+    (su.split('font-size:9px;letter-spacing:0.10em').length - 1) === 2);
+  ok('예전 글자 크기가 남아 있지 않습니다',
+    !su.includes('font-size:10px;letter-spacing:0.13em'));
+
+  // ── 바닥의 칸막이 ────────────────────────────────────────────────────
+  // 2px 구역선 + 위 10px · 아래 22px이라 띠가 78px이었습니다. 줄은 1px
+  // 머리카락이 되고 띠는 65px입니다. 44px 칩이 그 안에 있으므로 여백으로
+  // 줄일 수 있는 것은 여기까지입니다.
+  ok('바닥의 줄이 1px 머리카락입니다',
+    su.includes('padding:8px 20px 12px;border-top:1px solid var(--color-divider)'));
+  ok('예전 2px 구역선이 남아 있지 않습니다',
+    !su.includes('padding:10px 20px 22px'));
+  // 손댄 것은 아래 하나뿐입니다 — 머리말의 줄은 그대로 2px입니다.
+  ok('머리말의 줄은 건드리지 않았습니다',
+    su.includes('padding:12px 20px 10px;border-bottom:2px solid var(--color-divider)'));
 }
 
 console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');

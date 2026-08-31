@@ -178,15 +178,19 @@
 [style*="cursor: pointer"][style*="min-height: 52px"],
 [style*="cursor: pointer"][style*="min-height: 56px"] { border-radius: var(--radius-md); }
 
-/* ── 2d · the 근무기록 row badge ────────────────────────────────────────── */
-/* Every row in 근무기록 opens with a 26px coloured tile — the sun or the moon
-   for a worked shift, one Korean letter for the rest (특 · 공 · 결 · 휴 · 연).
-   It carries no border and no min-height, so not one rule above reached it:
-   it was the last hard square left in the list, sitting against rounded cards.
-   Scoped to #tabScroll on purpose — the welcome screen's numbered cards are
-   the same 26px box and are *not* this. They are numerals in a document, not
-   chips in a list, and they live outside the tab scroller. */
-#tabScroll [style*="width: 26px"][style*="height: 26px"] { border-radius: var(--radius-sm); }
+/* ── 2d · the 26px badge ────────────────────────────────────────────────── */
+/* Two things in this app are a 26px filled square. Every row in 근무기록 opens
+   with one — the sun or the moon for a worked shift, one Korean letter for the
+   rest (특 · 공 · 결 · 휴 · 연) — and every card on the welcome screen opens
+   with one carrying its number. Neither has a border or a min-height, so not
+   one rule above reaches them: they were the last hard squares in the file.
+   This rule was scoped to #tabScroll at first, on the reasoning that the
+   welcome numerals are numbers in a document rather than chips in a list. The
+   worker looked at a fresh install and said no: the first screen they ever see
+   had four sharp squares on it while everything behind it was round. The scope
+   is gone and both are 9px. Do not add a third 26px box expecting a square —
+   boot.js counts them, and a third one would round silently. */
+[style*="width: 26px"][style*="height: 26px"] { border-radius: var(--radius-sm); }
 
 /* ── 2f · SETUP · the tier label is not a card ──────────────────────────── */
 /* SETUP had eighteen top-level blocks and every one of them was the same white
@@ -236,21 +240,21 @@
 /* ── 2i · the time drum is a wheel, not a list ──────────────────────────── */
 /* The picker read as a flat table: three rows, two hard black rules, nothing
    between the numbers and the page. The curvature is set in the source
-   (drumFace — each cell is placed on a cylinder of radius 133.7px), and the
+   (drumFace — each cell is placed on a cylinder of radius 84.0px), and the
    two things the source is not allowed to say are exactly the two this layer
    owns. The well is sunk into the page — the shadow is *inset*, top and
    bottom only, where a real drum disappears into its housing — and the lit
    band across the middle is lifted off it. Rule 2 already rounds the well:
    it carries `border: 2px solid var(--color-neutral-300)`.
-   `height: 168px` is the four drum boxes and nothing else in the source, and
-   `top: 56px` + `height: 56px` is their four bands (both asserted). If a
-   fifth 168px box ever appears it will quietly become a well, which is why
+   `height: 132px` is the four drum boxes and nothing else in the source, and
+   `top: 44px` + `height: 44px` is their four bands (both asserted). If a
+   fifth 132px box ever appears it will quietly become a well, which is why
    the count is a test and not a comment. */
-[style*="height: 168px"] {
+[style*="height: 132px"] {
   box-shadow: inset 0 7px 9px -7px rgba(32, 30, 29, .30),
               inset 0 -7px 9px -7px rgba(32, 30, 29, .30);
 }
-[style*="top: 56px"][style*="height: 56px"] {
+[style*="top: 44px"][style*="height: 44px"] {
   box-shadow: 0 1px 3px rgba(32, 30, 29, .10), 0 -1px 3px rgba(32, 30, 29, .06);
 }
 
@@ -271,6 +275,40 @@
    carry no border and no fill, so there the radius is simply invisible. */
 [style*="cursor: pointer"][style*="min-height: 44px; min-width: 44px"] { border-radius: var(--radius-pill); }
 #tabScroll > div > div[style*="padding: 5px 7px"] { border-radius: var(--radius-xl); }
+
+/* ── 2j · SETUP FLOW · a button has to answer the finger ────────────────── */
+/* The four intro questions are the first thing a new worker touches, and the
+   big red `Next` gave nothing back: no colour change, no movement, so the tap
+   never felt like it landed and the worker pressed again. Nothing in the app
+   had ever styled `:active` — the whole source has one `transition` (the punch
+   pad's hold fill) and zero `filter`, so both properties are free here and the
+   rule wins with no !important, the same way the shape rules do.
+   Two declarations, because the buttons on this screen come two ways:
+     · filled (Next, 맞습니다, START) — the inline `background` still wins, so
+       `filter` is what darkens them;
+     · outlined / bare (나중에, 건너뛰기 chips, the 근무조 cards) — no inline
+       background, so `background-color` fills in behind the text.
+   Keyed on `min-height:` as well as `cursor: pointer` so the drum cells stay
+   out: they are `height: 44px`, they are swiped as often as they are tapped,
+   and a background flash under a fling reads as a fault, not as feedback.
+   A `transform` would be worse than nothing there — a scroll-snap cell's snap
+   point is its *transformed* border box (2026-08-30, forty-fifth). */
+[style*="z-index: 22"] [style*="cursor: pointer"][style*="min-height:"] {
+  transition: filter .12s ease, background-color .12s ease;
+}
+[style*="z-index: 22"] [style*="cursor: pointer"][style*="min-height:"]:active {
+  filter: brightness(.86);
+  background-color: var(--color-neutral-200);
+}
+/* A black fill cannot get darker — measured, #201e1d at .86 is #1b1a19, which
+   is the same nothing the worker complained about in the first place. The
+   black things on this screen lift instead: the two nav chips, and the picked
+   급여기간 / 월급날 chips on 4/4, which fill black when chosen. One direction
+   for light, the other for dark; both say "your finger landed here".
+   Five attribute selectors, so it out-weighs the rule above it (four). */
+[style*="z-index: 22"] [style*="cursor: pointer"][style*="min-height:"][style*="background: var(--color-text)"]:active {
+  filter: brightness(1.9);
+}
 
 /* ── 3 · the header bar ─────────────────────────────────────────────────── */
 [style*="align-items: flex-end"][style*="padding: 8px 18px 10px"] {
@@ -302,7 +340,6 @@
 #tabScroll > div > div[style*="grid-template-columns: 1fr 1fr 1fr;"] > div[style*="background: var(--color-accent-100)"] {
   background: var(--color-accent-100) !important;
 }
-
 /* ── 5 · the punch pad's fingerprint tile ───────────────────────────────── */
 /* The green mark itself is untouched — it is the identity. Only the box it
    sits in changes: a rounded tile instead of a hard square. The 2px ring
