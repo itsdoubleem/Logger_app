@@ -730,11 +730,9 @@
   "whose_record_is_this": "Đây là hồ sơ của ai?",
   "the_document_is_the_only_place_your_na": "근무내역서 là nơi duy nhất in tên bạn. Khi nhiều công nhân cùng một nhà máy mỗi người nộp một bản, không có tên thì không phân biệt được. Bạn có thể để trống — vẫn tạo được tài liệu, nhưng nó sẽ ghi «성명 미기재».",
   "the_deductions_do_not_match": "Các khoản trừ không khớp",
-  "these_two_are_filed_with_the_agencies": "Khoản chênh này không phải tiền bạn bị thiếu — nó không vào phần thiếu hụt. Hai con số dưới đây được khai với 공단 và 국세청 nên ứng dụng không biết; nhập vào đây sẽ giúp ước tính khoản trừ sát phiếu lương hơn. 보수월액 cũng có thể suy ra từ dòng 국민연금 trên phiếu lương (설정 › 4대보험과 세금).",
+  "these_two_are_filed_with_the_agencies": "Khoản chênh này không phải tiền bạn bị thiếu — nó không vào phần thiếu hụt. Các con số dưới đây được khai với 공단 và 국세청 nên ứng dụng không biết. Hãy chép dòng 국민연금 trên phiếu lương vào ô đầu tiên: chỉ một dòng đó đã xác định 보수월액 của kỳ lương này, và từ nay cũng là con số ở 설정 › 4대보험과 세금. Mỗi kỳ lương giữ con số của riêng mình.",
   "your_payslip_pays_more_than_the_app": "Phiếu lương trả nhiều hơn ứng dụng tính",
   "a_수당_allowance_the_app_does_not_know": "Có thể công ty trả một khoản 수당 phụ cấp mà ứng dụng chưa biết — 식대 tiền ăn, 교통비 đi lại, phụ cấp thâm niên. Thêm vào sẽ khớp tổng chi trả, và 식대 đánh dấu miễn thuế cũng được trừ khỏi cơ sở tính thuế và bảo hiểm.",
-  "this_pension_line_points_to_one_wage": "Dòng 국민연금 {p0} chỉ có thể đến từ 보수월액 là {p1} — 기준소득월액 được ấn định theo đơn vị nghìn won nên chỉ có một đáp án. Dùng giá trị này cũng tính lại 건강보험 và 장기요양 trên cùng cơ sở.",
-  "use_this_and_recount": "Dùng 보수월액 {p0} và tính lại",
   "comes_off_every_shift": "Bị trừ vào giờ làm mỗi ca.",
   "comes_off_only_on_overtime_days": "Chỉ bị trừ vào ngày có tăng ca."
 }

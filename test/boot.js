@@ -435,8 +435,10 @@ console.log('\n== 설정 흐름의 단추가 눌린 티를 냅니다 ==');
   const lift = (css.match(/\[style\*="z-index: 22"\][^{]*background: var\(--color-text\)"\]:active\s*\{[^}]*\}/) || [''])[0];
   ok('검은 것은 어두워지는 대신 밝아집니다', /brightness\(1\./.test(lift), lift.slice(0, 90));
   // 무게가 같으면 앞 규칙의 .86이 이기고, 칩만 조용히 예전처럼 아무 일도 하지
-  // 않게 됩니다 — 그것은 오류를 내지 않습니다(마흔째). 선택자가 하나 더 많아야 합니다
-  const attrs = t => (t.match(/\[style\*=/g) || []).length;
+  // 않게 됩니다 — 그것은 오류를 내지 않습니다(마흔째). 선택자가 하나 더 많아야 합니다.
+  // 두 규칙 다 이제 쉼표로 이은 목록입니다(설정 흐름 22 · 사유 시트 30) —
+  // 무게는 목록 전체가 아니라 **한 선택자**의 것이므로 첫 벌끼리 견줍니다.
+  const attrs = t => (t.split(',')[0].match(/\[style\*=/g) || []).length;
   ok('그 규칙이 앞 규칙보다 무겁습니다', attrs(lift.split('{')[0]) === attrs(act.split('{')[0]) + 1,
     attrs(lift.split('{')[0]) + ' vs ' + attrs(act.split('{')[0]));
   ok('그리고 뒤에 있습니다', css.indexOf(lift) > css.indexOf(act));
@@ -445,6 +447,54 @@ console.log('\n== 설정 흐름의 단추가 눌린 티를 냅니다 ==');
   // 앞에 적혀야 걸리고, 안 걸리면 조용히 네모가 됩니다(마흔째)
   ok('뒤로·건너뛰기 칩이 그 알약 규칙의 모양대로 적혀 있습니다',
     (src.match(/min-height:44px;min-width:44px;display:flex;align-items:center;justify-content:center;padding:0;background:var\(--color-text\)/g) || []).length === 2);
+}
+
+// 조퇴 사유 창만 앞 시대의 모양으로 남아 있었습니다 — 각진 모서리에 검은 3px
+// 테두리, 그 안은 바탕색. 다섯 탭이 전부 둥근 흰 카드가 된 뒤로 이 창을 여는
+// 근로자는 **앱의 예전 판**을 보고 있었던 것입니다. 테두리와 칠은 소스에서
+// 뗐고(모달은 테두리가 아니라 뒤의 어둠으로 '위에 있다'고 말합니다), 모양은
+// 다른 모든 반지름과 같은 자리 — 이 층 — 에 둡니다.
+console.log('\n== 조퇴 사유 창도 카드입니다 ==');
+{
+  const css = fs.readFileSync(path.join(ROOT, 'ds-tokens.css'), 'utf8');
+  const src = fs.readFileSync(path.join(ROOT, 'WorkLogApp.v2.dc.html'), 'utf8');
+  const built = fs.readFileSync(path.join(ROOT, 'dist-v2', 'index.html'), 'utf8');
+  const tm = built.match(/<script type="__bundler\/template">([\s\S]*?)<\/script>/);
+  const head = tm ? JSON.parse(tm[1]).split('<body')[0] : '';
+
+  const rule = (css.match(/\[style\*="z-index: 30"\] > div \s*\{[^}]*\}/) || [''])[0];
+  ok('층이 그 판의 모서리를 정합니다', /border-radius:\s*var\(--radius-lg\)/.test(rule), rule.slice(0, 70));
+  ok('그늘도 층이 줍니다', /box-shadow:\s*var\(--shadow-card\)/.test(rule));
+  // border-radius도 box-shadow도 소스가 한 번도 쓰지 않는 속성이라 다툴 일이
+  // 없습니다(마흔째) — !important가 붙었다면 그 근거가 무너진 것입니다
+  ok('그 규칙에는 !important가 없습니다', rule.indexOf('!important') < 0);
+  // 어두운 바탕은 화면을 통째로 덮는 것이 맞습니다. 둥글어지는 것은 그 안의
+  // 판이지 어둠이 아니므로, 선택자가 `> div`로 한 겹 들어가야 합니다.
+  ok('둥글어지는 것은 어둠이 아니라 그 안의 판입니다', rule.indexOf('> div') > 0);
+  // 열쇠는 오버레이의 z-index 하나입니다 — 소스에 한 자리뿐입니다
+  ok('z-index 30은 사유 시트 하나뿐입니다',
+    (src.match(/z-index:30/g) || []).length === 1);
+  ok('그 규칙도 첫 페인트에 있습니다', head.indexOf('"z-index: 30"') > 0);
+  // 소스는 `z-index:30`인데 React는 `z-index: 30`으로 다시 씁니다(마흔째)
+  ok('선택자가 정규화된 값을 씁니다',
+    css.indexOf('"z-index: 30"') > 0 && css.indexOf('"z-index:30"') < 0);
+  // 판은 `overflow: auto`로 제 모서리를 자릅니다 — 없으면 빨간 머리띠가 위쪽
+  // 두 모서리를 도로 각지게 만듭니다(마흔다섯째의 굴림판 통과 같은 자리)
+  ok('판이 제 모서리를 자릅니다',
+    /max-height:100%;overflow:auto;background:var\(--color-surface\)/.test(src));
+  ok('검은 3px 테두리가 소스에서 사라졌습니다',
+    src.indexOf('border:3px solid var(--color-text)') < 0);
+
+  // 눌린 티 — 설정 흐름과 **같은 규칙**을 나눠 씁니다. 값을 두 벌 만들면
+  // 두 오버레이의 누름이 서로 다르게 되는 날이 옵니다(쉰다섯째).
+  const act = (css.match(/:active,?\s*\n?[^{]*:active\s*\{[^}]*brightness\(\.86\)[^}]*\}/) || [''])[0];
+  ok('사유 시트의 단추도 눌린 티를 냅니다',
+    /\[style\*="z-index: 30"\] \[style\*="cursor: pointer"\]\[style\*="min-height:"\]:active/.test(css));
+  ok('검은 것은 시트에서도 반대로 갑니다',
+    /\[style\*="z-index: 30"\] \[style\*="cursor: pointer"\]\[style\*="min-height:"\]\[style\*="background: var\(--color-text\)"\]:active/.test(css));
+  ok('두 오버레이가 규칙 한 벌을 나눠 씁니다 — 복사본이 아닙니다',
+    (css.match(/filter: brightness\(\.86\)/g) || []).length === 1
+    && (css.match(/filter: brightness\(1\.9\)/g) || []).length === 1);
 }
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');

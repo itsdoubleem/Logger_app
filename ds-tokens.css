@@ -28,6 +28,19 @@
 
   /* neutral ramp — #201e1d over #f3f2f2 */
   --color-neutral-100: #eeecec;
+  /* the open SETUP accordion. Three constraints pin this value, and
+     neutral-100 satisfies only the first:
+       · clearly darker than the card (#ffffff) — that step is where the
+         open panel *ends*, which is the whole point of tinting it;
+       · clearly darker than the page ground (#f3f2f2) too, or the panel
+         reads as a hole cut through the card and the card's own side
+         edges vanish — measured: on neutral-100 the 8px gutter and the
+         panel were both 238, i.e. no edge at all;
+       · still lighter than the 1px hairline (#e0dddd) by enough to keep
+         the dividers and input borders *inside* the panel readable,
+         which rules out neutral-200.
+     Ten levels off the ground, nine off the hairline. */
+  --color-neutral-150: #e9e8e8;
   --color-neutral-200: #e5e3e3;
   --color-neutral-300: #e0dddd; /* 1px hairlines — softened for the card era */
   --color-neutral-400: #c4c1c1;
@@ -293,10 +306,15 @@
    and a background flash under a fling reads as a fault, not as feedback.
    A `transform` would be worse than nothing there — a scroll-snap cell's snap
    point is its *transformed* border box (2026-08-30, forty-fifth). */
-[style*="z-index: 22"] [style*="cursor: pointer"][style*="min-height:"] {
+/* The 조퇴 사유 sheet (z-index 30) is the app's other full-screen overlay and
+   its buttons were just as mute, so it joins the same rule rather than getting
+   a copy of it — one value, both overlays, no way for the two to drift. */
+[style*="z-index: 22"] [style*="cursor: pointer"][style*="min-height:"],
+[style*="z-index: 30"] [style*="cursor: pointer"][style*="min-height:"] {
   transition: filter .12s ease, background-color .12s ease;
 }
-[style*="z-index: 22"] [style*="cursor: pointer"][style*="min-height:"]:active {
+[style*="z-index: 22"] [style*="cursor: pointer"][style*="min-height:"]:active,
+[style*="z-index: 30"] [style*="cursor: pointer"][style*="min-height:"]:active {
   filter: brightness(.86);
   background-color: var(--color-neutral-200);
 }
@@ -306,7 +324,8 @@
    급여기간 / 월급날 chips on 4/4, which fill black when chosen. One direction
    for light, the other for dark; both say "your finger landed here".
    Five attribute selectors, so it out-weighs the rule above it (four). */
-[style*="z-index: 22"] [style*="cursor: pointer"][style*="min-height:"][style*="background: var(--color-text)"]:active {
+[style*="z-index: 22"] [style*="cursor: pointer"][style*="min-height:"][style*="background: var(--color-text)"]:active,
+[style*="z-index: 30"] [style*="cursor: pointer"][style*="min-height:"][style*="background: var(--color-text)"]:active {
   filter: brightness(1.9);
 }
 
@@ -375,3 +394,20 @@
 }
 /* the active tab is the one whose inline style names the accent bar */
 [style*="border-top: 3px solid var(--color-accent)"] { background: var(--color-accent-100); }
+
+/* ── 7 · the 조퇴 사유 sheet is a card too ──────────────────────────────── */
+/* The early-out reason sheet is the one surface the card era never reached: a
+   hard 3px black frame with square corners and the page grey inside it, sitting
+   on top of five tabs of white rounded cards. A worker who opened it was looking
+   at the previous design of the app.
+   The frame and the fill are gone from the source — a modal says "on top of
+   everything" with the dim behind it, not with a border — and the shape belongs
+   here, next to every other radius in the file. `z-index: 30` is the sheet and
+   nothing else (one occurrence in the source, asserted); the overlay itself
+   keeps its full-bleed dim, so this rounds the panel inside it, not the scrim.
+   The panel already carries `overflow: auto`, which clips the accent header to
+   the top corners — without it the red band would square them off again. */
+[style*="z-index: 30"] > div {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}

@@ -5775,12 +5775,19 @@ console.log('\n== 필요해지는 그 자리에서 묻습니다 ==');
   });
 }
 
-console.log('\n== 명세서의 국민연금 한 줄이 보수월액을 되살립니다 ==');
+console.log('\n== 공제총액 안에 있는 것을 밑에 또 물었습니다 ==');
 {
-  // 스물여섯째가 되살리는 산수를 만들어 두었지만, 그 칸은 설정 깊숙이 접혀
-  // 있어서 아무도 찾지 못했습니다. 명세서 대조는 공제를 **뭉친 숫자 하나**로
-  // 받고 있었습니다. 그 밑에 국민연금 한 줄을 두면, 명세서를 옮겨 적는 근로자가
-  // 이미 그 숫자를 앱에 넘겨준 것이 됩니다 — 새로 묻는 것이 하나도 없습니다.
+  // 만든 사람이 급여의 명세서 대조를 보고 말했습니다: 공제총액에 국민연금이
+  // 이미 들어 있는데 그 밑에 국민연금 줄이 또 있습니다.
+  //
+  // 서른아홉째가 그 줄을 세운 것은 되살리기 때문이었습니다 — 명세서의 국민연금
+  // 한 줄에서 보수월액이 유일하게 풀립니다(스물여섯째). 산수는 맞는데 표가
+  // 틀렸습니다: 표의 줄은 명세서의 줄과 하나씩 짝지어야 하고, 공제총액과
+  // 국민연금은 **같은 돈**입니다. 한 칸 들여쓴 것은 그 사실을 그리려던 것이지
+  // 말하지는 못했습니다.
+  //
+  // 그래서 줄은 표에서 나가고, 물음은 **어긋남을 설명하는 카드 안**으로
+  // 들어갑니다. 그 물음이 뜻을 갖는 자리가 거기뿐입니다.
   const mkP = () => {
     const c = mk(V2, '2026-08-15T10:00:00');
     c.state.extra = [{ y:2026, m:8, day:25, kind:'day', type:'shift', inH:9, outH:21,
@@ -5789,67 +5796,117 @@ console.log('\n== 명세서의 국민연금 한 줄이 보수월액을 되살립
   };
 
   const c = mkP();
-  ok('공제 밑에 국민연금 줄이 있습니다',
-    c.slipRows().map(r => r.k).join() === 'basic,ot,night,hol,gross,ded,pension,net',
+  ok('표에는 국민연금 줄이 없습니다',
+    c.slipRows().map(r => r.k).join() === 'basic,ot,night,hol,gross,ded,net',
     c.slipRows().map(r => r.k).join());
-  ok('그 줄은 한 칸 들여 씁니다', c.slipRows().find(r => r.k === 'pension').pad === '14px');
-  ok('앱 쪽 값은 앱이 계산한 국민연금입니다',
-    c.slipRows().find(r => r.k === 'pension').app === c.insCalc(c.wageFor()).pension);
+  ok('연금을 켜 두어도 없습니다',
+    (function () {
+      const on = mkP();
+      on.setS({ insAuto: true, insOn: { health: true, care: true, pension: true, emp: false } });
+      return on.insOnFor('pension') && on.slipRows().every(r => r.k !== 'pension');
+    })());
+  // 들여쓰기와 굵기 홀도 함께 사라집니다 — 그 둘은 그 줄 하나를 위한 것이었습니다
+  ok('줄에 들여쓰기 홀이 남아 있지 않습니다',
+    c.slipRows().every(r => r.pad === undefined && r.wgt === undefined));
 
-  // ── 국민연금에 들지 않은 사람에게는 그 줄이 없습니다 ──
+  // ── 표의 금액은 한 원도 움직이지 않았습니다 ──
+  // 뗀 것은 줄 하나이고, 나머지 일곱 줄은 예전 그대로여야 합니다.
+  ok('나머지 일곱 줄의 금액은 그대로입니다',
+    JSON.stringify(c.slipRows().map(r => [r.k, r.app]))
+    === JSON.stringify([['basic', c.wFixedPay(c.wageFor())],
+      ['ot', c.totals(null).ot * c.wOtRate(c.wageFor())],
+      ['night', c.totals(null).night * c.wNightRate(c.wageFor())],
+      ['hol', c.slipRows()[3].app],
+      ['gross', c.slipRows()[4].app],
+      ['ded', c.payCalc(c.totals(null), c.wageFor()).ded],
+      ['net', c.slipRows()[6].app]]));
+  ok('공제총액은 여전히 국민연금을 품고 있습니다',
+    c.slipRows().find(r => r.k === 'ded').app >= c.insCalc(c.wageFor()).pension
+    && c.insCalc(c.wageFor()).pension > 0);
+
+  // ══ 물음은 공제가 어긋난 그 자리에서만 뜹니다 ══
+  const q = mkP();
+  ok('명세서를 안 적으면 카드가 없습니다', q.renderVals().askDed === false);
+  q.setSlip('ded', String(q.slipRows().find(r => r.k === 'ded').app));
+  ok('맞으면 카드가 없습니다', q.renderVals().askDed === false);
+  q.setSlip('ded', String(q.slipRows().find(r => r.k === 'ded').app + 107120));
+  ok('어긋나면 카드가 뜹니다', q.renderVals().askDed === true);
+  ok('그 카드가 국민연금을 묻습니다', q.renderVals().askDedPen === true);
+
+  // ── 국민연금에 들지 않은 사람에게는 그 칸이 없습니다 ──
   // 사회보장협정으로 면제된 E-9 근로자가 실제로 있고, 그 사람의 명세서에는 그
   // 줄이 아예 없습니다. 없는 줄을 물으면 그것대로 틀린 화면입니다.
   const off = mkP();
   off.setS({ insOn: { health: true, care: true, pension: false, emp: false } });
-  ok('연금이 꺼져 있으면 줄이 없습니다',
-    off.slipRows().every(r => r.k !== 'pension'), off.slipRows().map(r => r.k).join());
-  ok('그 사람에게는 되살리기도 없습니다', off.renderVals().askPen === false);
+  off.setSlip('ded', String(off.slipRows().find(r => r.k === 'ded').app + 107120));
+  ok('연금이 꺼져 있어도 공제 카드는 뜹니다', off.renderVals().askDed === true);
+  ok('그 사람에게는 국민연금 칸이 없습니다', off.renderVals().askDedPen === false);
 
-  // ── 되살리기 ──
-  c.setSlip('pension', '163110');
-  ok('163,110에서 되살립니다', V2.bosuFromPension(163110) === 3434000, String(V2.bosuFromPension(163110)));
-  ok('권하지만 아직 쓰지는 않습니다', c.renderVals().askPen === true && (+c.st().bosu || 0) === 0);
+  // ══ 적은 숫자가 곧 설정의 숫자입니다 ══
+  // 카드의 칸과 설정 › 4대보험과 세금의 칸은 홀을 나눠 쓰는 **같은 칸**입니다.
+  // 저장하는 것은 bosu 하나뿐이라, 두 곳에 저장되어 어긋날 길이 없습니다.
+  const w = mkP();
+  const wDed = () => w.slipRows().find(r => r.k === 'ded');
+  w.setSlip('ded', String(wDed().app + 107120));
+  const gapBefore = Math.abs(wDed().diff);
+  ok('적기 전에는 보수월액이 없습니다', (+w.st().bosu || 0) === 0);
+  w.renderVals().setSlipPen({ target: { value: '163110' } });
+  ok('163,110을 적으면 보수월액이 섭니다', w.st().bosu === 3434000, String(w.st().bosu));
+  ok('설정의 칸이 그 숫자를 그대로 보여 줍니다',
+    w.renderVals().slipPenVal === '163110' || w.renderVals().slipPenVal === 163110,
+    String(w.renderVals().slipPenVal));
+  ok('국민연금이 명세서와 원 단위로 맞습니다', w.insCalc(w.wageFor()).pension === 163110,
+    String(w.insCalc(w.wageFor()).pension));
+  ok('공제 어긋남이 실제로 줄어듭니다', Math.abs(wDed().diff) < gapBefore,
+    gapBefore + ' -> ' + Math.abs(wDed().diff));
   ok('문장이 두 숫자를 다 말합니다',
-    /163,110/.test(c.renderVals().penMsg) && /3,434,000/.test(c.renderVals().penMsg),
-    c.renderVals().penMsg.slice(0, 60));
-  ok('단추에도 그 값이 있습니다', /3,434,000/.test(c.renderVals().penBtn), c.renderVals().penBtn);
-  c.renderVals().applyPen();
-  ok('누르면 그때 씁니다', c.st().bosu === 3434000, String(c.st().bosu));
-  ok('쓰고 나면 다시 권하지 않습니다', c.renderVals().askPen === false);
-  // 그리고 실제로 공제가 명세서에 가까워집니다
-  ok('국민연금이 명세서와 원 단위로 맞습니다',
-    c.slipRows().find(r => r.k === 'pension').app === 163110,
-    String(c.slipRows().find(r => r.k === 'pension').app));
+    /163,110/.test(w.renderVals().slipPenNote) && /3,434,000/.test(w.renderVals().slipPenNote),
+    w.renderVals().slipPenNote.slice(0, 70));
 
   // ── 풀리지 않으면 지어내지 않습니다 ──
   const bad = mkP();
-  bad.setSlip('pension', '12345');
-  ok('풀리지 않으면 그렇다고 말합니다', bad.renderVals().penFailed === true);
-  ok('그때는 단추를 내밀지 않습니다', bad.renderVals().askPen === false && bad.renderVals().penBtn === '');
-  ok('보수월액도 건드리지 않습니다', (+bad.st().bosu || 0) === 0);
+  bad.setSlip('ded', String(bad.slipRows().find(r => r.k === 'ded').app + 107120));
+  bad.renderVals().setSlipPen({ target: { value: '12345' } });
+  ok('풀리지 않으면 보수월액을 건드리지 않습니다', (+bad.st().bosu || 0) === 0);
+  ok('그리고 그렇다고 말합니다',
+    bad.renderVals().slipPenNote === V2.STR['no_standard_monthly_wage_produces_that'][bad.st().lang || 'ko'],
+    bad.renderVals().slipPenNote.slice(0, 40));
 
-  // ── 손으로 적어 둔 값을 말없이 갈아치우지 않습니다 ──
-  const hand = mkP();
-  hand.setS({ bosu: 3000000 });
-  hand.setSlip('pension', '163110');
-  ok('다른 값이면 권합니다', hand.renderVals().askPen === true);
-  ok('누르기 전에는 그대로입니다', hand.st().bosu === 3000000, String(hand.st().bosu));
-  hand.renderVals().applyPen();
-  ok('눌러야 바뀝니다', hand.st().bosu === 3434000);
+  // ══ 답을 적는 동안 카드가 사라지지 않습니다 ══
+  // 이 카드의 칸들은 앱이 계산하는 공제를 바꿉니다. 국민연금을 다 치는 순간
+  // 어긋남이 1,000원 밑으로 내려가면, 묻던 카드도 답을 적던 칸도 손가락 밑에서
+  // 함께 사라집니다 — 기본금 카드가 겪은 그것입니다(2026-08-17).
+  const stick = mkP();
+  const app0 = stick.slipRows().find(r => r.k === 'ded').app;
+  stick.setSlip('ded', String(app0 + 107120));
+  ok('처음에는 어긋나서 떠 있습니다', stick.renderVals().askDed === true);
+  stick.renderVals().focSlipPen();
+  stick.setSlip('ded', String(stick.slipRows().find(r => r.k === 'ded').app));   // 딱 맞게 만듭니다
+  ok('맞아떨어져도 손이 닿아 있는 동안은 남습니다', stick.renderVals().askDed === true,
+    String(stick.slipRows().find(r => r.k === 'ded').diff));
+  stick.renderVals().blurSlipPen();
+  ok('손을 떼면 그때 닫힙니다', stick.renderVals().askDed === false);
+  // 보수월액·공제대상가족 칸도 같은 카드 안이라 같은 규칙입니다
+  ['focBosu', 'focDep'].forEach(f => {
+    const s2 = mkP();
+    s2.setSlip('ded', String(s2.slipRows().find(r => r.k === 'ded').app));
+    ok(f + ' 도 카드를 붙듭니다',
+      s2.renderVals().askDed === false && (s2.renderVals()[f](), s2.renderVals().askDed === true));
+  });
 
   // ══ 부족액은 한 푼도 움직이지 않습니다 ══
-  // 새 줄은 공제의 조각입니다. slipShortfall은 지급 줄만 세는 allowlist라
-  // 'pension'은 저절로 빠지지만, 그것이 설계라는 것을 붙들어 둡니다.
+  // 공제 차액은 덜 받은 돈이 아닙니다(스물다섯째). 줄이 표에서 나갔어도 그
+  // 규칙은 그대로여야 합니다.
   const s1 = mkP();
+  s1.setSlip('ot', String(s1.slipRows().find(r => r.k === 'ot').app - 50000));
   const before = s1.slipShortfall();
-  s1.setSlip('pension', '163110');
-  ok('국민연금을 적어도 부족액은 그대로입니다', s1.slipShortfall() === before,
+  ok('잔업을 덜 적은 명세서는 부족액을 냅니다', before === 50000, String(before));
+  s1.setSlip('ded', '999999');
+  ok('공제를 크게 적어도 부족액은 그대로입니다', s1.slipShortfall() === before,
     before + ' -> ' + s1.slipShortfall());
-  s1.setSlip('ot', '1000');
-  const withShort = s1.slipShortfall();
-  s1.setSlip('pension', '999999');
-  ok('국민연금을 크게 적어도 부족액은 그대로입니다', s1.slipShortfall() === withShort,
-    withShort + ' -> ' + s1.slipShortfall());
+  s1.renderVals().setSlipPen({ target: { value: '163110' } });
+  ok('보수월액을 되살려도 부족액은 그대로입니다', s1.slipShortfall() === before,
+    before + ' -> ' + s1.slipShortfall());
   ok('부족액을 세는 줄에 pension이 없습니다',
     (function () {
       const src = require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
@@ -5857,32 +5914,282 @@ console.log('\n== 명세서의 국민연금 한 줄이 보수월액을 되살립
       return src.slice(i, i + 260).indexOf("'pension'") < 0;
     })());
 
-  // ── 예전에 저장해 둔 대조는 그대로 읽힙니다 ──
-  // slip(P)는 없는 키를 undefined로 돌려주므로 has:false, short:0입니다.
+  // ── 예전에 적어 둔 국민연금은 표를 되살리지 않습니다 ──
+  // 저장된 slips[k].pension이 남아 있는 폰이 있습니다. 그것이 줄을 되살리거나
+  // 금액을 움직이면 안 됩니다.
   const old = mkP();
-  old.setSlip('ded', '520000');
-  const pr = old.slipRows().find(r => r.k === 'pension');
-  ok('국민연금을 안 적은 대조도 그대로입니다', pr.has === false && pr.short === 0);
-  ok('그때는 되살리기가 뜨지 않습니다', old.renderVals().askPen === false);
+  old.setSlip('pension', '163110');
+  ok('예전 값이 남아 있어도 줄은 없습니다', old.slipRows().every(r => r.k !== 'pension'));
+  ok('금액도 움직이지 않습니다',
+    JSON.stringify(old.slipRows().map(r => [r.k, r.app, r.short]))
+    === JSON.stringify(mkP().slipRows().map(r => [r.k, r.app, r.short])));
+  ok('보수월액도 저절로 서지 않습니다', (+old.st().bosu || 0) === 0);
 
   // ── 화면 ──
   const fs = require('fs');
   const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
   const tpl = src.slice(0, src.indexOf('</x-dc>'));
-  ok('되살리기 카드는 대조표 아래입니다', tpl.indexOf('{{ askPen }}') > tpl.indexOf('{{ slipRows }}'));
-  ok('공제 카드보다 앞에 섭니다', tpl.indexOf('{{ askPen }}') < tpl.indexOf('{{ askDed }}'));
-  ok('단추를 사이에 둡니다', tpl.slice(tpl.indexOf('{{ askPen }}'), tpl.indexOf('{{ penFailed }}')).indexOf('{{ applyPen }}') > 0);
-  ok('줄이 들여쓰기 홀을 씁니다', tpl.indexOf('padding-left:{{ r.pad }}') > 0);
-  // 설정의 그 칸도 그대로입니다 — 옮긴 것이 아닙니다
-  ok('설정에도 국민연금 칸이 그대로 있습니다', tpl.indexOf('{{ setBosuPen }}') > 0);
+  const card = tpl.slice(tpl.indexOf('{{ askDed }}'), tpl.indexOf('{{ askAllow }}'));
+  ok('국민연금 칸이 공제 카드 안에 있습니다', card.indexOf('{{ setSlipPen }}') > 0);
+  ok('보수월액보다 먼저 섭니다', card.indexOf('{{ setSlipPen }}') < card.indexOf('{{ setBosu }}'));
+  ok('그 칸은 연금에 든 사람에게만 보입니다',
+    card.indexOf('{{ askDedPen }}') > 0
+    && card.indexOf('{{ askDedPen }}') < card.indexOf('{{ setSlipPen }}'));
+  ok('되살린 값을 말해 주는 줄이 함께 있습니다', card.indexOf('{{ slipPenNote }}') > 0);
+  // 설정의 그 칸도 그대로입니다 — 옮긴 것이 아니라 한 번 더 물을 자리입니다
+  ok('설정에도 국민연금 칸이 그대로 있습니다',
+    (tpl.match(/\{\{ setBosuPen \}\}/g) || []).length === 1
+    && tpl.indexOf('{{ setBosuPen }}') > tpl.indexOf('{{ setSlipPen }}'));
+  // 두 칸은 다른 것을 묻습니다 — 카드는 그 기간의 명세서, 설정은 지금의 기준
+  ok('카드의 칸과 설정의 칸은 서로 다른 홀입니다',
+    (tpl.match(/\{\{ setSlipPen \}\}/g) || []).length === 1);
+  // 표에서 뗀 것들이 정말 없어졌는지
+  ok('표에 들여쓰기 홀이 없습니다', tpl.indexOf('{{ r.pad }}') < 0);
+  ok('단추를 사이에 두던 카드가 없어졌습니다',
+    tpl.indexOf('{{ askPen }}') < 0 && tpl.indexOf('{{ applyPen }}') < 0
+    && tpl.indexOf('{{ penFailed }}') < 0);
+  ok('죽은 문장 둘을 지웠습니다',
+    !V2.STR['this_pension_line_points_to_one_wage'] && !V2.STR['use_this_and_recount']);
+  ok('그 낱말이 소스에도 남아 있지 않습니다',
+    src.indexOf("'use_this_and_recount'") < 0 && src.indexOf("'this_pension_line_points_to_one_wage'") < 0);
 
+  // ── 여덟 언어 ──
   ['ko','en','vi','zh','th','id','ne','km'].forEach(Lg => {
-    ok(Lg + ' 되살리기 문장이 두 자리를 받습니다',
-      V2.STR['this_pension_line_points_to_one_wage'][Lg].indexOf('{p0}') >= 0
-      && V2.STR['this_pension_line_points_to_one_wage'][Lg].indexOf('{p1}') >= 0);
-    ok(Lg + ' 단추가 값을 받습니다',
-      V2.STR['use_this_and_recount'][Lg].indexOf('{p0}') >= 0);
+    const v = V2.STR['these_two_are_filed_with_the_agencies'][Lg];
+    ok(Lg + ' 안내가 국민연금 줄을 가리킵니다', v.indexOf('국민연금') >= 0, v.slice(0, 50));
+    ok(Lg + ' 안내가 보수월액을 말합니다', v.indexOf('보수월액') >= 0);
+    ok(Lg + ' 안내가 설정의 자리도 짚습니다', v.indexOf('4대보험과 세금') >= 0);
+
+    ok(Lg + ' 되살릴 수 없다는 말이 그대로 있습니다',
+      V2.STR['no_standard_monthly_wage_produces_that'][Lg].indexOf('보수월액') >= 0);
+    ok(Lg + ' 되살린 값을 말하는 문장이 두 자리를 받습니다',
+      V2.STR['that_pension_line_comes_from_this_wage'][Lg].indexOf('{p0}') >= 0
+      && V2.STR['that_pension_line_comes_from_this_wage'][Lg].indexOf('{p1}') >= 0);
   });
+  // 그리고 안내가 '그 값은 이 급여기간의 것'이라고 말합니다 — 이 회차의 알맹이입니다
+  ok('한국어 안내가 급여기간을 짚습니다',
+    V2.STR['these_two_are_filed_with_the_agencies'].ko.indexOf('이 급여기간의 보수월액') >= 0);
+  ok('영어 안내도 그렇습니다',
+    /보수월액 for this pay period/.test(V2.STR['these_two_are_filed_with_the_agencies'].en));
+  ok('그리고 기간마다 제 값이라고 밝힙니다',
+    V2.STR['these_two_are_filed_with_the_agencies'].ko.indexOf('급여기간마다') >= 0
+    && /Each pay period keeps its own/.test(V2.STR['these_two_are_filed_with_the_agencies'].en));
+}
+
+console.log('\n== 보수월액을 고쳤더니 지난 해 국민연금까지 함께 바뀌었습니다 ==');
+{
+  // 만든 사람이 물었습니다: 국민연금이 지금 150,000이고 내년에 160,000이 된다면,
+  // 지난 기간·이번 기간·내년 기간이 각각 제 금액을 말합니까?
+  //
+  // 말하지 못했습니다. insBase()가 settings.bosu 하나를 읽고 있어서, 어느 기간을
+  // 펼쳐 놓든 **지금 설정된** 보수월액으로 계산했습니다. 보수월액은 공단에
+  // 신고된 값이고 해마다 4월·7월에 다시 정해지므로(스물다섯째), 새 값을 적는
+  // 순간 지난 해 명세서까지 새 국민연금으로 바뀝니다 — 열여섯째가 기본금에서
+  // 겪은 그것과 정확히 같은 자리이고, 답도 같습니다: 도장을 찍습니다.
+  const mkY = () => {
+    const c = mk(V2, '2027-02-15T10:00:00');
+    c.setS({ periodStart: 21, payday: 25, shifts: 'both', basicConfirmed: true });
+    const ex = [];
+    const add = (y, m, d0, d1) => { for (let d = d0; d <= d1; d++)
+      ex.push({ y, m, day: d, kind: 'day', type: 'shift', inH: 9, outH: 21, c: c.calc(9, 21, 'day', false) }); };
+    add(2026, 6, 21, 30); add(2026, 7, 1, 20);     // 지난 해 기간
+    add(2027, 1, 21, 31); add(2027, 2, 1, 14);     // 이번 기간
+    c.state.extra = ex;
+    return c;
+  };
+  const penOf = (c, n) => c.insCalc(c.wageFor(c.periodBack(n))).pension;
+  const OLD = 3158000, NEW = 3434000;              // 150,000 → 163,110
+
+  // ── 도장이 찍힌 지난 기간은 제 보수월액을 간직합니다 ──
+  const c = mkY();
+  const lastYear = c.periodBack(7);
+  ok('지난 해 기간을 제대로 잡았습니다', V2.isoDay(lastYear.s).slice(0, 7) === '2026-06',
+    V2.isoDay(lastYear.s));
+  c.setS({ wageLog: Object.assign({}, c.st().wageLog, {
+    [V2.wageKey(lastYear)]: Object.assign({}, c.wageNow(), { bosu: OLD }) }) });
+  c.setS({ bosu: OLD });
+  ok('그 때의 국민연금은 150,000입니다', c.insCalc(c.wageFor(lastYear)).pension === 150000,
+    String(c.insCalc(c.wageFor(lastYear)).pension));
+  c.setS({ bosu: NEW });                            // 해가 바뀌어 다시 신고됐습니다
+  ok('지금 기간은 새 값으로 갑니다', penOf(c, 0) === 163110, String(penOf(c, 0)));
+  ok('지난 해는 그대로 150,000입니다', c.insCalc(c.wageFor(lastYear)).pension === 150000,
+    String(c.insCalc(c.wageFor(lastYear)).pension));
+  // 되돌리면 이 줄이 실패합니다 — 고치기 전에는 둘 다 163,110이었습니다
+  ok('두 기간이 서로 다른 금액을 말합니다',
+    c.insCalc(c.wageFor(lastYear)).pension !== penOf(c, 0));
+
+  // ── 보수월액이 도장에 실제로 얹혀 있습니다 ──
+  const st = mkY();
+  st.setS({ bosu: OLD });
+  st.stampWage();
+  const stamp = st.st().wageLog[V2.wageKey(st.period(st.now()))];
+  ok('도장이 보수월액을 함께 적습니다', stamp.bosu === OLD, String(stamp.bosu));
+  ok('임금 기준도 예전 그대로 다 있습니다',
+    stamp.rate > 0 && stamp.basic > 0 && stamp.src === 'live' && 'employer' in stamp);
+
+  // ── 이 변경 이전에 찍힌 도장에는 보수월액이 없습니다 ──
+  // 없는 것을 있다고 하지 않습니다 — employerFor()와 같은 규칙으로, 지금
+  // 설정값으로 떨어집니다. 마이그레이션도, 남의 저장소를 고쳐 쓰는 일도 없습니다.
+  const oldStamp = mkY();
+  const w0 = oldStamp.wageNow();
+  delete w0.bosu;
+  oldStamp.setS({ bosu: NEW, wageLog: { [V2.wageKey(lastYear)]: w0 } });
+  ok('예전 도장은 지금 설정값으로 떨어집니다',
+    oldStamp.insCalc(oldStamp.wageFor(lastYear)).pension === 163110);
+  ok('그래도 터지지 않습니다', oldStamp.wageFor(lastYear).src === 'live');
+  // 그리고 보수월액을 한 번도 적지 않은 사람은 예전 그대로 기본금+고정수당입니다
+  const none = mkY();
+  ok('보수월액이 없으면 예전 기준 그대로입니다',
+    none.insBase(none.wageFor(lastYear)) === none.taxableFixed(none.wageFor(lastYear)));
+
+  // ══ 그 기간의 명세서가 그 기간의 보수월액을 말합니다 ══
+  // 카드는 '이 기간의 명세서'라고 이름을 달고 서 있으므로, 거기 적는 국민연금도
+  // 그 기간의 것입니다 — slips[기간].pension에 들어갑니다.
+  const s = mkY();
+  s.setS({ bosu: OLD });
+  s.setSlip('pension', '163110', lastYear);
+  ok('그 기간은 명세서가 말하는 값을 씁니다',
+    s.insCalc(s.wageFor(lastYear)).pension === 163110);
+  ok('명세서는 도장보다 앞섭니다',
+    (function () {
+      const t = mkY();
+      t.setS({ bosu: OLD, wageLog: { [V2.wageKey(lastYear)]: Object.assign({}, t.wageNow(), { bosu: OLD }) } });
+      t.setSlip('pension', '163110', lastYear);
+      return t.insCalc(t.wageFor(lastYear)).pension === 163110;
+    })());
+  ok('옆 기간은 한 원도 움직이지 않습니다', penOf(s, 0) === s.insCalc(s.wageFor(s.periodBack(0))).pension
+    && s.insCalc(s.wageFor(s.periodBack(0))).pension === 150000,
+    String(penOf(s, 0)));
+  ok('그 기간의 시급과 기본금은 그대로입니다',
+    s.wageFor(lastYear).rate === mkY().wageFor(lastYear).rate
+    && s.wageFor(lastYear).basic === mkY().wageFor(lastYear).basic);
+  ok('되살릴 수 없는 숫자는 그 기간도 건드리지 않습니다',
+    (function () {
+      const t = mkY(); t.setS({ bosu: OLD });
+      t.setSlip('pension', '12345', lastYear);
+      return t.insCalc(t.wageFor(lastYear)).pension === 150000;
+    })());
+
+  // ── 열려 있는 기간은 언제나 설정입니다 ──
+  // 여기서 명세서를 앞세우면 설정 › 4대보험과 세금의 그 칸이 죽은 단추가 됩니다.
+  const open = mkY();
+  open.setS({ bosu: OLD });
+  open.setSlip('pension', '163110', open.period(open.now()));
+  ok('이번 기간은 설정을 따릅니다', penOf(open, 0) === 150000, String(penOf(open, 0)));
+  open.setS({ bosu: NEW });
+  ok('설정을 고치면 곧바로 따라옵니다', penOf(open, 0) === 163110);
+
+  // ══ 카드에 적으면 그 기간과 지금 기준이 함께 섭니다 ══
+  // 지난 기간을 펼쳐 놓고 적어도 지나간 다른 기간은 움직이지 않아야 합니다.
+  const card = mkY();
+  card.setS({ bosu: OLD, wageLog: Object.assign({}, card.st().wageLog, {
+    [V2.wageKey(lastYear)]: Object.assign({}, card.wageNow(), { bosu: OLD }) }) });
+  const mid = card.periodBack(3);
+  card.setS({ wageLog: Object.assign({}, card.st().wageLog, {
+    [V2.wageKey(mid)]: Object.assign({}, card.wageNow(), { bosu: 2800000 }) }) });
+  const midPenBefore = card.insCalc(card.wageFor(mid)).pension;
+  card.goPeriod(7);                                 // 지난 해 기간을 펼쳐 놓고
+  ok('그 기간을 보고 있습니다', V2.wageKey(card.viewPeriod()) === V2.wageKey(lastYear));
+  card.renderVals().setSlipPen({ target: { value: '163110' } });
+  ok('적은 기간이 그 값을 받습니다', card.insCalc(card.wageFor(lastYear)).pension === 163110);
+  ok('지금 기준도 함께 섭니다 — 설정에 그대로 나타납니다', card.st().bosu === NEW,
+    String(card.st().bosu));
+  ok('사이의 다른 기간은 제 값 그대로입니다',
+    card.insCalc(card.wageFor(mid)).pension === midPenBefore
+    && midPenBefore === V2.pensionOn(2800000), String(midPenBefore));
+  ok('그 기간의 명세서에 적힌 것으로 남습니다', card.slip(lastYear).pension === '163110',
+    String(card.slip(lastYear).pension));
+  ok('다른 기간의 명세서에는 적히지 않습니다', card.slip(mid).pension === undefined);
+
+  // 그리고 그 카드의 칸이 보여 주는 값은 보고 있는 기간의 것입니다
+  ok('칸이 그 기간의 국민연금을 보여 줍니다', card.renderVals().slipPenVal === '163110',
+    String(card.renderVals().slipPenVal));
+  // 기간을 옮기면 반쯤 친 글자도 함께 두고 갑니다 — 다음 기간의 칸에 앉아 있으면
+  // 거기서 한 자만 더 쳐도 다른 기간의 명세서에 커밋됩니다.
+  card.goPeriod(3);
+  ok('옮기면서 치던 글자를 두고 갑니다', card.state.numEdit === null);
+  ok('다른 기간으로 옮기면 그 기간의 값입니다',
+    card.renderVals().slipPenVal === String(V2.pensionOn(2800000)),
+    String(card.renderVals().slipPenVal));
+
+  // ══ 근무내역서도 그 기간의 값으로 나갑니다 ══
+  // 화면과 문서가 같은 기간을 다르게 말하면 근로자는 어느 쪽을 내밀어야 할지
+  // 알 수 없습니다(열두째·열여섯째).
+  const doc = mkY();
+  doc.setS({ bosu: OLD, wageLog: Object.assign({}, doc.st().wageLog, {
+    [V2.wageKey(lastYear)]: Object.assign({}, doc.wageNow(), { bosu: OLD }) }) });
+  doc.setS({ bosu: NEW });
+  const W1 = doc.wageFor(lastYear);
+  ok('문서가 읽는 기준도 그 때의 보수월액입니다', doc.insBosu(W1) === OLD);
+  ok('화면과 문서가 같은 값을 씁니다',
+    doc.payCalc(doc.totals(null, lastYear), W1).ded
+    === doc.payCalc(doc.totals(null, lastYear), doc.wageFor(lastYear)).ded);
+  const h = doc.evidenceHtml(lastYear);
+  ok('문서가 만들어집니다', typeof h === 'string' && h.length > 500);
+
+  // ══ 줄과 합계가 같은 기간을 말합니다 ══
+  // 공제 목록(dedRows)은 인자 없이 지금 설정으로 계산하고 있었고, 바로 아래
+  // 합계(dedTotal)는 그 기간의 기준으로 계산했습니다. 보수월액이 기간마다
+  // 달라진 지금은 그 둘이 눈에 보이게 어긋납니다.
+  {
+    const d = mkY();
+    d.setS({ bosu: OLD, wageLog: Object.assign({}, d.st().wageLog, {
+      [V2.wageKey(lastYear)]: Object.assign({}, d.wageNow(), { bosu: OLD }) }) });
+    d.setS({ bosu: NEW });
+    d.goPeriod(7);
+    const v = d.renderVals();
+    const won = n => d.won(n);
+    ok('목록의 국민연금이 그 기간의 값입니다',
+      v.dedRows.some(r => r.amt === won(150000)),
+      v.dedRows.map(r => r.amt).join(','));
+    ok('오늘의 값은 그 목록에 없습니다', !v.dedRows.some(r => r.amt === won(163110)));
+    // 줄을 다 더하면 합계가 나와야 합니다 — 근로감독관은 그 칸을 더해 봅니다
+    const sum = v.dedRows.reduce((a, r) => a + (+String(r.amt).replace(/[^0-9]/g, '') || 0), 0);
+    ok('줄의 합이 공제총액과 같습니다',
+      won(sum) === v.dedTotal, sum + ' vs ' + v.dedTotal);
+    // 이번 기간에서는 예전과 똑같습니다
+    // 이 어긋남은 보수월액보다 먼저부터 있었습니다 — 지난 기간의 기본금이
+    // 지금과 다르면 목록은 오늘의 기본금으로, 합계는 그 때의 기본금으로
+    // 계산했습니다. 보수월액을 붙들면서 같은 자리를 함께 고칩니다.
+    {
+      const e = mkY();
+      const p1 = e.periodBack(1);
+      e.setS({ wageLog: Object.assign({}, e.st().wageLog, {
+        [V2.wageKey(p1)]: Object.assign({}, e.wageNow(), { basic: 2000000, rate: Math.round(2000000 / 209) }) }) });
+      e.setS({ basic: 2600000 });
+      e.goPeriod(1);
+      const ve = e.renderVals();
+      const n = x => +String(x).replace(/[^0-9]/g, '') || 0;
+      ok('기본금이 달라진 지난 기간도 줄과 합계가 맞습니다',
+        e.won(ve.dedRows.reduce((a, r) => a + n(r.amt), 0)) === ve.dedTotal,
+        ve.dedRows.reduce((a, r) => a + n(r.amt), 0) + ' vs ' + ve.dedTotal);
+    }
+    d.goPeriod(0);
+    const v0 = d.renderVals();
+    ok('이번 기간은 지금 설정 그대로입니다', v0.dedRows.some(r => r.amt === won(163110)));
+    const sum0 = v0.dedRows.reduce((a, r) => a + (+String(r.amt).replace(/[^0-9]/g, '') || 0), 0);
+    ok('이번 기간도 줄의 합이 합계와 같습니다', won(sum0) === v0.dedTotal, sum0 + ' vs ' + v0.dedTotal);
+  }
+
+  // ══ 손대지 않은 것 ══
+  ok('부족액은 여전히 지급 줄만 셉니다',
+    (function () {
+      const t = mkY(); t.setState({ payBack: 7 });
+      const before = t.slipShortfall(lastYear);
+      t.setSlip('pension', '163110', lastYear);
+      t.setSlip('ded', '999999', lastYear);
+      return t.slipShortfall(lastYear) === before;
+    })());
+  ok('표에는 여전히 국민연금 줄이 없습니다',
+    mkY().slipRows(lastYear).every(r => r.k !== 'pension'));
+  // 설정 화면의 세 곳은 '지금'을 말합니다 — 인자 없이 부르면 예전 그대로입니다
+  const nowSide = mkY();
+  nowSide.setS({ bosu: NEW });
+  ok('설정 화면은 인자 없이 지금 값을 씁니다',
+    nowSide.insBase() === NEW && nowSide.insCalc().pension === 163110);
+  ok('설정의 칸도 지금 값을 보여 줍니다',
+    nowSide.renderVals().bosuPenVal === String(V2.pensionOn(NEW)),
+    String(nowSide.renderVals().bosuPenVal));
 }
 
 console.log('\n== 카드의 마지막 줄에는 밑줄이 없습니다 ==');
@@ -6147,7 +6454,7 @@ console.log('\n== 열리는 것과 열리지 않는 것 ==');
     V1.gShiftChevBg + ' / ' + V1.gShiftChevInk);
   // 예전 열림 값 var(--color-surface)는 카드 흰색과 같은 값이라 아무 일도 하지
   // 않는 죽은 값이었습니다 — 줄이 카드 안으로 들어오면서 그렇게 됐습니다.
-  ok('열린 줄은 옅은 띠를 갖습니다', V1.gShiftBg === 'var(--color-neutral-100)', V1.gShiftBg);
+  ok('열린 줄은 옅은 띠를 갖습니다', V1.gShiftBg === 'var(--color-neutral-150)', V1.gShiftBg);
   ok('죽은 흰색이 남아 있지 않습니다', V1.gShiftBg !== 'var(--color-surface)');
   ok('옆 줄은 그대로 닫혀 있습니다',
     V1.gPayChevBg === 'var(--color-neutral-200)' && V1.gPayBg === 'transparent');
@@ -6811,6 +7118,252 @@ console.log('\n== 칩은 바닥에 닿았고, 바닥의 줄은 머리카락이 �
   // 손댄 것은 아래 하나뿐입니다 — 머리말의 줄은 그대로 2px입니다.
   ok('머리말의 줄은 건드리지 않았습니다',
     su.includes('padding:12px 20px 10px;border-bottom:2px solid var(--color-divider)'));
+}
+
+console.log('\n== 펴진 것이 어디서 끝나는지 화면이 말하지 않았습니다 ==');
+{
+  // 만든 사람이 설정을 열고 말했습니다: **접히는 칸을 눌러 펴면 그 판의 색이
+  // 바뀌게 해 주십시오. 지금은 어디서 끝나는지 헷갈립니다.**
+  //
+  // 마흔넷째가 열린 **줄**에 옅은 회색 띠를 주었습니다. 그런데 그 밑에 펴지는
+  // **본문**은 카드 흰색 그대로였습니다. 한 층 카드 안에 줄이 서넛 들어 있고
+  // 줄과 줄 사이는 1px 머리카락뿐이라, 근로자가 보는 것은 이렇습니다:
+  //
+  //   [회색 줄]   ← 열린 줄
+  //   [흰 본문]   ← 어디까지가 이 줄의 것인지 말하지 않습니다
+  //   [흰 줄]     ← 다음 묶음인데 본문과 같은 색입니다
+  //
+  // 띠가 줄에만 있으면 그것은 '이 줄을 눌렀다'는 말이지 '여기부터 여기까지가
+  // 그 줄의 것'이라는 말이 아닙니다. 본문에 같은 띠를 얹으면 회색이 끝나는
+  // 자리가 곧 접히는 칸이 끝나는 자리입니다.
+  const fs = require('fs');
+  const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tpl = src.split('class Component')[0];
+  const tplQ = tpl.replace(/\s*\n\s*/g, ' ');
+  const GRP = ['Shift','Pay','Period','Money','Ins','Rules','Me','Lang','Backup'];
+
+  // ── 1 · 아홉 본문이 모두 띠를 씁니다 ────────────────────────────────────
+  // 마흔여섯째의 그 자리입니다 — 한 군데만 고치면 나머지 여덟이 예전 모양으로
+  // 남는데, 모양이 안 붙는 것은 오류를 내지 않습니다(마흔째).
+  GRP.forEach(g => {
+    const i = tplQ.indexOf('<sc-if value="{{ g' + g + 'Open }}"');
+    ok(g + ' 본문이 있습니다', i > 0);
+    // sc-if 바로 다음 요소가 본문을 감싸는 div입니다
+    const open = tplQ.indexOf('<div', i);
+    const wrap = tplQ.slice(open, tplQ.indexOf('>', open) + 1);
+    ok(g + ' 본문이 열림 띠를 씁니다',
+      wrap.indexOf('background:{{ g' + g + 'Bg }}') >= 0, wrap);
+  });
+
+  // ── 2 · 줄과 본문이 같은 홀 하나를 나눠 씁니다 ─────────────────────────
+  // 값을 두 벌 만들면 언젠가 둘이 갈라지고, 그러면 띠와 본문이 다른 회색으로
+  // 서서 근로자가 고치기 전보다 더 헷갈립니다. 홀 하나를 두 자리가 씁니다.
+  GRP.forEach(g => {
+    const n = tplQ.split('{{ g' + g + 'Bg }}').length - 1;
+    ok(g + ' 띠 홀이 줄과 본문 두 자리뿐입니다', n === 2, 'got ' + n);
+  });
+
+  // ── 3 · 닫혀 있으면 아무 일도 없습니다 ─────────────────────────────────
+  // 본문은 sc-if 안이라 닫힌 동안에는 아예 그려지지 않습니다. 그래도 값이
+  // transparent인지 세어 둡니다 — 층의 규칙(#tabScroll > div > div의
+  // background: transparent → 카드 흰색)은 깊이 2뿐이라 여기까지 닿지
+  // 않지만, 그것을 아는 것과 시험이 붙들고 있는 것은 다릅니다.
+  const c0 = mk(V2, '2026-08-03T09:00:00');
+  ok('닫힌 묶음의 띠는 투명입니다', c0.renderVals().gRulesBg === 'transparent');
+  c0.toggleSetGroup('grp_rules');
+  const V1 = c0.renderVals();
+  ok('열린 묶음의 띠는 옅은 회색입니다',
+    V1.gRulesBg === 'var(--color-neutral-150)', V1.gRulesBg);
+  // 열린 것 하나만 답합니다 — 옆 묶음의 본문까지 회색이 되면 어디서 끝나는지를
+  // 다시 말하지 못하게 됩니다.
+  ok('옆 묶음의 본문은 그대로 흰색입니다',
+    V1.gMoneyBg === 'transparent' && V1.gInsBg === 'transparent');
+
+  // ── 4 · 카드 흰색과 다른 색이라야 합니다 ───────────────────────────────
+  // --color-neutral-100은 카드 흰색(--color-surface)과 같은 값이 되면 안
+  // 됩니다. 마흔넷째의 var(--color-surface)가 정확히 그렇게 죽었습니다.
+  const ds = fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
+  const val = n => ((ds.match(new RegExp('--color-' + n + ':\\s*(#[0-9a-fA-F]{6});')) || [])[1] || '').trim();
+  const lum = c => parseInt(c.slice(1, 3), 16);
+  const tint = val('neutral-150');
+  ok('띠에 제 토큰이 있습니다', /^#[0-9a-f]{6}$/i.test(tint), tint);
+  // 1 · 카드 흰색과 달라야 합니다 — 그 단이 곧 '여기서 끝난다'입니다
+  ok('띠가 카드 흰색보다 어둡습니다',
+    lum(val('card')) - lum(tint) >= 15, val('card') + ' vs ' + tint);
+  // 2 · 바탕과도 달라야 합니다. neutral-100은 여기서 걸렸습니다 — 홈통과
+  //     본문이 화면에서 둘 다 238이라 카드의 옆면이 통째로 사라졌고,
+  //     펴진 판이 카드 사이의 빈틈처럼 읽혔습니다.
+  ok('띠가 바탕(#f3f2f2)보다도 어둡습니다',
+    lum(val('bg')) - lum(tint) >= 8, val('bg') + ' vs ' + tint);
+  ok('예전 값 neutral-100은 그 문턱을 넘지 못합니다 — 그래서 바뀌었습니다',
+    lum(val('bg')) - lum(val('neutral-100')) < 8);
+  // 3 · 그런데 머리카락 선보다는 밝아야 합니다. 본문 **안**의 칸 테두리와
+  //     구분선이 전부 neutral-300이라, 여기서 더 어두워지면 그것들이 판에
+  //     묻힙니다 — neutral-200이 그 자리입니다.
+  ok('띠가 머리카락 선보다는 밝습니다',
+    lum(tint) - lum(val('neutral-300')) >= 8, tint + ' vs ' + val('neutral-300'));
+  ok('한 단 더 어두운 neutral-200은 그 선을 삼킵니다 — 그래서 쓰지 않았습니다',
+    lum(val('neutral-200')) - lum(val('neutral-300')) < 8);
+  // 그리고 이 토큰은 굴림판의 통(neutral-100)을 데려가지 않습니다
+  ok('굴림판의 통은 그대로 neutral-100입니다',
+    (src.match(/height:132px;margin-top:6px;border:2px solid var\(--color-neutral-300\);background:var\(--color-neutral-100\)/g) || []).length === 4);
+
+  // ── 5 · 본문 안의 값은 한 글자도 바뀌지 않았습니다 ─────────────────────
+  // 바꾼 것은 본문이 어떤 바탕 위에 서는가뿐입니다. 칸이 하나라도 사라지면
+  // 임금체불 진정 중인 근로자가 설정을 열었을 때 그것이 없습니다(서른두째).
+  ['{{ periodStartVal }}','{{ paydayVal }}','{{ graceVal }}','{{ avgDailyVal }}',
+   '{{ shutPctVal }}','{{ basicVal }}','{{ divisorVal }}','{{ workerNameVal }}',
+   '{{ employerVal }}','{{ bosuVal }}']
+    .forEach(t => ok('칸이 살아 있습니다 ' + t, tplQ.indexOf(t) > 0));
+  // 동그라미와 요약 줄도 그대로입니다 — 이번에 더한 것은 본문의 바탕 하나입니다
+  ok('동그라미는 여전히 아홉 개입니다',
+    (tplQ.split('width:30px;height:30px').length - 1) === 9);
+}
+
+// ══ 조퇴 사유 창만 앞 시대의 모양으로 남아 있었습니다 ══════════════════════
+// 만든 사람이 폰에서 그 창을 열고 말했습니다: **모서리가 각졌습니다. 둥글게,
+// 알약도 줄여 주십시오. 새 디자인에 견주면 낡아 보입니다.**
+//
+// 맞습니다. 다섯 탭이 서른째부터 흰 카드가 됐는데 이 창만 **검은 3px 테두리에
+// 각진 모서리**이고 안쪽은 카드 흰색이 아니라 바탕색이었습니다. 층의 규칙 2는
+// `border: 2px`와 `1px`만 잡으므로 3px 테두리에는 아무 규칙도 닿지 않았고,
+// 모양이 안 붙는 것은 오류를 내지 않습니다(마흔째) — 그래서 이 창을 여는
+// 근로자는 조용히 **앱의 예전 판**을 보고 있었습니다.
+console.log('\n== 조퇴 사유 창이 앞 시대의 모양으로 남아 있었습니다 ==');
+{
+  const fs = require('fs');
+  const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tpl = src.split('class Component')[0];
+  // 구간부터 못 박습니다 — 스물일곱째가 `{{ L.lBasic }}`으로 다른 탭을 재고
+  // 있었던 그 자리입니다. 시트는 탭 바깥에 한 벌이고, 그 뒤가 탭 바입니다.
+  const a = tpl.indexOf('<sc-if value="{{ earlySheet }}"');
+  const z = tpl.indexOf('grid-template-columns:1fr 1fr 1fr 1fr 1fr', a);
+  const sheet = tpl.slice(a, z);
+  ok('시트 구간을 잡았습니다', a > 0 && z > a && sheet.indexOf('{{ rsnSaveLbl }}') > 0
+    && sheet.indexOf('{{ tabs }}') < 0, sheet.length + '자');
+
+  // ── 1 · 창이 카드가 됐습니다 ───────────────────────────────────────────
+  // 모달은 테두리가 아니라 **뒤의 어둠**으로 '위에 있다'고 말합니다. 검은 틀을
+  // 떼고 카드 흰색으로 두면 모서리와 그늘은 층이 줍니다(boot.js가 셉니다).
+  ok('판에 검은 3px 테두리가 없습니다', sheet.indexOf('border:3px') < 0);
+  ok('판이 카드 흰색입니다',
+    /max-height:100%;overflow:auto;background:var\(--color-surface\);box-sizing:border-box/.test(sheet));
+  ok('그 3px 테두리는 소스 어디에도 없습니다',
+    (src.match(/border:3px solid var\(--color-text\)/g) || []).length === 0);
+  // 판이 제 모서리를 자르지 않으면 빨간 머리띠가 위쪽 둘을 도로 각지게 합니다
+  ok('판이 overflow로 제 모서리를 자릅니다', sheet.indexOf('overflow:auto') > 0);
+
+  // ── 2 · 어둠은 화면을 덮고, 내용은 시계와 제스처 바를 피합니다 ─────────
+  // 쉰한째가 이 시트를 두고 적어 둔 그 자리입니다 — 어두운 바탕이 화면을 통째로
+  // 덮는 것은 맞지만, 내용은 아래쪽 16px 안여백이 제스처 바(15px) 위에서 겨우
+  // **1px** 남았습니다. 시트를 손보는 지금이 그것을 재는 자리입니다.
+  const over = (tpl.match(/style="position:absolute;[^"]*z-index:30;[^"]*"/) || [''])[0];
+  ok('어두운 바탕은 여전히 화면을 통째로 덮습니다', /position:absolute;inset:0;z-index:30/.test(over));
+  ok('내용이 시계 밑에서 빠져나옵니다',
+    /padding:calc\(16px \+ env\(safe-area-inset-top\)\)/.test(over), over.slice(-90));
+  ok('아래쪽 제스처 바도 피합니다',
+    /calc\(16px \+ env\(safe-area-inset-bottom\)\)/.test(over));
+  ok('맨몸 16px 여백이 남아 있지 않습니다', over.indexOf('padding:16px 12px') < 0);
+  // env()가 0이 아닌 것은 viewport-fit=cover일 때뿐입니다(쉰한째) — 그것이 빠지면
+  // 위의 둘이 통과하면서 화면은 조용히 예전으로 돌아갑니다
+  ok('viewport-fit=cover가 있어야 그 값이 0이 아닙니다', src.includes('viewport-fit=cover'));
+
+  // ── 3 · 알약이 작아졌습니다 ────────────────────────────────────────────
+  // 이 앱에는 `box-sizing` 재설정이 없어 `min-height`가 **안쪽 상자**에 걸립니다
+  // (쉰두째). 드롭다운 머리는 min-height 52 + 위아래 여백 6 + 테두리 2라 화면에서
+  // **68px**이었고, 옆의 메모 칸(48)보다 20px 높았습니다. 줄인 것은 글자 둘레의
+  // 여백이지 손가락이 닿는 자리가 아닙니다 — min-height는 44px 바닥 위입니다.
+  const head = (sheet.match(/<div onClick="\{\{ rsnToggle \}\}" style="[^"]*"/) || [''])[0];
+  ok('드롭다운 머리가 46 + 0 + 2 = 50px입니다',
+    /min-height:46px;[^"]*padding:0 12px;border:2px solid var\(--color-text\)/.test(head), head.slice(24, 90));
+  ok('예전 52px과 위아래 여백이 사라졌습니다',
+    head.indexOf('min-height:52px') < 0 && head.indexOf('padding:6px 12px') < 0);
+  // 사유 줄 셋 — 자리가 셋이라 하나만 고치면 다른 두 무리가 예전 모양으로
+  // 남습니다(마흔여섯째의 그 자리입니다)
+  const ROW = 'min-height:46px;display:flex;flex-direction:column;justify-content:center;padding:0 12px;';
+  ok('사유 줄 셋이 모두 같은 셈입니다 (60 → 50px)',
+    (sheet.split(ROW).length - 1) === 3, (sheet.split(ROW).length - 1) + '개');
+  ok('예전 위아래 여백이 한 줄도 남지 않았습니다', sheet.indexOf('padding:5px 11px') < 0);
+  // 그 50px은 내가 고른 값이 아니라 **이미 있던 값**입니다 — 설정 흐름의 근무조
+  // 카드가 마흔아홉째에 그 크기로 줄었고, 그것도 두 줄짜리 고르는 칸입니다.
+  const shiftCard = (tpl.match(/<div onClick="\{\{ o\.set \}\}" style="min-height:46px;[^"]*"/) || [''])[0];
+  ok('설정 흐름의 근무조 카드가 그 셈의 본입니다',
+    /min-height:46px;display:flex;flex-direction:column;justify-content:center;padding:0 /.test(shiftCard),
+    shiftCard.slice(30, 100));
+
+  // ── 4 · 끝을 두 번 그리고 있었습니다 ───────────────────────────────────
+  // 열두 줄이 저마다 검은 테두리를 두르는데 그 열두 줄을 **또 하나의 검은 틀**이
+  // 감싸고 있었습니다. 층의 규칙 2가 그 틀에도 12px을 주므로, 머리의 둥근 아래와
+  // 틀의 둥근 위가 만나 이음매가 잘록해졌습니다 — 마흔두째·마흔넷째와 같은
+  // 잘못입니다: **가르는 선을 두르는 선처럼 그린 것.**
+  ok('목록을 감싼 검은 틀이 없습니다', sheet.indexOf('border-top:0') < 0);
+  ok('줄이 머리와 같은 왼쪽 끝에 섭니다', sheet.indexOf('style="padding:2px 0 9px"') > 0);
+
+  // ── 5 · 고르지 않은 것은 칠하지 않습니다 ───────────────────────────────
+  // 판이 흰색이 된 지금 `--color-bg`로 칠한 줄은 흰 카드 위의 회색 덩어리입니다.
+  // 설정 흐름의 근무조 카드가 이미 답을 갖고 있습니다 — 고르지 않은 것은
+  // `transparent`, 고른 것만 칠합니다.
+  const c = mk(V2, '2026-08-11T14:00:00');
+  c.state.session = { inIso: new Date('2026-08-11T08:40:00').toISOString() };
+  c.punch();
+  const R0 = c.renderVals();
+  ok('고르지 않은 사유는 칠하지 않습니다',
+    R0.rsnEmployer.every(o => o.bg === 'transparent')
+    && R0.rsnWorker.every(o => o.bg === 'transparent')
+    && R0.rsnOther.every(o => o.bg === 'transparent'), R0.rsnEmployer[0].bg);
+  ok('고르지 않은 누구 사정 칩도 그렇습니다',
+    R0.faultOpts.filter(f => f.f !== 'employer').every(f => f.bg === 'transparent'));
+  c.pickReason('machine');
+  const R1 = c.renderVals();
+  ok('고른 사유는 여전히 빨갛습니다',
+    R1.rsnEmployer.filter(o => o.id === 'machine')[0].bg === 'var(--color-accent)');
+  ok('고르지 않은 나머지는 그대로입니다',
+    R1.rsnEmployer.filter(o => o.id !== 'machine').every(o => o.bg === 'transparent'));
+  ok('고른 누구 사정 칩은 여전히 검습니다',
+    R1.faultOpts.filter(f => f.f === 'employer')[0].bg === 'var(--color-text)');
+  ok('글자색은 손대지 않았습니다',
+    R1.rsnEmployer.filter(o => o.id === 'machine')[0].ink === 'var(--color-bg)'
+    && R1.rsnEmployer.filter(o => o.id !== 'machine')[0].ink === 'var(--color-text)');
+  // 층이 `background: transparent`를 카드 흰색으로 되돌리는 규칙은 **탭 안쪽
+  // 뿐**입니다(마흔째). 시트는 #tabScroll 바깥이라 닿지 않습니다 — 닿았다면
+  // 고르지 않은 줄이 흰색으로 칠해지고 이 변경은 아무 일도 하지 않습니다.
+  const ds = fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
+  const trans = (ds.match(/^[^\n]*\[style\*="background: transparent"\][^\n]*$/m) || [''])[0];
+  ok('그 규칙은 탭 안쪽으로 좁혀져 있습니다', trans.indexOf('#tabScroll > div > div') === 0, trans.slice(0, 50));
+
+  // ── 6 · 저장과 취소는 한 쌍입니다 ──────────────────────────────────────
+  // 저장은 테두리가 없어 min-height가 곧 높이(50)이고, 취소는 테두리 2px이 붙어
+  // 44 + 4 = 48이었습니다. 나란히 선 두 단추가 2px 어긋나 있던 것입니다.
+  ok('저장 단추가 48px입니다',
+    /<div onClick="\{\{ confirmEarly \}\}" style="min-height:48px;/.test(sheet));
+  ok('취소는 44px 바닥 그대로입니다 — 테두리를 더해 48px',
+    /<div onClick="\{\{ skipEarly \}\}" style="min-height:44px;[^"]*border:2px solid var\(--color-text\)/.test(sheet));
+  // 44px은 이 앱에서 누를 것의 바닥입니다(마흔한째). 줄이면서 그것을 넘지
+  // 않았는지 시트 안의 누를 것을 전부 세어 봅니다.
+  const taps = sheet.split('style="').slice(1)
+    .map(t => t.slice(0, t.indexOf('"')))
+    .filter(t => t.indexOf('cursor:pointer') >= 0)
+    .map(t => (t.match(/min-height:(\d+)px/) || [0, 0])[1] * 1);
+  // 마크업에서 일곱 자리입니다 — 머리 하나, 사유 줄을 짓는 자리 셋(무리마다
+  // 한 벌), 누구 사정 칩, 저장, 취소.
+  ok('시트 안에서 누를 것이 일곱 자리입니다 (' + taps.join(',') + ')', taps.length === 7);
+  ok('44px 밑으로 내려간 것이 없습니다', taps.every(h => h >= 44));
+
+  // ── 7 · 사라진 칸이 없습니다 ───────────────────────────────────────────
+  // 이 앱은 증거를 만듭니다 — 모양을 고치면서 고를 것이 하나라도 없어지면
+  // 근로자가 그 날을 설명할 말을 잃습니다(서른두째).
+  ok('열두 가지가 모두 목록에 있습니다',
+    R0.rsnEmployer.length + R0.rsnWorker.length + R0.rsnOther.length === 12);
+  ['{{ L.rsnPickHead }}', '{{ L.rsnEmployerHead }}', '{{ L.rsnWorkerHead }}',
+   '{{ L.rsnOtherHead }}', '{{ L.rsnWhoseHead }}', '{{ L.rsnNoteHead }}',
+   '{{ rsnEffect }}', '{{ rsnKoHint }}', '{{ rsnKoWarn }}', '{{ earlyNote }}',
+   '{{ rsnSaveLbl }}', '{{ rsnSkipLbl }}', '{{ rsnCaret }}']
+    .forEach(t => ok('그 자리가 살아 있습니다 ' + t, sheet.indexOf(t) > 0));
+  // 그리고 하던 일도 그대로입니다
+  c.saveReason();
+  ok('고른 사유가 그대로 붙습니다', c.state.extra[0].reason.id === 'machine');
+  ok('회사 사정도 그대로입니다', c.state.extra[0].reason.fault === 'employer');
+  ok('닫히면 목록도 접힙니다', c.state.reasonFor === null && c.state.rsnOpen === false);
 }
 
 console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
