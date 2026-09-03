@@ -247,8 +247,17 @@
    this rounds that button and nothing else: the 26px 근무기록 badge (2d) and
    the 30px-min-height chips (2b) are both untouched.
    The colour — grey when closed, accent when open — is set in setGroupVals,
-   next to the glyph it inverts with. Only the shape belongs to the layer. */
-#tabScroll [style*="width: 30px"][style*="height: 30px"] { border-radius: var(--radius-pill); }
+   next to the glyph it inverts with. Only the shape belongs to the layer.
+   The scope used to be `#tabScroll`, and the 조퇴 사유 sheet is the one
+   collapsible in the app that lives *outside* the tab scroll box: it kept a
+   bare `∨` glyph long after SETUP had a drawn button, and giving it the same
+   circle got it no radius at all — the same way the 26px welcome numerals
+   stayed square under 2d until that scope came off (2026-08-31, fifty-third).
+   Dropping the id costs nothing here: this box has no border, no
+   `cursor: pointer` and no `min-height`, so rules 2, 2b, 2c and 2e do not
+   reach it and there is no lighter rule left to out-weigh. Do not add a
+   third kind of 30×30 box expecting a square — boot.js counts them. */
+[style*="width: 30px"][style*="height: 30px"] { border-radius: var(--radius-pill); }
 
 /* ── 2i · the time drum is a wheel, not a list ──────────────────────────── */
 /* The picker read as a flat table: three rows, two hard black rules, nothing

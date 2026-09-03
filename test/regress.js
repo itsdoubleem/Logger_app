@@ -420,7 +420,12 @@ console.log('\n== 조퇴 사유 · 팝업과 드롭다운 ==');
   ok('고르기 전에는 저장할 수 없습니다', c.renderVals().rsnCanSave===false);
   c.toggleRsnList();
   ok('누르면 펼쳐집니다', c.state.rsnOpen===true);
-  ok('펼침 표시가 바뀝니다', c.renderVals().rsnCaret==='∧');
+  // 예전에는 허공에 뜬 `∨`/`∧` 한 글자였습니다. 설정의 묶음 줄과 같은 30px
+  // 동그라미가 됐고, 글리프도 설정이 쓰는 그 둘입니다(쉰아홉째).
+  ok('펼침 표시가 바뀝니다', c.renderVals().rsnChev==='▾');
+  ok('열리면 동그라미가 빨갛게 반전됩니다',
+    c.renderVals().rsnChevBg==='var(--color-accent)'
+    && c.renderVals().rsnChevInk==='var(--color-bg)');
   c.pickReason('machine');
   ok('고르면 다시 접힙니다', c.state.rsnOpen===false);
   ok('고른 사유가 그 자리에 남습니다', c.renderVals().rsnPickedKo===c.T('rsn_machine'));
@@ -6425,8 +6430,15 @@ console.log('\n== 열리는 것과 열리지 않는 것 ==');
   // 예전 표시는 11px 회색 글리프 하나였고, 바로 옆 요약도 같은 크기의 같은
   // 회색이었습니다. 그것은 단추가 아니라 문장부호로 읽힙니다.
   const circle = 'width:30px;height:30px';
-  ok('동그라미는 아홉 개 — 묶음 줄마다 하나입니다',
-    (tplQ.split(circle).length - 1) === 9, 'got ' + (tplQ.split(circle).length - 1));
+  // 아홉은 묶음 줄의 것이고, 열째는 조퇴 사유 시트의 것입니다 — 쉰아홉째가
+  // 이 동그라미를 그 시트에도 붙였습니다. 열한째가 생기면 이 수가 늘고, 그때
+  // 그것이 정말 접히는 것을 여는 단추인지 눈으로 보게 됩니다.
+  ok('동그라미는 열 개 — 묶음 줄 아홉과 사유 시트 하나입니다',
+    (tplQ.split(circle).length - 1) === 10, 'got ' + (tplQ.split(circle).length - 1));
+  ok('그 열째가 사유 시트의 것입니다',
+    tplQ.indexOf(circle, tplQ.indexOf('{{ rsnToggle }}')) > 0
+    && tplQ.indexOf(circle, tplQ.indexOf('{{ rsnToggle }}'))
+       < tplQ.indexOf('{{ rsnChev }}') + 4);
   ok('예전의 14px 글리프 자리가 남아 있지 않습니다',
     tplQ.indexOf('flex:none;width:14px;text-align:center') < 0);
 
@@ -7216,8 +7228,9 @@ console.log('\n== 펴진 것이 어디서 끝나는지 화면이 말하지 않�
    '{{ employerVal }}','{{ bosuVal }}']
     .forEach(t => ok('칸이 살아 있습니다 ' + t, tplQ.indexOf(t) > 0));
   // 동그라미와 요약 줄도 그대로입니다 — 이번에 더한 것은 본문의 바탕 하나입니다
-  ok('동그라미는 여전히 아홉 개입니다',
-    (tplQ.split('width:30px;height:30px').length - 1) === 9);
+  // 쉰아홉째가 사유 시트에 열째를 붙였습니다 — 묶음 줄의 아홉은 그대로입니다
+  ok('묶음 줄의 동그라미는 여전히 아홉 개입니다',
+    (tplQ.match(/background:\{\{ g\w+ChevBg \}\}/g) || []).length === 9);
 }
 
 // ══ 조퇴 사유 창만 앞 시대의 모양으로 남아 있었습니다 ══════════════════════
@@ -7275,7 +7288,7 @@ console.log('\n== 조퇴 사유 창이 앞 시대의 모양으로 남아 있었�
   // 여백이지 손가락이 닿는 자리가 아닙니다 — min-height는 44px 바닥 위입니다.
   const head = (sheet.match(/<div onClick="\{\{ rsnToggle \}\}" style="[^"]*"/) || [''])[0];
   ok('드롭다운 머리가 46 + 0 + 2 = 50px입니다',
-    /min-height:46px;[^"]*padding:0 12px;border:2px solid var\(--color-text\)/.test(head), head.slice(24, 90));
+    /min-height:46px;[^"]*padding:0 12px;border:2px solid var\(--color-neutral-300\)/.test(head), head.slice(24, 90));
   ok('예전 52px과 위아래 여백이 사라졌습니다',
     head.indexOf('min-height:52px') < 0 && head.indexOf('padding:6px 12px') < 0);
   // 사유 줄 셋 — 자리가 셋이라 하나만 고치면 다른 두 무리가 예전 모양으로
@@ -7297,7 +7310,7 @@ console.log('\n== 조퇴 사유 창이 앞 시대의 모양으로 남아 있었�
   // 틀의 둥근 위가 만나 이음매가 잘록해졌습니다 — 마흔두째·마흔넷째와 같은
   // 잘못입니다: **가르는 선을 두르는 선처럼 그린 것.**
   ok('목록을 감싼 검은 틀이 없습니다', sheet.indexOf('border-top:0') < 0);
-  ok('줄이 머리와 같은 왼쪽 끝에 섭니다', sheet.indexOf('style="padding:2px 0 9px"') > 0);
+  ok('줄이 머리와 같은 왼쪽 끝에 섭니다', sheet.indexOf('style="padding:2px 0 9px;') > 0);
 
   // ── 5 · 고르지 않은 것은 칠하지 않습니다 ───────────────────────────────
   // 판이 흰색이 된 지금 `--color-bg`로 칠한 줄은 흰 카드 위의 회색 덩어리입니다.
@@ -7357,13 +7370,167 @@ console.log('\n== 조퇴 사유 창이 앞 시대의 모양으로 남아 있었�
   ['{{ L.rsnPickHead }}', '{{ L.rsnEmployerHead }}', '{{ L.rsnWorkerHead }}',
    '{{ L.rsnOtherHead }}', '{{ L.rsnWhoseHead }}', '{{ L.rsnNoteHead }}',
    '{{ rsnEffect }}', '{{ rsnKoHint }}', '{{ rsnKoWarn }}', '{{ earlyNote }}',
-   '{{ rsnSaveLbl }}', '{{ rsnSkipLbl }}', '{{ rsnCaret }}']
+   '{{ rsnSaveLbl }}', '{{ rsnSkipLbl }}', '{{ rsnChev }}']
     .forEach(t => ok('그 자리가 살아 있습니다 ' + t, sheet.indexOf(t) > 0));
   // 그리고 하던 일도 그대로입니다
   c.saveReason();
   ok('고른 사유가 그대로 붙습니다', c.state.extra[0].reason.id === 'machine');
   ok('회사 사정도 그대로입니다', c.state.extra[0].reason.fault === 'employer');
   ok('닫히면 목록도 접힙니다', c.state.reasonFor === null && c.state.rsnOpen === false);
+}
+
+// ══ 사유 창의 접는 표시가 앱의 다른 접는 표시와 달랐습니다 ════════════════
+// 만든 사람이 폰에서 그 창을 열고 말했습니다: **접는 아이콘을 설정의 그것과
+// 같은 모양으로 해 주십시오. 그리고 이 창은 아직 예전 앱에서 온 것처럼
+// 보입니다 — 앱의 다른 화면과 어울리게 고쳐도 좋습니다.**
+//
+// 쉰여섯째가 이 창의 틀과 모서리와 알약 높이를 고쳤는데, **안쪽에 무엇이
+// 어떤 문법으로 서 있는가**는 그대로 두었습니다. 재 보면 셋이 어긋나 있었고,
+// 셋 다 이 앱이 이미 답을 갖고 있는 자리입니다.
+console.log('\n== 사유 창의 접는 표시가 앱의 다른 접는 표시와 달랐습니다 ==');
+{
+  const fs = require('fs');
+  const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tpl = src.split('class Component')[0];
+  const a = tpl.indexOf('{{ earlySheet }}');
+  const z = tpl.indexOf('grid-template-columns:1fr 1fr 1fr 1fr 1fr');
+  ok('구간이 사유 시트입니다', a > 0 && z > a, a + '..' + z);
+  const sheet = tpl.slice(a, z);
+  const ds = fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
+
+  // ── 1 · 글리프 하나는 문장부호로 읽힙니다 ──────────────────────────────
+  // 마흔넷째가 설정에서 겪은 그것입니다 — 11px 회색 `▸` 하나가 오른쪽 끝
+  // 허공에 떠 있으면 단추가 아니라 문장부호로 읽힙니다. 설정은 그때 그것을
+  // 30px 동그라미로 바꿨고, 이 시트만 15px `∨` 한 글자로 남아 있었습니다.
+  ok('허공에 뜬 글리프가 사라졌습니다', sheet.indexOf('{{ rsnCaret }}') < 0);
+  ok('그 글자도 소스에 남아 있지 않습니다',
+    sheet.indexOf("'∨'") < 0 && sheet.indexOf("'∧'") < 0);
+  const hA = sheet.indexOf('<div onClick="{{ rsnToggle }}"');
+  const head = sheet.slice(hA, sheet.indexOf('{{ rsnOpen }}', hA));
+  ok('머리 구간이 잡혔습니다', hA > 0 && head.indexOf('{{ rsnChev }}') > 0, head.length + '자');
+  // 설정의 그 마크업과 **글자까지 같은** 상자라야 층의 규칙 2g가 잡습니다
+  const SETUP_CIRCLE = 'flex:none;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:13px;background:';
+  ok('머리에 30px 동그라미가 섰습니다', head.indexOf(SETUP_CIRCLE) > 0, head.slice(-140));
+  ok('그 상자가 설정 묶음 줄의 것과 같은 셈입니다',
+    (tpl.split(SETUP_CIRCLE).length - 1) === 10);
+  // 모양은 층이, 색은 renderVals가 — 인라인에 모서리를 적으면 그 요소만
+  // 조용히 층 바깥으로 나갑니다(마흔째)
+  ok('동그라미의 색은 홀이고 마크업에 박혀 있지 않습니다',
+    /background:\{\{ rsnChevBg \}\};color:\{\{ rsnChevInk \}\}/.test(head));
+  ok('시트에 인라인 모서리가 하나도 없습니다', sheet.indexOf('border-radius') < 0);
+
+  // ── 2 · 층의 규칙이 #tabScroll 안쪽만 보고 있었습니다 ──────────────────
+  // 이 시트는 탭 스크롤 상자 **바깥**의 오버레이입니다(마흔째가 적어 둔 그
+  // 사실). 그래서 같은 동그라미를 붙여도 규칙 2g가 닿지 않아 **조용히 네모로**
+  // 남습니다 — 쉰세째가 26px 번호에서 겪은 그 자리입니다. 모양이 안 붙는 것은
+  // 오류를 내지 않습니다(마흔째).
+  const circleRule = (ds.match(/^[^\n]*\[style\*="width: 30px"\]\[style\*="height: 30px"\][^\n]*$/m) || [''])[0];
+  ok('그 규칙이 --radius-pill을 줍니다', /--radius-pill/.test(circleRule), circleRule.slice(0, 60));
+  ok('그 규칙에 #tabScroll이 없습니다', circleRule.indexOf('#tabScroll') < 0);
+  // 무게가 (속성 둘)로 내려가도 다툴 상대가 없습니다 — 이 상자에는 테두리도
+  // cursor:pointer도 min-height도 없어서 규칙 2·2b·2c·2e가 잡지 않습니다
+  ok('동그라미에는 테두리가 없습니다',
+    !/width:30px;height:30px;[^"]*border:/.test(head));
+
+  // ── 3 · 펴진 것이 어디서 끝나는지 화면이 말하지 않았습니다 ─────────────
+  // 쉰다섯째가 설정에서 겪은 그것입니다. 여기서는 더 심합니다 — 펼치면 사유
+  // 열둘이 화면 하나를 넘게 늘어서고 그 끝에 메모 칸과 저장 단추가 이어지는데,
+  // 그 사이에 경계가 하나도 없었습니다.
+  //
+  // **홀 하나를 머리와 본문이 나눠 씁니다** — 갈라지면 띠와 본문이 다른 회색
+  // 으로 서서 고치기 전보다 더 헷갈립니다(쉰다섯째).
+  ok('띠는 홀 하나이고 두 자리가 나눠 씁니다',
+    (sheet.match(/\{\{ rsnHeadBg \}\}/g) || []).length === 2,
+    (sheet.match(/\{\{ rsnHeadBg \}\}/g) || []).length + '자리');
+  ok('한 자리는 머리입니다', /background:\{\{ rsnHeadBg \}\};cursor:pointer/.test(head));
+  ok('다른 한 자리는 본문입니다',
+    sheet.indexOf('style="padding:2px 0 9px;background:{{ rsnHeadBg }}"') > 0);
+
+  const c = mk(V2, '2026-08-11T14:00:00');
+  c.state.session = { inIso: new Date('2026-08-11T08:40:00').toISOString() };
+  c.punch();
+  ok('닫혀 있으면 머리는 바탕색입니다',
+    c.renderVals().rsnHeadBg === 'var(--color-bg)');
+  ok('닫혀 있으면 동그라미는 회색이고 ▸ 입니다',
+    c.renderVals().rsnChevBg === 'var(--color-neutral-200)'
+    && c.renderVals().rsnChev === '▸');
+  c.toggleRsnList();
+  ok('펼치면 머리에 옅은 회색 띠가 섭니다',
+    c.renderVals().rsnHeadBg === 'var(--color-neutral-150)');
+  ok('펼치면 동그라미가 빨갛게 반전되고 ▾ 입니다',
+    c.renderVals().rsnChevBg === 'var(--color-accent)'
+    && c.renderVals().rsnChevInk === 'var(--color-bg)'
+    && c.renderVals().rsnChev === '▾');
+  // 색을 새로 고르지 않았습니다 — 설정의 그 셋과 값까지 같습니다
+  c.setState({ setOpen: {}, rsnOpen: false });
+  const closed = c.renderVals();
+  ok('닫힌 색이 설정 묶음 줄의 것과 같습니다',
+    closed.gPayChevBg === closed.rsnChevBg
+    && closed.gPayChevInk === closed.rsnChevInk
+    && closed.gPayChev === closed.rsnChev);
+  c.setState({ setOpen: { grp_pay: true }, rsnOpen: true });
+  const open = c.renderVals();
+  ok('열린 색도 같습니다',
+    open.gPayChevBg === open.rsnChevBg && open.gPayChevInk === open.rsnChevInk
+    && open.gPayChev === open.rsnChev);
+  // 쉰다섯째가 카드 흰색과 바탕 사이에서 재서 고른 그 회색입니다 — 값을
+  // 새로 만들면 두 화면의 띠가 다른 회색으로 섭니다
+  ok('neutral-150은 바탕보다 열 단 어둡습니다',
+    (0xf3 - 0xe9) === 10 && /--color-neutral-150:\s*#e9e8e8/.test(ds));
+
+  // ── 4 · 터치에서 hover는 손을 떼도 남습니다 ────────────────────────────
+  // 마흔넷째가 폰에서 잡은 그것입니다. 상태를 말하는 색과 hover 색이 함께
+  // 서 있으면 **닫힌 것이 열린 것으로 보입니다.** 누름은 층의 :active가
+  // 말하고, 그 규칙은 두 오버레이가 한 벌을 나눠 씁니다(쉰여섯째).
+  ok('머리에 style-hover가 없습니다', head.indexOf('style-hover') < 0);
+  ok('누름은 여전히 층이 말합니다',
+    /\[style\*="z-index: 30"\] \[style\*="cursor: pointer"\]\[style\*="min-height:"\]:active/.test(ds));
+
+  // ── 5 · 메모 칸은 이 앱의 다른 서른네 칸과 같은 테두리입니다 ───────────
+  // 검은 2px 테두리는 이 앱에서 **묻는 카드**의 것입니다 — 기본금·성명·손으로
+  // 적는 출퇴근 시각. 그냥 적어 두는 메모 칸이 그 옷을 입고 있었습니다.
+  ok('메모 칸이 neutral-300 테두리입니다',
+    /placeholder="예: 금형 3호기 파손" style="[^"]*border:2px solid var\(--color-neutral-300\)/.test(sheet));
+  ok('그 칸의 바탕은 그대로 --color-bg입니다',
+    /placeholder="예: 금형 3호기 파손" style="[^"]*background:var\(--color-bg\)/.test(sheet));
+
+  // ── 6 · 고를 것은 하나도 바뀌지 않았습니다 ─────────────────────────────
+  // 사유 줄과 누구 사정 칩은 검은 테두리 그대로입니다 — 그것이 이 앱에서
+  // **고르는 칸**의 옷이고, 설정 흐름의 근무조 카드가 정확히 같은 모양입니다.
+  // 여기서 함께 부드럽게 만들면 이 창만 다시 다른 화면이 됩니다.
+  const ROW = 'min-height:46px;display:flex;flex-direction:column;justify-content:center;padding:0 12px;border:2px solid var(--color-text)';
+  ok('사유 줄 셋은 검은 테두리 그대로입니다', (sheet.split(ROW).length - 1) === 3);
+  ok('누구 사정 칩도 그대로입니다',
+    /min-height:46px;[^"]*border:2px solid var\(--color-text\)[^"]*"?>\{\{ f\.label \}\}/.test(sheet)
+    || sheet.indexOf('{{ f.label }}') > 0);
+  ok('취소도 검은 테두리 그대로입니다',
+    /<div onClick="\{\{ skipEarly \}\}" style="min-height:44px;[^"]*border:2px solid var\(--color-text\)/.test(sheet));
+  // 44px은 이 앱에서 누를 것의 바닥입니다(마흔한째) — 자리 수도 그대로 일곱
+  const taps = sheet.split('style="').slice(1)
+    .map(t => t.slice(0, t.indexOf('"')))
+    .filter(t => t.indexOf('cursor:pointer') >= 0)
+    .map(t => (t.match(/min-height:(\d+)px/) || [0, 0])[1] * 1);
+  ok('시트 안에서 누를 것이 일곱 자리 그대로입니다 (' + taps.join(',') + ')', taps.length === 7);
+  ok('44px 밑으로 내려간 것이 없습니다', taps.every(h => h >= 44));
+
+  // ── 7 · 하던 일은 그대로입니다 ─────────────────────────────────────────
+  // 이 앱은 증거를 만듭니다 — 모양을 고치면서 고를 것이 하나라도 없어지면
+  // 근로자가 그 날을 설명할 말을 잃습니다(서른두째).
+  const d = mk(V2, '2026-08-11T14:00:00');
+  d.state.session = { inIso: new Date('2026-08-11T08:40:00').toISOString() };
+  d.punch();
+  const R = d.renderVals();
+  ok('열두 가지가 모두 목록에 있습니다',
+    R.rsnEmployer.length + R.rsnWorker.length + R.rsnOther.length === 12);
+  ok('고르지 않은 사유는 여전히 칠하지 않습니다',
+    R.rsnEmployer.every(o => o.bg === 'transparent'));
+  d.pickReason('machine');
+  ok('고른 사유는 여전히 빨갛습니다',
+    d.renderVals().rsnEmployer.filter(o => o.id === 'machine')[0].bg === 'var(--color-accent)');
+  d.saveReason();
+  ok('고른 사유가 그대로 붙습니다', d.state.extra[0].reason.id === 'machine');
+  ok('회사 사정도 그대로입니다', d.state.extra[0].reason.fault === 'employer');
+  ok('닫히면 목록도 접힙니다', d.state.reasonFor === null && d.state.rsnOpen === false);
 }
 
 console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');

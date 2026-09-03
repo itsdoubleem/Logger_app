@@ -306,12 +306,24 @@ console.log('\n== 설정 · 열리는 것과 열리지 않는 것 ==');
   ok('그 규칙도 첫 페인트에 있습니다', head.indexOf('padding: 0px 18px 7px') > 0);
 
   // ── 2 · 동그라미는 그린 단추입니다 ──
-  // 30×30은 소스에 이 아홉 개뿐입니다. 26px 근무기록 배지(2d)도, min-height
-  // 30px 알약(2b)도 이 선택자에 걸리지 않습니다.
-  ok('층이 동그라미의 모양을 정합니다',
-    /#tabScroll \[style\*="width: 30px"\]\[style\*="height: 30px"\][^{]*\{[^}]*--radius-pill/.test(css));
+  // 30×30은 소스에 이 열 개뿐입니다 — 묶음 줄 아홉과 조퇴 사유 시트 하나.
+  // 26px 근무기록 배지(2d)도, min-height 30px 알약(2b)도 이 선택자에
+  // 걸리지 않습니다.
+  //
+  // 선택자에서 `#tabScroll`이 빠졌습니다(쉰아홉째). 사유 시트는 탭 스크롤
+  // 상자 **바깥**의 오버레이라, 좁혀 둔 채로 같은 동그라미를 붙이면 그것만
+  // 조용히 네모로 남습니다 — 쉰세째가 26px 번호에서 겪은 그 자리입니다.
+  const circleRule = (css.match(/^[^\n]*\[style\*="width: 30px"\]\[style\*="height: 30px"\][^\n]*$/m) || [''])[0];
+  ok('층이 동그라미의 모양을 정합니다', /--radius-pill/.test(circleRule), circleRule.slice(0, 60));
+  ok('그 규칙에 #tabScroll이 없습니다', circleRule.indexOf('#tabScroll') < 0);
   const circles = (src.match(/width:30px;height:30px/g) || []).length;
-  ok('30px 상자는 아홉뿐입니다 (' + circles + '개)', circles === 9);
+  ok('30px 상자는 열뿐입니다 (' + circles + '개)', circles === 10);
+  // 그 열째가 사유 시트의 것입니다 — 색은 홀이고 마크업에 박혀 있지 않습니다
+  ok('사유 시트의 동그라미도 색이 홀입니다',
+    /background:\{\{ rsnChevBg \}\};color:\{\{ rsnChevInk \}\}/.test(src));
+  ok('그 시트에 인라인 모서리가 없습니다',
+    src.slice(src.indexOf('{{ earlySheet }}'),
+              src.indexOf('grid-template-columns:1fr 1fr 1fr 1fr 1fr')).indexOf('border-radius') < 0);
   // 모양은 층이, 색은 setGroupVals가 — 인라인에 모서리를 적으면 그 요소만
   // 조용히 층 바깥으로 나갑니다(마흔째)
   ok('동그라미의 색은 홀이고 마크업에 박혀 있지 않습니다',
@@ -410,9 +422,13 @@ console.log('\n== 설정 흐름의 단추가 눌린 티를 냅니다 ==');
 
   // !important가 하나도 없어야 합니다 — 비어 있는 속성이라 다툴 일이 없습니다
   ok('그 규칙에는 !important가 없습니다', act.indexOf('!important') < 0);
-  // 소스가 그 둘을 한 번도 쓰지 않는다는 것이 이 규칙이 서 있는 근거입니다
+  // 소스가 그 둘을 한 번도 쓰지 않는다는 것이 이 규칙이 서 있는 근거입니다.
+  // 주석은 그 둘을 **쓰는 것이 아니라 가리키는 것**이라 먼저 걷어냅니다 —
+  // 걷어내지 않으면 층의 누름 규칙을 설명하는 주석 한 줄이 이 시험을
+  // 실패시키고, 실패 문구는 그것이 주석이라고 말해 주지 않습니다.
+  const bare = src.split('\n').filter(l => l.trim().indexOf('//') !== 0).join('\n');
   ok('소스에 :active도 filter도 없습니다',
-    src.indexOf(':active') < 0 && !/[^-]filter:/.test(src));
+    bare.indexOf(':active') < 0 && !/[^-]filter:/.test(bare));
 
   // min-height를 함께 요구하는 것이 이번의 판단입니다 — 굴리는 칸은 height라
   // 걸리지 않습니다. 던져서 굴리는 중에 바탕이 번쩍이면 되먹임이 아니라 고장으로
