@@ -15,7 +15,7 @@
 #
 # This touches app/build.gradle and nothing else. In particular it does NOT
 # touch the 근무내역서's '작성 도구' line — what that should say has not been
-# decided (see CLAUDE.md, the twenty-third entry).
+# decided (see CHANGELOG.md, the twenty-third entry).
 set -e
 cd "$(dirname "$0")"
 

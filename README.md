@@ -4,7 +4,8 @@
 > [`CLAUDE.md`](CLAUDE.md). It is the map: which version ships, how the single-file
 > source is shaped, what the build actually does, how to see a change on a real
 > screen, and the traps that have caught people. Then come back here for the wage
-> rules and read [`V2.md`](V2.md) for why things are the way they are.
+> rules; for why things are the way they are, read [`V2.md`](V2.md) (the v1 bugs that
+> made v2) and grep [`CHANGELOG.md`](CHANGELOG.md) (everything since).
 >
 > **There is now a v2.** See [`V2.md`](V2.md) for the bugs found in the app below
 > and what changed. Source `WorkLogApp.v2.dc.html`, built with `python3 build.py v2`
