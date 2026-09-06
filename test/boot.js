@@ -115,6 +115,73 @@ console.log('\n== 모양은 소스가 아니라 ds-tokens.css에 있습니다 ==
   ok('알약이 일곱 개이고 층이 그 모양을 정합니다 (' + chips + '개)',
     chips === 7 && /\[style\*="min-height: 30px"\]\[style\*="display: inline-flex"\][^{]*\{[^}]*--radius-pill/.test(css));
 
+  // ON SHIFT 앞의 점은 앱이 '지금 근무중'이라고 말하는 유일한 자리인데 9px
+  // 네모라 옆의 문장부호와 같은 무게였습니다. 규칙 8이 그것을 켜진 등으로
+  // 바꿉니다 — 선택자는 그 요소의 크기 자체이므로, 소스에 9px 사각형이 하나
+  // 더 생기면 엉뚱한 것이 빛나고 아무도 오류를 보지 못합니다.
+  // 점은 둘입니다 — 출퇴근 카드의 9px와 근무기록 진행 중인 줄의 4px. 크기가
+  // 다른 것은 옆에 선 글자가 다르기 때문이고(13px 자간 vs 12px 본문), 같은
+  // 사실을 말하므로 층이 둘 다 이름을 불러야 합니다. 크기가 층이 이 점들을
+  // 붙잡고 있는 손잡이라, 크기를 바꾸면 조용히 규칙 바깥으로 나갑니다.
+  ok('점이 앱에 둘뿐이고 둘 다 근무중을 말합니다',
+    (src.match(/width:9px;height:9px;flex:none;[^"]*background:\{\{ padIconInk \}\}/g) || []).length === 1
+    && (src.match(/width:4px;height:4px;[^"]*background:\{\{ r\.liveInk \}\}/g) || []).length === 1
+    && (src.match(/width:9px/g) || []).length === 1
+    && (src.match(/width:4px/g) || []).length === 1);
+  ok('층이 두 크기를 다 부르고, 저마다 제 후광을 씁니다',
+    /\[style\*="width: 4px"\]\[style\*="height: 4px"\] \{[^}]*--radius-pill[^}]*animation: onshift-lamp-sm/.test(css.replace(/\n/g, ' '))
+    && /@keyframes onshift-lamp-sm/.test(css));
+  // 이 한 줄이 세 번 어긋났고, 셋 다 화면은 조용했습니다.
+  //  1) 등을 flex 형제로 칸 안에 세움 → 등이 칸의 폭을 먹어 이 줄의 글자만
+  //     11px 오른쪽에서 시작(점 4 + gap 7).
+  //  2) 음수 margin으로 여백에 걺 → 글자 칸은 맞았지만 접힌 둘째 줄이 등이
+  //     아니라 'ON SHIFT' 밑에 섬.
+  //  3) 등을 글줄 안(inline-block)에 넣음 → 접힌 줄은 등 밑에 왔지만, 이번에는
+  //     'ON SHIFT'가 등만큼 밀려 아래 줄들의 글자와 어긋남.
+  // 답은 **매다는 들여쓰기**입니다. 등은 글줄의 첫 글자이고, 첫 줄만 등의 폭
+  // 만큼 왼쪽으로 내밉니다: 글자는 아래 줄들과 같은 자리에서 시작하고 등은
+  // 그 왼쪽 여백에 걸립니다. 셋의 합이 0이어야 하고, 하나만 바꾸면 글자 칸이
+  // 조용히 다시 어긋납니다.
+  {
+    const dot = (src.match(/<span style="display:inline-block;width:(\d+)px;height:\d+px;margin-right:(\d+)px;vertical-align:2px;background:\{\{ r\.liveInk \}\}/) || []);
+    const w = parseFloat(dot[1]), mr = parseFloat(dot[2]);
+    ok('등이 글줄 안에 서 있습니다 (inline-block)', dot.length > 0);
+    ok('첫 줄이 등의 폭만큼 내밀립니다 (' + w + ' + ' + mr + ' + -8 = ' + (w + mr - 8) + ')',
+      w + mr - 8 === 0 && /text-indent:\{\{ r\.ioIndent \}\}/.test(src)
+      && /ioIndent: '-8px'/.test(src));
+    // 등이 없는 줄까지 내밀리면 아래 줄들이 다 어긋납니다
+    ok('등이 없는 줄은 내밀지 않습니다', /r\.ioIndent = '0'/.test(src));
+    // 그리고 글자 칸은 flex가 아니라 그냥 글줄입니다 — 접힘이 여기서 나옵니다
+    ok('글자 칸이 평범한 글줄입니다', !/display:flex;align-items:flex-start;gap:\d+px;font-variant-numeric/.test(src));
+  }
+
+  // 작은 점에 큰 후광을 그대로 물려주면, 점만 줄고 빛은 그대로라 오히려 커
+  // 보입니다 — 만든 사람이 폰에서 그것을 짚었습니다. 후광도 함께 작아야 합니다.
+  {
+    const big = (css.match(/@keyframes onshift-lamp \{[\s\S]*?\n\}/) || [''])[0];
+    const sm  = (css.match(/@keyframes onshift-lamp-sm \{[\s\S]*?\n\}/) || [''])[0];
+    const max = t => Math.max(...(t.match(/0 0 0 ([\d.]+)px/g) || ['0 0 0 0px']).map(x => parseFloat(x.slice(6))));
+    ok('작은 등의 후광이 큰 등보다 작습니다 (' + max(sm) + ' < ' + max(big) + ')', max(sm) < max(big));
+  }
+  ok('층이 그 점을 동그란 등으로 만듭니다',
+    /\[style\*="width: 9px"\]\[style\*="height: 9px"\][^{]*\{[^}]*--radius-pill[^}]*box-shadow[^}]*animation: onshift-lamp/.test(css.replace(/\n/g, ' '))
+    && /@keyframes onshift-lamp/.test(css));
+  // flex는 선택자에 넣지 않습니다. React는 짧은 표기를 다시 띄어 쓰는 것이
+  // 아니라 펼칩니다 — 소스의 `flex:none`이 DOM에서는 `flex: 0 0 auto`입니다.
+  // 한 번 넣었더니 아무것도 안 잡혀서 점이 그대로 네모였고, 오류는 없었습니다.
+  ok('점 선택자가 flex를 짚지 않습니다',
+    !/\[style\*="width: 9px"\][^{]*flex: none/.test(css));
+  // 손가락을 대고 있는 동안 padIconInk가 페이지 회색으로 뒤집히므로, 후광이
+  // 초록 리터럴이면 회색 점 둘레에 초록 고리만 남습니다. currentColor여야 합니다.
+  const lamp = (css.match(/@keyframes onshift-lamp[\s\S]*?\n\}/) || [''])[0];
+  ok('후광이 currentColor를 따라갑니다',
+    lamp.includes('currentColor') && !/rgba?\(|#[0-9a-f]{3}|oklch/i.test(lamp));
+  // 흰 카드 위에서는 흐린 그림자가 빛이 아니라 때로 읽힙니다 — 처음 판이 그래서
+  // 물러났습니다. 후광은 흐림 0에 단단한 테두리 셋으로 그립니다.
+  ok('후광에 흐림이 없습니다',
+    (lamp.match(/0 0 0 /g) || []).length === 6
+    && !/box-shadow:[^;]*\d+px \d+px/.test(lamp));
+
   // 채워진 단추에는 테두리가 없어서 규칙 2가 닿지 않았습니다 — 옆에 나란히 선
   // 테두리 단추만 둥글고 확인·추가는 네모였습니다. 높이로 잡습니다: 소스가
   // 단추에 실제로 쓰는 여섯 높이입니다. 색으로 잡으면 조퇴 사유의 저장 단추가

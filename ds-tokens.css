@@ -420,3 +420,104 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
 }
+
+/* ── 8 · the ON SHIFT dot ───────────────────────────────────────────────── */
+/* `■ ON SHIFT · 특근` under the punch pad is the only place the app says the
+   worker is *on the clock right now*, and it said it with a 9px square the
+   same weight as the punctuation beside it. A worker glancing at the phone
+   mid-shift had to read the words to know. The 근무기록 row for a shift that
+   has not been punched out is the same sentence in a list, and it was grey
+   12px like the ten finished rows above it.
+   Both become a round lamp with a halo that breathes. Three properties do it
+   and the source names none of them — `border-radius` and `box-shadow` were
+   already free (see the header of this file) and `animation` occurs zero
+   times in the whole app — so this wins with no !important, exactly like the
+   rest of the layer.
+
+   **The halo is built from hard-edged spreads, not from blur.** The first
+   attempt was one blurred shadow, the way a glow is normally drawn, and on
+   the phone it read as a smudge — the maker's word was *ugly*. Blur is how
+   you draw light on a dark ground: the halo has to be *brighter* than what
+   is behind it. This card is white, so there is nothing brighter to go to,
+   and a blurred dark green on white is not a glow at all — it is a shadow,
+   and the eye reads it as dirt on the screen.
+   What reads as a lamp on white is the opposite: **no blur, three concentric
+   spreads at falling alpha** (30% → 14% → 5%). Each edge is crisp, so nothing
+   looks smeared, and stacking three of them gives the falloff the blur was
+   supposed to give. It is also the app's own vocabulary — this design system
+   draws everything with hard edges.
+
+   **Two sizes, and the halo is sized to its own dot.** 9px on the punch card
+   beside a 13px letter-spaced label; 4px in 근무기록 beside 12px body text.
+   The first try gave the small dot the *big* halo and the maker said it
+   looked awkwardly big — correctly: a halo reaching 6px past a 7px dot is a
+   19px lamp next to 12px text, so what shrank was the dot and not the light
+   around it. Each size carries its own halo, and each row's `gap` is wider
+   than that halo (7px vs 6px on the pad, 7px vs 3px here) so the light never
+   crowds the first letter.
+   4px is measured against the row, not chosen: the period in `09.06` is 2px
+   of ink (13px Archivo 700, measured on a canvas), and the maker asked for
+   that dot slightly bigger. 3px was tried and the halo vanished with it —
+   at that size it reads as a stray mark, not a lamp.
+
+   The selector is the element's own geometry: `width: 9px`/`4px` with the
+   matching height occur once each in the whole source, and only on these two
+   dots (asserted in test/boot.js). Normalised form — colon then space — or
+   it matches nothing and fails silently. **A size is what the layer is
+   holding these by**: changing 9px to 7px once dropped that dot out of the
+   rule entirely and it went back to a hard square, in silence.
+   The dot's third inline property, flex, is deliberately not in the
+   selector. React does not merely re-space a shorthand, it expands it: the
+   source says `flex:none` and the attribute in the DOM reads `flex: 0 0
+   auto`. A clause matching on the source spelling caught nothing, and the
+   dot stayed a hard green square with no error anywhere — the same silence
+   the header of this file is about.
+   The halo is `currentColor`, not a literal green: the pad's dot inherits
+   `padIconInk` from its row, so while a finger is held on the pad and the
+   ink flips to the page grey the glow follows it instead of leaving a green
+   ring around a grey dot. (The 근무기록 dot sets its own `color` inline, for
+   the same reason in reverse — its row's ink is neutral grey.) The plain
+   rgba blocks are the same green as `oklch(0.52 0.14 149)`, kept for an
+   engine without `color-mix` — there the dots are round and lit, just not
+   breathing. */
+[style*="width: 9px"][style*="height: 9px"] {
+  border-radius: var(--radius-pill);
+  box-shadow: 0 0 0 1.5px rgba(22, 128, 60, .30),
+              0 0 0 3px   rgba(22, 128, 60, .14),
+              0 0 0 4.5px rgba(22, 128, 60, .05);
+  box-shadow: 0 0 0 1.5px color-mix(in oklab, currentColor 30%, transparent),
+              0 0 0 3px   color-mix(in oklab, currentColor 14%, transparent),
+              0 0 0 4.5px color-mix(in oklab, currentColor 5%, transparent);
+  animation: onshift-lamp 2.7s ease-in-out infinite;
+}
+[style*="width: 4px"][style*="height: 4px"] {
+  border-radius: var(--radius-pill);
+  box-shadow: 0 0 0 .75px rgba(22, 128, 60, .32),
+              0 0 0 1.5px rgba(22, 128, 60, .15),
+              0 0 0 2.25px rgba(22, 128, 60, .06);
+  box-shadow: 0 0 0 .75px color-mix(in oklab, currentColor 32%, transparent),
+              0 0 0 1.5px color-mix(in oklab, currentColor 15%, transparent),
+              0 0 0 2.25px color-mix(in oklab, currentColor 6%, transparent);
+  animation: onshift-lamp-sm 2.7s ease-in-out infinite;
+}
+@keyframes onshift-lamp {
+  0%, 100% { box-shadow: 0 0 0 1.5px color-mix(in oklab, currentColor 30%, transparent),
+                         0 0 0 3px   color-mix(in oklab, currentColor 14%, transparent),
+                         0 0 0 4.5px color-mix(in oklab, currentColor 5%, transparent); }
+  50%      { box-shadow: 0 0 0 2px   color-mix(in oklab, currentColor 40%, transparent),
+                         0 0 0 4px   color-mix(in oklab, currentColor 20%, transparent),
+                         0 0 0 6px   color-mix(in oklab, currentColor 8%, transparent); }
+}
+@keyframes onshift-lamp-sm {
+  0%, 100% { box-shadow: 0 0 0 .75px color-mix(in oklab, currentColor 32%, transparent),
+                         0 0 0 1.5px color-mix(in oklab, currentColor 15%, transparent),
+                         0 0 0 2.25px color-mix(in oklab, currentColor 6%, transparent); }
+  50%      { box-shadow: 0 0 0 1px   color-mix(in oklab, currentColor 42%, transparent),
+                         0 0 0 2px   color-mix(in oklab, currentColor 22%, transparent),
+                         0 0 0 3px   color-mix(in oklab, currentColor 9%, transparent); }
+}
+/* A worker who has switched motion off keeps the lamp, without the breath. */
+@media (prefers-reduced-motion: reduce) {
+  [style*="width: 9px"][style*="height: 9px"],
+  [style*="width: 4px"][style*="height: 4px"] { animation: none; }
+}

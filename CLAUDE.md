@@ -56,7 +56,7 @@ migration run on a real phone.
 - **`V2.md`** — every bug found by actually using v1 on shift, and what changed. Read
   Part 1 before you "fix" anything that looks odd; it is probably deliberate and the
   reasoning is written down.
-- **`CHANGELOG.md`** — the same thing for everything since v2 shipped: sixty-six
+- **`CHANGELOG.md`** — the same thing for everything since v2 shipped: sixty-seven
   entries, each a bug found on shift and the rule it taught. Grep it before changing
   a screen. It used to be the tail of this file; see the last section.
 - **`DEPLOY.md`** — building, hosting, HTTPS, WebAuthn, TWA, the APK.
@@ -328,7 +328,7 @@ value afterwards when you have been tapping near real settings.
   moves when either does.
 ## Rules the change log taught
 
-Sixty-six entries, and they keep teaching one lesson in different costumes: **in this
+Sixty-seven entries, and they keep teaching one lesson in different costumes: **in this
 app the failure mode is silence.** A selector that matches nothing, a `margin` the
 layer already owns, a `var(--…)` absent at first paint, a function that takes a period
 and then reads `this.st()` — none of them throw. The screen keeps its old shape, or
@@ -358,7 +358,9 @@ the whole story, which is always longer and usually has a table in it.
   (forty-third)
 - **Write selectors against the DOM's normalised value, not the source.** React
   re-serialises inline styles: source `border:2px solid`, attribute `border: 2px solid`.
-  (fortieth)
+  It also *expands* shorthands — source `flex:none`, attribute `flex: 0 0 auto` — so a
+  clause copied from the source can match nothing, silently. Two clauses that already
+  pin the element are enough; a third is one more place to be wrong. (sixtieth, fortieth)
 - **`box-sizing` is `content-box`.** `min-width`/`width` exclude padding, so the width on
   screen is the declared width plus the inline padding. (fifty-second)
 - **Greying something has two neighbours** — card white `#ffffff` and ground `#f3f2f2`,
@@ -375,6 +377,32 @@ the whole story, which is always longer and usually has a table in it.
 - **`transform` inside `scroll-snap` moves the snap rectangle.** The browser re-snaps and
   the code reads that scroll as the worker's finger; it surfaces as a value reverting,
   so it does not look like a shape bug at all. (forty-fifth)
+- **Changing a size can drop an element out of the layer.** Rule 8 catches the ON SHIFT
+  lamp by its `width`/`height`; shrinking one dot took it out of the rule and it went back
+  to a hard square, silently. Ask what the layer is holding an element by before you
+  resize it. (sixtieth)
+- **Shrink the glow with the thing that glows.** A halo reaching 6px past a 7px dot is a
+  19px lamp: shrinking only the dot makes it read *bigger*, not smaller. What the eye
+  measures is the lit footprint, so each size carries its own halo. (sixtieth)
+- **`vertical-align: middle` is not the middle of the text** — it is half the *x-height*
+  (2.69px above the baseline in Archivo 12px), so anything set beside capitals sits low.
+  Measure the neighbouring word's ink box and use a length. Measure the letter *bodies*:
+  Vietnamese and Thai read ~1px higher only because of marks stacked above them, and
+  chasing that floats the marker off the top of the line. (sixtieth)
+- **Take a size from the type beside it, don't pick one.** "As small as the dot in 09.06"
+  is measurable: draw the glyph on a canvas and read its ink box — that period is 2×2px.
+  (sixtieth)
+- **A marker added to one row in a list wants a hanging indent, and nothing else works.**
+  Three arrangements each fixed one thing and broke another — as a flex sibling it eats the
+  text column and pushes that row's text right; hung outside with a negative margin the
+  column is right but continuation lines align to the text, not the marker; inline in the
+  flow the wrap is right but the first word is pushed by the marker's width. Keep it inline
+  (so wrapping obeys line rules) and pull only the first line back by its width:
+  `text-indent: -(width + gap)`. Make the indent a per-row value — it is set on the block,
+  so rows without a marker must get `0` or the whole list shifts. (sixtieth)
+- **Colour alone is already unique — don't also make it bold.** A row that is the only
+  green one in a list is found; adding weight makes it beat its neighbours instead of
+  differing from them. (sixtieth)
 - **When a number lives in more than one place, move all of them.** Source,
   `ds-tokens.css` and the tests carry the same figures — `DRUM_ITEM` is 44 and the
   layer's selectors spell out `height: 132px` and `top: 44px`, so changing the source
@@ -423,6 +451,10 @@ the whole story, which is always longer and usually has a table in it.
   (thirty-third)
 - **Do not hand-build `{ ko, en }` labels — put them through `pair()`.** Six hand-built
   rows survived a fix that way; four were found only by opening the phone. (forty-sixth)
+- **To colour part of a sentence, cut the string — do not mint new keys.** Splitting a
+  sentence into fragments makes the next person re-decide word order in eight languages,
+  and a wrong order is silent. If every language already leads with the same phrase and
+  the same separator, slice on it and let a test count all eight. (sixtieth)
 - **For a two-line label, ask whether the lower line already *carries* the word**, not
   whether it equals it. Payslip words usually contain the short word — 수당, 심야, 공제
   get appended — so waiting for equality never fires. Then check that the word gets the
@@ -472,7 +504,7 @@ the whole story, which is always longer and usually has a table in it.
 
 ## Change log — `CHANGELOG.md`
 
-**Sixty-six entries, and they are the reasoning behind most of what looks odd in this
+**Sixty-seven entries, and they are the reasoning behind most of what looks odd in this
 app.** Each is a bug found by actually using it on shift, what changed, and why it was
 that fix and not the obvious one. Most end with a **다음 사람에게** paragraph — the rule
 the bug taught. Entries are cited by ordinal across the repo ("the twenty-third entry"),

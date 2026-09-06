@@ -2643,7 +2643,22 @@ console.log('\n== 야간조의 열려 있는 근무는 출근한 날의 기간�
   const back=c.renderVals();
   ok('지난 기간에 20일 밤 근무가 있습니다', back.logRows[0] && back.logRows[0].date==='08.20',
     back.logRows.length?back.logRows[0].date:'none');
-  ok('그 줄은 아직 퇴근 전이라고 말합니다', /근무중/.test(back.logRows[0].io), back.logRows[0].io);
+  // '근무중'은 이제 초록으로 칠해지는 앞토막(ioLive)이고 나머지가 io입니다 —
+  // 줄이 하는 말은 둘을 이어야 예전과 같습니다
+  ok('그 줄은 아직 퇴근 전이라고 말합니다',
+    /근무중/.test(back.logRows[0].ioLive + back.logRows[0].io),
+    back.logRows[0].ioLive + back.logRows[0].io);
+  ok('그 줄만 등이 켜져 있습니다',
+    back.logRows[0].live === true && back.logRows.slice(1).every(r => r.live === false));
+  // 여덟 언어가 모두 그 말을 맨 앞에 두고 ' · '로 끊습니다. 하나라도 그렇지
+  // 않으면 초록이 문장 한가운데를 자르거나 줄 전체를 삼킵니다 — 화면은
+  // 오류를 내지 않고 그냥 이상해집니다.
+  ['ko','en','vi','zh','th','id','ne','km'].forEach(Lg => {
+    const t = V2.STR['on_shift_in_not_clocked_out'][Lg];
+    const cut = t.indexOf(' · ');
+    ok(Lg + ': 근무중이 맨 앞에 서고 가운뎃점으로 끊깁니다',
+      cut > 0 && !t.slice(0, cut).includes('{p0}'), t);
+  });
 }
 
 console.log('\n== 지난 기간이 비어 있어도 처음 쓰는 사람처럼 보이지 않습니다 ==');
@@ -3791,6 +3806,9 @@ console.log('\n== 이름 한가운데의 O는 출퇴근 패드의 지문입니�
   ok('패드의 초록을 읽어 왔습니다', !!pad, String(pad));
   ok('로고의 초록이 패드와 같습니다',
     count(new RegExp('stroke="'+pad.replace(/[().]/g,'\\$&')+'"','g'))===3, pad);
+  ok('근무기록의 등도 패드와 같은 초록입니다',
+    (src.match(/liveInk: '(oklch\([^']+\))'/) || [])[1] === pad,
+    String((src.match(/liveInk: '(oklch\([^']+\))'/) || [])[1]));
   // 그림은 글자가 아니므로, 이름은 aria-label이 말해 줍니다
   ok('세 자리 모두 읽을 수 있는 이름이 붙어 있습니다',
     count(/aria-label="근무기록 LOGGER/g)===3);
