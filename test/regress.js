@@ -7739,5 +7739,45 @@ console.log('\n== 사유 창의 접는 표시가 앱의 다른 접는 표시와 
   ok('닫히면 목록도 접힙니다', d.state.reasonFor === null && d.state.rsnOpen === false);
 }
 
+console.log('\n== 백업을 펴면 띠와 본문 사이에 흰 줄이 그어졌습니다 ==');
+// 2026-09-06. 설정 › 백업을 열면 빨간 띠(accent-50)와 본문 사이에 카드 흰색이
+// 14px 한 줄 그어졌습니다. 열린 묶음의 띠는 줄과 본문 두 자리가 홀 하나를
+// 나눠 쓰기 때문에 색이 어긋날 길이 없는데도 그랬습니다 — 색이 아니라
+// **여백**이 원인이었습니다. 본문을 감싼 판은 padding도 border도 없는 맨
+// 상자였고, 그 안의 첫 아이가 `margin:14px 18px 0`을 들고 있어서 위쪽 margin이
+// 판 밖으로 빠져나갔습니다(margin collapsing). 판은 14px 아래에서 시작하고
+// 그 14px에는 카드 흰색이 남습니다.
+//
+// `margin:14px 18px 0`은 이 앱에서 탭 안 블록의 표준 여백입니다 — 다만 그
+// 자리들의 부모는 층 규칙 1이 `overflow:hidden`을 준 최상위 카드라 margin이
+// 새어 나갈 수 없습니다. 묶음 본문의 판에는 그 규칙이 닿지 않습니다.
+//
+// 다음 사람에게: 카드 **안**에서는 padding으로 띄웁니다(마흔셋째). 여기서는
+// 층이 margin을 가져가서가 아니라 margin이 부모 밖으로 흘러나가서였지만 답은
+// 같습니다. 아홉 묶음의 본문 판은 판이 padding을 가지거나, 첫 아이가 margin
+// 없이 padding으로 띄우거나 — 둘 중 하나여야 합니다.
+{
+  const fs = require('fs');
+  const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  // 주석 안의 옛 코드 조각이 걸리지 않도록 먼저 지웁니다.
+  const tpl = src.slice(0, src.indexOf('</x-dc>')).replace(/<!--[\s\S]*?-->/g, '');
+  // 아홉 묶음의 줄과 본문 판이 같은 홀(g…Bg)을 나눠 씁니다 — 판만 골라냅니다.
+  const tags = tpl.match(/<div style="[^"]*background:\{\{ g[A-Za-z]+Bg \}\}"[^>]*>/g) || [];
+  const bodies = tags.filter(t => t.indexOf('cursor:pointer') < 0);
+  ok('열리는 묶음의 본문 판이 아홉입니다 (' + bodies.length + ')', bodies.length === 9);
+  bodies.forEach(t => {
+    const name = (t.match(/g([A-Za-z]+)Bg/) || [0, '?'])[1];
+    const first = tpl.slice(tpl.indexOf(t) + t.length).match(/<div style="([^"]*)"/);
+    const kid = first ? first[1] : '';
+    ok(name + ' 본문 판 위로 새어 나가는 margin이 없습니다',
+      /padding:/.test(t) || !/margin:/.test(kid), t + ' → ' + kid);
+  });
+  // 백업의 안쪽 상자는 이제 margin을 들지 않고, 여백은 판이 가집니다.
+  const backup = tpl.slice(tpl.indexOf('{{ gBackupOpen }}'), tpl.indexOf('{{ L.secLegal }}'));
+  ok('백업 안쪽 상자에 margin이 없습니다', backup.indexOf('margin:') < 0);
+  ok('백업 본문 판의 여백은 padding입니다',
+    backup.indexOf('padding:14px 18px;background:{{ gBackupBg }}') >= 0);
+}
+
 console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
 process.exit(fail?1:0);

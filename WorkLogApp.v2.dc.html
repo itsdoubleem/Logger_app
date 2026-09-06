@@ -1633,8 +1633,14 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
           <div style="flex:none;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:13px;background:{{ gBackupChevBg }};color:{{ gBackupChevInk }}">{{ gBackupChev }}</div>
         </div>
         <sc-if value="{{ gBackupOpen }}" hint-placeholder-val="{{ false }}">
-          <div style="background:{{ gBackupBg }}">
-        <div style="margin:14px 18px 0;border:2px solid var(--color-divider);padding:13px 15px">
+          <!-- 여백은 **바깥 판**의 padding입니다. 안쪽 상자가 margin으로 가지면
+               그 위쪽 margin이 판 밖으로 빠져나가(margin collapsing) 띠와 본문
+               사이에 카드 흰색 14px이 그어집니다 — 다른 여덟 묶음의 본문이
+               모두 padding으로 여백을 가지는 이유입니다(마흔셋째).
+               위아래가 같은 값입니다 — 상자는 하나의 물건이고, 위로 14px
+               띄우고 아래로 0px이면 카드 바닥에 붙어 기울어 보입니다. -->
+          <div style="padding:14px 18px;background:{{ gBackupBg }}">
+        <div style="border:2px solid var(--color-divider);padding:13px 15px">
           <div style="font-size:11px;line-height:1.5;color:var(--color-neutral-700);margin-top:6px;text-wrap:pretty">{{ L.backupNote }}</div>
           <div style="display:flex;gap:7px;margin-top:10px">
             <div onClick="{{ doExport }}" style="flex:1;min-height:44px;display:flex;align-items:center;padding:0 12px;border:2px solid var(--color-text);font-family:var(--font-heading);font-weight:800;font-size:11.5px;cursor:pointer" style-hover="background:var(--color-text);color:var(--color-bg)">{{ L.exportB }}</div>

@@ -56,7 +56,7 @@ migration run on a real phone.
 - **`V2.md`** — every bug found by actually using v1 on shift, and what changed. Read
   Part 1 before you "fix" anything that looks odd; it is probably deliberate and the
   reasoning is written down.
-- **`CHANGELOG.md`** — the same thing for everything since v2 shipped: sixty-seven
+- **`CHANGELOG.md`** — the same thing for everything since v2 shipped: sixty-eight
   entries, each a bug found on shift and the rule it taught. Grep it before changing
   a screen. It used to be the tail of this file; see the last section.
 - **`DEPLOY.md`** — building, hosting, HTTPS, WebAuthn, TWA, the APK.
@@ -328,7 +328,7 @@ value afterwards when you have been tapping near real settings.
   moves when either does.
 ## Rules the change log taught
 
-Sixty-seven entries, and they keep teaching one lesson in different costumes: **in this
+Sixty-eight entries, and they keep teaching one lesson in different costumes: **in this
 app the failure mode is silence.** A selector that matches nothing, a `margin` the
 layer already owns, a `var(--…)` absent at first paint, a function that takes a period
 and then reads `this.st()` — none of them throw. The screen keeps its old shape, or
@@ -356,6 +356,12 @@ the whole story, which is always longer and usually has a table in it.
 - **Inside a card, pad with `padding`, never `margin`.** The layer takes `margin` with
   `!important`, so your value dies on write and the text slides to the clipped edge.
   (forty-third)
+- **A margin escapes a parent that has no `padding`, `border` or `overflow`.** The
+  standard `margin:14px 18px 0` block is safe only because rule 1 gives every top-level
+  card `overflow: hidden`; one level deeper — a group's open body panel — the top margin
+  collapses out, the panel starts that much lower, and the card's white shows through as
+  a line the panel was supposed to cover. And a box drawn with a border is one object:
+  give it the same value above and below, measured, not judged by eye. (sixty-first)
 - **Write selectors against the DOM's normalised value, not the source.** React
   re-serialises inline styles: source `border:2px solid`, attribute `border: 2px solid`.
   It also *expands* shorthands — source `flex:none`, attribute `flex: 0 0 auto` — so a
@@ -504,7 +510,7 @@ the whole story, which is always longer and usually has a table in it.
 
 ## Change log — `CHANGELOG.md`
 
-**Sixty-seven entries, and they are the reasoning behind most of what looks odd in this
+**Sixty-eight entries, and they are the reasoning behind most of what looks odd in this
 app.** Each is a bug found by actually using it on shift, what changed, and why it was
 that fix and not the obvious one. Most end with a **다음 사람에게** paragraph — the rule
 the bug taught. Entries are cited by ordinal across the repo ("the twenty-third entry"),
