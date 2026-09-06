@@ -3660,12 +3660,37 @@ console.log('\n== 접혀 있어도 이름이 있는지 없는지가 보입니다
   // 그 둘 말고는 여전히 조용해야 합니다.
   c.setS({ basicConfirmed:true, shiftConfirmed:true, periodConfirmed:true });
   V = c.renderVals();
-  ok('첫 층을 다 정하면 그쪽은 조용합니다', V.gPaySumInk==='var(--color-neutral-700)'
-    && V.gShiftSumInk==='var(--color-neutral-700)' && V.gPeriodSumInk==='var(--color-neutral-700)');
+  // ── ✓ 가 붙은 줄은 초록입니다(2026-09-06) ──
+  // 예전에는 정해진 줄이 회색으로 '조용해지는' 것이 답이었습니다. 그런데 ✓ 와
+  // ! 가 같은 회색이면 근로자가 글리프를 하나씩 알아봐야 합니다. 정해진 줄은
+  // 이제 지문과 같은 초록입니다 — 굵기는 그대로 두었습니다(예순째).
+  const v2src = require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const green = (v2src.match(/padIconInk:[^\n]*'(oklch\([^']+\))'/) || [])[1];
+  ok('첫 층을 다 정하면 그 세 줄이 초록입니다',
+    V.gPaySumInk===green && V.gShiftSumInk===green && V.gPeriodSumInk===green,
+    V.gPaySumInk + ' / ' + V.gShiftSumInk + ' / ' + V.gPeriodSumInk);
+  ok('그 초록은 지문과 같은 값입니다', !!green, String(green));
+  ok('세 줄에 ✓ 가 실제로 붙어 있습니다',
+    V.gPaySum.indexOf('\u2713') === 0 && V.gShiftSum.indexOf('\u2713') === 0
+    && V.gPeriodSum.indexOf('\u2713') === 0, V.gShiftSum);
+  ok('굵기는 건드리지 않았습니다 — 색 하나로 이미 유일합니다',
+    (v2src.match(/color:\{\{ g\w+SumInk \}\};font-variant-numeric/g) || []).length === 4);
   ok('그래도 성명 미기재는 빨갛습니다', V.gMeSumInk==='var(--color-accent)');
+  // ✓ 가 없는 묶음은 초록도 아닙니다 — 정할 것이 없는 줄까지 초록이 되면
+  // 초록이 '정했다'는 뜻을 잃습니다.
   ok('나머지 묶음은 언제나 조용합니다', V.gBackupSumInk==='var(--color-neutral-700)'
     && V.gLangSumInk==='var(--color-neutral-700)' && V.gInsSumInk==='var(--color-neutral-700)'
     && V.gRulesSumInk==='var(--color-neutral-700)' && V.gMoneySumInk==='var(--color-neutral-700)');
+  ok('그 줄들에는 ✓ 도 없습니다',
+    [V.gBackupSum, V.gLangSum, V.gInsSum, V.gRulesSum, V.gMoneySum]
+      .every(x => String(x).indexOf('\u2713') < 0));
+  // 아직 정하지 않은 줄은 초록이 아니라 빨강입니다
+  {
+    const u = decSetup('2026-12-20T09:00:00');
+    const Vu = u.renderVals();
+    ok('아직인 줄은 빨갛습니다', Vu.gShiftSumInk==='var(--color-accent)', Vu.gShiftSumInk);
+    ok('그리고 그 줄에는 ! 가 붙습니다', Vu.gShiftSum.indexOf('!') === 0, Vu.gShiftSum);
+  }
 
   c.setS({ workerName:'NGUYEN VAN A' });
   V = c.renderVals();
@@ -5126,6 +5151,7 @@ console.log('\n== 나는 다 한 것입니까 ==');
   let V = c.renderVals();
   ok('맨 위가 몇 개인지 말합니다', /0/.test(V.setupStatus) && /3/.test(V.setupStatus), V.setupStatus);
   ok('아직이면 그 줄이 빨갛습니다', V.setupStatusInk === 'var(--color-accent-700)');
+  ok('아직인 줄에는 초록 테두리가 없습니다', V.setupStatusEdge === 'transparent', V.setupStatusEdge);
   ok('첫 층 셋에 ! 가 붙습니다',
     V.gShiftSum.indexOf('!') === 0 && V.gPaySum.indexOf('!') === 0 && V.gPeriodSum.indexOf('!') === 0,
     [V.gShiftSum, V.gPaySum, V.gPeriodSum].join(' | '));
@@ -5153,6 +5179,22 @@ console.log('\n== 나는 다 한 것입니까 ==');
   ok('다 정하면 맨 줄이 그렇게 말합니다', Va.setupStatus === a.T('all_set_the_app_can_record_and_price'), Va.setupStatus);
   ok('그 줄은 더 이상 빨갛지 않습니다', Va.setupStatusInk === 'var(--color-neutral-700)');
   ok('바탕도 조용해집니다', Va.setupStatusBg === 'transparent');
+  // ── 다 됐다는 말에는 초록 테두리를 두릅니다 ──
+  // 흰 카드 위의 검은 글씨는 옆 카드들과 구별이 없었습니다. 초록은 지문의
+  // 색이고(스물두째), 이 화면에서 '됐다'고 말하는 유일한 자리입니다.
+  {
+    const fs2 = require('fs');
+    const src2 = fs2.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+    const pad = (src2.match(/padIconInk:[^\n]*'(oklch\([^']+\))'/) || [])[1];
+    ok('다 되면 초록 테두리가 섭니다', Va.setupStatusEdge === pad, Va.setupStatusEdge);
+    ok('그 초록은 지문과 같은 값입니다', !!pad && Va.setupStatusEdge === pad, String(pad));
+    // 두 상태가 같은 두께라야 화면이 흔들리지 않습니다
+    const tpl2 = src2.slice(0, src2.indexOf('</x-dc>'));
+    const head = tpl2.slice(tpl2.indexOf('{{ setupStatusEdge }}') - 220, tpl2.indexOf('{{ setupStatusEdge }}') + 40);
+    ok('테두리는 두 상태 모두 2px입니다', head.indexOf('border:2px solid {{ setupStatusEdge }}') > 0, head.slice(-90));
+    ok('아무것도 그리지 않던 divider 밑줄은 없앴습니다',
+      head.indexOf('border-bottom:2px solid var(--color-divider)') < 0);
+  }
   ok('첫 층 셋이 모두 ✓ 입니다',
     [Va.gShiftSum, Va.gPaySum, Va.gPeriodSum].every(x => x.indexOf('✓') === 0));
 
@@ -5783,6 +5825,132 @@ console.log('\n== 필요해지는 그 자리에서 묻습니다 ==');
     && tpl.slice(tpl.indexOf('{{ askDed }}'), tpl.indexOf('{{ askAllow }}')).indexOf('{{ setDep }}') > 0);
   ok('수당 카드는 줄을 더하는 단추를 내어 놓습니다',
     tpl.slice(tpl.indexOf('{{ askAllow }}')).indexOf('{{ addAllow }}') > 0);
+
+  // ── 공제 카드의 제목이 눈에 걸립니다 ──
+  // 이 카드는 대조표 한복판에서 열리는데, 제목이 옆 문단과 같은 검정이라
+  // 근로자가 그냥 넘겨 읽었습니다. 제목을 초록으로 두고 그 뒤에 느낌표 삼각형을
+  // 붙였습니다 — 삼각형의 선은 앱의 빨강이라 초록 글자 옆에서 혼자 눈에 띕니다.
+  // 카드 자체의 테두리·설명 문단은 건드리지 않았습니다.
+  {
+    const head = tpl.slice(tpl.indexOf('{{ L.askDedTitle }}'),
+                           tpl.indexOf('{{ L.askDedBody }}'));
+    ok('제목 바로 뒤에 그림이 붙어 있습니다', head.indexOf('<svg') === '{{ L.askDedTitle }}'.length);
+    ok('그 그림은 느낌표 삼각형입니다',
+      head.indexOf('M12 9v4') > 0 && head.indexOf('M12 17h.01') > 0);
+    ok('삼각형의 선은 앱의 빨강입니다', head.indexOf('stroke="var(--color-accent)"') > 0);
+    ok('삼각형은 읽히지 않습니다', head.indexOf('aria-hidden="true"') > 0);
+    // 제목 글자는 지문과 같은 초록입니다 — 두 초록이 되지 않도록 값을 읽어 옵니다
+    const pad = (src.match(/padIconInk:[^\n]*'(oklch\([^']+\))'/) || [])[1];
+    const open = tpl.slice(tpl.lastIndexOf('<div', tpl.indexOf('{{ L.askDedTitle }}')),
+                           tpl.indexOf('{{ L.askDedTitle }}'));
+    ok('제목은 지문과 같은 초록입니다', open.indexOf('color:' + pad) > 0, String(pad));
+    // 로고를 세는 시험이 이 그림까지 세어서는 안 됩니다
+    ok('삼각형은 로고의 치수를 입지 않았습니다',
+      head.indexOf('width:1.05em;height:1.05em;vertical-align:-0.13em') < 0);
+    ok('로고는 여전히 셋뿐입니다', (tpl.match(/근무기록 L<svg/g) || []).length === 3);
+
+    // ── 카드 전체가 한 목소리로 말합니다 ──
+    // 제목만 초록이던 동안 테두리는 여전히 회색 칸막이였고, 설명 문단은 옆
+    // 카드들과 같은 neutral-700이라 카드가 반만 눈에 띄었습니다. 테두리를 앱의
+    // 빨강으로, 글자를 카드째로 초록으로 두었습니다 — 문단마다 색을 적지 않고
+    // 카드에 한 번 적어 물려받게 했으므로, 여기에 줄을 더하는 사람도 잊을 수가
+    // 없습니다. 근로자가 적어 넣는 숫자는 물려받지 않습니다: 입력칸은 저마다
+    // color:var(--color-text)를 들고 있어 그대로 검정입니다.
+    const box = tpl.slice(tpl.indexOf('{{ askDed }}'), tpl.indexOf('{{ askAllow }}'));
+    ok('카드의 테두리는 앱의 빨강입니다', box.indexOf('border:2px solid var(--color-accent)') > 0);
+    ok('테두리는 2px 그대로라 모서리를 잃지 않습니다',
+      box.indexOf('border:2px solid var(--color-divider)') < 0
+      && (box.match(/border:2px solid var\(--color-accent\)/g) || []).length === 1);
+    ok('초록은 카드에 한 번만 적혀 있습니다',
+      box.slice(0, box.indexOf('{{ L.askDedTitle }}')).indexOf('color:' + pad) > 0);
+    ok('설명 문단은 회색으로 되돌아가지 않습니다', box.indexOf('color:var(--color-neutral-700)') < 0);
+    ok('적어 넣는 숫자는 검정 그대로입니다',
+      (box.match(/color:var\(--color-text\)/g) || []).length === 3);
+    // 세 칸의 테두리도 초록입니다. 첫 칸은 검은 2px('여기에 적으십시오')이고 나머지
+    // 둘은 neutral-300('적을 수 있는 칸')이었는데, 카드가 통째로 한 색이 된 뒤로는
+    // 그 회색이 초록 글자 옆에서 지워진 것처럼 보였습니다. 두께는 셋 다 2px 그대로
+    // 두었습니다 — 3px는 규칙 2가 잡지 못해 모서리가 각지게 됩니다.
+    ok('적어 넣는 칸 셋의 테두리도 초록입니다',
+      (box.match(/border:2px solid oklch\(0\.52 0\.14 149\)/g) || []).length === 3);
+    ok('그 칸들은 옛 옷을 벗었습니다',
+      box.indexOf('border:2px solid var(--color-text)') < 0
+      && box.indexOf('border:2px solid var(--color-neutral-300)') < 0);
+    ok('두께는 셋 다 2px이라 모서리를 지킵니다',
+      (box.match(/border:3px/g) || []).length === 0);
+  }
+
+  // ── 보수월액 칸은 되살릴 수 없을 때만 섭니다 ──
+  // 만든 사람이 물었습니다: **국민연금 한 줄이면 되는데 보수월액과 공제대상가족은
+  // 왜 또 있습니까?** 재어 보니 둘의 답이 달랐습니다.
+  //
+  // 공제대상가족은 남습니다 — 소득세를 움직이는 것은 그 칸뿐이고, 이 근로자의
+  // 급여(3,393,280)에서 한 명 차이가 소득세 23,180 + 지방소득세 2,320 =
+  // **월 25,500원**입니다. 국민연금으로는 닿을 수 없는 돈입니다.
+  //
+  // 보수월액은 내려갑니다. 되살린 뒤의 그 칸은 겹치는 정도가 아니라 **죽은
+  // 칸**입니다: 닫힌 기간에서는 wageFor()가 명세서에서 되살린 값을 설정보다
+  // 앞세우므로(쉰여덟째), 무엇을 쳐 넣어도 그 기간의 네 보험료가 꿈쩍하지
+  // 않습니다. 아래 첫 두 assertion이 그것을 붙들어 둡니다 — 누가 이 칸을 다시
+  // 살려 놓으면 거기서 걸립니다.
+  {
+    const c = mk(V2, '2026-09-06T10:00:00');
+    const Q = c.period(new Date('2026-08-15T10:00:00'));   // 이미 닫힌 기간
+    c.setS({ bosu: 3434000 });
+    c.setSlip('pension', '163110', Q);
+    const four = W => { const x = c.insCalc(W); return [x.pension, x.health, x.care, x.emp].join('/'); };
+    const before = four(c.wageFor(Q));
+    ok('명세서의 국민연금이 그 기간의 보수월액입니다', before === '163110/123450/16220/30900', before);
+    c.setS({ bosu: 2700000 });                              // 카드의 보수월액 칸을 고칩니다
+    ok('닫힌 기간에서 그 칸은 아무것도 바꾸지 못합니다', four(c.wageFor(Q)) === before, four(c.wageFor(Q)));
+
+    // 그래서 겹치는 자리에서는 칸을 내립니다. 판단은 **화면에 무엇이 서 있는가**
+    // 로 합니다 — 국민연금 칸이 보여 주는 값은 언제나 pensionOn(보수월액)이고,
+    // 그 위 안내 한 줄이 짝을 이미 말합니다. (명세서의 pension을 조건으로 삼았다가
+    // 폰에서 걸렸습니다: 근로자의 7월 명세서에는 그 열쇠가 아예 없고 보수월액만
+    // 설정에 있어서, 카드는 163,110을 보여 주면서도 칸을 그대로 세웠습니다.)
+    const v = () => c.renderVals().askDedBosu;
+    c.setS({ bosu: 3434000 });
+    ok('국민연금 줄이 이미 말했으면 보수월액 칸은 서지 않습니다', v() === false);
+    // 내려가지 않는 네 자리
+    c.setS({ insOn: Object.assign({}, c.st().insOn, { pension: false }) });
+    ok('연금에 들지 않은 사람에게는 그 칸이 유일한 길입니다', v() === true);
+    c.setS({ insOn: Object.assign({}, c.st().insOn, { pension: true }) });
+    c.setS({ bosu: 0 });
+    ok('아직 보수월액을 모르면 칸이 섭니다', v() === true);
+    c.setS({ bosu: V2.PENSION_CAP });
+    ok('상한 위는 국민연금 한 줄로 되살아나지 않으므로 칸이 섭니다', v() === true);
+    c.setS({ bosu: 3434000 });
+    ok('상한 아래로 내려오면 다시 사라집니다', v() === false);
+    c.setState({ numEdit: { k: 'p:slipPen', v: '163115' } });
+    ok('어떤 보수월액에서도 안 나오는 값을 치는 동안 칸이 섭니다',
+      V2.bosuFromPension(163115) === null && v() === true);
+    c.setState({ numEdit: { k: 'p:slipPen', v: '163110' } });
+    ok('되살아나는 값이면 치는 동안에도 서지 않습니다', v() === false);
+    c.setState({ numEdit: { k: 's:bosu', v: '270' } });
+    ok('손가락이 그 칸에 닿아 있는 동안에는 사라지지 않습니다', v() === true);
+    c.setState({ numEdit: null });
+    ok('손을 떼면 닫힙니다', v() === false);
+
+    // 공제대상가족은 그대로입니다 — 소득세를 움직이는 것은 그 칸뿐입니다
+    c.setS({ dependents: 1 });
+    const t1 = c.tax(3393280);
+    c.setS({ dependents: 2 });
+    const t2 = c.tax(3393280);
+    ok('공제대상가족 한 명이 소득세를 25,500원 움직입니다',
+      (t1 - t2) + Math.floor(t1 / 10 / 10) * 10 - Math.floor(t2 / 10 / 10) * 10 === 25500,
+      String(t1) + ' -> ' + String(t2));
+  }
+  // 마크업: 그 줄이 sc-if 안에 들어갔고, 설정의 같은 칸은 그대로입니다
+  ok('보수월액 줄은 askDedBosu가 열어 줍니다',
+    tpl.slice(tpl.indexOf('{{ askDedBosu }}'), tpl.indexOf('{{ L.lDep }}')).indexOf('{{ setBosu }}') > 0);
+  {
+    // 카드 안의 sc-if는 둘뿐입니다 — 국민연금(연금 가입자만)과 보수월액.
+    // 잘라 낸 끝자락은 다음 카드의 <sc-if 여는 태그 한 조각입니다.
+    const cardTpl = tpl.slice(tpl.indexOf('{{ askDed }}'), tpl.indexOf('{{ askAllow }}'));
+    ok('공제대상가족 줄은 조건 없이 그대로입니다',
+      (cardTpl.slice(0, cardTpl.lastIndexOf('<sc-if')).match(/<sc-if/g) || []).length === 2
+      && tpl.slice(tpl.indexOf('{{ L.lDep }}'), tpl.indexOf('{{ setDep }}')).indexOf('sc-if') < 0);
+  }
   // 설정에서 지운 것은 없습니다 — 옮긴 것이 아니라 한 번 더 물을 자리를 만든 것입니다
   ok('보수월액은 설정에도 그대로 있습니다',
     (tpl.match(/\{\{ setBosu \}\}/g) || []).length === 2);
@@ -6484,7 +6652,7 @@ console.log('\n== 열리는 것과 열리지 않는 것 ==');
     V1.gShiftChevBg + ' / ' + V1.gShiftChevInk);
   // 예전 열림 값 var(--color-surface)는 카드 흰색과 같은 값이라 아무 일도 하지
   // 않는 죽은 값이었습니다 — 줄이 카드 안으로 들어오면서 그렇게 됐습니다.
-  ok('열린 줄은 옅은 띠를 갖습니다', V1.gShiftBg === 'var(--color-neutral-150)', V1.gShiftBg);
+  ok('열린 줄은 옅은 띠를 갖습니다', V1.gShiftBg === 'var(--color-accent-50)', V1.gShiftBg);
   ok('죽은 흰색이 남아 있지 않습니다', V1.gShiftBg !== 'var(--color-surface)');
   ok('옆 줄은 그대로 닫혀 있습니다',
     V1.gPayChevBg === 'var(--color-neutral-200)' && V1.gPayBg === 'transparent');
@@ -7202,8 +7370,8 @@ console.log('\n== 펴진 것이 어디서 끝나는지 화면이 말하지 않�
   ok('닫힌 묶음의 띠는 투명입니다', c0.renderVals().gRulesBg === 'transparent');
   c0.toggleSetGroup('grp_rules');
   const V1 = c0.renderVals();
-  ok('열린 묶음의 띠는 옅은 회색입니다',
-    V1.gRulesBg === 'var(--color-neutral-150)', V1.gRulesBg);
+  ok('열린 묶음의 띠는 옅은 빨강입니다',
+    V1.gRulesBg === 'var(--color-accent-50)', V1.gRulesBg);
   // 열린 것 하나만 답합니다 — 옆 묶음의 본문까지 회색이 되면 어디서 끝나는지를
   // 다시 말하지 못하게 됩니다.
   ok('옆 묶음의 본문은 그대로 흰색입니다',
@@ -7214,9 +7382,29 @@ console.log('\n== 펴진 것이 어디서 끝나는지 화면이 말하지 않�
   // 됩니다. 마흔넷째의 var(--color-surface)가 정확히 그렇게 죽었습니다.
   const ds = fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
   const val = n => ((ds.match(new RegExp('--color-' + n + ':\\s*(#[0-9a-fA-F]{6});')) || [])[1] || '').trim();
-  const lum = c => parseInt(c.slice(1, 3), 16);
-  const tint = val('neutral-150');
+  // ── 밝기는 빨강 채널이 아니라 상대휘도로 잽니다 ──
+  // 예전에는 #rrggbb의 rr 하나로 쟀습니다. 회색끼리는 그것이 곧 밝기였지만,
+  // 띠가 색을 입은 순간 그 자가 망가집니다 — 빨강을 섞으면 rr은 그대로 있고
+  // gg·bb만 내려가므로, 눈에는 분명히 어두워진 판을 '바탕과 똑같다'고
+  // 읽습니다. 색이 들어온 표에는 색을 아는 자를 씁니다.
+  const lum = c => 0.2126 * parseInt(c.slice(1, 3), 16)
+                 + 0.7152 * parseInt(c.slice(3, 5), 16)
+                 + 0.0722 * parseInt(c.slice(5, 7), 16);
+  const tint = val('accent-50');
   ok('띠에 제 토큰이 있습니다', /^#[0-9a-f]{6}$/i.test(tint), tint);
+  // 0 · 그리고 그 띠는 **빨간** 띠여야 합니다. 같은 밝기의 회색으로 되돌려
+  //     놓으면 위의 세 가지는 다 통과하면서 화면만 예전으로 돌아갑니다 —
+  //     폰에서 바탕과 같은 색으로 읽히던 그 회색입니다(2026-09-06).
+  {
+    const ch = i => parseInt(tint.slice(1 + i * 2, 3 + i * 2), 16);
+    ok('띠가 회색이 아니라 빨강 쪽입니다',
+      ch(0) - Math.max(ch(1), ch(2)) >= 8, tint);
+    ok('그리고 예전의 회색이 아닙니다', tint !== val('neutral-150'), tint);
+    // 밝기는 그 회색에서 옮겨 오지 않았습니다 — 색만 바뀌었습니다
+    ok('밝기는 예전 회색과 같은 자리입니다',
+      Math.abs(lum(tint) - lum(val('neutral-150'))) < 1.5,
+      lum(tint).toFixed(1) + ' vs ' + lum(val('neutral-150')).toFixed(1));
+  }
   // 1 · 카드 흰색과 달라야 합니다 — 그 단이 곧 '여기서 끝난다'입니다
   ok('띠가 카드 흰색보다 어둡습니다',
     lum(val('card')) - lum(tint) >= 15, val('card') + ' vs ' + tint);

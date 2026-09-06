@@ -914,9 +914,9 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
                  이런 카드를 붙이지 않습니다 — 거기서 어긋난 것은 부족액이고,
                  앱이 그것을 설명해 없애서는 안 됩니다. -->
             <sc-if value="{{ askDed }}" hint-placeholder-val="{{ false }}">
-              <div style="margin-top:12px;border:2px solid var(--color-divider);padding:12px 13px">
-                <div style="font-family:var(--font-heading);font-weight:800;font-size:14px;line-height:1.2">{{ L.askDedTitle }}</div>
-                <div style="font-size:11px;line-height:1.5;color:var(--color-neutral-700);margin-top:6px;text-wrap:pretty">{{ L.askDedBody }}</div>
+              <div style="margin-top:12px;border:2px solid var(--color-accent);padding:12px 13px;color:oklch(0.52 0.14 149)">
+                <div style="font-family:var(--font-heading);font-weight:800;font-size:14px;line-height:1.2;color:oklch(0.52 0.14 149)">{{ L.askDedTitle }}<svg viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="width:1.1em;height:1.1em;vertical-align:-0.19em;margin-left:0.34em"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg></div>
+                <div style="font-size:11px;line-height:1.5;margin-top:6px;text-wrap:pretty">{{ L.askDedBody }}</div>
                 <!-- 명세서에서 그대로 옮겨 적을 수 있는 유일한 칸입니다. 이 한 줄이
                      보수월액을 유일하게 결정하고(스물여섯째), 그 값은 곧바로 아래
                      보수월액 칸과 설정 › 4대보험과 세금에 같이 나타납니다 — 홀을
@@ -925,18 +925,20 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
                   <div>
                     <div style="display:flex;align-items:center;gap:10px;padding:8px 0;margin-top:8px;border-bottom:1px solid var(--color-neutral-300)">
                       <div style="flex:1;font-size:12px;font-weight:600">{{ L.lBosuPen }}</div>
-                      <input type="text" inputmode="decimal" enterkeyhint="done" onKeyDown="{{ keySlipPen }}" value="{{ slipPenVal }}" onFocus="{{ focSlipPen }}" onBlur="{{ blurSlipPen }}" onChange="{{ setSlipPen }}" style="width:124px;min-height:44px;padding:0 8px;border:2px solid var(--color-text);background:var(--color-bg);font-family:var(--font-heading);font-weight:800;font-size:13px;text-align:right;color:var(--color-text)" />
+                      <input type="text" inputmode="decimal" enterkeyhint="done" onKeyDown="{{ keySlipPen }}" value="{{ slipPenVal }}" onFocus="{{ focSlipPen }}" onBlur="{{ blurSlipPen }}" onChange="{{ setSlipPen }}" style="width:124px;min-height:44px;padding:0 8px;border:2px solid oklch(0.52 0.14 149);background:var(--color-bg);font-family:var(--font-heading);font-weight:800;font-size:13px;text-align:right;color:var(--color-text)" />
                     </div>
-                    <div style="font-size:10.5px;line-height:1.45;color:var(--color-neutral-700);padding:7px 0 2px;text-wrap:pretty">{{ slipPenNote }}</div>
+                    <div style="font-size:10.5px;line-height:1.45;padding:7px 0 2px;text-wrap:pretty">{{ slipPenNote }}</div>
                   </div>
                 </sc-if>
+                <sc-if value="{{ askDedBosu }}" hint-placeholder-val="{{ true }}">
                 <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--color-neutral-300);margin-top:8px">
                   <div style="flex:1;font-size:12px;font-weight:600">{{ L.lBosu }}</div>
-                  <input type="text" inputmode="decimal" enterkeyhint="done" onKeyDown="{{ keyBosu }}" value="{{ bosuVal }}" onFocus="{{ focBosu }}" onBlur="{{ blurBosu }}" onChange="{{ setBosu }}" placeholder="{{ bosuPh }}" style="width:124px;min-height:44px;padding:0 8px;border:2px solid var(--color-neutral-300);background:var(--color-bg);font-family:var(--font-heading);font-weight:800;font-size:13px;text-align:right;color:var(--color-text)" />
+                  <input type="text" inputmode="decimal" enterkeyhint="done" onKeyDown="{{ keyBosu }}" value="{{ bosuVal }}" onFocus="{{ focBosu }}" onBlur="{{ blurBosu }}" onChange="{{ setBosu }}" placeholder="{{ bosuPh }}" style="width:124px;min-height:44px;padding:0 8px;border:2px solid oklch(0.52 0.14 149);background:var(--color-bg);font-family:var(--font-heading);font-weight:800;font-size:13px;text-align:right;color:var(--color-text)" />
                 </div>
+                </sc-if>
                 <div style="display:flex;align-items:center;gap:10px;padding:8px 0">
                   <div style="flex:1;font-size:12px;font-weight:600">{{ L.lDep }}</div>
-                  <input type="text" inputmode="decimal" enterkeyhint="done" onKeyDown="{{ keyDep }}" value="{{ depVal }}" onFocus="{{ focDep }}" onBlur="{{ blurDep }}" onChange="{{ setDep }}" style="width:124px;min-height:44px;padding:0 8px;border:2px solid var(--color-neutral-300);background:var(--color-bg);font-family:var(--font-heading);font-weight:800;font-size:13px;text-align:right;color:var(--color-text)" />
+                  <input type="text" inputmode="decimal" enterkeyhint="done" onKeyDown="{{ keyDep }}" value="{{ depVal }}" onFocus="{{ focDep }}" onBlur="{{ blurDep }}" onChange="{{ setDep }}" style="width:124px;min-height:44px;padding:0 8px;border:2px solid oklch(0.52 0.14 149);background:var(--color-bg);font-family:var(--font-heading);font-weight:800;font-size:13px;text-align:right;color:var(--color-text)" />
                 </div>
               </div>
             </sc-if>
@@ -1163,7 +1165,7 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
              여덟 묶음이 똑같은 무게로 나란히 서 있는 화면은 근로자가 실제로 갖는
              그 물음에 답할 방법이 아예 없었습니다. 아래 세 층과 요약 줄의 ✓ / ! 가
              그 답이고, 판단은 SET_NEEDED 한 곳에서만 합니다. -->
-        <div style="padding:11px 18px 12px;border-bottom:2px solid var(--color-divider);background:{{ setupStatusBg }}">
+        <div style="padding:11px 18px 12px;border:2px solid {{ setupStatusEdge }};background:{{ setupStatusBg }}">
           <div style="font-size:11.5px;line-height:1.45;font-weight:700;color:{{ setupStatusInk }};text-wrap:pretty">{{ setupStatus }}</div>
         </div>
 
@@ -3247,10 +3249,23 @@ class Component extends DCLogic {
       const done = need ? need(this) : null;
       V['g' + pfx + 'Sum'] = on ? '' : (done === null ? sums[key]
         : (done ? '\u2713 ' : '! ') + sums[key]);
-      // 요약이 빨간 것은 성명이 비었을 때 하나뿐입니다. 경고를 쌓아 두면 정작
-      // 봐야 할 빨간 줄이 묻힙니다 — 열아홉째가 사업장명에 적어 둔 그것입니다.
+      // 요약이 빨간 것은 성명이 비었을 때와 첫 층에서 아직 정하지 않은 것뿐입니다.
+      // 경고를 쌓아 두면 정작 봐야 할 빨간 줄이 묻힙니다 — 열아홉째가 사업장명에
+      // 적어 둔 그것입니다.
+      //
+      // ── ✓ 가 붙은 줄은 초록입니다 ──
+      // ✓ 와 ! 는 같은 회색이었습니다. 표시가 다르면 뜻도 다른데 색이 같으면,
+      // 근로자는 세 줄을 한 줄씩 읽어 글리프를 알아봐야 합니다. 정해진 줄이
+      // 초록이면 첫 층이 끝났는지가 눈길 한 번에 답해집니다.
+      //
+      // 초록은 앱의 지문 색 그대로입니다(스물두째). 굵기는 건드리지 않습니다 —
+      // 색 하나로 이미 유일한데 굵기까지 주면 이웃과 다른 것이 아니라 이웃을
+      // 이깁니다(예순째). 그리고 ✓ 가 없는 줄(수당과 공제·4대보험과 세금처럼
+      // 정할 것이 없는 묶음)은 그대로 회색입니다 — 초록이 '정했다'는 뜻을
+      // 잃지 않으려면 ✓ 가 있는 자리에만 있어야 합니다.
       V['g' + pfx + 'SumInk'] = ((key === 'grp_me' && !this.workerName()) || done === false)
-        ? 'var(--color-accent)' : 'var(--color-neutral-700)';
+        ? 'var(--color-accent)'
+        : (done === true ? 'oklch(0.52 0.14 149)' : 'var(--color-neutral-700)');
       V['g' + pfx + 'Chev'] = on ? '▾' : '▸';
       // ── 누를 수 있다는 말은 그려야 합니다 ──
       // 예전에는 11px 회색 글리프 하나가 오른쪽 끝 허공에 떠 있었고, 그 옆의
@@ -3275,7 +3290,15 @@ class Component extends DCLogic {
       // 드러났습니다 — 8px 홈통과 본문이 둘 다 238이라 **카드의 옆면이
       // 사라졌고**, 펴진 판이 카드 사이의 빈틈처럼 읽혔습니다. 값을 고른
       // 근거는 ds-tokens.css의 그 토큰 옆에 적어 두었습니다.
-      V['g' + pfx + 'Bg'] = on ? 'var(--color-neutral-150)' : 'transparent';
+      //
+      // 그리고 그 옅은 회색이 폰에서 **바탕과 같은 색으로 읽혔습니다**(2026-09-06).
+      // 열 단은 잰 값으로는 충분한데 눈이 찾아야 하는 단이고, 회색 위의 회색은
+      // 찾아지지 않습니다. 같은 밝기를 그대로 두고 앱의 색을 입혔습니다 —
+      // accent-50은 바탕에 빨강을 6% 섞은 값이라 밝기는 neutral-150과 같고
+      // (232.7), 쉰다섯째가 잰 세 가지가 그대로 성립합니다. accent-100은 이
+      // 자리에 쓸 수 없습니다: 머리카락 선과 1.8밖에 차이가 나지 않아 판 안의
+      // 구분선과 칸 테두리가 전부 묻힙니다.
+      V['g' + pfx + 'Bg'] = on ? 'var(--color-accent-50)' : 'transparent';
       V['g' + pfx + 'Tap'] = () => this.toggleSetGroup(key);
     });
     return V;
@@ -6819,6 +6842,43 @@ class Component extends DCLogic {
       // 면제된 E-9 근로자가 실제로 있고, 그 사람의 명세서에는 그 줄이 아예
       // 없습니다 — 없는 줄을 물으면 그것대로 틀린 화면입니다.
       askDedPen: this.insOnFor('pension'),
+      // ── 보수월액 칸은 국민연금 줄이 말해 주지 못할 때만 섭니다 ──
+      // 명세서의 국민연금 한 줄이 보수월액을 유일하게 정하고(스물여섯째), 바로
+      // 위 안내 한 줄이 그 값을 이미 말합니다 — *163,110은 보수월액 3,434,000
+      // 에서만 나옵니다. 앱은 이제 그것을 씁니다.* 그 밑에 같은 숫자를 담은
+      // 칸을 또 세우면 근로자가 읽는 것은 '같은 것을 두 번 묻는 카드'입니다
+      // (쉰일곱째가 표에서 국민연금 줄을 뗀 것과 같은 이유입니다).
+      //
+      // 겹치기만 하는 것이 아닙니다. **지나간 기간에서 그 칸은 아무것도 바꾸지
+      // 못합니다.** wageFor()는 닫힌 기간의 보수월액을 그 기간의 도장이나
+      // 명세서에서 가져오고 설정을 보지 않습니다(쉰여덟째). 명세서를 맞춰 보는
+      // 때는 언제나 닫힌 기간이므로, 2,700,000을 쳐 넣어도 그 기간의 국민연금·
+      // 건강보험·장기요양·고용보험이 한 푼도 움직이지 않고, 대신 **지금 달의**
+      // 계산이 조용히 바뀝니다. 지난 달 날짜를 이름표로 달고 선 카드가 할 일이
+      // 아닙니다. 설정 › 4대보험과 세금의 그 칸은 그대로 있습니다.
+      //
+      // 내려가지 않는 네 자리 — 거기서는 이 칸이 유일한 길입니다:
+      //   · 명세서에 국민연금 줄이 없는 사람(사회보장협정 면제). 보수월액은
+      //     건강보험·장기요양·고용보험의 기준이기도 합니다(쉰일곱째).
+      //   · 앱이 아직 보수월액을 모를 때 — 물어볼 국민연금 줄도 비어 있습니다.
+      //   · 상한(6,370,000) 위 — 그 위는 어떤 보수월액이든 보험료가 같아서
+      //     국민연금 한 줄로는 되살아나지 않습니다. 건강보험의 기준은 그것이
+      //     아니므로 손으로 적을 자리가 있어야 합니다.
+      //   · 지금 치고 있는 국민연금이 어떤 보수월액에서도 나오지 않을 때 —
+      //     안내 문장이 그렇게 말하는 바로 그 순간입니다(slipPenNote와 같은
+      //     판단을 씁니다).
+      // 그리고 손가락이 그 칸에 닿아 있는 동안에는 사라지지 않습니다(쉰일곱째의
+      // 그 함정 — 답을 적는 중에 칸이 손가락 밑에서 사라지면 안 됩니다).
+      askDedBosu: (() => {
+        const e = this.state.numEdit || {};
+        if (e.k === 's:bosu') return true;
+        if (!this.insOnFor('pension')) return true;
+        const typing = e.k === 'p:slipPen' ? e.v : null;
+        if (typing !== null && Component.numReady(typing) && !Component.bosuFromPension(typing))
+          return true;
+        const b = this.insBosu(W);
+        return !b || b >= Component.PENSION_CAP;
+      })(),
       // ── 그 칸은 **보고 있는 기간**의 명세서를 묻습니다 ──
       // 카드가 '08.21 → 09.20의 명세서'라고 이름을 달고 서 있으므로, 거기 적는
       // 국민연금도 그 기간의 것입니다. 그래서 값은 slips[기간].pension에
@@ -6884,6 +6944,18 @@ class Component extends DCLogic {
         ? 'var(--color-neutral-700)' : 'var(--color-accent-700)',
       setupStatusBg: this.setNeededDone().done === this.setNeededDone().total
         ? 'transparent' : 'var(--color-accent-100)',
+      // ── 다 됐다는 말은 초록으로 테두리를 두릅니다 ──
+      // 아직인 줄은 accent-100 바탕과 accent-700 글자로 이미 표가 나는데, 다
+      // 됐다는 줄은 흰 카드 위의 검은 글씨라 옆 카드들과 구별이 없었습니다.
+      // 초록은 이 앱에서 지문의 색이고(스물두째), 이 화면에서 '됐다'고 말하는
+      // 유일한 자리입니다.
+      //
+      // 아직인 쪽도 2px을 그대로 두르되 색만 투명입니다 — 한쪽에만 테두리를
+      // 주면 두 상태가 4px씩 키가 달라져 화면이 흔들립니다. 그리고 예전의
+      // border-bottom(divider)은 없앴습니다: 층이 카드의 위·아래 테두리를
+      // 투명으로 만들고 있어서 이미 아무것도 그리지 않던 줄입니다.
+      setupStatusEdge: this.setNeededDone().done === this.setNeededDone().total
+        ? 'oklch(0.52 0.14 149)' : 'transparent',
       // 근무조와 같은 방식 — 값을 보고 한 번 맞다고 하면 다시 묻지 않습니다
       periodAsk: !this.st().periodConfirmed,
       confirmPeriod: () => this.setS({ periodConfirmed: true }),

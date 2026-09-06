@@ -52,6 +52,16 @@
 
   /* accent — near-mono red */
   --color-accent: #ec3013;
+  /* the open SETUP accordion. It used to be neutral-150, and on a real phone
+     the worker read the open panel as a hole in the page — a grey ten steps
+     off a grey ground is a step you have to look for. This is that same
+     lightness wearing the app's colour: the ground with 6% accent mixed in,
+     so the three things neutral-150 was measured against still hold
+     (relative luminance 232.7 — 9.5 below the ground, 22 below card white,
+     11 above the #e0dddd hairline, so the dividers and input borders inside
+     the panel stay readable). Do not reach for accent-100 here: at 223.5 it
+     sits 1.8 off the hairline and swallows every line in the panel. */
+  --color-accent-50: #f3e6e5;
   --color-accent-100: #f2dbd7;  /* tinted panel background */
   --color-accent-300: #f1b5ab;  /* in-range calendar fill */
   --color-accent-600: #cb240a;  /* pressed / hover on accent */
