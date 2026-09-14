@@ -21,6 +21,41 @@ html, body { height: 100%; margin: 0; overscroll-behavior: none; background: #f3
 body { -webkit-tap-highlight-color: transparent; }
 #root, #root > * { height: 100%; }
 input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
+
+/* ── 넓은 화면에서는 폰 너비를 지킵니다 ──────────────────────────────────
+   이 앱은 폰 앱입니다. 한 손으로 들고, 지문 상자는 96px이고, 글자 크기도
+   팔 길이에서 읽는 것을 기준으로 정해져 있습니다. 그런데 브라우저에서 열면
+   같은 배치가 데스크톱 창 너비만큼 늘어납니다 — 언어 단추 여덟 개가 1미터
+   짜리 띠가 되고, 96px 지문은 허허벌판 한가운데 점이 됩니다. 줄 길이도
+   읽기 한계를 훨씬 넘깁니다.
+
+   그래서 폰보다 넓은 화면에서만 앱을 폰 너비로 묶고 가운데에 둡니다.
+   440px는 가장 넓은 폰(412px)보다 조금 크고, 이 앱이 설계된 384px와 같은
+   비례를 지킵니다.
+
+   미디어 질의라서 폰에서는 규칙 자체가 걸리지 않습니다. APK 안에서도
+   마찬가지입니다 — WebView는 언제나 폰 너비라 이 규칙은 없는 것과 같고,
+   그래서 이 변경은 웹에만 보이면서도 두 빌드가 같은 파일로 남습니다.
+
+   묶는 것은 #dc-root입니다 — dc 런타임이 실제로 붙이는 자리이고, 위의
+   `#root, #root > *` 규칙이 아무 데도 걸리지 않는다는 뜻이기도 합니다(남겨
+   두었습니다. 지우는 것은 이 변경의 일이 아닙니다). 앱의 바깥 상자는
+   #dc-root > .sc-host > .sc-host > div이라 선택자로 붙잡기에 약하고,
+   #dc-root를 좁히면 그 안이 전부 따라옵니다 — 환영 화면 오버레이도
+   그렇습니다. 오버레이는 앱 바깥 상자에 position:absolute로 붙어 있어서,
+   바깥 상자가 좁아지면 함께 좁아집니다.
+
+   화면에서 재고 고쳤습니다: 처음 쓴 선택자는 #root > *이었고, 렌더된 DOM에
+   그런 것이 없어 아무 일도 일어나지 않았습니다. */
+@media (min-width: 520px) {
+  body { background: var(--color-neutral-200, #e5e3e3); }
+  #dc-root, #root {
+    max-width: 440px;
+    margin: 0 auto;
+    border-left: 1px solid var(--color-neutral-300, #e0dddd);
+    border-right: 1px solid var(--color-neutral-300, #e0dddd);
+  }
+}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
