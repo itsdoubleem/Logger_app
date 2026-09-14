@@ -3,6 +3,7 @@
 #   dist/, dist-v2/    python3 build.py [v2]
 #   worklog-*.apk      ./build_apk.sh [v2]
 #   android/**/build   gradle assembleDebug
+#   ios/build/         ./build_ios.sh
 #
 # 근무기록-WorkLog.html is NOT an output — build.py unpacks it as the shell.
 # Do not add it here. See CLAUDE.md, "Traps".
@@ -15,9 +16,15 @@ android/build/
 android/app/build/
 
 # build_apk.sh rm -rf's this and re-copies dist-v2/ into it on every run.
-# The pwa/icon-*.png next to icon-source.png are NOT ignored: build.py copies
+# The generated pwa/icon-*.png are NOT ignored: build.py copies
 # those into dist/, so a plain `python3 build.py v2` needs them present.
 android/app/src/main/assets/www/
+
+# Same again for the iOS app: build_ios.sh rm -rf's ios/WorkLog/www and
+# re-copies dist-v2/ into it on every run. It is a folder reference in the
+# Xcode project, so whatever is in it ships -- do not leave scratch pages there.
+ios/WorkLog/www/
+ios/build/
 
 # Python
 __pycache__/

@@ -35,6 +35,18 @@ the worker can hold it up against the paper the company hands them.
 | build | `python3 build.py v2` → `dist-v2/` | `python3 build.py` → `dist/` |
 | APK | `./build_apk.sh v2` → `worklog-debug.apk` | `./build_apk.sh` → `worklog-frozen-debug.apk` |
 
+There is an iPhone build too, and it is the same site inside a WKWebView:
+`./build_ios.sh` → `ios/build/…/WorkLog.app`, installed on the booted simulator.
+It shares nothing with the Android app but the bundle id and the payload —
+`build_ios.sh` stages `dist-v2/` into `ios/WorkLog/www` exactly as `build_apk.sh`
+stages it into the APK's assets. Two things about it are load-bearing and both
+are written up in `DEPLOY.md` §"iPhone — the iOS app": the app **serves itself
+over http://127.0.0.1:8787** because the page abandons the fingerprint unless
+`window.isSecureContext` (and that **port must stay fixed** — it is part of the
+origin, so a moving port silently empties localStorage every launch), and the
+fingerprint is `LAContext`, not WebAuthn, because no domain can claim a loopback
+origin. `ios/WorkLog/www` is a folder reference, so whatever is in it ships.
+
 The two APKs above are debug-signed, for your own phone. The store route is
 `./bump_version.sh` then `./build_apk.sh bundle` → `worklog-release.aab`, signed
 with the upload key named by `android/keystore.properties` (gitignored; template
@@ -56,10 +68,10 @@ migration run on a real phone.
 - **`V2.md`** — every bug found by actually using v1 on shift, and what changed. Read
   Part 1 before you "fix" anything that looks odd; it is probably deliberate and the
   reasoning is written down.
-- **`CHANGELOG.md`** — the same thing for everything since v2 shipped: sixty-eight
+- **`CHANGELOG.md`** — the same thing for everything since v2 shipped: seventy
   entries, each a bug found on shift and the rule it taught. Grep it before changing
   a screen. It used to be the tail of this file; see the last section.
-- **`DEPLOY.md`** — building, hosting, HTTPS, WebAuthn, TWA, the APK.
+- **`DEPLOY.md`** — building, hosting, HTTPS, WebAuthn, TWA, the APK, the iPhone app.
 
 ## How the source is shaped
 
@@ -148,7 +160,14 @@ six `lang/<code>.json` files, then `python3 tools/check_lang.py && python3 tools
 sh test/run.sh          # everything: regressions, bindings, translations, both builds
 python3 build.py v2     # dist-v2/
 ./build_apk.sh v2       # worklog-debug.apk  (needs Gradle from Android Studio)
+./build_ios.sh          # WorkLog.app onto the booted simulator (needs Xcode)
 ```
+
+`test/run.sh` does not build the iOS app — it has no Swift in it and Xcode is not
+a given on every machine. The web app is the same file on both platforms, so the
+gate still covers what the iPhone runs; what it does not cover is the host, and
+that is checked by the origin line the debug build prints at launch (`DEPLOY.md`
+§"Checking it on the simulator").
 
 `sh test/run.sh` is the gate. It runs the wage-engine equivalence proof, 2152
 regression assertions (each tied to a real bug), a check that every `{{ hole }}` in the
@@ -328,7 +347,7 @@ value afterwards when you have been tapping near real settings.
   moves when either does.
 ## Rules the change log taught
 
-Sixty-eight entries, and they keep teaching one lesson in different costumes: **in this
+Seventy entries, and they keep teaching one lesson in different costumes: **in this
 app the failure mode is silence.** A selector that matches nothing, a `margin` the
 layer already owns, a `var(--…)` absent at first paint, a function that takes a period
 and then reads `this.st()` — none of them throw. The screen keeps its old shape, or
@@ -416,6 +435,10 @@ the whole story, which is always longer and usually has a table in it.
   (forty-ninth, fifty-third)
 - **The fingerprint is the app's identity.** `padIconInk`'s green appears in four places
   (the pad plus three logo copies); change one and change all four. (twenty-second)
+- **Ask what a handle covers, not just what it does.** The punch pad's tap target was the
+  whole card — 40% of the screen — so `touch-action: none` killed scrolling over it and a
+  finger on the clock or the label clocked the worker in. Give `touch-action: none` only
+  to the spot that must be held, and keep that spot finger-sized. (sixty-third)
 
 ### Money that has to remember its period
 
@@ -505,12 +528,17 @@ the whole story, which is always longer and usually has a table in it.
   before the period picker earns its design (thirteenth); the pay-period rollover
   morning, when a night shift punches out (twelfth). Both have assertions that stand a
   phone up at exactly that moment — run them when you touch those screens.
+- **A mark's safe zone is about its ink, not its bounding box.** The launcher icon's
+  glyph is a rounded blob in a near-square box, so sizing it by the box threw away a
+  fifth of the mark and it read small beside every other icon on the home screen. It
+  shows up only as "a bit small", so `pwa/make_icons.py` now reads back the maskable
+  PNG it just wrote and prints how far the ink actually reaches. (sixty-second)
 - **Before deleting anything in this folder, `grep -rl` the name**, then move it aside
   and run `sh test/run.sh` and `python3 build.py v2` before you decide. (twenty-fourth)
 
 ## Change log — `CHANGELOG.md`
 
-**Sixty-eight entries, and they are the reasoning behind most of what looks odd in this
+**Seventy entries, and they are the reasoning behind most of what looks odd in this
 app.** Each is a bug found by actually using it on shift, what changed, and why it was
 that fix and not the obvious one. Most end with a **다음 사람에게** paragraph — the rule
 the bug taught. Entries are cited by ordinal across the repo ("the twenty-third entry"),

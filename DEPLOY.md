@@ -27,15 +27,21 @@ dist/icon-{180,192,512}.png    launcher icons
 dist/icon-maskable-512.png     Android adaptive icon
 ```
 
-Icons are regenerated from `pwa/icon-source.png` — the 근무기록 · LOGGER mark —
-with `python3 pwa/make_icons.py`. That script also writes the Android launcher
-bitmaps into `android/app/src/main/res/mipmap-*`. To change the icon, drop a new
-square PNG (transparent outside the mark) at `pwa/icon-source.png` and rerun it.
+Icons are regenerated with `python3 pwa/make_icons.py`. That script also writes
+the Android launcher bitmaps into `android/app/src/main/res/mipmap-*`, the
+adaptive icon's background colour, and the iOS `AppIcon.appiconset/icon-1024.png`.
 
-Only `icon-512.png` carries the whole logo. Everything that renders small — the
-launcher bitmaps, the maskable icon, the apple-touch icon, the favicon — drops
-the clock and scales the wordmark up to fill the disc, because at 48px the clock
-costs two fifths of the height and leaves the lettering unreadable.
+The mark is the **green fingerprint** — the punch pad's own nine-path glyph, in
+the same `oklch(0.52 0.14 149)`, on the white disc. Nothing is rasterised from a
+source file: the nine `d` strings live in `make_icons.py`, copied verbatim from
+`WorkLogApp.v2.dc.html`, and are flattened and stroked at whatever size is being
+emitted. So every icon is drawn at its own resolution, and every size is the same
+drawing — there is no longer a large mark and a small one.
+
+Keep those `d` strings byte-identical to the pad's. The fingerprint is the app's
+identity and its copies are meant to be one drawing. `pwa/icon-source.png` is the
+old 근무기록 · LOGGER wordmark; nothing reads it any more, and it is kept only
+because that wordmark is still the logo *inside* the app.
 
 > The PWA head tags live in `PWA_HEAD` inside `build.py`, not in
 > `WorkLog.dc.html`. That wrapper is the design-canvas entry point; the build
@@ -217,9 +223,18 @@ own signing key.
 `versionCode` is the only number the store orders releases by, and **it can
 never be reused or reduced** — once a code is uploaded it is spent, even if you
 delete the draft. `versionName` is the string a worker sees and means nothing to
-that ordering. The script touches `android/app/build.gradle` and nothing else;
-in particular it does not touch the 근무내역서's `작성 도구` line, which is a
-separate decision.
+that ordering.
+
+The script now touches **two** files and moves them together:
+`android/app/build.gradle` and the `static APP_VERSION` in
+`WorkLogApp.v2.dc.html`, which is what the 근무내역서's `작성 도구` line prints.
+That line exists so an inspector can tell which build calculated the money on
+the paper, so it is only worth having while it matches the build — which is why
+the two are no longer allowed to drift. If the second rewrite fails the script
+exits non-zero and says which file is now ahead.
+
+**Rebuild after bumping**, or the document keeps printing the old number:
+`python3 build.py && python3 build.py v2`.
 
 ### 2. Make the upload key — once, and back it up
 
@@ -334,6 +349,119 @@ works, it just looks like a browser.
 `app-release-signed.apk` installs directly: send it over KakaoTalk, USB or a
 download link. The phone will ask the user to allow installing from that source.
 No Play Store account and no developer fee involved.
+
+## iPhone — the iOS app
+
+```sh
+./build_ios.sh                 # build, install on the booted simulator, launch
+./build_ios.sh build           # build only
+./build_ios.sh "iPhone 17"     # boot that simulator first, then install
+```
+
+Same shape as the APK: `build.py` makes the site, the script copies it into
+`ios/WorkLog/www`, and Xcode wraps it. `ios/WorkLog/www` is a **folder
+reference** in the project, so whatever sits in that folder ships — the same
+"delete your scratch pages first" rule that `dist-v2/` has. The bundle id is
+`app.worklog.punch`, the same string the APK carries; they are separate
+platforms and separate listings and share nothing but the name.
+
+### Why there is an HTTP server inside an offline app
+
+`WorkLogApp.v2.dc.html:5373` gives up on the fingerprint the moment
+`window.isSecureContext` is false, and every record the worker owns lives in
+localStorage, which is keyed by origin. A WKWebView can load the page three
+ways and only one satisfies both:
+
+| | secure context | localStorage |
+|---|---|---|
+| `file://` | no | unreliable |
+| custom scheme (`WKURLSchemeHandler`) | no — a scheme cannot be registered trustworthy | per-scheme |
+| **`http://127.0.0.1:8787`** | **yes — loopback is trustworthy by spec** | **yes, stable** |
+
+So `LocalServer.swift` serves the bundle on the loopback interface. It is the
+iOS counterpart of the APK's `WebViewAssetLoader` origin
+(`https://appassets.androidplatform.net`) and exists for exactly the same
+reason. The app still talks to nothing: the listener is bound to loopback and
+there is no outbound request anywhere in the codebase.
+
+**The port is fixed at 8787 and must stay fixed.** The port is part of the
+origin. A port picked at random, or a fallback to "the next free one", hands
+the page a different localStorage on every launch and the worker's entire
+history disappears with nothing raised. `LocalServer.start()` retries the same
+port rather than moving; the only two outcomes are 8787 or a visible error.
+
+### The two bridges
+
+`ios/WorkLog/Shims.swift` is the iOS half of `android/…/BioShim.java` and
+`FileShim.java`, and it keeps the same promise: `WorkLogApp.v2.dc.html` is not
+modified for the app and does not know it is inside one. WKWebView answers
+`postMessage` with a real Promise (`WKScriptMessageHandlerWithReply`), so the
+whole pending-map-and-`settle()` half of the Android shim is simply absent.
+
+- **지문.** Backed by `LAContext`, not WebAuthn. Unlike the Android shim this
+  one does *not* stand aside for an existing `window.PublicKeyCredential`:
+  WKWebView does expose the WebAuthn interface, but WebKit resolves a passkey's
+  relying party through the app's Associated Domains entitlement and no domain
+  can claim `127.0.0.1`. Deferring to it would hand the punch pad an
+  authenticator that fails at punch time rather than at feature-detect time.
+  `isUVPAA()` is answered by `canEvaluatePolicy`, so a phone with nothing
+  enrolled reports false and the app falls back to press-and-hold by itself.
+- **백업 내보내기.** Same guard as Android — a WebView with a working Web Share
+  keeps it, and iOS has one, so the shim installs only where it is missing.
+  Restoring needs no host code at all: `<input type="file">` opens the document
+  picker in WKWebView on its own, the one thing iOS gives free that Android
+  charged for.
+
+`navigator.serviceWorker` does not exist in WKWebView. That costs nothing —
+the site is served from the bundle, so it is already offline — and the
+`'serviceWorker' in navigator` guard in `build.py` means nothing throws. It
+also means the "the service worker is hiding your build" trap does not exist
+on iOS.
+
+### Checking it on the simulator
+
+The debug build prints its own origin once per launch, which is the fastest way
+to know the page got what it needs:
+
+```
+[worklog] {"origin":"http://127.0.0.1:8787","secure":true,"store":true,…}
+[worklog] isUVPAA=success(1)
+```
+
+```sh
+xcrun simctl spawn booted log stream --style compact \
+  --predicate 'eventMessage CONTAINS "[worklog]"'
+```
+
+Face ID is off in a fresh simulator, so `isUVPAA` is `success(0)` and the pad
+correctly drops to press-and-hold. Turn it on with Features ▸ Face ID ▸
+Enrolled, and answer a prompt with Features ▸ Face ID ▸ Matching Face. The
+`notifyutil` recipes that used to trigger those do not work on Xcode 26; the
+menu items do, and are reachable from a script:
+
+```sh
+osascript -e 'tell application "System Events" to tell process "Simulator" \
+  to click menu item "Matching Face" of menu 1 of menu item "Face ID" of menu 1 \
+  of menu bar item "Features" of menu bar 1'
+```
+
+**A punch that fails the instant it is asked, with no sheet drawn, is almost
+always focus and not code.** iOS refuses to evaluate biometrics for an app that
+is not frontmost, and the refusal arrives as a plain failure — indistinguishable
+from a worker who declined. It is only reachable from a harness driving a
+window that does not have focus (a finger on the punch pad means the app is
+active by definition), and it cost a round of blaming `Bridge.swift` for it.
+Same shape as the headless-Chrome focus note in `CLAUDE.md`, and it lies the
+same way: it looks exactly like a broken feature. Activate the Simulator first.
+
+### Onto a real iPhone
+
+Open `ios/WorkLog.xcodeproj`, pick your team under Signing & Capabilities, and
+Run. The signature is the only device-specific thing in the project — there is
+no entitlement to request, because the app uses no capability that needs one:
+no push, no iCloud, no associated domains, no network client. `Info.plist`
+carries `NSFaceIDUsageDescription`, which is not optional — without that key
+LocalAuthentication does not prompt, it terminates the app.
 
 ## What did not change
 
