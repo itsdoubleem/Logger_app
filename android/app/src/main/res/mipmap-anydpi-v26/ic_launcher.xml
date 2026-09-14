@@ -9,6 +9,6 @@
     <background android:drawable="@color/ic_launcher_background" />
     <foreground android:drawable="@mipmap/ic_launcher_foreground" />
     <!-- Themed icons, API 33+: the launcher tints this by the wallpaper's
-         palette and only its alpha is kept, which is exactly the wordmark. -->
+         palette and only its alpha is kept, which is exactly the fingerprint. -->
     <monochrome android:drawable="@mipmap/ic_launcher_foreground" />
 </adaptive-icon>

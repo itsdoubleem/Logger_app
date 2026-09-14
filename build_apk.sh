@@ -44,7 +44,7 @@ case "$1" in
   *)       echo "unknown mode: $1  (use v2 | release | bundle | no argument)" >&2; exit 1 ;;
 esac
 
-# web icons and the Android launcher bitmaps, both from pwa/icon-source.png
+# web icons and the Android launcher bitmaps, both drawn by pwa/make_icons.py
 python3 pwa/make_icons.py
 
 python3 build.py $MODE

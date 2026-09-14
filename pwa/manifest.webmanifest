@@ -7,7 +7,6 @@
   "author": "DOUBLEEM",
   "start_url": "./",
   "scope": "./",
-  "id": "/",
   "display": "standalone",
   "display_override": ["standalone", "fullscreen"],
   "orientation": "portrait",
