@@ -195,3 +195,19 @@ only, no ×2.0 tier) unless the user flags their company designates it a 휴일.
 - `WorkLog.dc.html` — standalone wrapper
 - `Work Log and Pay.dc.html` — the design canvas: annotated screens + the reasoning behind
   the pay rules, incl. how the rates were reverse-engineered from 7 payslips
+
+## Licence
+
+MIT — see [LICENSE](LICENSE). Third-party notices, including React's, are in
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+
+The licence is deliberate rather than incidental. This app makes a strong claim —
+that nothing leaves the device — and the cheapest way for a 노무사, an NGO or a
+근로감독관 to check that claim is to read the source and the manifest themselves.
+MIT also lets a 외국인노동자지원센터 mirror the APK and hand it out without asking
+anyone's permission, which is how a free tool actually reaches the people it was
+built for.
+
+What the licence does **not** change is [what this is not](#what-this-is-not): it
+remains a calculator, it gives no legal advice, and it stays free. The MIT warranty
+disclaimer is not a substitute for the 안내 printed on every 근무내역서.
