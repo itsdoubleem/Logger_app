@@ -13,9 +13,19 @@
 # delete the draft. versionName is the string a worker sees; it means nothing to
 # the store's ordering.
 #
-# This touches app/build.gradle and nothing else. In particular it does NOT
-# touch the 근무내역서's '작성 도구' line — what that should say has not been
-# decided (see CHANGELOG.md, the twenty-third entry).
+# This touches TWO files, and they must move together:
+#   android/app/build.gradle          versionCode + versionName
+#   WorkLogApp.v2.dc.html             static APP_VERSION
+#
+# APP_VERSION is what the 근무내역서's '작성 도구' line prints. That line exists
+# so a 근로감독관 can tell which build calculated the money on the paper, which
+# only works if it matches the build. The twenty-third entry left the naming
+# open; it is settled now — the document prints versionName, and this script is
+# what keeps the two from drifting apart.
+#
+# 'v2' in WorkLogApp.v2.dc.html / dist-v2/ / V2.md is the LINEAGE name, not the
+# release number, and it stays — test/regress.js proves the frozen v1 wage engine
+# and this one agree, and that proof is worth more than tidy filenames.
 set -e
 cd "$(dirname "$0")"
 
@@ -68,7 +78,41 @@ if [ "$check_code" != "$new_code" ] || [ "$check_name" != "$new_name" ]; then
 fi
 mv "$tmp" "$GRADLE_FILE"
 
-echo "versionCode $cur_code -> $new_code"
-echo "versionName $cur_name -> $new_name"
+# ── the same number, on the document ──────────────────────────────────────
+# Done after the gradle file is safely written, and with the same rule: never
+# leave a file half-rewritten. If this half fails the gradle file has already
+# moved, so say so loudly rather than exiting quietly — the two being out of
+# step is the exact thing this script exists to prevent.
+APP_FILE=WorkLogApp.v2.dc.html
+if [ ! -f "$APP_FILE" ]; then
+  echo "WARNING: $APP_FILE not found — APP_VERSION not updated." >&2
+  echo "         The document will print $cur_name while the app is $new_name." >&2
+  exit 1
+fi
+
+cur_app=$(sed -n "s/^[[:space:]]*static APP_VERSION[[:space:]]*=[[:space:]]*'\([^']*\)'.*$/\1/p" "$APP_FILE" | head -1)
+if [ -z "$cur_app" ]; then
+  echo "WARNING: could not read APP_VERSION from $APP_FILE." >&2
+  echo "         $GRADLE_FILE is now $new_name; fix the document by hand." >&2
+  exit 1
+fi
+
+tmp2=$(mktemp)
+sed -e "s/^\([[:space:]]*static APP_VERSION[[:space:]]*=[[:space:]]*\)'[^']*'/\1'$new_name'/" \
+    "$APP_FILE" > "$tmp2"
+check_app=$(sed -n "s/^[[:space:]]*static APP_VERSION[[:space:]]*=[[:space:]]*'\([^']*\)'.*$/\1/p" "$tmp2" | head -1)
+if [ "$check_app" != "$new_name" ]; then
+  rm -f "$tmp2"
+  echo "WARNING: rewrite of $APP_FILE failed — it is untouched." >&2
+  echo "         $GRADLE_FILE is now $new_name; fix the document by hand." >&2
+  exit 1
+fi
+mv "$tmp2" "$APP_FILE"
+
+echo "versionCode  $cur_code -> $new_code"
+echo "versionName  $cur_name -> $new_name"
+echo "APP_VERSION  $cur_app -> $new_name   (근무내역서의 '작성 도구' 줄)"
 echo
-echo "Next:  ./build_apk.sh bundle     (the .aab the Play Store takes)"
+echo "Then rebuild, or the document keeps printing the old number:"
+echo "  python3 build.py && python3 build.py v2"
+echo "  ./build_apk.sh bundle     (the .aab the Play Store takes)"

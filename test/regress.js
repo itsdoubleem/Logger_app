@@ -3287,7 +3287,10 @@ console.log('\n== 만든 사람의 이름은 근무내역서에 찍히지 않습
   const doc = c.evidenceHtml(c.period(c.now()));
 
   ok('문서에 만든 사람 이름이 없습니다', doc.indexOf(V2.AUTHOR)<0, V2.AUTHOR);
-  ok('도구 이름과 판은 남습니다', doc.indexOf('근무기록 LOGGER v2')>=0);
+  ok('도구 이름과 판은 남습니다', /근무기록 LOGGER \d+\.\d/.test(doc));
+  // 판 번호는 판마다 바뀝니다 — 굳은 'v2'를 세면 다음 판에서 이 줄이 거짓으로
+  // 통과하거나 애먼 곳에서 깨집니다. 세는 것은 '판이 찍혀 있는가'입니다.
+  ok('문서가 말하는 판은 빌드의 판입니다', doc.indexOf('근무기록 LOGGER ' + V2.APP_VERSION)>=0);
   ok('오프라인이라는 사실도 남습니다', doc.indexOf('본인 휴대폰에만 저장됩니다')>=0);
   // 설정 › 정보에는 그대로 있습니다
   ok('설정 정보에는 이름이 있습니다', c.renderVals().L.aboutMadeBy.indexOf(V2.AUTHOR)>=0);
@@ -3859,7 +3862,7 @@ console.log('\n== 이름 한가운데의 O는 출퇴근 패드의 지문입니�
   // 일어날지 알 수 없습니다.
   const c = decSetup('2026-12-20T09:00:00');
   const doc = c.evidenceHtml(c.period(c.now()));
-  ok('문서는 여전히 글자로 근무기록 LOGGER라고 씁니다', doc.indexOf('근무기록 LOGGER v2')>=0);
+  ok('문서는 여전히 글자로 근무기록 LOGGER라고 씁니다', doc.indexOf('근무기록 LOGGER')>=0);
   ok('문서에 지문 그림은 없습니다', doc.indexOf('<svg')<0);
 }
 
@@ -7777,6 +7780,54 @@ console.log('\n== 백업을 펴면 띠와 본문 사이에 흰 줄이 그어졌�
   ok('백업 안쪽 상자에 margin이 없습니다', backup.indexOf('margin:') < 0);
   ok('백업 본문 판의 여백은 padding입니다',
     backup.indexOf('padding:14px 18px;background:{{ gBackupBg }}') >= 0);
+}
+
+console.log('\n== 카드를 쓸면 화면이 굳었고, 짚으면 출근이 찍혔습니다 ==');
+// 2026-09-14. 출퇴근 첫 화면의 지문 카드 위에서 손가락을 위아래로 쓸면 목록이
+// 움직이지 않았습니다. 카드 전체가 `touch-action:none`을 들고 있어서였습니다 —
+// 길게 누르기(hold)를 스크롤러가 가로채지 못하게 막으려던 값인데, 카드가 화면의
+// 절반이라 그 절반 위에서는 스크롤 자체가 없어졌습니다.
+//
+// 같은 한 줄이 두 번째 것도 틀리게 했습니다. onPointerDown/onClick이 카드에
+// 달려 있어서 시각을, 글자를, 여백을 짚어도 출근이 찍혔습니다. 근무기록은
+// 증거라 잘못 찍힌 한 번은 지우는 것이 아니라 설명해야 하는 것이 됩니다.
+//
+// 그래서 손잡이를 96px 지문 상자 하나로 내렸습니다. touch-action:none도 같이
+// 내려갑니다 — 눌러서 찍는 자리에서만 스크롤러를 막으면 됩니다. 카드는 다시
+// 그냥 카드가 되고, 차오르는 빨강은 그대로 카드 전체를 채웁니다.
+//
+// 다음 사람에게: 손잡이가 무엇을 덮는지 물으십시오. 화면의 절반을 덮는 단추는
+// 누를 자리가 넓은 것이 아니라, 그만큼의 화면이 다른 일을 못 하는 것입니다.
+{
+  const fs = require('fs');
+  const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tpl = src.slice(0, src.indexOf('</x-dc>')).replace(/<!--[\s\S]*?-->/g, '');
+  const pad = tpl.match(/<div style="position:relative;overflow:hidden;[^"]*padding:20px 18px 22px;[^"]*"[^>]*>/);
+  ok('지문 카드가 그대로 있습니다', !!pad);
+  const padTag = pad ? pad[0] : '';
+  ok('카드는 더 이상 손잡이가 아닙니다',
+    padTag.indexOf('onClick') < 0 && padTag.indexOf('onPointerDown') < 0, padTag);
+  ok('카드가 스크롤을 먹지 않습니다', padTag.indexOf('touch-action') < 0, padTag);
+
+  const box = tpl.match(/<div [^>]*width:96px;height:96px;[^>]*>/);
+  ok('지문 상자가 그대로 있습니다', !!box);
+  const boxTag = box ? box[0] : '';
+  ok('찍는 것은 지문 상자입니다',
+    /onPointerDown="\{\{ holdStart \}\}"/.test(boxTag)
+    && /onPointerUp="\{\{ holdEnd \}\}"/.test(boxTag)
+    && /onPointerLeave="\{\{ holdEnd \}\}"/.test(boxTag)
+    && /onClick="\{\{ padTap \}\}"/.test(boxTag), boxTag);
+  ok('지문 상자 위에서는 길게 누르기를 스크롤러가 가로채지 못합니다',
+    boxTag.indexOf('touch-action:none') >= 0, boxTag);
+  ok('지문 상자가 손가락에게 단추라고 말합니다',
+    boxTag.indexOf('cursor:pointer') >= 0, boxTag);
+  // 층 규칙 5는 96px 두 값으로만 상자를 잡습니다 — 크기는 그대로여야 합니다.
+  const ds = fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
+  ok('지문 상자는 여전히 층 규칙 5가 잡는 96px입니다',
+    ds.indexOf('[style*="width: 96px"][style*="height: 96px"]') >= 0
+    && /width:96px;height:96px/.test(boxTag));
+  // 손잡이는 하나뿐이어야 합니다 — 카드 안에 또 다른 padTap이 생기면 안 됩니다.
+  ok('padTap은 화면에 한 자리뿐입니다', (tpl.match(/\{\{ padTap \}\}/g) || []).length === 1);
 }
 
 console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
