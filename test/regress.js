@@ -3292,8 +3292,23 @@ console.log('\n== 만든 사람의 이름은 근무내역서에 찍히지 않습
   // 통과하거나 애먼 곳에서 깨집니다. 세는 것은 '판이 찍혀 있는가'입니다.
   ok('문서가 말하는 판은 빌드의 판입니다', doc.indexOf('근무기록 LOGGER ' + V2.APP_VERSION)>=0);
   ok('오프라인이라는 사실도 남습니다', doc.indexOf('본인 휴대폰에만 저장됩니다')>=0);
-  // 설정 › 정보에는 그대로 있습니다
-  ok('설정 정보에는 이름이 있습니다', c.renderVals().L.aboutMadeBy.indexOf(V2.AUTHOR)>=0);
+  // 설정 › 정보에는 그대로 있습니다 — 다만 이름이 이제 글자가 아니라 브랜드
+  // 로고입니다. 그래서 번역된 '만든 사람 {name}' 문장은 이름 자리에서 둘로
+  // 갈라져 있고, 어느 쪽에도 이름이 글자로는 없습니다. 세는 것은 세 가지입니다:
+  // 문장이 아직 나오는가, 이름 자리가 비어 있는가, 그 자리를 로고가 메우는가.
+  const aboutL = c.renderVals().L;
+  ok('설정 정보에 만든 사람 줄이 있습니다',
+     (aboutL.aboutMadeByPre + aboutL.aboutMadeByPost).trim().length > 0);
+  ok('만든 사람 줄에 이름이 글자로는 없습니다',
+     (aboutL.aboutMadeByPre + aboutL.aboutMadeByPost).indexOf(V2.AUTHOR) < 0, V2.AUTHOR);
+  // 로고는 renderVals가 아니라 서식에 박혀 있으므로 원본을 직접 봅니다. 낱말은
+  // 글꼴이 아니라 윤곽선이라 <path>로, 정육면체는 base64 PNG로 들어 있습니다.
+  const aboutSrc = require('fs').readFileSync(
+    require('path').join(__dirname, '..', 'WorkLogApp.v2.dc.html'), 'utf8');
+  ok('만든 사람 자리를 로고가 메웁니다',
+     /aria-label="doubleem"[\s\S]{0,400}?data:image\/png;base64,/.test(aboutSrc)
+     && /aria-label="doubleem"[\s\S]{0,12000}?<path fill="var\(--color-text\)"/.test(aboutSrc));
+  // 판 번호는 여기에 넣지 않습니다 — 아래 '판 번호는 화면에서 뺐습니다'를 보십시오.
 }
 
 console.log('\n== 법적 고지는 접히지 않고 여덟 개 언어에 다 있습니다 ==');
@@ -3848,7 +3863,9 @@ console.log('\n== 이름 한가운데의 O는 출퇴근 패드의 지문입니�
   // ── 판 번호는 화면에서 뺐습니다 ──
   // 공개된 적이 없는 앱이라 처음 내보내는 판이 1판입니다. 화면이 'v2'라고 하면
   // 있지도 않은 이력을 주장하는 것입니다.
-  const about = tpl.slice(tpl.indexOf('{{ L.secAbout }}'), tpl.indexOf('{{ L.aboutMadeBy }}'));
+  const aboutEnd = tpl.indexOf('{{ L.aboutMadeByPre }}');
+  ok('정보 칸의 끝을 찾았습니다', aboutEnd > 0, String(aboutEnd));
+  const about = tpl.slice(tpl.indexOf('{{ L.secAbout }}'), aboutEnd);
   // 태그를 걷어내고 글자만 봅니다 — path 데이터에도 'v2'(세로선 명령)가 들어 있어서,
   // 날것 그대로 찾으면 지문 그림이 판 번호로 잡힙니다. 한 번 그렇게 걸렸습니다.
   const aboutText = about.replace(/<[^>]*>/g, '');
