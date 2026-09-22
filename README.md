@@ -1,14 +1,14 @@
 # Handoff: 근무기록 Work Log — Korean shift & wage tracker
 
-> **New here — or an AI agent picking this folder up?** Start with
-> [`CLAUDE.md`](CLAUDE.md). It is the map: which version ships, how the single-file
-> source is shaped, what the build actually does, how to see a change on a real
-> screen, and the traps that have caught people. Then come back here for the wage
-> rules; for why things are the way they are, read [`V2.md`](V2.md) (the v1 bugs that
-> made v2) and grep [`CHANGELOG.md`](CHANGELOG.md) (everything since).
+[![License: MIT](https://img.shields.io/badge/license-MIT-ec3013.svg)](LICENSE)
+
+> **New here?** Read the wage rules below first — they are the specification.
+> For why things are the way they are, read [`V2.md`](V2.md) (the v1 bugs that made
+> v2) and grep [`CHANGELOG.md`](CHANGELOG.md) (everything since). Building, hosting
+> and the APK are in [`DEPLOY.md`](DEPLOY.md).
 >
 > **There is now a v2.** See [`V2.md`](V2.md) for the bugs found in the app below
-> and what changed. Source `WorkLogApp.v2.dc.html`, built with `python3 build.py v2`
+> and what changed. Source `WorkLogApp.v2.dc.html`, built with `python3 build.py`
 > into `dist-v2/`. Checks: `sh test/run.sh`.
 >
 > v2 ships in eight languages — 한국어, English, Tiếng Việt, 中文, ไทย, Bahasa
