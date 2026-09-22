@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Rebuild the deployable PWA from the handoff sources.
 
-    python3 build.py            ->  dist/
+    python3 build.py            ->  dist-v2/
 
 The compiled handoff file 근무기록-WorkLog.html is a self-unpacking bundle: a
 small loader plus a JSON manifest of gzip+base64 assets (the dc runtime, React,
@@ -9,7 +9,7 @@ the Archivo webfont CSS, and WorkLogApp.dc.html itself), which it decodes into
 blob URLs and swaps into the document. This script reuses that file as the
 shell and rewrites only what has to change:
 
-  1. the WorkLogApp asset is replaced with the current WorkLogApp.dc.html,
+  1. the WorkLogApp asset is replaced with the current WorkLogApp.v2.dc.html,
      so the WebAuthn punch pad in the source ships in the build;
   2. ds-tokens.css is registered under the _ds/... href the app's helmet
      already links, which is missing from the handoff bundle (see that file);
@@ -30,13 +30,13 @@ import sys
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 SHELL = os.path.join(ROOT, '근무기록-WorkLog.html')
-# `python3 build.py v2` builds the v2 source into dist-v2/ alongside the v1 build,
-# so the two can be served and compared side by side.
-V2 = len(sys.argv) > 1 and sys.argv[1] == 'v2'
-APP = os.path.join(ROOT, 'WorkLogApp.v2.dc.html' if V2 else 'WorkLogApp.dc.html')
+# One lineage. The v1 "frozen original" source was removed once the app shipped,
+# so there is no second build to compare against any more. A trailing 'v2'
+# argument is still accepted and ignored, so older invocations keep working.
+APP = os.path.join(ROOT, 'WorkLogApp.v2.dc.html')
 TOKENS = os.path.join(ROOT, 'ds-tokens.css')
 PWA = os.path.join(ROOT, 'pwa')
-DIST = os.path.join(ROOT, 'dist-v2' if V2 else 'dist')
+DIST = os.path.join(ROOT, 'dist-v2')
 
 # the href the app's <helmet> links but the bundle never shipped
 DS_CSS_ID = '_ds/modernist-5ce80c01-ca67-4380-af11-739c06a783bc/styles.css'
@@ -152,7 +152,7 @@ def patch_app(src):
     if n != 1:
         sys.exit('expected exactly one _ds_bundle.js script tag, found %d' % n)
     if DS_CSS_ID not in src:
-        sys.exit('the _ds styles.css link is gone — check WorkLogApp.dc.html')
+        sys.exit('the _ds styles.css link is gone — check WorkLogApp.v2.dc.html')
     return src
 
 

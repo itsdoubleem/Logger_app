@@ -1,8 +1,7 @@
 #!/bin/sh
 # Build the sideloadable test APK.
 #
-#   ./build_apk.sh v2       ->  worklog-debug.apk         (sideload, dist-v2/)
-#   ./build_apk.sh          ->  worklog-frozen-debug.apk  (the frozen original, dist/)
+#   ./build_apk.sh          ->  worklog-debug.apk         (sideload, dist-v2/)
 #   ./build_apk.sh release  ->  worklog-release.apk       (release APK, dist-v2/)
 #   ./build_apk.sh bundle   ->  worklog-release.aab       (what the Play Store takes)
 #
@@ -13,23 +12,18 @@
 #
 # The shipping APK carries no version in its name on purpose: this app has never
 # been released, so the first build that goes out to workers is version 1, not
-# v2. 'v2' is a development lineage inside this repo, not something a worker
-# should ever read. The frozen original's APK is named so it can never overwrite
-# the shipping one — a stale build silently replacing the real one is exactly
-# the trap this repo keeps writing down.
+# v2. 'v2' was a development lineage inside this repo, not something a worker
+# should ever read; the frozen v1 original was removed once the app shipped, so
+# there is only one source now and only one APK a build can overwrite.
 #
 # Runs build.py first, copies the built site into the APK's assets, then builds
 # with the Gradle already cached by Android Studio. Debug-signed with
 # ~/.android/debug.keystore — fine for sideloading and testing, not for the
 # Play Store (see DEPLOY.md for the TWA route once the app is hosted).
 #
-# Both variants carry the same applicationId, so installing one upgrades the
-# other in place and the WebView's localStorage survives — which is what makes
-# v2's v1->v2 record migration run on a real phone.
 set -e
 cd "$(dirname "$0")"
 
-# MODE tells build.py which source to unpack ('' = the frozen original).
 case "$1" in
   release) SRC=dist-v2; MODE=v2; OUT=worklog-release.apk; TASK=assembleRelease
            ART=android/app/build/outputs/apk/release/app-release.apk
@@ -37,11 +31,9 @@ case "$1" in
   bundle)  SRC=dist-v2; MODE=v2; OUT=worklog-release.aab; TASK=bundleRelease
            ART=android/app/build/outputs/bundle/release/app-release.aab
            UNSIGNED= ;;
-  v2)      SRC=dist-v2; MODE=v2; OUT=worklog-debug.apk; TASK=assembleDebug
+  ''|v2)   SRC=dist-v2; MODE=v2; OUT=worklog-debug.apk; TASK=assembleDebug
            ART=android/app/build/outputs/apk/debug/app-debug.apk; UNSIGNED= ;;
-  '')      SRC=dist;    MODE='';  OUT=worklog-frozen-debug.apk; TASK=assembleDebug
-           ART=android/app/build/outputs/apk/debug/app-debug.apk; UNSIGNED= ;;
-  *)       echo "unknown mode: $1  (use v2 | release | bundle | no argument)" >&2; exit 1 ;;
+  *)       echo "unknown mode: $1  (use release | bundle | no argument)" >&2; exit 1 ;;
 esac
 
 # web icons and the Android launcher bitmaps, both drawn by pwa/make_icons.py

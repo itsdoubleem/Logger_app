@@ -76,9 +76,8 @@ take, drafting or filing a 진정 for them, and charging for the calculation.
 It is NOT a throwaway mock: the logic in it is the specification. Treat it as the reference
 implementation and port it, don't reinvent it.
 
-- `WorkLogApp.dc.html` — the app (template + a `Component` class holding all logic).
+- `WorkLogApp.v2.dc.html` — the app (template + a `Component` class holding all logic).
   The logic class is plain JS and is the part worth reading; it is framework-agnostic.
-- `WorkLog.dc.html` — thin wrapper that mounts the app full-screen with PWA meta.
 - `근무기록-WorkLog.html` — the compiled single-file build. Open it in a browser to see
   the real thing before writing any code.
 
@@ -126,7 +125,7 @@ is one file with no dependencies. Add a web app manifest + service worker so "Ad
 screen" installs it properly and it opens offline.
 
 ## The wage engine — port this exactly, it is verified against real payslips
-All of it lives in the `Component` class in `WorkLogApp.dc.html`. Read `calc()`,
+All of it lives in the `Component` class in `WorkLogApp.v2.dc.html`. Read `calc()`,
 `snapIn()`, `snapOut()`, `detectShift()`, `period()`, `legalGap()`.
 
 **Rates** (all derived from 기본금, nothing hardcoded):
@@ -191,10 +190,10 @@ only, no ×2.0 tier) unless the user flags their company designates it a 휴일.
 
 ## Files in this bundle
 - `근무기록-WorkLog.html` — run this first
-- `WorkLogApp.dc.html` — app source (logic class = the spec)
-- `WorkLog.dc.html` — standalone wrapper
-- `Work Log and Pay.dc.html` — the design canvas: annotated screens + the reasoning behind
-  the pay rules, incl. how the rates were reverse-engineered from 7 payslips
+- `WorkLogApp.v2.dc.html` — app source (logic class = the spec)
+- `test/fixtures/v1-engine.dc.html` — the frozen v1 engine, kept only so the
+  regression suite can prove v2's pay maths still matches the rates that were
+  reverse-engineered from 7 real payslips
 
 ## Licence
 

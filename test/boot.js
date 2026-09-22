@@ -16,7 +16,7 @@ const ROOT = path.join(__dirname, '..');
 let pass = 0, fail = 0;
 const ok = (n, c, extra = '') => { (c ? pass++ : fail++); console.log((c ? '  PASS  ' : '! FAIL  ') + n + (extra ? '  ' + extra : '')); };
 
-for (const dist of ['dist', 'dist-v2']) {
+for (const dist of ['dist-v2']) {
   const idx = path.join(ROOT, dist, 'index.html');
   if (!fs.existsSync(idx)) { ok(dist + '/index.html 이 있습니다', false, '먼저 build.py를 도십시오'); continue; }
   const built = fs.readFileSync(idx, 'utf8');

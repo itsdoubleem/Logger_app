@@ -30,8 +30,7 @@ done
 
 echo
 echo "== builds =="
-python3 build.py    | head -1
-python3 build.py v2 | head -1
+python3 build.py | head -1
 
 echo
 echo "== boot: nothing shows before the app =="

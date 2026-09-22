@@ -13,18 +13,18 @@
 python3 build.py
 ```
 
-Everything to ship is in `dist/` — 7 files, ~730 KB, no dependencies, no build
+Everything to ship is in `dist-v2/` — 7 files, ~730 KB, no dependencies, no build
 toolchain. `build.py` unpacks the handoff bundle, swaps in the current
-`WorkLogApp.dc.html`, adds the design-system tokens and the PWA head tags, and
-re-seals it. Re-run it after any edit to `WorkLogApp.dc.html`, `ds-tokens.css`,
+`WorkLogApp.v2.dc.html`, adds the design-system tokens and the PWA head tags, and
+re-seals it. Re-run it after any edit to `WorkLogApp.v2.dc.html`, `ds-tokens.css`,
 `pwa/sw.js` or `pwa/manifest.webmanifest`.
 
 ```
-dist/index.html                the whole app
-dist/manifest.webmanifest      installability
-dist/sw.js                     offline shell
-dist/icon-{180,192,512}.png    launcher icons
-dist/icon-maskable-512.png     Android adaptive icon
+dist-v2/index.html                the whole app
+dist-v2/manifest.webmanifest      installability
+dist-v2/sw.js                     offline shell
+dist-v2/icon-{180,192,512}.png    launcher icons
+dist-v2/icon-maskable-512.png     Android adaptive icon
 ```
 
 Icons are regenerated with `python3 pwa/make_icons.py`. That script also writes
@@ -43,9 +43,8 @@ identity and its copies are meant to be one drawing. `pwa/icon-source.png` is th
 old 근무기록 · LOGGER wordmark; nothing reads it any more, and it is kept only
 because that wordmark is still the logo *inside* the app.
 
-> The PWA head tags live in `PWA_HEAD` inside `build.py`, not in
-> `WorkLog.dc.html`. That wrapper is the design-canvas entry point; the build
-> takes its outer template from the compiled bundle.
+> The PWA head tags live in `PWA_HEAD` inside `build.py`, not in the app
+> source. The build takes its outer template from the compiled bundle.
 
 ## Hosting — https, free, no account needed for the first one
 
@@ -58,9 +57,9 @@ Any of these work equally well, all free, all https:
 
 | Host | How |
 | --- | --- |
-| Netlify Drop | drag `dist/` onto app.netlify.com/drop |
-| Cloudflare Pages | Create project → Direct upload → drag `dist/` |
-| GitHub Pages | push `dist/` contents to a repo, Settings → Pages |
+| Netlify Drop | drag `dist-v2/` onto app.netlify.com/drop |
+| Cloudflare Pages | Create project → Direct upload → drag `dist-v2/` |
+| GitHub Pages | push `dist-v2/` contents to a repo, Settings → Pages |
 | Vercel | `npx vercel deploy --prod dist` |
 
 Requirements the host must meet — all four do:
@@ -340,7 +339,7 @@ A TWA shows a Chrome address bar until the site proves it owns the app. Take the
 https://<your-host>/.well-known/assetlinks.json
 ```
 
-Netlify/Cloudflare/Vercel serve `dist/.well-known/` as-is — put the file there
+Netlify/Cloudflare/Vercel serve `dist-v2/.well-known/` as-is — put the file there
 and re-deploy. Reinstall the APK; the bar disappears. Without this the app still
 works, it just looks like a browser.
 
@@ -467,5 +466,5 @@ LocalAuthentication does not prompt, it terminates the app.
 
 The wage engine is untouched — `calc()`, `snapIn()`, `snapOut()`, `detectShift()`,
 `period()`, `legalGap()` and every rate are byte-for-byte the handoff versions.
-The only edits to `WorkLogApp.dc.html` are the punch pad's gesture and the copy
+The only edits to `WorkLogApp.v2.dc.html` are the punch pad's gesture and the copy
 on the pad itself.
