@@ -8053,7 +8053,8 @@ console.log('\n== 그만두는 날 받을 돈을 한 자리에서 셀 수 없었
   c=base('2026-09-25T10:00:00'); c.state.settings.lastDay='2023-12-31';
   R=c.renderVals();
   ok('입사일보다 앞선 날은 쓰지 않습니다', c.lastDay()===null && R.settleShow===false);
-  ok('그 칸만 빨갛게 말합니다', R.lastBd==='var(--color-accent)' && R.lastNote===c.T('last_day_before_hire'));
+  // 처음에는 빨갛게 '비우라'고 했습니다. S11 뒤로 이 날은 옛 회사의 기간을 붙드는 값이라 오류가 아닙니다.
+  ok('옛 회사의 마지막 근무일로 말합니다 — 빨갛지 않게', R.lastBd==='var(--color-neutral-300)' && R.lastNote===c.T('last_day_before_hire'));
   ok('근속은 오늘까지 그대로', c.serviceOn()===undefined);
 
   c.state.settings.lastDay='2026-02-30';
@@ -8420,6 +8421,30 @@ console.log('\n== 마지막 근무일 당일의 정산이 전날보다 적었습
   ok('당일은 미리 본 값', t.projected===true && y.projected===false);
   const tc=mkW('2026-09-25');
   ok('당일에도 퇴직금 카드와 정산 카드가 같은 금액', tc.renderVals().sevAmt===tc.won(tc.settlement().sev), tc.renderVals().sevAmt+' / '+tc.settlement().sev);
+}
+
+console.log('\n== 새 회사 입사일을 적는 순간 옛 회사의 마지막 기간이 새 기본금으로 다시 찍혔습니다 (S11) ==');
+// 사업장을 옮긴 E-9 근로자는 새 입사일과 새 기본금을 적습니다. 입사일이 마지막 근무일을
+// 넘는 순간 lastDay()는 null이 되고(입사일보다 앞선 날은 쓰지 않으므로), 굳힘이 풀려
+// stampWage가 옛 회사의 아직 열린 마지막 기간을 새 회사 기본금으로 덮었습니다. 이제 굳힘은
+// 근로자가 적은 날 그대로(lastDayRaw)를 봅니다 — 그 날이 든 한 기간만 붙들므로, 칸에 남은
+// 옛 날짜가 지금 회사의 기간을 건드리지는 않습니다.
+{
+  const at=(c,iso)=>{ c.base=new Date(iso); c.t0=Date.now(); };
+  const c=mk(V2,'2026-09-22T10:00:00');
+  c.state.settings.basic=2156880; c.state.settings.divisor=209; c.state.settings.hireDate='2023-05-01';
+  c.state.settings.lastDay='2026-09-22'; c.stampWage();
+  at(c,'2026-09-28T10:00:00');
+  c.state.settings.hireDate='2026-10-01'; c.state.settings.basic=2600000; c.stampWage();
+  const k=V2.wageKey(c.period(new Date('2026-09-22T00:00:00')));
+  ok('옛 회사의 마지막 기간은 옛 기본금을 간직합니다', c.st().wageLog[k].basic===2156880, String(c.st().wageLog[k].basic));
+  ok('그 기간의 wageFor도 옛 기본금', c.wageFor(c.period(new Date('2026-09-22T00:00:00'))).basic===2156880);
+  ok('정산 카드는 나오지 않습니다 — 지금 회사의 것이 아니므로', c.settlement()===null);
+  at(c,'2026-11-05T10:00:00'); c.stampWage();
+  ok('다음 기간부터는 새 기본금', c.st().wageLog[V2.wageKey(c.period(c.now()))].basic===2600000);
+  const R=c.renderVals();
+  ok('칸 밑의 말이 비우라고 하지 않습니다 — 비우면 붙든 것이 풀립니다',
+    R.lastNote===c.T('last_day_before_hire') && !/비우십시오/.test(R.lastNote), R.lastNote);
 }
 
 Promise.all(later).then(()=>{

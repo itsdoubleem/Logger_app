@@ -742,7 +742,7 @@
   "last_day_worked": "마지막 근무일 Ngày làm cuối",
   "last_day_note_empty": "Chỉ nhập khi đã biết ngày nghỉ việc. Ứng dụng sẽ tính bên dưới số tiền nhận khi nghỉ việc và hạn trả.",
   "last_day_note_set": "Tính là ngày làm việc cuối cùng. Sau ngày này, thâm niên và 퇴직금 không tăng nữa.",
-  "last_day_before_hire": "⚠ Ngày này trước ngày vào làm nên không dùng. Nếu bạn đã chuyển sang công ty mới, hãy xóa ô này.",
+  "last_day_before_hire": "Ngày này trước ngày vào làm, nên được xem là ngày làm cuối ở công ty cũ. Không hiện 퇴사 정산 vì đó không phải của công ty hiện tại; kỳ lương chứa ngày đó giữ nguyên mức lương của công ty cũ.",
   "final_settlement": "퇴사 정산 Quyết toán khi nghỉ việc",
   "settle_sum_label": "퇴직금 + 연차미사용수당 · ngày làm cuối {p0}",
   "settle_row_leave": "연차미사용수당 tiền phép chưa dùng (còn {p0})",

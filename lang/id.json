@@ -742,7 +742,7 @@
   "last_day_worked": "마지막 근무일 Hari kerja terakhir",
   "last_day_note_empty": "Isi hanya jika tanggal berhenti sudah pasti. Aplikasi lalu menghitung di bawah uang yang dibayar saat Anda berhenti, dan batas waktunya.",
   "last_day_note_set": "Dihitung sebagai hari kerja terakhir Anda. Setelah itu, masa kerja dan 퇴직금 tidak bertambah lagi.",
-  "last_day_before_hire": "⚠ Tanggal ini sebelum tanggal mulai kerja, jadi tidak dipakai. Jika Anda sudah pindah ke perusahaan baru, kosongkan kotak ini.",
+  "last_day_before_hire": "Tanggal ini sebelum tanggal mulai kerja, jadi dianggap hari kerja terakhir di perusahaan sebelumnya. 퇴사 정산 tidak ditampilkan karena bukan milik perusahaan sekarang; periode gaji yang memuat hari itu tetap memakai upah perusahaan sebelumnya.",
   "final_settlement": "퇴사 정산 Penyelesaian saat berhenti",
   "settle_sum_label": "퇴직금 + 연차미사용수당 · hari kerja terakhir {p0}",
   "settle_row_leave": "연차미사용수당 uang cuti tak terpakai (sisa {p0})",

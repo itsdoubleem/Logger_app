@@ -3168,8 +3168,8 @@
     "ko": "이 날까지 일한 것으로 셉니다. 이 날이 지나면 근속도 퇴직금도 더 늘지 않습니다."
   },
   "last_day_before_hire": {
-    "en": "⚠ This is before your start date, so it is not used. If you have moved to a new company, clear this box.",
-    "ko": "⚠ 입사일보다 앞선 날이라 쓰지 않습니다. 다른 회사로 옮겼다면 이 칸을 비우십시오."
+    "en": "This is before your start date, so it is read as your last day at your previous company. No final settlement is shown, because it is not this company's; the pay period containing that day keeps the previous company's wage.",
+    "ko": "입사일보다 앞선 날이라 옛 회사의 마지막 근무일로 봅니다. 퇴사 정산은 지금 회사의 것이 아니므로 나오지 않고, 그 날이 든 급여기간의 임금은 옛 회사의 값으로 붙들어 둡니다."
   },
   "final_settlement": {
     "en": "Final settlement",
