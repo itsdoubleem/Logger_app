@@ -172,6 +172,10 @@
    The period chip beside it is a solid dark pill, set in the template. */
 [style*="border: 1px solid var(--color-divider)"] { border-radius: var(--radius-pill); }
 [style*="letter-spacing: 0.12em"][style*="padding: 6px 11px"] { border-radius: var(--radius-pill); }
+/* 기간 고르기's year chips are the same pill at the same size: 4px padding plus a
+   2px border is the period chip's 6px, so the unpicked years can carry an outline
+   without growing. The 44px tap target is the bare wrapper around it. */
+[style*="letter-spacing: 0.12em"][style*="padding: 4px 9px"] { border-radius: var(--radius-pill); }
 
 /* ── 2b · chips ─────────────────────────────────────────────────────────── */
 /* Seven elements in the app are `min-height: 30px` + `inline-flex`: the four

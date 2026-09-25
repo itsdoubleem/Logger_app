@@ -8832,6 +8832,24 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('결근·휴업·휴일 가산이 빠진 금액이 아닙니다', !line.includes(c.won(c.payCalc({reg:0,ot:c.totals(null,Q).ot,night:c.totals(null,Q).night,hol:c.totals(null,Q).hol,days:0}, W).net)), line);
 }
 
+// ── 기간 고르기: 연도 칩이 머리의 날짜 알약과 같은 크기입니다 (2026-09-25) ──
+// 근로자의 말: '기간 고르기'와 +가 카드 가장자리에 너무 붙어 있고, 연도 칩이 달 칸만큼
+// 커다란 네모였습니다. 연도 칩은 머리의 09.21 → 10.20 알약과 같은 크기로, 길이는 글자만큼.
+// 4px 여백 + 2px 테두리 = 알약의 6px이므로 테두리가 있어도 커지지 않습니다. 헤드리스에서 잰
+// 높이: 알약 24px, 연도 칩 24px(line-height 12px — 알약의 →가 대체 글꼴이라 줄이 1px 높습니다).
+// 44px 누르는 자리는 칩이 아니라 칩을 감싼 맨 div가 집니다.
+{
+  const fs=require('fs');
+  const src=fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const ds=fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
+  const chip='<div style="font-size:10px;letter-spacing:0.12em;padding:4px 9px;border:2px solid var(--color-text);background:{{ a.bg }};color:{{ a.ink }};font-weight:700;line-height:12px;';
+  ok('연도 칩이 두 탭 모두 알약 크기입니다', src.split(chip).length-1===2);
+  ok('연도 칩을 감싼 자리가 44px 누르는 자리입니다', src.split('<div onClick="{{ a.go }}" style="min-width:44px;min-height:44px;display:inline-flex').length-1===2);
+  ok('예전 네모 연도 칸이 남아 있지 않습니다', !src.includes('padding:0 13px;border:2px solid var(--color-text);background:{{ a.bg }}'));
+  ok('층이 연도 칩을 알약으로 만듭니다', ds.includes('[style*="letter-spacing: 0.12em"][style*="padding: 4px 9px"] { border-radius: var(--radius-pill); }'));
+  ok('\'기간 고르기\' 줄이 양옆으로 12px 들어와 있습니다', src.split('justify-content:space-between;gap:10px;padding:0 12px;cursor:pointer">').length-1===2);
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);
