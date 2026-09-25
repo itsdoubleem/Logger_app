@@ -3787,7 +3787,10 @@ class Component extends DCLogic {
   }
   wageFor(P) {
     const Q = P || this.period(this.now());
-    // 아직 끝나지 않은 기간은 언제나 지금 설정입니다
+    // 아직 끝나지 않은 기간은 언제나 지금 설정입니다 — 그 기간 안에서 이미 그만둔
+    // 사람이 아니라면(M3). 그만둔 사람의 도장은 기간이 열려 있어도 굳어 있습니다.
+    const held = this.heldStamp(Q);
+    if (held) return Object.assign({}, held, { src: held.src || 'live' });
     if (Component.isoDay(Q.e) >= Component.isoDay(this.now())) return this.wageNow();
     const w = (this.st().wageLog || {})[Component.wageKey(Q)];
     const base = (w && +w.rate > 0)
@@ -3801,10 +3804,30 @@ class Component extends DCLogic {
   // componentDidUpdate에서 부릅니다. 같으면 쓰지 않으므로 시계가 1초마다 돌아도
   // 저장이 일어나지 않고, 기간이 넘어가는 순간 '마지막 날의 설정'이 그대로
   // 남습니다.
+  // ── 그만둔 기간의 도장은 굳힙니다 (M3) ──
+  // 도장은 기간이 열려 있는 동안 매번 다시 찍힙니다. 그런데 마지막 근무일이 그 기간
+  // 안에 있고 이미 지났다면, 그 뒤에 바뀐 설정은 **다음 회사의 것**입니다. 기간이
+  // 닫힐 때까지 덮어쓰게 두면, 그만두고 며칠 뒤 적은 새 기본금이 옛 회사의 퇴직금과
+  // 연차미사용수당에 박혀서 되돌릴 수도 없게 됩니다. 그래서 오늘이 마지막 근무일을
+  // 지난 순간부터 그 기간의 도장은 더 찍지 않고, wageFor는 그 도장을 돌려줍니다.
+  lastDayPeriodPast(Q) {
+    const l = this.lastDay();
+    if (!l) return false;
+    const today = Component.isoDay(this.now()), ld = Component.isoDay(l);
+    return ld < today && Component.isoDay(Q.s) <= ld && ld <= Component.isoDay(Q.e);
+  }
+  heldStamp(Q) {
+    if (!this.lastDayPeriodPast(Q)) return null;
+    const w = (this.st().wageLog || {})[Component.wageKey(Q)];
+    return w && +w.rate > 0 ? w : null;
+  }
   stampWage() {
     const P = this.period(this.now());
     const k = Component.wageKey(P);
     const log = this.st().wageLog || {};
+    // 이미 찍힌 도장이 있으면 굳힙니다. 없으면 한 번은 찍습니다 — 도장 없이 두면
+    // 기간이 닫힐 때 wageFor가 recoverWage나 지금 설정으로 떨어집니다.
+    if (log[k] && this.lastDayPeriodPast(P)) return;
     const w = this.wageNow();
     if (JSON.stringify(log[k]) === JSON.stringify(w)) return;
     this.setS({ wageLog: Object.assign({}, log, { [k]: w }) });

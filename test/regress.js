@@ -8140,6 +8140,57 @@ console.log('\n== 그만둔 뒤 새 회사 기본금을 적자 옛 회사 퇴직
   ok('다니는 중이면 오늘 기본금을 따릅니다', d.unusedLeavePay().total>lp0);
 }
 
+console.log('\n== 기간이 닫히기 전에 새 기본금을 적자 옛 회사 정산에 박혔습니다 (M3) ==');
+// 두 번째 리뷰에서 나왔습니다. M2는 '마지막 근무일이 든 기간의 도장'으로 셉니다.
+// 그런데 도장은 기간이 열려 있는 동안 매번 다시 찍힙니다(stampWage). 09.22에 그만두고
+// 09.28에 새 회사 기본금 ₩2,600,000을 적자, 아직 열린 09.21–10.20 기간의 도장이 그
+// 값으로 덮였고 정산은 ₩8,421,120 → ₩10,151,040. 기간이 닫힌 뒤 기본금을 되돌려도
+// 도장은 2,600,000을 간직해서, 되돌릴 길조차 없었습니다 — 고치기 전보다 나빴습니다.
+//
+// 이제 마지막 근무일이 지나면 그 날이 든 기간의 도장은 더 찍지 않고(stampWage),
+// wageFor는 기간이 아직 열려 있어도 그 도장을 돌려줍니다. 도장은 마지막 근무일까지의
+// 설정을 간직합니다.
+//
+// 다음 사람에게: '그 때의 값'을 붙드는 장치가 '그 때'가 끝나기 전까지 계속 덮어쓰는
+// 장치라면, 끝을 기간의 끝이 아니라 그 값이 뜻하는 날의 끝으로 잡으십시오.
+{
+  const at=(c,iso)=>{ c.base=new Date(iso); c.t0=Date.now(); };
+  const c=mk(V2,'2026-09-22T10:00:00');
+  c.state.settings.basic=2156880; c.state.settings.divisor=209;
+  c.state.settings.hireDate='2023-05-01';
+  c.state.settings.annualBase=5; c.state.settings.annualAsOf=new Date('2026-09-01T00:00:00').toISOString();
+  c.state.settings.lastDay='2026-09-22';
+  c.stampWage();                        // 마지막 근무일에 앱을 쓴 것
+  at(c,'2026-09-23T10:00:00');
+  const before=c.settlement(); const beforeR=c.renderVals();
+  at(c,'2026-09-28T10:00:00');
+  c.state.settings.basic=2600000; c.stampWage();   // 새 회사 기본금 — componentDidUpdate가 찍으려 합니다
+  let now=c.settlement();
+  ok('열린 기간에 새 기본금을 적어도 정산 퇴직금은 그대로', now.sev===before.sev, before.sev+' → '+now.sev);
+  ok('연차미사용수당도 그대로', now.leave===before.leave, before.leave+' → '+now.leave);
+  ok('퇴직금 카드도 그대로', c.renderVals().sevAmt===beforeR.sevAmt);
+  ok('도장은 마지막 근무일의 기본금을 간직합니다',
+    c.st().wageLog[V2.wageKey(c.period(new Date('2026-09-22T00:00:00')))].basic===2156880);
+  at(c,'2026-10-25T10:00:00');          // 기간이 닫히고, 새 기간이 열렸습니다
+  c.stampWage();
+  ok('기간이 닫힌 뒤에도 그대로', c.settlement().sev===before.sev);
+  c.state.settings.basic=2156880; c.stampWage();
+  ok('기본금을 되돌려도 그대로 — 박힌 값이 없습니다', c.settlement().sev===before.sev);
+  ok('새 기간의 도장은 여전히 찍힙니다',
+    c.st().wageLog[V2.wageKey(c.period(c.now()))].basic===2156880);
+  // 아직 마지막 근무일 전이면 도장은 평소처럼 따라갑니다
+  const d=mk(V2,'2026-09-22T10:00:00');
+  d.state.settings.basic=2156880; d.state.settings.lastDay='2026-09-30'; d.stampWage();
+  d.state.settings.basic=2300000; d.stampWage();
+  ok('마지막 근무일 전에는 도장이 설정을 따라갑니다',
+    d.st().wageLog[V2.wageKey(d.period(d.now()))].basic===2300000);
+  // 마지막 근무일이 없는 사람에게는 아무것도 바뀌지 않습니다
+  const e=mk(V2,'2026-09-22T10:00:00');
+  e.state.settings.basic=2156880; e.stampWage(); e.state.settings.basic=2300000; e.stampWage();
+  ok('마지막 근무일이 없으면 평소대로', e.st().wageLog[V2.wageKey(e.period(e.now()))].basic===2300000);
+  ok('열린 기간의 wageFor는 평소대로 지금 설정', e.wageFor(e.period(e.now())).basic===2300000);
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);
