@@ -8617,6 +8617,38 @@ console.log('\n== 붙들린 평균임금과 상여가 화면 어디에도 없었
     return c.T('held_avg_manual',{p0:'Z'}).includes('Z') && c.T('held_bonus',{p0:'Z'}).includes('Z') && c.T('held_avg_manual',{p0:'Z'}).includes('평균임금') && c.T('held_bonus',{p0:'Z'}).includes('상여'); }));
 }
 
+console.log('\n== 하루 화면과 급여 탭의 제56조② 차액이 문서와 달랐습니다 (S17) ==');
+// S15와 같은 종류의 남은 자리입니다. 하루 화면의 '일일 변동수당'과 제56조② 차액, 급여 탭의 제56조② 카드가
+// W 없이 불렀습니다. 닫힌 8월, 휴일 08.16에 08–20시 근무(8시간 초과 3시간), 그 뒤 기본금 2,156,880 →
+// 2,800,000: 화면과 카드는 차액 +₩20,094, 같은 기간의 근무내역서는 ₩15,480. holOverPaid를 켜면 하루
+// 화면의 줄은 ₩185,760으로 더해지는데 합계는 ₩190,374라고 했습니다. 그리고 S15의 CHANGELOG는 'W 없이
+// 부르는 곳은 한 자리뿐'이라고 잘못 적었습니다.
+{
+  const mkC=paid=>{ const c=mk(V2,'2026-09-25T10:00:00');
+    c.state.settings.basic=2156880; c.state.settings.divisor=209; c.state.settings.periodStart=1; c.state.settings.hireDate='2023-05-01';
+    c.state.settings.holOverPaid=paid;
+    c.state.extra=[{y:2026,m:8,day:16,kind:'day',type:'shift',holiday:true,inH:8,outH:20,c:c.calc(8,20,'day',true)}];
+    const P=c.period(new Date('2026-08-16T00:00:00'));
+    c.state.settings.wageLog={[V2.wageKey(P)]: c.wageNow()};
+    c.state.settings.basic=2800000;
+    c.setState({payBack:1, openDay:20260816});
+    return {c,P,W:c.wageFor(P),r:c.state.extra[0]}; };
+  const findRow=(c,o,key,seen=new Set())=>{ if(!o||typeof o!=='object'||seen.has(o)) return null; seen.add(o);
+    if(Array.isArray(o)){ const i=o.findIndex(x=>x&&x.k===c.T(key)); if(i>=0) return o.slice(i); for(const x of o){ const f=findRow(c,x,key,seen); if(f) return f; } return null; }
+    for(const k of Object.keys(o)){ const f=findRow(c,o[k],key,seen); if(f) return f; } return null; };
+  let {c,P,W,r}=mkC(false);
+  const gap=c.legalGap(r,W);
+  ok('문서의 차액', gap>0 && c.evidenceHtml(P).includes(c.won(gap)), String(gap));
+  let R=c.renderVals();
+  const g=findRow(c,R,'legal_minimum_lsa_56_2');
+  ok('하루 화면의 제56조② 차액 = 문서', g && g[1].v==='+'+c.won(gap), g&&g[1].v);
+  ok('급여 탭의 제56조② 카드 = 문서', R.legalGapAmt==='+'+c.won(gap), R.legalGapAmt);
+  ({c,P,W,r}=mkC(true));
+  R=c.renderVals();
+  const t=findRow(c,R,'day_total_variable_pay');
+  ok('holOverPaid면 하루 화면의 합계 = 그 날의 임금(W)', t && t[0].v===c.won(c.dayPay(r,W)), t&&t[0].v);
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);
