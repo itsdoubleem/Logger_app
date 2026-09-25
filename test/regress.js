@@ -8515,6 +8515,33 @@ console.log('\n== v1.1.0이 찍은 도장에는 상여도 직접 적은 평균�
   ok('이미 값이 있는 도장은 건드리지 않습니다', V2.fillStampFields({wageLog:{a:{rate:1,bonusYear:5,avgManual:6}}, avgDaily:9}).wageLog.a.avgManual===6);
 }
 
+console.log('\n== \'추정입니까\'와 그 옆의 금액이 서로 다른 곳을 봤습니다 (S13) ==');
+// S7 뒤로 1일 평균임금은 도장의 avgManual을 읽는데, '낮게 추정된 값' 단서(avgIsEst)는 여전히 지금
+// 설정의 avgDaily를 읽었습니다(S3과 같은 종류). 기록이 얇은 닫힌 기간에서, 도장 0 / 설정 150,000이면
+// 문서는 통상임금 바닥 ₩82,560을 단서 없이 확정처럼 찍었고, 도장 90,000 / 설정 0이면 근로자가
+// 명세서에서 옮긴 ₩90,000을 '앱이 낮게 추정한 값'이라고 불렀습니다. 이제 단서도 W를 받습니다.
+{
+  const c=mk(V2,'2026-09-25T10:00:00'); c.state.settings.hireDate='2023-05-01';
+  const ex=[]; for(let d=new Date('2026-07-15T00:00:00'); d<=new Date('2026-08-20T00:00:00'); d=V2.dayAfter(d)){
+    if(d.getDay()===0||d.getDay()===6) continue;
+    ex.push({y:d.getFullYear(),m:d.getMonth()+1,day:d.getDate(),kind:'day',type:'shift',inH:9,outH:18,c:c.calc(9,18,'day',false)}); }
+  c.state.extra=ex;
+  const on=new Date('2026-08-21T00:00:00');
+  const W0=Object.assign({}, c.wageNow(), {avgManual:0}), W9=Object.assign({}, c.wageNow(), {avgManual:90000});
+  c.state.settings.avgDaily=150000;
+  ok('도장에 적은 값이 없고 기록이 얇으면 추정입니다 — 설정에 무엇이 있든', c.avgIsEst(on, W0)===true);
+  c.state.settings.avgDaily=0;
+  ok('도장에 명세서 값이 있으면 추정이 아닙니다 — 설정이 비어 있어도', c.avgIsEst(on, W9)===false);
+  ok('W가 없으면 예전처럼 지금 설정', (c.state.settings.avgDaily=150000, c.avgIsEst(on)===false));
+  // 그만둔 사람: 새 회사를 위해 평균임금을 적어도 정산의 '추정' 줄은 그대로
+  const L=mk(V2,'2026-09-25T10:00:00'); L.state.settings.hireDate='2023-05-01'; L.state.settings.lastDay='2026-08-31';
+  L.state.extra=ex; L.state.settings.wageLog={[V2.wageKey(L.period(new Date('2026-08-31T00:00:00')))]: L.wageNow()};
+  const est=()=>L.renderVals().settleRows.find(r=>r.k===L.T('is_this_average_a_guess')).v;
+  const b=est(); L.state.settings.avgDaily=150000;
+  ok('그만둔 뒤 적은 평균임금이 정산의 추정 줄을 바꾸지 않습니다', est()===b, b+' → '+est());
+  ok('퇴직금 카드의 추정 줄도', L.renderVals().sevRows[3].v===b, L.renderVals().sevRows[3].v);
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);
