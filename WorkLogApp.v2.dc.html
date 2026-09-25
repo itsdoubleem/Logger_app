@@ -2666,7 +2666,7 @@ class Component extends DCLogic {
     this.setState({
       // merged over the defaults the same way a saved file is, so a backup
       // written by an older build keeps this build's newer settings
-      settings: Object.assign({}, this.state.settings, d.settings),
+      settings: Component.fillStampFields(Object.assign({}, this.state.settings, d.settings)),
       extra: Component.normRecs(d.extra),
       removed: Array.isArray(d.removed) ? d.removed : [],
       session: d.session || null,
@@ -2794,7 +2794,7 @@ class Component extends DCLogic {
           if (h === null) delete sv[k];              // 없는 것으로 치고 DEFAULTS가 이깁니다
           else sv[k] = this.hhmm(h);                 // '9'나 '09:'로 저장된 것도 09:00으로
         });
-        this.state.settings = Object.assign({}, this.state.settings, sv);
+        this.state.settings = Component.fillStampFields(Object.assign({}, this.state.settings, sv));
       }
       if (saved.extra) this.state.extra = Component.normRecs(saved.extra);
       if (saved.removed) this.state.removed = saved.removed;
@@ -3979,6 +3979,30 @@ class Component extends DCLogic {
     return l <= new Date(n.getFullYear(), n.getMonth(), n.getDate()) ? l : undefined;
   }
   static dotDate(d) { const p2 = v => String(v).padStart(2, '0'); return d.getFullYear() + '.' + p2(d.getMonth() + 1) + '.' + p2(d.getDate()); }
+  // ── 옛 도장에 상여와 직접 적은 평균임금을 채웁니다 (S12) ──
+  // S7은 두 값을 도장에 실었지만, 그 전 판(v1.1.0까지)이 찍은 도장에는 없습니다. 없으면 W를
+  // 받는 avgDaily가 지금 설정으로 떨어지므로, 그 판을 쓰다 그만둔 사람에게 S7의 덫이 열려
+  // 있었습니다. 앱을 열 때와 백업을 불러올 때 한 번, 없는 도장에 **그 순간의** 설정값을
+  // 채웁니다. 그 때의 설정이 가진 가장 나은 증거이고, 지금까지(매번 새로 읽기)보다 나쁘지
+  // 않으며, 그 뒤로는 새 회사를 위해 적은 값이 옛 기간을 움직이지 못합니다.
+  static fillStampFields(st) {
+    const log = st && st.wageLog;
+    if (!log || typeof log !== 'object') return st;
+    const bonus = (+st.bonus || 0) > 0 ? (+st.bonus) * ((st.bonusMonths || []).length) : 0;
+    const manual = +st.avgDaily || 0;
+    let changed = false;
+    const out = {};
+    Object.keys(log).forEach(k => {
+      const w = log[k];
+      if (w && typeof w === 'object' && (w.bonusYear === undefined || w.avgManual === undefined)) {
+        out[k] = Object.assign({}, w,
+          w.bonusYear === undefined ? { bonusYear: bonus } : {},
+          w.avgManual === undefined ? { avgManual: manual } : {});
+        changed = true;
+      } else out[k] = w;
+    });
+    return changed ? Object.assign({}, st, { wageLog: out }) : st;
+  }
   static dayAfter(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1); }
   // 재직일수. 입사한 날도 하루로 셉니다 — 퇴직금은 '계속근로기간'이지 간격이 아닙니다.
   tenureDays(on) {

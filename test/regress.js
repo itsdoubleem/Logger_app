@@ -8371,7 +8371,8 @@ console.log('\n== 상여와 직접 적은 평균임금은 아직 지금 설정�
   d.state.settings.bonus=1000000; d.state.settings.bonusMonths=[6,12];
   ok('도장에 상여가 실립니다', d.wageNow().bonusYear===2000000);
   ok('도장에 직접 적은 평균임금도', (d.state.settings.avgDaily=90000, d.wageNow().avgManual===90000));
-  // 그 필드가 없는 옛 도장은 예전처럼 지금 설정으로 — 없는 것을 0으로 읽지 않습니다
+  // 그 필드가 없는 W는 지금 설정으로 — 없는 것을 0으로 읽지 않습니다. 저장된 도장은 앱을 열거나
+  // 백업을 불러올 때 fillStampFields가 채우므로(S12) 이 갈래에 오는 것은 손으로 만든 W뿐입니다.
   const W=Object.assign({}, d.wageNow()); delete W.bonusYear; delete W.avgManual;
   ok('옛 도장은 지금 설정으로 떨어집니다', d.avgDaily(d.now(), W)===d.avgDaily(d.now()));
 }
@@ -8478,6 +8479,40 @@ console.log('\n== 새 기본금을 먼저 적고 마지막 근무일을 나중�
   // 마지막 근무일이 앞날이면 아직 굳은 것이 없으니 그 말도 없습니다
   const d=mk(V2,'2026-09-22T10:00:00'); d.state.settings.hireDate='2023-05-01'; d.state.settings.lastDay='2026-10-30'; d.stampWage();
   ok('앞날이면 굳었다는 말이 없습니다', d.renderVals().lastNote===d.T('last_day_note_set'));
+}
+
+console.log('\n== v1.1.0이 찍은 도장에는 상여도 직접 적은 평균임금도 없었습니다 (S12) ==');
+// S7은 도장에 bonusYear와 avgManual을 실었지만, v1.1.0이 찍은 도장에는 둘 다 없습니다. 없으면
+// 지금 설정으로 떨어지므로, 1.1.0을 쓰다 그만둔 사람 — 정산 카드를 처음 여는 바로 그 사람 — 에게
+// S7의 덫은 열려 있었습니다: 새 회사를 위해 1일 평균임금 ₩150,000을 적으면 옛 퇴직금이
+// ₩8,271,833 → ₩15,028,767. 이제 앱을 열거나 백업을 불러올 때, 그 둘이 없는 도장에 그 순간의
+// 설정값을 한 번 채워 넣습니다. 그 뒤로는 설정을 바꿔도 옛 기간이 움직이지 않습니다.
+{
+  const probe=mk(V2,'2026-09-25T10:00:00');
+  probe.state.settings.basic=2156880; probe.state.settings.divisor=209;
+  const old=Object.assign({}, probe.wageNow()); delete old.bonusYear; delete old.avgManual;   // v1.1.0 모양
+  const key=V2.wageKey(probe.period(new Date('2026-08-31T00:00:00')));
+  const blob=JSON.stringify({v:2, tourSeen:true, setupDone:true, extra:[], removed:[], session:null,
+    settings:{basic:2156880, divisor:209, hireDate:'2023-05-01', lastDay:'2026-08-31', avgDaily:0, wageLog:{[key]:old}}});
+  const ls=global.window.localStorage;
+  global.window.localStorage={ getItem:()=>blob, setItem(){}, removeItem(){} };
+  const c=new V2({}); c.base=new Date('2026-09-25T10:00:00'); c.t0=Date.now();
+  global.window.localStorage=ls;
+  const W=c.st().wageLog[key];
+  ok('앱을 열면 옛 도장에 두 값이 채워집니다', W.bonusYear===0 && W.avgManual===0, JSON.stringify({b:W.bonusYear,m:W.avgManual}));
+  const before=c.settlement().sev;
+  c.state.settings.avgDaily=150000;
+  ok('그 뒤에 새 회사를 위해 적은 평균임금이 옛 퇴직금을 움직이지 않습니다', c.settlement().sev===before, before+' → '+c.settlement().sev);
+  c.state.settings.bonus=5000000; c.state.settings.bonusMonths=[6,12];
+  ok('상여도', c.settlement().sev===before);
+  // 백업을 불러올 때도 같습니다
+  const d=mk(V2,'2026-09-25T10:00:00');
+  d.setState({pendingImport:{app:'worklog',v:1,exported:new Date('2026-09-20T09:00:00').toISOString(),removed:[],session:null,extra:[],
+    settings:{basic:2156880, divisor:209, hireDate:'2023-05-01', avgDaily:77000, wageLog:{[key]:old}}}});
+  d.confirmImport();
+  const Wd=d.st().wageLog[key];
+  ok('불러온 옛 도장에도 채워집니다', Wd.avgManual===77000 && Wd.bonusYear===0, JSON.stringify({b:Wd.bonusYear,m:Wd.avgManual}));
+  ok('이미 값이 있는 도장은 건드리지 않습니다', V2.fillStampFields({wageLog:{a:{rate:1,bonusYear:5,avgManual:6}}, avgDaily:9}).wageLog.a.avgManual===6);
 }
 
 Promise.all(later).then(()=>{
