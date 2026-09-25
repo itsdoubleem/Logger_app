@@ -3789,10 +3789,11 @@ class Component extends DCLogic {
     const Q = P || this.period(this.now());
     // 아직 끝나지 않은 기간은 언제나 지금 설정입니다 — 그 기간 안에서 이미 그만둔
     // 사람이 아니라면(M3). 그만둔 사람의 도장은 기간이 열려 있어도 굳어 있습니다.
+    // 굳은 도장도 아래의 명세서 보정(slipBosu)을 받습니다 — 여기서 먼저 돌아가면
+    // 그만둔 사람의 마지막 명세서만 국민연금 줄을 듣지 않습니다(M4).
     const held = this.heldStamp(Q);
-    if (held) return Object.assign({}, held, { src: held.src || 'live' });
-    if (Component.isoDay(Q.e) >= Component.isoDay(this.now())) return this.wageNow();
-    const w = (this.st().wageLog || {})[Component.wageKey(Q)];
+    if (!held && Component.isoDay(Q.e) >= Component.isoDay(this.now())) return this.wageNow();
+    const w = held || (this.st().wageLog || {})[Component.wageKey(Q)];
     const base = (w && +w.rate > 0)
       ? Object.assign({}, w, { src: w.src || 'live' })
       : (this.recoverWage(Q) || Object.assign({}, this.wageNow(), { src: 'unknown' }));

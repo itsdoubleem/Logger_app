@@ -8213,6 +8213,34 @@ console.log('\n== \'이 금액이 됩니다\'는 오늘의 추정을 약속으�
     !c.T('unused_leave_pay_line',{p0:'X',p1:'Y',p2:'Z'}).includes('이 금액의'));
 }
 
+console.log('\n== 그만둔 사람의 마지막 명세서만 국민연금 줄을 듣지 않았습니다 (M4) ==');
+// 세 번째 리뷰에서 나왔습니다. M3가 wageFor()에 '굳은 도장' 갈래를 넣으면서, 그 갈래가
+// 명세서의 국민연금 줄로 보수월액을 되살리는 자리(slipBosu, 스물여섯째)보다 **먼저**
+// 돌아갔습니다. 마지막 근무일 08.25, 명세서 국민연금 163,110(보수월액 3,434,000)을 적어도
+// W.bosu는 도장의 2,156,880 그대로였고, 근무내역서의 실수령이 ₩112,620 부풀었습니다.
+// 그만둔 사람이 가장 많이 맞춰 보고 뽑을 바로 그 명세서입니다.
+//
+// 이제 굳은 도장도 다른 모든 닫힌 기간처럼 명세서의 국민연금 줄을 위에 얹습니다.
+//
+// 다음 사람에게: 갈래를 앞에 끼워 넣을 때는 그 뒤에 있던 보정이 무엇이었는지 보십시오.
+// 일찍 돌아가는 return은 그 아래의 모든 것을 조용히 건너뜁니다.
+{
+  const mkC=(leaver)=>{ const c=mk(V2,'2026-09-25T10:00:00');
+    c.state.settings.basic=2156880; c.state.settings.divisor=209;
+    c.state.settings.hireDate='2023-05-01';
+    if(leaver) c.state.settings.lastDay='2026-08-25';
+    const P=c.period(new Date('2026-08-25T00:00:00'));
+    c.state.settings.wageLog={[V2.wageKey(P)]: c.wageNow()};
+    c.setSlip('pension','163110',P);
+    return {c,P}; };
+  const L=mkC(true), N=mkC(false);
+  ok('그만둔 사람도 명세서의 국민연금으로 보수월액을 되살립니다',
+    L.c.wageFor(L.P).bosu===V2.bosuFromPension('163110'), String(L.c.wageFor(L.P).bosu));
+  ok('그만두지 않은 사람과 같은 보수월액', L.c.wageFor(L.P).bosu===N.c.wageFor(N.P).bosu);
+  ok('같은 4대보험', JSON.stringify(L.c.insCalc(L.c.wageFor(L.P)))===JSON.stringify(N.c.insCalc(N.c.wageFor(N.P))));
+  ok('굳은 도장의 기본금은 그대로', L.c.wageFor(L.P).basic===2156880);
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);
