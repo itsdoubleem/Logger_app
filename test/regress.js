@@ -8876,6 +8876,11 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   // 줄은 단추라서 44px 누르는 자리는 보이지 않는 띠가 지킵니다 — 위로 6px, 아래로 4px. 헤드리스로
   // elementFromPoint를 훑어 누르는 높이 44px, 그 위쪽 끝이 ‹ › 보다 4.5px 아래임을 확인했습니다.
   ok('기간 고르기 줄은 34px이고 두 탭 모두 그렇습니다', src.split('<div onClick="{{ jumpToggle }}" style="position:relative;min-height:34px;').length-1===2);
+  // 리뷰가 잡은 것 (M1): 그 띠가 아래로 4px 뻗어서, 펼치면 바로 밑 연도 칩의 위 4px를 덮었습니다 —
+  // 헤드리스에서 2025 칩 위 끝 +2px를 누르면 기간 고르기가 접혔습니다. 연도 줄에 position:relative를
+  // 주고(띠 위에 그려집니다) 4px를 띄웠습니다 — 띠의 아래 4px는 그 틈에 떨어지므로, 펼쳐도 기간 고르기
+  // 줄은 44px이고 연도 칩도 44px입니다. 둘 다 헤드리스로 elementFromPoint를 훑어 쟀습니다.
+  ok('연도 줄이 띠 위에 그려지고 띠의 4px만큼 떨어져 있습니다 (두 탭 모두)', src.split('<sc-if value="{{ jumpOpen }}" hint-placeholder-val="{{ false }}"><div style="position:relative;margin-top:4px;display:flex;flex-wrap:wrap;').length-1===2);
   ok('보이지 않는 띠가 누르는 자리를 44px로 채웁니다 (6 + 34 + 4)', /min-height: 34px"\]::after \{\s*content: ""; position: absolute; left: 0; right: 0; top: -6px; bottom: -4px;/.test(ds));
   ok('고르기가 있으면 맨몸 단추는 없습니다', v.jumpShow===true && v.payViewingPast===true && v.payNowBare===false);
 }
