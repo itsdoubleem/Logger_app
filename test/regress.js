@@ -7936,9 +7936,9 @@ console.log('\n== 잔여 9일이 얼마인지는 아무도 말하지 않았습�
   ok('잔여 9일 × 82,560 = 743,040', lp && lp.total===743040, JSON.stringify(lp));
   let R=c.renderVals();
   const cell=R.annLedger[2];
-  ok('잔여 칸 밑에 금액이 붙습니다', cell.won==='₩743,040', cell.won);
+  ok('잔여 칸 밑에 금액이 붙습니다 — 약이라는 표시와 함께', cell.won==='≈ ₩743,040', cell.won);
   ok('발생·사용 칸에는 붙지 않습니다', R.annLedger[0].won==='' && R.annLedger[1].won==='');
-  ok('식이 문단에 있습니다', R.annVsCompany.includes('잔여 9일 × 1일 통상임금 ₩82,560 = ₩743,040'), R.annVsCompany);
+  ok('식이 문단에 있습니다', R.annVsCompany.includes('잔여 9일 × 1일 통상임금 ₩82,560 = 약 ₩743,040'), R.annVsCompany);
   ok('사용촉진 조건이 빠지지 않습니다', R.annVsCompany.includes('제61조') && R.annVsCompany.includes('사용촉진'));
   ok('퇴사할 때를 말합니다', R.annVsCompany.includes('퇴사할 때'));
   ok('원래 문단은 그대로 앞에 있습니다', R.annVsCompany.startsWith(c.T('this_is_what_the_law_gives_you_your_co')));
@@ -7959,7 +7959,7 @@ console.log('\n== 잔여 9일이 얼마인지는 아무도 말하지 않았습�
   c.state.settings.annualBase=3;
   c.state.settings.lang='en';
   R=c.renderVals();
-  ok('영어에도 한국어 낱말이 앞섭니다', /잔여 3 days left × one day's 통상임금 ₩82,560 = ₩247,680/.test(R.annVsCompany), R.annVsCompany);
+  ok('영어에도 한국어 낱말이 앞섭니다', /잔여 3 days left × one day's 통상임금 ₩82,560 = about ₩247,680/.test(R.annVsCompany), R.annVsCompany);
   ok('여덟 말 모두 제61조를 말합니다',
     ['ko','en','vi','zh','th','id','ne','km'].every(l=>{ c.state.settings.lang=l;
       const t=c.T('unused_leave_pay_line',{p0:'X',p1:'Y',p2:'Z'});
@@ -7967,7 +7967,7 @@ console.log('\n== 잔여 9일이 얼마인지는 아무도 말하지 않았습�
   c.state.settings.lang='ko';
   // 입사일을 몰라도 잔여는 근로자가 적은 숫자이므로 금액은 나옵니다
   c.state.settings.hireDate='';
-  ok('입사일이 없어도 금액은 나옵니다', c.renderVals().annLedger[2].won==='₩247,680');
+  ok('입사일이 없어도 금액은 나옵니다', c.renderVals().annLedger[2].won==='≈ ₩247,680');
 }
 
 console.log('\n== 그만두는 날 받을 돈을 한 자리에서 셀 수 없었습니다 ==');
@@ -8189,6 +8189,28 @@ console.log('\n== 기간이 닫히기 전에 새 기본금을 적자 옛 회사 
   e.state.settings.basic=2156880; e.stampWage(); e.state.settings.basic=2300000; e.stampWage();
   ok('마지막 근무일이 없으면 평소대로', e.st().wageLog[V2.wageKey(e.period(e.now()))].basic===2300000);
   ok('열린 기간의 wageFor는 평소대로 지금 설정', e.wageFor(e.period(e.now())).basic===2300000);
+}
+
+console.log('\n== \'이 금액이 됩니다\'는 오늘의 추정을 약속으로 바꿨습니다 (RS1) ==');
+// 리뷰에서 나왔습니다. 연차 대장의 문장은 '쓰지 못한 연차는 … 이 금액의 연차미사용수당이
+// 됩니다'라고 했습니다. 곱한 것은 오늘의 잔여(근로자가 적은 숫자)와 오늘의 기본금 시급입니다.
+// 실제로 받는 날에는 둘 다 다르고 — 1월이면 최저임금이 오르고, 연차를 쓰면 잔여가 줄고 —
+// 시급은 기본금만으로 셉니다. 통상임금에 드는 고정수당이 있는 사람에게는 바닥입니다.
+// 게다가 칸 밑의 금액은 아무 표시 없이 빨갛게 서 있었습니다.
+//
+// 이제 칸에는 ≈, 문장은 '지금의 잔여와 지금 시급으로 치면 … 약', 받는 날의 값으로 센다는 것,
+// 그리고 기본금만으로 센 바닥이라는 것을 여덟 말 모두 말합니다.
+{
+  const c=mk(V2,'2026-09-25T10:00:00');
+  const words={ko:['약','기본금','그 날'],en:['about','기본금',"that day"],vi:['khoảng','기본금'],zh:['约','기본금'],
+    th:['ประมาณ','기본금'],id:['sekitar','기본금'],ne:['लगभग','기본금'],km:['ប្រហែល','기본금']};
+  ok('여덟 말 모두 약이라고, 기본금만으로 센 값이라고 말합니다',
+    Object.keys(words).every(l=>{ c.state.settings.lang=l;
+      const t=c.T('unused_leave_pay_line',{p0:'X',p1:'Y',p2:'Z'});
+      return words[l].every(w=>t.includes(w)) && t.includes('61') && t.includes('사용촉진'); }));
+  c.state.settings.lang='ko';
+  ok('\'이 금액의 연차미사용수당이 됩니다\'라는 약속이 없습니다',
+    !c.T('unused_leave_pay_line',{p0:'X',p1:'Y',p2:'Z'}).includes('이 금액의'));
 }
 
 Promise.all(later).then(()=>{

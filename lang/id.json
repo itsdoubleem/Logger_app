@@ -738,7 +738,7 @@
   "backed_up_today": "dicadangkan hari ini",
   "backed_up_ago": "dicadangkan {p0} lalu",
   "never_backed_up": "belum pernah dicadangkan",
-  "unused_leave_pay_line": "잔여 sisa {p0} × 통상임금 upah biasa 1 hari {p1} = {p2}. Cuti yang belum dipakai menjadi 연차미사용수당 uang cuti tak terpakai sebesar ini saat Anda berhenti bekerja, atau saat masa pemakaiannya berakhir. Kasus berakhirnya masa pemakaian tidak berlaku jika perusahaan sudah menjalankan prosedur 사용촉진 dorongan memakai cuti menurut 근로기준법 §61.",
+  "unused_leave_pay_line": "Dihitung dengan sisa dan upah per jam saat ini: 잔여 sisa {p0} × 통상임금 upah biasa 1 hari {p1} = sekitar {p2}. Cuti yang belum dipakai menjadi 연차미사용수당 uang cuti tak terpakai saat Anda berhenti bekerja, atau saat masa pemakaiannya berakhir — dihitung dengan sisa dan upah pada hari itu. Kasus berakhirnya masa pemakaian tidak berlaku jika perusahaan sudah menjalankan prosedur 사용촉진 dorongan memakai cuti menurut 근로기준법 §61. Upah 1 hari di sini hanya dari 기본금; tunjangan tetap yang termasuk 통상임금 membuatnya lebih besar.",
   "last_day_worked": "마지막 근무일 Hari kerja terakhir",
   "last_day_note_empty": "Isi hanya jika tanggal berhenti sudah pasti. Aplikasi lalu menghitung di bawah uang yang dibayar saat Anda berhenti, dan batas waktunya.",
   "last_day_note_set": "Dihitung sebagai hari kerja terakhir Anda. Setelah itu, masa kerja dan 퇴직금 tidak bertambah lagi.",

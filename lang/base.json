@@ -3152,8 +3152,8 @@
     "ko": "백업 없음"
   },
   "unused_leave_pay_line": {
-    "en": "잔여 {p0} left × one day's 통상임금 {p1} = {p2}. Leave you have not used becomes this much 연차미사용수당 (unused-leave pay) when you leave the company, or when its use period ends. The second case does not apply if your company followed the 사용촉진 procedure in 근로기준법 §61.",
-    "ko": "잔여 {p0} × 1일 통상임금 {p1} = {p2}. 쓰지 못한 연차는 퇴사할 때, 또는 사용기간이 끝날 때 이 금액의 연차미사용수당이 됩니다. 사용기간이 끝나는 경우는, 회사가 근로기준법 제61조의 사용촉진을 했다면 예외입니다."
+    "en": "At today's balance and today's rate: 잔여 {p0} left × one day's 통상임금 {p1} = about {p2}. Leave you have not used becomes 연차미사용수당 (unused-leave pay) when you leave the company, or when its use period ends — counted at that day's balance and pay. The second case does not apply if your company followed the 사용촉진 procedure in 근로기준법 §61. The day's pay here comes from 기본금 alone; fixed allowances that count as 통상임금 make it more.",
+    "ko": "지금의 잔여와 지금 시급으로 치면: 잔여 {p0} × 1일 통상임금 {p1} = 약 {p2}. 쓰지 못한 연차는 퇴사할 때, 또는 사용기간이 끝날 때 연차미사용수당이 되고, 그 날의 잔여와 통상임금으로 셉니다. 사용기간이 끝나는 경우는, 회사가 근로기준법 제61조의 사용촉진을 했다면 예외입니다. 여기의 1일 통상임금은 기본금만으로 셉니다 — 통상임금에 드는 고정수당이 있으면 이보다 많습니다."
   },
   "last_day_worked": {
     "en": "Last day worked",
