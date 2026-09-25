@@ -8740,6 +8740,61 @@ console.log('\n== 날짜를 알면서 오늘의 시급과 오늘의 창으로 �
   ok('마지막 근무는 그 날이 든 기간의 W로 — 문서의 그 날과 같게', ls && ls.value===c.won(c.dayPay(r16, W)), (ls&&ls.value)+' / '+c.won(c.dayPay(r16, W)));
 }
 
+console.log('\n== 급여 합계와 근무내역서의 휴업 공제가 휴업한 날이 아니라 오늘의 3개월로 셌습니다 (S21) ==');
+// 제46조의 평균임금은 그 사유가 생긴 날(휴업한 날) 이전 3개월입니다. 내 권리 합계·하루 화면·고를 때의 안내는
+// 그 날의 창을 썼는데, payCalc의 휴업 공제와 근무내역서, 근무기록의 휴업 줄은 shutdownPay(null, W) — 오늘의
+// 창이었습니다. 통상임금 바닥에 걸린 사람에게는 같아서 시험이 놓쳤습니다. 매일 잔업하는 사람(평균임금이 바닥
+// 위)에게서: 안내·내 권리 ₩60,710, 문서의 휴업 공제가 가리키는 값 ₩75,197. 그리고 닫힌 기간의 문서가 그 뒤에
+// 적은 근무에 따라 바뀌었습니다.
+{
+  const c=mk(V2,'2026-09-25T10:00:00');
+  c.state.settings.basic=2156880; c.state.settings.divisor=209; c.state.settings.periodStart=1; c.state.settings.hireDate='2023-05-01';
+  const ex=[];
+  for(let d=new Date('2026-05-01T00:00:00'); d<new Date('2026-09-25T00:00:00'); d=V2.dayAfter(d)){
+    if(d.getDay()===0||d.getDay()===6) continue;
+    if(d.getMonth()===7 && d.getDate()===12){ ex.push({y:2026,m:8,day:12,type:'shutdown',kind:'day',c:{gross:0,bk:0,net:0,reg:0,ot:0,night:0,hol:0,pay:0}}); continue; }
+    const hard = d < new Date('2026-08-01T00:00:00');   // 휴업 전 석 달은 잔업이 많았고, 그 뒤는 정시
+    ex.push({y:d.getFullYear(),m:d.getMonth()+1,day:d.getDate(),kind:'day',type:'shift',inH:9,outH:hard?22:18,c:c.calc(9,hard?22:18,'day',false)});
+  }
+  c.state.extra=ex;
+  const P=c.period(new Date('2026-08-12T00:00:00'));
+  c.state.settings.wageLog={[V2.wageKey(P)]: c.wageNow()};
+  const W=c.wageFor(P), d=new Date('2026-08-12T00:00:00');
+  const day=c.shutdownPay(d, W), today=c.shutdownPay(null, W);
+  ok('시험이 바닥 위에 있습니다 — 그 날의 창과 오늘의 창이 다릅니다', day!==today, day+' vs '+today);
+  const cut=c.wRate(W)*8-day;
+  const pc=c.payCalc(c.totals(null,P), W);
+  ok('급여 계산의 휴업 공제는 그 날의 창으로', pc.shutCut===cut, pc.shutCut+' vs '+cut);
+  ok('근무내역서의 휴업 공제도', c.evidenceHtml(P).includes('−'+c.won(cut)), c.won(cut));
+  ok('내 권리 합계와 같은 하루치', c.shutdownTally(P).full===day);
+  c.setState({payBack:1, openDay:20260812});
+  const deep=(o,pred,seen=new Set())=>{ if(!o||typeof o!=='object'||seen.has(o)) return null; seen.add(o);
+    if(Array.isArray(o)){ const i=o.findIndex(pred); if(i>=0) return o.slice(i); } for(const k of Object.keys(o)){ const f=deep(o[k],pred,seen); if(f) return f; } return null; };
+  const rows=deep(c.renderVals(), r=>r&&r.k===c.T('shutdown_allowance_lsa_46'));
+  ok('근무기록의 휴업 줄도', rows && rows[0].v.endsWith(c.won(day)) && rows[1].v==='−'+c.won(cut), rows&&rows[0].v+' / '+rows[1].v);
+  // 닫힌 기간의 문서는 그 뒤에 적은 근무로 바뀌지 않습니다
+  const before=c.evidenceHtml(P);
+  c.state.extra.push({y:2026,m:9,day:25,kind:'day',type:'shift',inH:9,outH:23,c:c.calc(9,23,'day',false)});
+  ok('닫힌 8월의 문서가 9월 기록에 흔들리지 않습니다', c.evidenceHtml(P).replace(/작성[^<]*/,'')===before.replace(/작성[^<]*/,''));
+}
+
+console.log('\n== 세금 경고가 급여 탭과 다른 기본금으로 셌습니다 (N12) ==');
+// 설정의 세금 경고(taxWarn)는 지금 기간의 총액을 지금 설정으로 셌습니다. 그만둔 사람의 지금 기간이 굳어
+// 있으면 급여 탭은 굳은 기본금으로 세금을 매기는데, 경고는 새 회사 기본금으로 '범위를 넘는다'고 했습니다.
+// 179d564가 예상 실수령에서 고친 바로 그 경우입니다.
+{
+  const at=(x,iso)=>{ x.base=new Date(iso); x.t0=Date.now(); };
+  const c=mk(V2,'2026-09-22T10:00:00');
+  c.state.settings.basic=2156880; c.state.settings.divisor=209; c.state.settings.hireDate='2023-05-01';
+  c.state.settings.lastDay='2026-09-22'; c.stampWage();
+  at(c,'2026-09-25T10:00:00');
+  c.state.settings.basic=90000000;          // 새 회사 기본금 — 일부러 세금표 범위 밖
+  ok('급여 탭이 쓰는 W는 굳은 기본금', c.wageOn().basic===2156880);
+  ok('세금 경고도 그 W로 — 범위를 넘는다고 하지 않습니다', c.renderVals().taxWarn==='', c.renderVals().taxWarn);
+  const d=mk(V2,'2026-09-25T10:00:00'); d.state.settings.basic=90000000;
+  ok('그만두지 않은 사람에게는 여전히 경고', d.renderVals().taxWarn.includes('⚠'), d.renderVals().taxWarn);
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);

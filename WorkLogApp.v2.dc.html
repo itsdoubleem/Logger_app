@@ -4820,7 +4820,8 @@ class Component extends DCLogic {
       else if (s.type === 'annual') t.annual++;
       else if (s.type === 'vacation') t.vac++;
       else if (s.type === 'absent') t.absent++;
-      else if (s.type === 'shutdown') t.shut++;
+      // 휴업한 날짜도 모읍니다 — 제46조의 평균임금은 그 날 이전 3개월이라, 날마다 창이 다릅니다(S21)
+      else if (s.type === 'shutdown') { t.shut++; (t.shutDays = t.shutDays || []).push(this.recDate(s)); }
       else if (!s.review) { t.days++; if (s.holiday) t.holDays++; }
     });
     return t;
@@ -4874,7 +4875,11 @@ class Component extends DCLogic {
     // 결근한 날은 그 날 임금이 빠지고, 휴업한 날은 70%만 나옵니다 — 둘 다
     // 기본금에서 덜어내야 실제 명세서에 가까워집니다
     const absentCut = (t.absent || 0) * this.absentDeduct(W);
-    const shutCut = (t.shut || 0) * (this.wRate(W) * 8 - this.shutdownPay(null, W));
+    // 날마다 그 날의 창으로 — shutdownPay(null)은 오늘의 3개월이라, 평균임금이 통상임금 바닥 위인 사람의
+    // 휴업 공제가 휴업한 날이 아니라 문서를 뽑는 날에 따라 달라졌습니다(S21)
+    const shutCut = t.shutDays
+      ? t.shutDays.reduce((a, d) => a + (this.wRate(W) * 8 - this.shutdownPay(d, W)), 0)
+      : (t.shut || 0) * (this.wRate(W) * 8 - this.shutdownPay(null, W));
     const gross = Math.max(0, this.wFixedPay(W) + variable - absentCut - shutCut);
     // 비과세分은 과세표준에서 빠집니다 — 세금은 과세소득에만 붙습니다
     const taxable = Math.max(0, gross - (W ? W.tf : this.taxFree()));
@@ -6262,8 +6267,8 @@ class Component extends DCLogic {
           ] : []).concat(s.reason && s.reason.note ? [
             { k: this.T('rsn_row_note'), v: s.reason.note },
           ] : []).concat([
-            { k: this.T('shutdown_allowance_lsa_46'), v: this.st().shutdownPct + '% · ' + this.won(this.shutdownPay(null, W)) },
-            { k: this.T('reduction_for_the_day'), v: '−' + this.won(this.wRate(W) * 8 - this.shutdownPay(null, W)) },
+            { k: this.T('shutdown_allowance_lsa_46'), v: this.st().shutdownPct + '% · ' + this.won(this.shutdownPay(this.recDate(s), W)) },
+            { k: this.T('reduction_for_the_day'), v: '−' + this.won(this.wRate(W) * 8 - this.shutdownPay(this.recDate(s), W)) },
             { k: this.T('leave_used_2'), v: this.T('0_days_this_is_not_your_annual_leave') },
             { k: this.T('worth_checking_2'), v: this.T('if_your_payslip_shows_no_shutdown_allo') },
           ]),
@@ -7637,7 +7642,8 @@ class Component extends DCLogic {
         ? this.T('days_left_is_higher_than_your_yearly_t') : '',
       taxWarn: (() => {
         if (this.st().taxMode === 'manual') return '';
-        const g = this.payCalc(this.totals()).gross;
+        // 급여 탭과 같은 W — 그만둔 기간이 굳어 있으면 그 기본금으로(N12)
+        const g = this.payCalc(this.totals(), this.wageOn()).gross;
         const b = this.taxBand();
         if (g < b[0]) return '이 급여는 과세 최저선 아래 — estimated at ₩0. 실제 명세서로 확인하세요.';
         if (g > b[1]) return '⚠ 급여가 추정 범위(' + Math.round(b[1] / 10000) + '만원)를 넘습니다 — 직접 입력을 쓰세요.';
