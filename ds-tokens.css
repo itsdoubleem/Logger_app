@@ -324,8 +324,10 @@
 /* The worker asked for the pink band a quarter shorter: 2 + 44 + 7 = 53px became
    2 + 34 + 4 = 40px. The 기간 고르기 row is a button and 44px is the floor, so the
    row keeps it invisibly — this strip reaches 6px up over the divider (into the
-   9px gap under the ‹ › arrows, which it does not touch) and 4px down to the
-   card's clipped bottom edge: 6 + 34 + 4 = 44. */
+   9px gap under the ‹ › arrows, which it does not touch) and 4px down: 6 + 34 + 4
+   = 44. Closed, those 4px end at the card's clipped bottom edge; open, they land in
+   the year row's `margin-top: 4px` in the source — change one and change the other,
+   or the strip takes the top of the year chips (sixty-seventh entry, M1). */
 [style*="background: var(--color-accent-100)"][style*="border-top: 2px solid var(--color-neutral-300)"] > [style*="cursor: pointer"][style*="min-height: 34px"]::after {
   content: ""; position: absolute; left: 0; right: 0; top: -6px; bottom: -4px;
 }
