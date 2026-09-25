@@ -8597,6 +8597,26 @@ console.log('\n== 근무기록의 하루 화면이 제46조 차액을 문서와 
   ok('화면의 1일 평균임금도 도장의 값, 추정이 아닙니다', rows && rows[4].v===c.won(90000), rows&&rows[4].v);
 }
 
+console.log('\n== 붙들린 평균임금과 상여가 화면 어디에도 없었습니다 (S16) ==');
+// fillStampFields는 업데이트하는 순간의 설정을 옛 도장에 옮겨 적습니다. 그만둔 사람이 그 전에 새 회사의
+// 1일 평균임금이나 상여를 이미 적어 두었다면, 그 값이 옛 회사의 닫힌 기간에 붙들립니다(₩15,028,767).
+// 마지막 근무일 칸 밑의 말은 기본금만 말해서, 근로자는 퇴직금이 왜 그런지 볼 수 없었습니다. 이제 붙들린
+// 평균임금과 상여도 그 자리에 적힙니다. 닫힌 기간의 값을 고치는 길은 아직 없습니다 — 남은 일로 적어 둡니다.
+{
+  const c=mk(V2,'2026-09-25T10:00:00');
+  c.state.settings.basic=2156880; c.state.settings.divisor=209; c.state.settings.hireDate='2023-05-01'; c.state.settings.lastDay='2026-08-31';
+  const P=c.period(new Date('2026-08-31T00:00:00'));
+  c.state.settings.wageLog={[V2.wageKey(P)]: Object.assign({}, c.wageNow(), {avgManual:150000, bonusYear:10000000})};
+  const n=c.renderVals().lastNote;
+  ok('붙들린 1일 평균임금이 보입니다', n.includes('₩150,000'), n);
+  ok('붙들린 상여도', n.includes('₩10,000,000'), n);
+  c.state.settings.wageLog={[V2.wageKey(P)]: Object.assign({}, c.wageNow(), {avgManual:0, bonusYear:0})};
+  const n0=c.renderVals().lastNote;
+  ok('없으면 말하지 않습니다', !n0.includes(c.T('held_avg_manual',{p0:'X'}).split('X')[0].trim()) , n0);
+  ok('여덟 말 모두', ['ko','en','vi','zh','th','id','ne','km'].every(l=>{ c.state.settings.lang=l;
+    return c.T('held_avg_manual',{p0:'Z'}).includes('Z') && c.T('held_bonus',{p0:'Z'}).includes('Z') && c.T('held_avg_manual',{p0:'Z'}).includes('평균임금') && c.T('held_bonus',{p0:'Z'}).includes('상여'); }));
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);

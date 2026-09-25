@@ -3242,5 +3242,13 @@
   "accrual_needs_next_day": {
     "en": "The year is complete, but the 15 days arise only if you are still employed on the day after it (대법원 2021다227100).",
     "ko": "1년을 채웠지만, 15일은 1년의 근로를 마친 다음 날 재직 중이어야 생깁니다 (대법원 2021다227100)."
+  },
+  "held_avg_manual": {
+    "en": "The 1일 평균임금 you typed, {p0}, is held for this period too.",
+    "ko": "직접 적은 1일 평균임금 {p0}도 이 기간에 붙들려 있습니다."
+  },
+  "held_bonus": {
+    "en": "상여 of {p0} a year is held for it too.",
+    "ko": "상여 연 {p0}도 함께 붙들려 있습니다."
   }
 }
