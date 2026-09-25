@@ -8778,6 +8778,23 @@ console.log('\n== 급여 합계와 근무내역서의 휴업 공제가 휴업한
   ok('닫힌 8월의 문서가 9월 기록에 흔들리지 않습니다', c.evidenceHtml(P).replace(/작성[^<]*/,'')===before.replace(/작성[^<]*/,''));
 }
 
+console.log('\n== 세금 경고가 급여 탭과 다른 기본금으로 셌습니다 (N12) ==');
+// 설정의 세금 경고(taxWarn)는 지금 기간의 총액을 지금 설정으로 셌습니다. 그만둔 사람의 지금 기간이 굳어
+// 있으면 급여 탭은 굳은 기본금으로 세금을 매기는데, 경고는 새 회사 기본금으로 '범위를 넘는다'고 했습니다.
+// 179d564가 예상 실수령에서 고친 바로 그 경우입니다.
+{
+  const at=(x,iso)=>{ x.base=new Date(iso); x.t0=Date.now(); };
+  const c=mk(V2,'2026-09-22T10:00:00');
+  c.state.settings.basic=2156880; c.state.settings.divisor=209; c.state.settings.hireDate='2023-05-01';
+  c.state.settings.lastDay='2026-09-22'; c.stampWage();
+  at(c,'2026-09-25T10:00:00');
+  c.state.settings.basic=90000000;          // 새 회사 기본금 — 일부러 세금표 범위 밖
+  ok('급여 탭이 쓰는 W는 굳은 기본금', c.wageOn().basic===2156880);
+  ok('세금 경고도 그 W로 — 범위를 넘는다고 하지 않습니다', c.renderVals().taxWarn==='', c.renderVals().taxWarn);
+  const d=mk(V2,'2026-09-25T10:00:00'); d.state.settings.basic=90000000;
+  ok('그만두지 않은 사람에게는 여전히 경고', d.renderVals().taxWarn.includes('⚠'), d.renderVals().taxWarn);
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);

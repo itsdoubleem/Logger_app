@@ -7642,7 +7642,8 @@ class Component extends DCLogic {
         ? this.T('days_left_is_higher_than_your_yearly_t') : '',
       taxWarn: (() => {
         if (this.st().taxMode === 'manual') return '';
-        const g = this.payCalc(this.totals()).gross;
+        // 급여 탭과 같은 W — 그만둔 기간이 굳어 있으면 그 기본금으로(N12)
+        const g = this.payCalc(this.totals(), this.wageOn()).gross;
         const b = this.taxBand();
         if (g < b[0]) return '이 급여는 과세 최저선 아래 — estimated at ₩0. 실제 명세서로 확인하세요.';
         if (g > b[1]) return '⚠ 급여가 추정 범위(' + Math.round(b[1] / 10000) + '만원)를 넘습니다 — 직접 입력을 쓰세요.';
