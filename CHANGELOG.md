@@ -1,6 +1,6 @@
 # 근무기록 LOGGER — change log beyond V2.md
 
-Seventy-one entries, newest first — sixty-four carry an ordinal (first … sixty-fourth),
+Seventy-two entries, newest first — sixty-five carry an ordinal (first … sixty-fifth),
 the seven oldest predate the numbering. Each one is a bug found by **actually using the app on
 shift**, what changed, and — the part worth reading — *why it was that and not the
 obvious fix*. Most entries end with a **다음 사람에게** paragraph: the rule the bug
@@ -18,7 +18,8 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 
 ## Index
 
-- 2026-09-25 (latest, sixty-fourth) — 마지막 백업이 언제였는지 아무 데도 없었습니다
+- 2026-09-25 (latest, sixty-fifth) — 잔여 9일이 얼마인지는 말하지 않았습니다
+- 2026-09-25 (sixty-fourth) — 마지막 백업이 언제였는지 아무 데도 없었습니다
 - 2026-09-14 (sixty-third) — 카드를 쓸면 화면이 굳었고, 짚으면 출근이 찍혔습니다
 - 2026-09-12 (sixty-second) — 홈 화면의 아이콘만 앱이 무엇인지 말하지 않았습니다
 - 2026-09-06 (sixty-first) — 백업을 펴면 띠와 본문 사이에 흰 줄이 하나 그어졌습니다
@@ -90,7 +91,41 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 - 2026-08-13 — the service worker was hiding every update
 - 2026-08-13 (earlier) — 조퇴 사유 became a popup with a dropdown
 
-### 2026-09-25 (latest, sixty-fourth) — 마지막 백업이 언제였는지 아무 데도 없었습니다
+### 2026-09-25 (latest, sixty-fifth) — 잔여 9일이 얼마인지는 말하지 않았습니다
+
+연차 대장은 `잔여 9`라고만 말했습니다. 쓰지 못한 연차는 사라지는 것이 아니라
+**퇴사할 때, 또는 사용기간이 끝날 때 연차미사용수당**이 됩니다. 그 금액에 필요한 두
+숫자 — 잔여와 시급 — 를 앱은 이미 들고 있었는데, 곱하지 않았습니다. 근로자가 '9일'을
+돈으로 읽지 못하면, 퇴사하는 날 그 돈이 명세서에 없어도 알아채지 못합니다.
+
+| 자리 | 전 | 후 |
+|---|---|---|
+| 잔여 칸 | `9` | `9` 밑에 `₩743,040` (같은 빨강, 11px) |
+| 대장의 설명 문단 끝 | — | `잔여 9일 × 1일 통상임금 ₩82,560 = ₩743,040.` + 조건 |
+
+**1일 통상임금은 `wRate × 8`입니다** — 휴업수당의 상한(`shutdownPay`)이 쓰는 값과
+같습니다. 한 앱 안에서 '하루치 통상임금'이 두 값이면 두 카드가 서로를 반박합니다.
+잔여가 0 이하면 금액도 문장도 나오지 않습니다 — `₩0`을 적을 자리가 아니라 말할 것이
+없는 자리입니다. 입사일이 없어도 금액은 나옵니다. 잔여는 법이 아니라 근로자가 적은
+숫자이기 때문입니다(열한째).
+
+#### 왜 문장까지 붙였는가
+
+숫자만 두면 **'지금 회사가 이만큼 빚졌다'**로 읽힙니다. 그렇지 않습니다:
+
+- 사용기간이 끝나 소멸하는 연차는, 회사가 **제61조의 사용촉진**을 했다면 수당이
+  되지 않습니다.
+- 퇴사로 못 쓴 연차에는 그 예외가 없습니다.
+
+그 조건이 빠지면 이 금액은 틀린 금액이고, 이 앱에서 금액은 맞거나 없어야 합니다.
+그래서 새 줄을 만들지 않고, 대장이 원래 가진 설명 문단의 끝에 붙였습니다. 여덟 말
+모두 `61`과 `사용촉진`을 담고 있는지 시험이 셉니다. 근무내역서에는 넣지 않았습니다 —
+그 문서는 기록이고, 이 금액은 아직 일어나지 않은 일의 값입니다.
+
+다음 사람에게: 법이 조건을 달아 둔 금액을 보여 줄 때는 **금액과 조건을 같은 문장에**
+두십시오. 금액만 커다랗고 조건이 다른 화면에 있으면, 근로자는 금액만 들고 갑니다.
+
+### 2026-09-25 (sixty-fourth) — 마지막 백업이 언제였는지 아무 데도 없었습니다
 
 기록은 이 폰의 `localStorage` 한 칸에만 있습니다. 환영 화면이 한 번 **"폰을 잃으면
 기록도 사라집니다 — 가끔 파일로 저장해 두세요"**라고 말하고 나면, 그 뒤로 앱은 마지막

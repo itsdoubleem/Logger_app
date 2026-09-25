@@ -7914,6 +7914,62 @@ console.log('\n== 백업을 언제 했는지 아무도 몰랐습니다 ==');
     ok('내려받기로 넘기면 true', r===true, String(r))));
 }
 
+console.log('\n== 잔여 9일이 얼마인지는 아무도 말하지 않았습니다 ==');
+// 연차 대장은 '잔여 9일'이라고만 말했습니다. 쓰지 못한 연차는 퇴사할 때, 또는
+// 사용기간이 끝날 때 연차미사용수당이 됩니다 — 그런데 그 금액을 앱은 계산할 수
+// 있는 두 숫자(잔여와 시급)를 이미 들고 있으면서 말하지 않았습니다.
+//
+// 이제 잔여 칸 밑에 금액이, 대장의 설명 문단 끝에 식과 조건이 붙습니다.
+// 1일 통상임금은 휴업수당 상한과 같은 wRate × 8입니다.
+//
+// 다음 사람에게: 금액만 두지 마십시오. '지금 회사가 이만큼 빚졌다'로 읽힙니다.
+// 사용기간이 끝나 사라지는 연차는 회사가 제61조의 사용촉진을 했으면 수당이 되지
+// 않습니다 — 그 조건이 문장에서 빠지면 이 숫자는 틀린 숫자입니다.
+{
+  const c=mk(V2,'2026-09-25T10:00:00');
+  c.state.settings.basic=2156880; c.state.settings.divisor=209;
+  c.state.settings.annualBase=9;
+  c.state.settings.annualAsOf=new Date('2026-09-25T00:00:00').toISOString();
+  const daily=Math.round(c.wRate()*8);
+  ok('하루치는 휴업수당 상한과 같은 값입니다', daily===Math.round(c.rate()*8) && daily===82560, String(daily));
+  const lp=c.unusedLeavePay();
+  ok('잔여 9일 × 82,560 = 743,040', lp && lp.total===743040, JSON.stringify(lp));
+  let R=c.renderVals();
+  const cell=R.annLedger[2];
+  ok('잔여 칸 밑에 금액이 붙습니다', cell.won==='₩743,040', cell.won);
+  ok('발생·사용 칸에는 붙지 않습니다', R.annLedger[0].won==='' && R.annLedger[1].won==='');
+  ok('식이 문단에 있습니다', R.annVsCompany.includes('잔여 9일 × 1일 통상임금 ₩82,560 = ₩743,040'), R.annVsCompany);
+  ok('사용촉진 조건이 빠지지 않습니다', R.annVsCompany.includes('제61조') && R.annVsCompany.includes('사용촉진'));
+  ok('퇴사할 때를 말합니다', R.annVsCompany.includes('퇴사할 때'));
+  ok('원래 문단은 그대로 앞에 있습니다', R.annVsCompany.startsWith(c.T('this_is_what_the_law_gives_you_your_co')));
+
+  // 연차를 쓰면 금액이 함께 줄어듭니다 — 같은 annualLeft에서 나오니까요
+  c.state.extra=[{y:2026,m:9,day:26,type:'annual',c:{reg:8}}];
+  ok('하루 쓰면 8일치', c.unusedLeavePay().total===8*82560, String(c.unusedLeavePay().total));
+  c.state.extra=[];
+
+  c.state.settings.annualBase=0.5;
+  ok('반일은 반일치', c.unusedLeavePay().total===41280);
+
+  c.state.settings.annualBase=0;
+  R=c.renderVals();
+  ok('남은 것이 없으면 금액을 적지 않습니다 — 0원이 아니라 빈칸', R.annLedger[2].won==='' && c.unusedLeavePay()===null);
+  ok('문단도 원래대로', R.annVsCompany===c.T('this_is_what_the_law_gives_you_your_co'));
+
+  c.state.settings.annualBase=3;
+  c.state.settings.lang='en';
+  R=c.renderVals();
+  ok('영어에도 한국어 낱말이 앞섭니다', /잔여 3 days left × one day's 통상임금 ₩82,560 = ₩247,680/.test(R.annVsCompany), R.annVsCompany);
+  ok('여덟 말 모두 제61조를 말합니다',
+    ['ko','en','vi','zh','th','id','ne','km'].every(l=>{ c.state.settings.lang=l;
+      const t=c.T('unused_leave_pay_line',{p0:'X',p1:'Y',p2:'Z'});
+      return /61/.test(t) && t.includes('사용촉진') && t.includes('X') && t.includes('Y') && t.includes('Z'); }));
+  c.state.settings.lang='ko';
+  // 입사일을 몰라도 잔여는 근로자가 적은 숫자이므로 금액은 나옵니다
+  c.state.settings.hireDate='';
+  ok('입사일이 없어도 금액은 나옵니다', c.renderVals().annLedger[2].won==='₩247,680');
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);

@@ -3150,5 +3150,9 @@
   "never_backed_up": {
     "en": "never backed up",
     "ko": "백업 없음"
+  },
+  "unused_leave_pay_line": {
+    "en": "잔여 {p0} left × one day's 통상임금 {p1} = {p2}. Leave you have not used becomes this much 연차미사용수당 (unused-leave pay) when you leave the company, or when its use period ends. The second case does not apply if your company followed the 사용촉진 procedure in 근로기준법 §61.",
+    "ko": "잔여 {p0} × 1일 통상임금 {p1} = {p2}. 쓰지 못한 연차는 퇴사할 때, 또는 사용기간이 끝날 때 이 금액의 연차미사용수당이 됩니다. 사용기간이 끝나는 경우는, 회사가 근로기준법 제61조의 사용촉진을 했다면 예외입니다."
   }
 }

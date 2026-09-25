@@ -737,5 +737,6 @@
   "comes_off_only_on_overtime_days": "Dipotong hanya pada hari lembur.",
   "backed_up_today": "dicadangkan hari ini",
   "backed_up_ago": "dicadangkan {p0} lalu",
-  "never_backed_up": "belum pernah dicadangkan"
+  "never_backed_up": "belum pernah dicadangkan",
+  "unused_leave_pay_line": "잔여 sisa {p0} × 통상임금 upah biasa 1 hari {p1} = {p2}. Cuti yang belum dipakai menjadi 연차미사용수당 uang cuti tak terpakai sebesar ini saat Anda berhenti bekerja, atau saat masa pemakaiannya berakhir. Kasus berakhirnya masa pemakaian tidak berlaku jika perusahaan sudah menjalankan prosedur 사용촉진 dorongan memakai cuti menurut 근로기준법 §61."
 }
