@@ -8795,6 +8795,34 @@ console.log('\n== 세금 경고가 급여 탭과 다른 기본금으로 셌습�
   ok('그만두지 않은 사람에게는 여전히 경고', d.renderVals().taxWarn.includes('⚠'), d.renderVals().taxWarn);
 }
 
+console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의 근무내역서보다 많았습니다 (S22) ==');
+// 이 줄은 근로자가 지난 명세서와 맞대 보라고 주는 금액입니다. 그런데 prevTotals()는 결근·휴업 날수도 법정
+// 휴일 8시간 초과도 모으지 않아서, payCalc가 결근 공제·휴업 공제·×2.0 가산을 셀 수 없었습니다. 휴업 하루와
+// 결근 하루가 든 8월: 이 줄 ₩3,281,250, 8월의 근무내역서 ₩3,209,440 — 덜 받은 사람에게 더 받았어야 한다고,
+// 제대로 받은 사람에게도 덜 받았다고 말하는 숫자입니다. 이제 그 기간의 totals()를 그대로 씁니다.
+{
+  const c=mk(V2,'2026-09-25T10:00:00');
+  c.state.settings.basic=2156880; c.state.settings.divisor=209; c.state.settings.periodStart=1; c.state.settings.hireDate='2023-05-01';
+  c.state.settings.holOverPaid=true;
+  const ex=[];
+  for(let d=new Date('2026-08-01T00:00:00'); d<new Date('2026-09-25T00:00:00'); d=V2.dayAfter(d)){
+    if(d.getDay()===0||d.getDay()===6) continue;
+    if(d.getMonth()===7 && d.getDate()===12){ ex.push({y:2026,m:8,day:12,type:'shutdown',kind:'day',c:{gross:0,bk:0,net:0,reg:0,ot:0,night:0,hol:0,pay:0}}); continue; }
+    if(d.getMonth()===7 && d.getDate()===13){ ex.push({y:2026,m:8,day:13,type:'absent',kind:'day',c:{gross:0,bk:0,net:0,reg:0,ot:0,night:0,hol:0,pay:0}}); continue; }
+    ex.push({y:d.getFullYear(),m:d.getMonth()+1,day:d.getDate(),kind:'day',type:'shift',inH:9,outH:20,c:c.calc(9,20,'day',false)});
+  }
+  ex.push({y:2026,m:8,day:16,kind:'day',type:'shift',holiday:true,inH:8,outH:20,c:c.calc(8,20,'day',true)});
+  c.state.extra=ex;
+  const Q=c.period(new Date('2026-08-12T00:00:00'));
+  c.state.settings.wageLog={[V2.wageKey(Q)]: c.wageNow()};
+  const W=c.wageFor(Q);
+  const docNet=c.payCalc(c.totals(null,Q), W).net;
+  ok('8월의 근무내역서가 그 실수령을 찍습니다', c.evidenceHtml(Q).includes(c.won(docNet)), c.won(docNet));
+  const line=c.renderVals().lastPeriod;
+  ok('9월에서 본 \'지난 기간\' 줄이 같은 금액을 말합니다', line.includes(c.won(docNet)), line);
+  ok('결근·휴업·휴일 가산이 빠진 금액이 아닙니다', !line.includes(c.won(c.payCalc({reg:0,ot:c.totals(null,Q).ot,night:c.totals(null,Q).night,hol:c.totals(null,Q).hol,days:0}, W).net)), line);
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);
