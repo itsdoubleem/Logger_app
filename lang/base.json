@@ -2520,8 +2520,8 @@
     "ko": "✓ 회사 사정으로 일을 못 한 날이 있습니다. 근로기준법 제46조에 따라 받을 돈입니다."
   },
   "the_document_carries_these_figures_too": {
-    "en": "The 근무내역서 carries these figures too, in Korean, whatever language the app is set to. You make it at the bottom of the 급여 PAY tab.",
-    "ko": "근무내역서에도 이 금액들이 함께 들어갑니다 — 앱을 어느 언어로 쓰든 문서는 한국어입니다. 문서는 급여 탭 맨 아래에서 만듭니다."
+    "en": "Of the amounts on this screen, the 근무내역서 carries only 휴업수당 shutdown pay (근로기준법 §46). 퇴직금, 연차미사용수당 and the 퇴사 정산 are not on the document — only here. The document is in Korean whatever language the app is set to; you make it at the bottom of the 급여 PAY tab.",
+    "ko": "근무내역서에는 이 화면의 금액 가운데 휴업수당(근로기준법 제46조)만 들어갑니다. 퇴직금, 연차미사용수당, 퇴사 정산은 문서에 없고 이 화면에만 있습니다. 문서는 앱을 어느 언어로 쓰든 한국어이고, 급여 탭 맨 아래에서 만듭니다."
   },
   "the_earnings_lines_match_what_the_app_": {
     "en": "The earnings lines match what the app counted, or exceed it.",

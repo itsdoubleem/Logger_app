@@ -580,7 +580,7 @@
   "the_app_shows_the_korean_payslip_word": "无论你选哪种语言，打印出来的 근무내역서 始终是韩文，而且译文旁边永远并列着工资单上的韩文词 — 好让你能在公司给你的那张纸上找到它。",
   "the_company_had_no_work_for_you_whethe": "公司没有活给你 — 无论你去了被让回家，还是上班前接到通知不用来。劳动基准法 §46 — 雇主方原因的 휴업 必须支付平均工资的70%以上。预计 {p0}。这不是 연차，也不会从你的年假里扣。",
   "the_company_sent_you_home_this_is_what": "✓ 公司让你停止了工作。근로기준법 第46条规定他们应当支付这笔钱。",
-  "the_document_carries_these_figures_too": "근무내역서 工作记录里也包含这些金额，无论应用设成哪种语言，文件都是韩文。文件在 급여 工资 页面最下方生成。",
+  "the_document_carries_these_figures_too": "本页的金额中，근무내역서 只包含 휴업수당 停工津贴（근로기준법 第46条）。퇴직금、연차미사용수당 和 퇴사 정산 不在文件里，只在这里。无论应用设为哪种语言，文件都是韩文；在 급여 PAY 页最下方生成。",
   "the_earnings_lines_match_what_the_app_": "应发项目与应用算出的金额一致，或高于应用算出的金额。",
   "the_figure_the_company_reports": "公司申报的金额",
   "the_file_goes_only_where_you_send_it_t": "文件只会送到你自己选择的地方。应用从不上传任何东西。",

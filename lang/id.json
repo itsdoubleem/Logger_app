@@ -580,7 +580,7 @@
   "the_app_shows_the_korean_payslip_word": "Bahasa apa pun yang Anda pilih, 근무내역서 yang dicetak tetap berbahasa Korea, dan istilah Korea dari slip gaji selalu ditampilkan di samping terjemahannya — agar Anda bisa menemukannya di kertas yang diberikan perusahaan.",
   "the_company_had_no_work_for_you_whethe": "Perusahaan tidak punya pekerjaan untuk Anda — baik Anda sudah datang lalu dipulangkan, maupun diberi tahu sebelum shift agar tidak masuk. UU Standar Ketenagakerjaan §46 — 휴업 karena pihak pemberi kerja wajib membayar setidaknya 70% dari upah rata-rata. Perkiraan {p0}. Ini BUKAN 연차 dan tidak mengurangi cuti Anda.",
   "the_company_sent_you_home_this_is_what": "✓ Perusahaan menghentikan pekerjaan Anda. 근로기준법 §46 menyatakan mereka wajib membayar ini.",
-  "the_document_carries_these_figures_too": "근무내역서 catatan kerja juga memuat angka-angka ini, dalam bahasa Korea, apa pun bahasa aplikasi Anda. Anda membuatnya di bagian bawah tab 급여 GAJI.",
+  "the_document_carries_these_figures_too": "Dari jumlah di layar ini, 근무내역서 hanya memuat 휴업수당 upah saat dirumahkan (근로기준법 §46). 퇴직금, 연차미사용수당 dan 퇴사 정산 tidak ada di dokumen — hanya di sini. Dokumen selalu berbahasa Korea apa pun bahasa aplikasinya; Anda membuatnya di bagian bawah tab 급여 PAY.",
   "the_earnings_lines_match_what_the_app_": "Pos-pos penghasilan cocok dengan hitungan aplikasi, atau lebih besar.",
   "the_figure_the_company_reports": "angka yang dilaporkan perusahaan",
   "the_file_goes_only_where_you_send_it_t": "Berkas hanya pergi ke tempat yang Anda kirim. Aplikasi tidak pernah mengunggah apa pun.",

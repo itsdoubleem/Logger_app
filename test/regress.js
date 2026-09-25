@@ -8259,6 +8259,25 @@ console.log('\n== 기한을 어떻게 셌는지 말하는 문장이 그 날짜�
   ok('영어가 \'지급 기한 뒤 14일\'로 읽히지 않습니다', !/day it became due/.test(c.T('settle_note')));
 }
 
+console.log('\n== 내 권리는 \'근무내역서에도 이 금액들이 들어갑니다\'라고 했지만 들어가지 않았습니다 (S2) ==');
+// 근무내역서의 절은 계산 기준·일별 기록·제46조·합계·안내뿐입니다. 퇴직금도 연차미사용수당도
+// 퇴사 정산도 없습니다. 근로감독관 앞에서 그 금액을 찾는 사람이 빈손이 되면 안 됩니다.
+// 문장이 문서에 실제로 있는 것(휴업수당)과 없는 것을 말하고, 시험이 문서를 직접 봅니다.
+{
+  const c=mk(V2,'2026-09-25T10:00:00');
+  c.state.settings.hireDate='2023-05-01'; c.state.settings.lastDay='2026-09-20';
+  const doc=c.evidenceHtml();
+  const t=c.T('the_document_carries_these_figures_too');
+  ok('문서에 퇴직금 절이 없다는 것을 문장이 말합니다', !/퇴직금/.test(doc.replace(/<[^>]+>/g,'').split('안내')[0]) && /퇴직금[^.]*문서에 없/.test(t), t);
+  // 제46조 절은 휴업한 날이 있을 때만 나옵니다. 문서의 절 목록에 퇴직금·연차수당 절이 없는지 봅니다.
+  const h2=(doc.match(/<h2>[^<]*<\/h2>/g)||[]).join(' ');
+  ok('문서의 절에는 퇴직금도 연차미사용수당도 없습니다', !/퇴직금|연차미사용|정산/.test(h2), h2);
+  ok('문장은 들어가는 것이 제46조 휴업수당이라고', t.includes('제46조') && t.includes('휴업수당'));
+  ok('\'이 금액들이 함께 들어갑니다\'가 사라졌습니다', !t.includes('함께 들어갑니다'));
+  ok('여덟 말 모두 46과 퇴직금을 말합니다', ['ko','en','vi','zh','th','id','ne','km'].every(l=>{
+    c.state.settings.lang=l; const x=c.T('the_document_carries_these_figures_too'); return /46/.test(x) && x.includes('퇴직금') && x.includes('휴업수당'); }));
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);

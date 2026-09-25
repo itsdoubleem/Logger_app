@@ -580,7 +580,7 @@
   "the_app_shows_the_korean_payslip_word": "Dù bạn chọn ngôn ngữ nào, 근무내역서 in ra vẫn bằng tiếng Hàn, và từ tiếng Hàn trên phiếu lương luôn hiện cạnh bản dịch — để bạn tìm được chữ đó trên tờ giấy công ty đưa.",
   "the_company_had_no_work_for_you_whethe": "Công ty không có việc cho bạn — dù bạn đã đến rồi bị cho về, hay được báo nghỉ trước ca. Luật Tiêu chuẩn Lao động §46 — 휴업 do phía chủ sử dụng lao động phải trả ít nhất 70% lương bình quân. Ước tính {p0}. Đây KHÔNG phải 연차 và không bị trừ vào phép của bạn.",
   "the_company_sent_you_home_this_is_what": "✓ Công ty đã cho bạn ngừng việc. 근로기준법 제46조 quy định họ phải trả khoản này.",
-  "the_document_carries_these_figures_too": "근무내역서 bản ghi công việc cũng có các số tiền này, bằng tiếng Hàn, dù bạn đặt ứng dụng ở ngôn ngữ nào. Bạn tạo nó ở cuối tab 급여 LƯƠNG.",
+  "the_document_carries_these_figures_too": "Trong các khoản trên màn hình này, 근무내역서 chỉ có 휴업수당 tiền ngừng việc (근로기준법 §46). 퇴직금, 연차미사용수당 và 퇴사 정산 không có trong tài liệu — chỉ có ở đây. Tài liệu luôn bằng tiếng Hàn dù ứng dụng dùng ngôn ngữ nào; bạn tạo nó ở cuối tab 급여 PAY.",
   "the_earnings_lines_match_what_the_app_": "Các mục được trả khớp với số ứng dụng tính, hoặc cao hơn.",
   "the_figure_the_company_reports": "con số công ty khai báo",
   "the_file_goes_only_where_you_send_it_t": "Tệp chỉ đi tới nơi bạn gửi. Ứng dụng không tải lên bất cứ đâu, bao giờ cũng vậy.",
