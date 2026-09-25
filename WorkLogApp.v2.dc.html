@@ -3656,6 +3656,11 @@ class Component extends DCLogic {
       // 열여섯째가 기본금에서 겪은 그것과 같은 자리입니다. 도장에 얹으면 지나간
       // 기간은 그 때의 보수월액을 그대로 간직합니다.
       bosu: +s.bosu || 0,
+      // ── 평균임금에 들어가는 나머지 둘도 그 때의 값입니다 (S7) ──
+      // 상여와 직접 적은 1일 평균임금. W를 받는 avgDaily가 이 둘만 지금 설정에서 읽으면,
+      // 그만둔 뒤 새 회사를 위해 적은 값이 옛 회사의 퇴직금을 움직입니다.
+      bonusYear: this.bonusAnnual(),
+      avgManual: +s.avgDaily || 0,
       src: 'live',
     };
   }
@@ -3887,7 +3892,8 @@ class Component extends DCLogic {
     // 365로 나눈 1일분은 그것과 같은 값입니다. 상여가 0이면 한 자리도 달라지지
     // 않으므로, 이 줄은 상여를 받는 사람에게만 작동합니다 — 그리고 그 사람의
     // 퇴직금과 휴업수당은 이 줄이 없으면 실제보다 적게 나옵니다.
-    return Math.round(this.wFixedPay(W) * 12 / 365 + this.bonusAnnual() / 365 + variable / w.days);
+    const bonus = W && W.bonusYear !== undefined ? W.bonusYear : this.bonusAnnual();
+    return Math.round(this.wFixedPay(W) * 12 / 365 + bonus / 365 + variable / w.days);
   }
   bonusAnnual() {
     const amt = +this.st().bonus || 0;
@@ -3913,7 +3919,8 @@ class Component extends DCLogic {
   }
   // 설정에 직접 넣은 값이 언제나 이깁니다 — 급여명세서 3개월치가 앱보다 정확합니다
   avgDaily(on, W) {
-    const manual = +this.st().avgDaily || 0;
+    // 도장에 없는 옛 도장이면 지금 설정 — 없는 것을 0으로 읽지 않습니다
+    const manual = W && W.avgManual !== undefined ? +W.avgManual || 0 : +this.st().avgDaily || 0;
     if (manual > 0) return Math.round(manual);
     // 근로기준법 제2조② 평균임금이 통상임금보다 적으면 통상임금을 평균임금으로 봅니다
     return Math.max(this.avgDailyCalc(on, W), this.wRate(W) * 8);

@@ -8345,6 +8345,36 @@ console.log('\n== 1년은 365일이 아니었고, 15일은 그 1년의 다음 �
   ok('다음 입사기념일까지는 달력으로 160일 (365로 나누면 159)', d.daysToAnniversary()===160, String(d.daysToAnniversary()));
 }
 
+console.log('\n== 상여와 직접 적은 평균임금은 아직 지금 설정을 읽었습니다 (S7) ==');
+// M2와 같은 덫의 남은 두 자리입니다. avgDailyCalc(on, W)는 상여를, avgDaily(on, W)는 직접
+// 적은 1일 평균임금을 W가 아니라 지금 설정에서 읽었습니다. 마지막 근무일 08.31 뒤에 상여
+// ₩1,000,000 × 2회를 적으면 굳었어야 할 퇴직금이 ₩9,330,059 → ₩9,879,010, 새 회사의
+// 휴업수당을 위해 1일 평균임금 ₩150,000을 적으면 ₩15,028,767이 됐습니다. 이제 둘 다 도장에
+// 실리고, W가 있으면 W에서 읽습니다.
+{
+  const c=mk(V2,'2026-09-25T10:00:00');
+  c.state.settings.basic=2156880; c.state.settings.divisor=209;
+  c.state.settings.hireDate='2023-05-01'; c.state.settings.lastDay='2026-08-31';
+  const last=new Date('2026-08-31T00:00:00');
+  c.state.settings.wageLog={[V2.wageKey(c.period(last))]: c.wageNow()};
+  const before=c.settlement().sev, beforeCard=c.renderVals().sevAmt;
+  // ₩1,000,000 × 2회는 기록 없는 사람의 평균임금을 통상임금 바닥 위로 올리지 못해 우연히 통과합니다
+  c.state.settings.bonus=5000000; c.state.settings.bonusMonths=[6,12];
+  ok('그만둔 뒤 적은 상여가 옛 퇴직금을 바꾸지 않습니다', c.settlement().sev===before, before+' → '+c.settlement().sev);
+  c.state.settings.avgDaily=150000;
+  ok('새 회사를 위해 적은 1일 평균임금도', c.settlement().sev===before, before+' → '+c.settlement().sev);
+  ok('퇴직금 카드도 그대로', c.renderVals().sevAmt===beforeCard);
+  // 도장이 상여를 가지고 있으면 그것을 씁니다
+  const d=mk(V2,'2026-09-25T10:00:00');
+  d.state.settings.basic=2156880; d.state.settings.hireDate='2023-05-01';
+  d.state.settings.bonus=1000000; d.state.settings.bonusMonths=[6,12];
+  ok('도장에 상여가 실립니다', d.wageNow().bonusYear===2000000);
+  ok('도장에 직접 적은 평균임금도', (d.state.settings.avgDaily=90000, d.wageNow().avgManual===90000));
+  // 그 필드가 없는 옛 도장은 예전처럼 지금 설정으로 — 없는 것을 0으로 읽지 않습니다
+  const W=Object.assign({}, d.wageNow()); delete W.bonusYear; delete W.avgManual;
+  ok('옛 도장은 지금 설정으로 떨어집니다', d.avgDaily(d.now(), W)===d.avgDaily(d.now()));
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);
