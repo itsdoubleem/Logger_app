@@ -8241,6 +8241,24 @@ console.log('\n== 그만둔 사람의 마지막 명세서만 국민연금 줄을
   ok('굳은 도장의 기본금은 그대로', L.c.wageFor(L.P).basic===2156880);
 }
 
+console.log('\n== 기한을 어떻게 셌는지 말하는 문장이 그 날짜와 하루 어긋났습니다 (S1) ==');
+// 문장은 '마지막 근무일 다음 날부터 14일'이라고 했는데, 그렇게 달력에서 세면 +14입니다.
+// 화면의 날짜는 +15(퇴직일을 빼고 그 다음 날부터 14일째)입니다. 셈은 일부러 늦은 쪽이고
+// 문장이 그것을 말하지 못했습니다. 이제 '퇴직일은 빼고 그 다음 날부터 세어 14일째'.
+{
+  const c=mk(V2,'2026-09-25T10:00:00'); c.state.settings.lastDay='2026-10-30';
+  const S=c.settlement();
+  // 문장대로 달력에서 세어 봅니다: 퇴직일 10.31은 빼고, 11.01이 1일째
+  const leave=V2.dayAfter(S.last); let d=V2.dayAfter(leave), n=1; while(n<14){ d=V2.dayAfter(d); n++; }
+  ok('문장대로 세면 화면의 날짜가 나옵니다', V2.dotDate(d)===V2.dotDate(S.due), V2.dotDate(d)+' vs '+V2.dotDate(S.due));
+  ok('문장이 퇴직일을 빼고 14일째라고 말합니다', c.T('settle_note').includes('퇴직일') && c.T('settle_note').includes('14일째'));
+  ok('퇴직금의 14일은 퇴직급여법 제9조도', c.T('settle_note').includes('보장법 제9조'));
+  ok('여덟 말 모두 제36조, 14, 제9조를 말합니다', ['ko','en','vi','zh','th','id','ne','km'].every(l=>{
+    c.state.settings.lang=l; const t=c.T('settle_note'); return /36/.test(t) && /14/.test(t) && /9/.test(t) && t.includes('보장법'); }));
+  c.state.settings.lang='en';
+  ok('영어가 \'지급 기한 뒤 14일\'로 읽히지 않습니다', !/day it became due/.test(c.T('settle_note')));
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);

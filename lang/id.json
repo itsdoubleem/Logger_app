@@ -753,7 +753,7 @@
   "settle_due_left": "{p0} lagi",
   "settle_due_today": "hari ini",
   "settle_due_past": "lewat {p0}",
-  "settle_note": "근로기준법 §36: saat berhenti, semua uang — upah, 퇴직금, 연차미사용수당 dan lainnya — harus dibayar dalam 14 hari sejak jatuh tempo. Jika ada keadaan khusus, bisa diperpanjang dengan kesepakatan kedua pihak. Tanggal di atas dihitung 14 hari dari hari setelah hari kerja terakhir. Cuti yang tidak sempat dipakai karena berhenti menjadi uang, baik perusahaan menjalankan 사용촉진 atau tidak. Untuk upah periode terakhir, lihat periode itu di tab 급여 PAY — aplikasi tidak tahu cara perusahaan membagi bulan yang tidak penuh. 퇴직금 pekerja E-9 biasanya diterima sebagai 출국만기보험 saat meninggalkan Korea, jadi waktu bagian itu bisa berbeda dari batas ini.",
+  "settle_note": "근로기준법 §36 (dan 근로자퇴직급여 보장법 §9 untuk 퇴직금): saat berhenti, semua uang — upah, 퇴직금, 연차미사용수당 dan lainnya — harus dibayar dalam 14 hari sejak hari Anda berhenti. Jika ada keadaan khusus, bisa diperpanjang dengan kesepakatan kedua pihak. Tanggal di atas tidak menghitung hari berhenti (hari setelah hari kerja terakhir), dan merupakan hari ke-14 dihitung dari hari sesudahnya. Cuti yang tidak sempat dipakai karena berhenti menjadi uang, baik perusahaan menjalankan 사용촉진 atau tidak. Untuk upah periode terakhir, lihat periode itu di tab 급여 PAY — aplikasi tidak tahu cara perusahaan membagi bulan yang tidak penuh. 퇴직금 pekerja E-9 biasanya diterima sebagai 출국만기보험 saat meninggalkan Korea, jadi waktu bagian itu bisa berbeda dari batas ini.",
   "sev_stopped_at_last_day": "✓ Masa kerja {p0} tahun {p1} bulan — jumlah per hari kerja terakhir {p2}.",
   "sev_under_1_year_ended": "Berakhir sebelum 1 tahun — tidak ada 퇴직금 (근로자퇴직급여 보장법 §8①).",
   "settle_avg_projected": "Ya — perkiraan dari 3 bulan terakhir"
