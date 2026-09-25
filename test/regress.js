@@ -8300,6 +8300,51 @@ console.log('\n== 지난 기간의 근무내역서가 오늘의 3개월로 \'추
   ok('오늘의 창이 비었다고 그 기간의 문서에 추정 단서가 붙지 않습니다', !doc.includes('낮게 추정된 값'));
 }
 
+console.log('\n== 1년은 365일이 아니었고, 15일은 그 1년의 다음 날에 생깁니다 (S4) ==');
+// 리뷰에서 나왔습니다. 두 가지입니다.
+// (a) 퇴직금의 '계속근로 1년'을 365일로 셌습니다. 2월 29일이 끼면 하루 모자란 사람이
+//     1년으로 잡혔습니다: 입사 2023.03.01, 마지막 근무일 2024.02.28 → ₩2,476,800.
+// (b) 연차 15일을 1년째의 마지막 날에 주었습니다. 대법원 2021다227100(2021.10.14)과 그에 따라
+//     바뀐 고용노동부 행정해석: 1년의 근로를 마친 **다음 날** 근로관계가 있어야 15일이 생깁니다.
+//     1년을 채우고 바로 그만두는 사람은 최대 11일입니다. 월 단위 연차도 같은 이치입니다.
+// 이제 퇴직금은 달력의 1년(입사 기념일 전날까지)을, 연차는 그 사람이 재직 중이었던 기념일
+// (그 날 자체)을 셉니다.
+{
+  const at=(hire,on)=>{ const c=mk(V2,'2026-09-25T10:00:00'); c.state.settings.basic=2156880; c.state.settings.divisor=209;
+    c.state.settings.hireDate=hire; return {c, on:new Date(on+'T00:00:00')}; };
+  let x=at('2023-03-01','2024-02-28');
+  ok('윤년이 낀 1년에서 하루 모자라면 퇴직금이 없습니다', !x.c.severanceEligible(x.on), x.c.tenureDays(x.on)+'일');
+  x=at('2023-03-01','2024-02-29');
+  ok('기념일 전날까지 일했으면 1년입니다', x.c.severanceEligible(x.on));
+  x=at('2025-03-01','2026-02-28');
+  ok('윤년이 없으면 365일째가 1년', x.c.severanceEligible(x.on));
+  x=at('2025-03-01','2026-02-27');
+  ok('그 전날은 아직', !x.c.severanceEligible(x.on));
+
+  x=at('2025-03-01','2026-02-28');
+  ok('1년째의 마지막 날에는 아직 15일이 아닙니다 (2021다227100)', x.c.annualAccrued(x.on)===11, String(x.c.annualAccrued(x.on)));
+  x=at('2025-03-01','2026-03-01');
+  ok('다음 날 재직 중이면 15일', x.c.annualAccrued(x.on)===15, String(x.c.annualAccrued(x.on)));
+  x=at('2025-03-01','2025-03-31');
+  ok('한 달째의 마지막 날에는 아직 0일', x.c.annualAccrued(x.on)===0, String(x.c.annualAccrued(x.on)));
+  x=at('2025-03-01','2025-04-01');
+  ok('다음 달 같은 날 재직 중이면 1일', x.c.annualAccrued(x.on)===1, String(x.c.annualAccrued(x.on)));
+  x=at('2025-01-31','2025-02-28');
+  ok('31일 입사는 2월 말일이 한 달째', x.c.annualAccrued(x.on)===1, String(x.c.annualAccrued(x.on)));
+  x=at('2022-03-01','2025-03-01');
+  ok('3년째 기념일에 16일', x.c.annualAccrued(x.on)===16, String(x.c.annualAccrued(x.on)));
+  x=at('2022-03-01','2025-02-28');
+  ok('그 전날은 15일', x.c.annualAccrued(x.on)===15, String(x.c.annualAccrued(x.on)));
+  // 1년을 채우고 기념일 전날 그만둔 사람: 퇴직금은 있고, 15일은 없습니다
+  const c=mk(V2,'2026-09-25T10:00:00'); c.state.settings.hireDate='2025-03-01'; c.state.settings.lastDay='2026-02-28';
+  ok('정산: 퇴직금은 발생합니다', c.settlement().eligible);
+  const R=c.renderVals();
+  ok('대장의 발생은 11일', R.annLedger[0].v===11, String(R.annLedger[0].v));
+  ok('대장의 설명은 1년 미만의 규칙', R.annLaw===c.T('under_1_year_1_day_for_each_full_month'), R.annLaw);
+  const d=mk(V2,'2026-09-25T10:00:00'); d.state.settings.hireDate='2024-03-04';
+  ok('다음 입사기념일까지는 달력으로 160일 (365로 나누면 159)', d.daysToAnniversary()===160, String(d.daysToAnniversary()));
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);

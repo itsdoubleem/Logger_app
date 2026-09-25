@@ -3976,7 +3976,46 @@ class Component extends DCLogic {
   //
   // E-9 근로자에게 이 금액은 대개 출국만기보험으로 나옵니다. 보험금이 이보다
   // 적으면 차액은 회사가 줘야 합니다 — 그래서 스스로 계산할 수 있어야 합니다.
-  severanceEligible(on) { return !!this.hireDate() && this.tenureDays(on) >= 365; }
+  // ── 달력의 1년 (S4) ──
+  // 365일로 세면 2월 29일이 낀 해에 하루 모자란 사람이 1년이 됩니다. 기념일은 달력으로
+  // 셉니다. 없는 날(2월 29일 입사의 평년, 31일 입사의 짧은 달)은 그 달 말일입니다.
+  static addMonthsClamped(d, k) {
+    const y = d.getFullYear(), m = d.getMonth() + k;
+    const dim = new Date(y, m + 1, 0).getDate();
+    return new Date(y, m, Math.min(d.getDate(), dim));
+  }
+  static dayOf(t) { return new Date(t.getFullYear(), t.getMonth(), t.getDate()); }
+  // on에 재직 중일 때, 입사일로부터 지난 기념일(그 날 자체)이 몇 개인지. 연차는 '1년(한 달)의
+  // 근로를 마친 다음 날' 근로관계가 있어야 생깁니다 — 대법원 2021다227100(2021.10.14)과
+  // 그에 따라 바뀐 고용노동부 행정해석. 기념일 그 날에 재직 중이어야 셉니다.
+  serviceCount(on, stepMonths) {
+    const h = this.hireDate();
+    if (!h) return 0;
+    const t = Component.dayOf(on || this.now());
+    let k = 0;
+    while (Component.addMonthsClamped(h, (k + 1) * stepMonths) <= t) k++;
+    return k;
+  }
+  serviceYears(on) { return this.serviceCount(on, 12); }
+  // 퇴직금의 '계속근로 1년'은 기념일 전날까지 일한 것입니다 — 다음 날의 재직은 묻지 않습니다
+  severanceFrom() { const h = this.hireDate(); return h ? new Date(Component.addMonthsClamped(h, 12).getTime() - 864e5) : null; }
+  severanceEligible(on) {
+    const f = this.severanceFrom();
+    return !!f && Component.dayOf(on || this.now()) >= f;
+  }
+  // 다음 입사기념일까지 남은 날수 — 달력으로
+  daysToAnniversary(on) {
+    const h = this.hireDate();
+    if (!h) return 0;
+    const next = Component.addMonthsClamped(h, (this.serviceYears(on) + 1) * 12);
+    return Math.round((next - Component.dayOf(on || this.now())) / 864e5);
+  }
+  // 퇴직금이 생기는 날까지 남은 날수 (이미 지났으면 0)
+  daysToSeverance(on) {
+    const f = this.severanceFrom();
+    if (!f) return 0;
+    return Math.max(0, Math.round((f - Component.dayOf(on || this.now())) / 864e5));
+  }
   // avgOn은 평균임금을 산정할 날입니다. 퇴직의 경우 그것은 마지막 근무일의 다음
   // 날(퇴직일)이고, avgWindow는 그 전날까지의 3개월을 씁니다 — 곧 마지막 근무일까지.
   // W는 그 금액이 기대는 임금입니다. 그만둔 사람에게는 마지막 근무일이 든 기간의
@@ -4037,10 +4076,9 @@ class Component extends DCLogic {
   // 다를 수 있고, 다투게 되면 이기는 쪽은 회사 대장이 아니라 법이지만, 앱은
   // 둘을 나란히 보여 주고 어느 쪽이 무엇인지 말해 줄 뿐입니다.
   annualAccrued(on) {
-    const days = this.tenureDays(on);
-    if (!days) return 0;
-    if (days < 365) return Math.min(11, Math.floor(days / 30));
-    const years = Math.floor(days / 365);
+    if (!this.hireDate()) return 0;
+    const years = this.serviceYears(on);
+    if (years < 1) return Math.min(11, this.serviceCount(on, 1));
     return Math.min(25, 15 + Math.floor((years - 1) / 2));
   }
   // 지금 연차년도의 시작 — 입사일의 그 해 기념일. 연차는 달력해가 아니라
@@ -7720,8 +7758,8 @@ class Component extends DCLogic {
           // '1년'은 제8조①의 문턱이지 이 사람의 재직기간이 아닙니다. 문장이 그 둘을
           // 갈라 말하지 않아서, 4년을 다닌 사람도 '계속근로 1년'으로 읽었습니다.
           ? this.T('you_have_passed_1_year_this_is_owed_wh',
-            { p0: this.tenureYM(sOn).y, p1: this.tenureYM(sOn).m, p2: 365 - (this.tenureDays(sOn) % 365) })
-          : this.T('under_1_year_of_service_no_severance_y', { p0: 365 - this.tenureDays(sOn) })),
+            { p0: this.tenureYM(sOn).y, p1: this.tenureYM(sOn).m, p2: this.daysToAnniversary() })
+          : this.T('under_1_year_of_service_no_severance_y', { p0: this.daysToSeverance(sOn) })),
       sevRows: !this.severanceEligible(sOn) ? [] : [
         { k: this.T('average_daily_wage_lsa_2_2'), v: this.won(this.avgDaily(sAvg, sW)) },
         { k: this.T('30_days_of_it'), v: this.won(this.avgDaily(sAvg, sW) * 30) },
@@ -7762,7 +7800,7 @@ class Component extends DCLogic {
       })(),
       annLaw: !this.hireDate()
         ? this.T('add_your_start_date_above_to_see_this')
-        : (this.tenureDays(sOn) < 365
+        : (this.serviceYears(sOn) < 1
           ? this.T('under_1_year_1_day_for_each_full_month')
           : this.T('1_year_or_more_15_days_lsa_60_1_plus_1', { p0: this.annualAccrued(sOn) })),
       // 금액에는 식과 조건이 함께 붙습니다. 숫자만 두면 '지금 회사가 이만큼
