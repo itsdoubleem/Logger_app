@@ -4183,11 +4183,13 @@ class Component extends DCLogic {
   shutdownTally(P) {
     let days = 0, full = 0, partDays = 0, part = 0;
     const fullDates = [], partDates = [];
+    // 그 기간의 W로 셉니다 — 닫힌 기간을 오늘의 기본금으로 세면 근무내역서와 달라집니다(S17 뒤)
+    const W = this.wageFor(P || this.period(this.now()));
     this.periodRecords(P).forEach(r => {
       if (r.planned) return;
       const d = this.recDate(r);
-      if (r.type === 'shutdown') { days++; full += this.shutdownPay(d); fullDates.push(d); return; }
-      const s = this.partialShort(r);
+      if (r.type === 'shutdown') { days++; full += this.shutdownPay(d, W); fullDates.push(d); return; }
+      const s = this.partialShort(r, W);
       if (s > 0) { partDays++; part += s; partDates.push(d); }
     });
     // month()는 최신순이지만 날짜 목록은 달력 순으로 읽힙니다

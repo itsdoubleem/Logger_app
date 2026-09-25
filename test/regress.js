@@ -8649,6 +8649,29 @@ console.log('\n== 하루 화면과 급여 탭의 제56조② 차액이 문서와
   ok('holOverPaid면 하루 화면의 합계 = 그 날의 임금(W)', t && t[0].v===c.won(c.dayPay(r,W)), t&&t[0].v);
 }
 
+console.log('\n== 세어 보니 W 없이 부르는 곳이 둘 더 있었습니다 (S17 뒤) ==');
+// '한 자리뿐'을 다시 적기 전에 grep으로 셌습니다. 휴업수당 합계(shutdownTally)는 기간을 받으면서 그 기간의 W를
+// 쓰지 않았고, 출퇴근 화면의 '마지막 근무'는 그 날이 든 기간이 아니라 오늘의 시급으로 셌습니다(급여기간이
+// 넘어간 아침이면 그 하루는 닫힌 기간의 것입니다).
+{
+  const c=mk(V2,'2026-09-25T10:00:00');
+  c.state.settings.basic=2156880; c.state.settings.divisor=209; c.state.settings.periodStart=1; c.state.settings.hireDate='2023-05-01';
+  c.state.extra=[{y:2026,m:8,day:10,type:'shutdown',kind:'day',c:{gross:0,bk:0,net:0,reg:0,ot:0,night:0,hol:0,pay:0}},
+    {y:2026,m:8,day:31,kind:'day',type:'shift',inH:9,outH:21,c:c.calc(9,21,'day',false)}];
+  const P=c.period(new Date('2026-08-10T00:00:00'));
+  c.state.settings.wageLog={[V2.wageKey(P)]: c.wageNow()};
+  const W=c.wageFor(P);
+  c.state.settings.basic=2800000;
+  ok('휴업수당 합계는 그 기간의 W로', c.shutdownTally(P).full===c.shutdownPay(new Date('2026-08-10T00:00:00'), W), c.shutdownTally(P).full+' vs '+c.shutdownPay(new Date('2026-08-10T00:00:00'), W));
+  const R=c.renderVals();
+  const find=(o,seen=new Set())=>{ if(!o||typeof o!=='object'||seen.has(o)) return null; seen.add(o);
+    if(Array.isArray(o)){ const x=o.find(r=>r&&r.label===c.T('last_shift')); if(x) return x; for(const y of o){ const f=find(y,seen); if(f) return f; } return null; }
+    for(const k of Object.keys(o)){ const f=find(o[k],seen); if(f) return f; } return null; };
+  const ls=find(R);
+  // dayPay는 W가 없으면 기록에 박힌 그 날의 금액을 씁니다 — 이미 맞았고, 이 줄이 그것을 붙듭니다
+  ok('마지막 근무의 벌이는 그 날의 금액', ls && ls.value===c.won(c.dayPay(c.state.extra[1], W)), ls&&ls.value);
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);
