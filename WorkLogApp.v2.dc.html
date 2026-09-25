@@ -6361,8 +6361,9 @@ class Component extends DCLogic {
           { k: this.T('rsn_46_head'), v: '' },
           { k: this.T('rsn_46_floor'), v: this.won(this.shutdownPay(this.recDate(s), W)) },
           { k: this.T('rsn_46_if_full'), v: this.T('rsn_46_if_full_v') },
-          { k: this.T('rsn_46_if_cut', { p0: this.won(this.partialWorkedPay(s)) }), v: '+' + this.won(this.partialShort(s)) },
-          { k: this.T('rsn_46_est'), v: this.avgIsEst(this.recDate(s)) ? this.T('rsn_46_est_low') : this.won(this.avgDaily(this.recDate(s))) },
+          // 네 줄 모두 같은 W — 최저만 W를 받으면 화면의 셈이 스스로 맞지 않고 문서와 달라집니다(S15)
+          { k: this.T('rsn_46_if_cut', { p0: this.won(this.partialWorkedPay(s, W)) }), v: '+' + this.won(this.partialShort(s, W)) },
+          { k: this.T('rsn_46_est'), v: this.avgIsEst(this.recDate(s), W) ? this.T('rsn_46_est_low') : this.won(this.avgDaily(this.recDate(s), W)) },
         ] : []).concat(this.legalGap(s) ? [
           { k: this.T('legal_minimum_lsa_56_2'), v: '' },
           { k: this.T('shortfall_vs_what_the_company_pays'), v: '+' + this.won(this.legalGap(s)) },
