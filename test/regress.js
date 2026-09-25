@@ -8617,6 +8617,85 @@ console.log('\n== 붙들린 평균임금과 상여가 화면 어디에도 없었
     return c.T('held_avg_manual',{p0:'Z'}).includes('Z') && c.T('held_bonus',{p0:'Z'}).includes('Z') && c.T('held_avg_manual',{p0:'Z'}).includes('평균임금') && c.T('held_bonus',{p0:'Z'}).includes('상여'); }));
 }
 
+console.log('\n== 하루 화면과 급여 탭의 제56조② 차액이 문서와 달랐습니다 (S17) ==');
+// S15와 같은 종류의 남은 자리입니다. 하루 화면의 '일일 변동수당'과 제56조② 차액, 급여 탭의 제56조② 카드가
+// W 없이 불렀습니다. 닫힌 8월, 휴일 08.16에 08–20시 근무(8시간 초과 3시간), 그 뒤 기본금 2,156,880 →
+// 2,800,000: 화면과 카드는 차액 +₩20,094, 같은 기간의 근무내역서는 ₩15,480. holOverPaid를 켜면 하루
+// 화면의 줄은 ₩185,760으로 더해지는데 합계는 ₩190,374라고 했습니다. 그리고 S15의 CHANGELOG는 'W 없이
+// 부르는 곳은 한 자리뿐'이라고 잘못 적었습니다.
+{
+  const mkC=paid=>{ const c=mk(V2,'2026-09-25T10:00:00');
+    c.state.settings.basic=2156880; c.state.settings.divisor=209; c.state.settings.periodStart=1; c.state.settings.hireDate='2023-05-01';
+    c.state.settings.holOverPaid=paid;
+    c.state.extra=[{y:2026,m:8,day:16,kind:'day',type:'shift',holiday:true,inH:8,outH:20,c:c.calc(8,20,'day',true)}];
+    const P=c.period(new Date('2026-08-16T00:00:00'));
+    c.state.settings.wageLog={[V2.wageKey(P)]: c.wageNow()};
+    c.state.settings.basic=2800000;
+    c.setState({payBack:1, openDay:20260816});
+    return {c,P,W:c.wageFor(P),r:c.state.extra[0]}; };
+  const findRow=(c,o,key,seen=new Set())=>{ if(!o||typeof o!=='object'||seen.has(o)) return null; seen.add(o);
+    if(Array.isArray(o)){ const i=o.findIndex(x=>x&&x.k===c.T(key)); if(i>=0) return o.slice(i); for(const x of o){ const f=findRow(c,x,key,seen); if(f) return f; } return null; }
+    for(const k of Object.keys(o)){ const f=findRow(c,o[k],key,seen); if(f) return f; } return null; };
+  let {c,P,W,r}=mkC(false);
+  const gap=c.legalGap(r,W);
+  ok('문서의 차액', gap>0 && c.evidenceHtml(P).includes(c.won(gap)), String(gap));
+  let R=c.renderVals();
+  const g=findRow(c,R,'legal_minimum_lsa_56_2');
+  ok('하루 화면의 제56조② 차액 = 문서', g && g[1].v==='+'+c.won(gap), g&&g[1].v);
+  ok('급여 탭의 제56조② 카드 = 문서', R.legalGapAmt==='+'+c.won(gap), R.legalGapAmt);
+  ({c,P,W,r}=mkC(true));
+  R=c.renderVals();
+  const t=findRow(c,R,'day_total_variable_pay');
+  ok('holOverPaid면 하루 화면의 합계 = 그 날의 임금(W)', t && t[0].v===c.won(c.dayPay(r,W)), t&&t[0].v);
+}
+
+console.log('\n== 세어 보니 W 없이 부르는 곳이 둘 더 있었습니다 (S17 뒤) ==');
+// '한 자리뿐'을 다시 적기 전에 grep으로 셌습니다. 휴업수당 합계(shutdownTally)는 기간을 받으면서 그 기간의 W를
+// 쓰지 않았고, 출퇴근 화면의 '마지막 근무'는 그 날이 든 기간이 아니라 오늘의 시급으로 셌습니다(급여기간이
+// 넘어간 아침이면 그 하루는 닫힌 기간의 것입니다).
+{
+  const c=mk(V2,'2026-09-25T10:00:00');
+  c.state.settings.basic=2156880; c.state.settings.divisor=209; c.state.settings.periodStart=1; c.state.settings.hireDate='2023-05-01';
+  c.state.extra=[{y:2026,m:8,day:10,type:'shutdown',kind:'day',c:{gross:0,bk:0,net:0,reg:0,ot:0,night:0,hol:0,pay:0}},
+    {y:2026,m:8,day:31,kind:'day',type:'shift',inH:9,outH:21,c:c.calc(9,21,'day',false)}];
+  const P=c.period(new Date('2026-08-10T00:00:00'));
+  c.state.settings.wageLog={[V2.wageKey(P)]: c.wageNow()};
+  const W=c.wageFor(P);
+  c.state.settings.basic=2800000;
+  ok('휴업수당 합계는 그 기간의 W로', c.shutdownTally(P).full===c.shutdownPay(new Date('2026-08-10T00:00:00'), W), c.shutdownTally(P).full+' vs '+c.shutdownPay(new Date('2026-08-10T00:00:00'), W));
+  const R=c.renderVals();
+  const find=(o,seen=new Set())=>{ if(!o||typeof o!=='object'||seen.has(o)) return null; seen.add(o);
+    if(Array.isArray(o)){ const x=o.find(r=>r&&r.label===c.T('last_shift')); if(x) return x; for(const y of o){ const f=find(y,seen); if(f) return f; } return null; }
+    for(const k of Object.keys(o)){ const f=find(o[k],seen); if(f) return f; } return null; };
+  const ls=find(R);
+  // dayPay는 W가 없으면 기록에 박힌 그 날의 금액을 씁니다 — 이미 맞았고, 이 줄이 그것을 붙듭니다
+  ok('마지막 근무의 벌이는 그 날의 금액', ls && ls.value===c.won(c.dayPay(c.state.extra[1], W)), ls&&ls.value);
+}
+
+console.log('\n== 고치는 길이 기본금만 말했습니다 (S18) ==');
+// S16 뒤로 칸 밑의 말은 붙들린 평균임금과 상여도 적는데, 그 뒤의 '고치는 길'은 여전히 '옛 회사의 기본금이
+// 아니라면 … 기본금을 고친 뒤'였습니다. 붙들린 평균임금이 새 회사의 것인 사람은 이미 맞는 기본금을 고치라는
+// 말만 들었습니다. 기간이 열려 있는 동안이 고칠 수 있는 유일한 때입니다. 이제 위의 값 어느 것이든, 그리고
+// 다시 적은 뒤 새 회사의 값을 되돌려 적는 것까지 말합니다.
+{
+  const c=mk(V2,'2026-09-25T10:00:00');
+  const t=c.T('last_day_wage_held_fix');
+  ok('기본금만이 아니라 위의 값 어느 것이든', !t.includes('기본금을 고친') && t.includes('위'), t);
+  ok('다시 적은 뒤 새 회사의 값을 되돌려 적으라고', t.includes('되돌려'), t);
+  // 그 길이 평균임금에도 통하는지 끝까지 걸어 봅니다
+  const at=(x,iso)=>{ x.base=new Date(iso); x.t0=Date.now(); };
+  const d=mk(V2,'2026-09-22T10:00:00'); d.state.settings.basic=2156880; d.state.settings.hireDate='2023-05-01'; d.stampWage();
+  at(d,'2026-09-28T10:00:00');
+  d.state.settings.avgDaily=150000; d.stampWage(); d.state.settings.lastDay='2026-09-22'; d.stampWage();   // 새 회사 값을 먼저 적은 사람
+  const Q=d.period(new Date('2026-09-22T00:00:00'));
+  ok('붙들린 평균임금이 새 회사의 값', d.wageFor(Q).avgManual===150000);
+  d.state.settings.lastDay=''; d.stampWage(); d.state.settings.avgDaily=0; d.stampWage(); d.state.settings.lastDay='2026-09-22'; d.stampWage();
+  d.state.settings.avgDaily=150000; d.stampWage();                                                            // 새 회사 값을 되돌려 적습니다
+  ok('길대로 하면 옛 기간은 옛 값, 설정은 새 회사의 값', d.wageFor(Q).avgManual===0 && d.st().avgDaily===150000);
+  ok('여덟 말 모두 기본금 하나만 고치라고 하지 않습니다', ['en','vi','zh','th','id','ne','km'].every(l=>{ c.state.settings.lang=l;
+    return !/correct 기본금,|sửa 기본금,|改正 기본금，|แก้ 기본금 |perbaiki 기본금,|기본금 सच्याउनुहोस्|កែ 기본금 /.test(c.T('last_day_wage_held_fix')); }));
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);
