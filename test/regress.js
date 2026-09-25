@@ -3,6 +3,8 @@ const V2=require('./harness2.js').Component;
 let pass=0,fail=0;
 const ok=(n,c,extra='')=>{ (c?pass++:fail++); console.log((c?'  PASS  ':'! FAIL  ')+n+(extra?'  '+extra:'')); };
 const mk=(C,iso='2026-08-02T10:00:00')=>{const c=new C({});c.base=new Date(iso);c.t0=Date.now();return c;};
+// 기다려야 끝나는 시험(공유 시트처럼 async인 것)은 여기 모읍니다 — 맨 끝의 집계가 기다립니다.
+const later=[];
 
 console.log('\n== wage engine unchanged from v1 (verified against real payslips) ==');
 { const a=mk(V1),b=mk(V2);
@@ -3629,8 +3631,12 @@ console.log('\n== 성명과 사업장명은 백업 상자 안에 있을 일이 �
   {
     const c3 = mk(V2, '2026-08-17T10:00:00');
     c3.setState({ csvMsg: '내보냈습니다', backupMsg: '' });
+    // 백업 자리는 이제 비어 있지 않습니다 — 알림이 없으면 마지막 백업을
+    // 말합니다(아래 '백업을 언제 했는지'). 그래서 '비었다'가 아니라 'CSV 알림이
+    // 새지 않았다'를 봅니다.
     ok('CSV 알림은 백업 알림과 다른 자리입니다',
-      c3.renderVals().csvMsg === '내보냈습니다' && !c3.renderVals().backupMsg);
+      c3.renderVals().csvMsg === '내보냈습니다'
+      && c3.renderVals().backupMsg === c3.backupAgeText(), c3.renderVals().backupMsg);
   }
   // 근무내역서는 급여 탭으로 갔습니다
   ok('근무내역서 단추는 급여에 있습니다', pay.indexOf('{{ doEvidence }}')>=0);
@@ -7830,5 +7836,141 @@ console.log('\n== 카드를 쓸면 화면이 굳었고, 짚으면 출근이 찍�
   ok('padTap은 화면에 한 자리뿐입니다', (tpl.match(/\{\{ padTap \}\}/g) || []).length === 1);
 }
 
-console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
-process.exit(fail?1:0);
+console.log('\n== 백업을 언제 했는지 아무도 몰랐습니다 ==');
+// 기록은 이 폰의 localStorage 하나에만 있습니다. 환영 화면이 한 번 '가끔 파일로
+// 저장해 두세요'라고 말하고 나면, 그 뒤로는 아무것도 마지막 백업이 언제였는지
+// 말하지 않았습니다. 폰을 잃으면 몇 해치 근무내역서의 근거가 함께 사라지는데,
+// 그 위험이 얼마나 쌓였는지 화면 어디에도 없었습니다.
+//
+// 이제 백업 파일을 실제로 넘긴 때를 적어 두고, 이미 있는 두 자리에서 말합니다:
+// 백업 묶음의 접힌 요약('기록 120일 · 43일 전 백업')과, 펼쳤을 때 단추 밑의
+// 알림 자리(알림이 없을 때만). 새 칸은 없습니다.
+//
+// 다음 사람에게: 공유 시트를 닫은 것은 백업이 아닙니다. saveFile이 true를
+// 돌려준 때만 적으십시오. 그리고 이 시각은 settings에 넣지 마십시오 — 백업 파일
+// 안에 실려 가서, 그 파일을 불러오는 순간 그 전의 시각이 되살아납니다.
+{
+  const c=mk(V2,'2026-09-25T10:00:00');
+  ok('처음에는 백업 없음', c.backupAge()===null && c.backupAgeText()==='백업 없음', c.backupAgeText());
+  ok('접힌 요약이 그것을 말합니다', c.setGroupSums().grp_backup.endsWith(' · 백업 없음'), c.setGroupSums().grp_backup);
+  ok('알림 자리도 비어 있지 않습니다', c.renderVals().backupMsg==='백업 없음', c.renderVals().backupMsg);
+
+  c.state.backedUp=new Date('2026-09-25T08:10:00').toISOString();
+  ok('같은 날이면 오늘', c.backupAgeText()==='오늘 백업', c.backupAgeText());
+  c.state.backedUp=new Date('2026-09-24T23:30:00').toISOString();
+  ok('어젯밤 23:30의 백업은 오늘 아침 1일 전입니다 — 시간이 아니라 날짜로 셉니다',
+    c.backupAgeText()==='1일 전 백업', c.backupAgeText());
+  c.state.backedUp=new Date('2026-08-13T12:00:00').toISOString();
+  ok('43일 전', c.backupAge().days===43 && c.setGroupSums().grp_backup.endsWith(' · 43일 전 백업'),
+    c.setGroupSums().grp_backup);
+  ok('펼친 자리에는 날짜도 붙습니다', c.renderVals().backupMsg==='43일 전 백업 · 2026.08.13', c.renderVals().backupMsg);
+  c.state.backupMsg='방금 한 일의 알림';
+  ok('알림이 있으면 알림이 먼저입니다', c.renderVals().backupMsg==='방금 한 일의 알림');
+  c.state.backupMsg='';
+  c.state.backedUp='읽을 수 없는 값';
+  ok('읽을 수 없는 시각은 백업 없음으로', c.backupAge()===null);
+
+  c.state.settings.lang='en';
+  c.state.backedUp=new Date('2026-09-24T12:00:00').toISOString();
+  ok('영어는 단수로', c.backupAgeText()==='backed up 1 day ago', c.backupAgeText());
+  ok('알림 자리는 대문자로 시작합니다', c.renderVals().backupMsg.startsWith('Backed up 1 day ago'), c.renderVals().backupMsg);
+  c.state.settings.lang='ko';
+
+  // 설정이 아니라 저장 본문 곁에 둡니다
+  c.state.backedUp=new Date('2026-09-20T12:00:00').toISOString();
+  let body=null; const ls=global.window.localStorage;
+  global.window.localStorage={ getItem:()=>body, setItem:(k,v)=>{ body=v; }, removeItem(){} };
+  c.lastSaved=null; c.save();
+  ok('저장 본문에 적힙니다', JSON.parse(body).backedUp===c.state.backedUp);
+  ok('백업 파일의 settings에는 실리지 않습니다', !('backedUp' in c.backupData().settings));
+  const c2=new V2({});
+  ok('다시 열어도 그대로입니다', c2.state.backedUp===c.state.backedUp, String(c2.state.backedUp));
+  global.window.localStorage=ls;
+
+  // 불러오기: 폰의 기록이 곧 그 파일이므로, 그 파일이 마지막 백업입니다
+  const c3=mk(V2,'2026-09-25T10:00:00');
+  c3.setState({pendingImport:{app:'worklog',v:1,exported:new Date('2026-09-01T09:00:00').toISOString(),
+    settings:{},removed:[],session:null,extra:[]}});
+  c3.confirmImport();
+  ok('불러온 파일의 시각이 마지막 백업이 됩니다', c3.backupAge() && c3.backupAge().days===24,
+    JSON.stringify(c3.backupAge()));
+  const c4=mk(V2,'2026-09-25T10:00:00');
+  c4.state.backedUp=new Date('2026-09-10T09:00:00').toISOString();
+  c4.setState({pendingImport:{app:'worklog',v:1,settings:{},removed:[],session:null,extra:[]}});
+  c4.confirmImport();
+  ok('시각이 없는 파일은 있던 값을 지우지 않습니다', c4.backupAge().days===15);
+
+  // 넘기지 못한 파일은 백업이 아닙니다
+  const c5=mk(V2,'2026-09-25T10:00:00');
+  c5.saveFile=async()=>false;
+  later.push(c5.doExport().then(()=>ok('공유 시트를 닫으면 적지 않습니다', c5.state.backedUp===null)));
+  const c6=mk(V2,'2026-09-25T10:00:00');
+  let sent=null; c6.saveFile=async(text)=>{ sent=JSON.parse(text); return true; };
+  later.push(c6.doExport().then(()=>ok('넘겼으면 파일 안의 exported를 그대로 적습니다',
+    sent && c6.state.backedUp===sent.exported, String(c6.state.backedUp))));
+  // 실제 saveFile이 넘긴 것을 true로 말하는지 — 공유가 없는 폰의 내려받기 길
+  const c7=mk(V2,'2026-09-25T10:00:00');
+  later.push(c7.saveFile('{}','x.json','application/json','끝').then(r=>
+    ok('내려받기로 넘기면 true', r===true, String(r))));
+}
+
+console.log('\n== 잔여 9일이 얼마인지는 아무도 말하지 않았습니다 ==');
+// 연차 대장은 '잔여 9일'이라고만 말했습니다. 쓰지 못한 연차는 퇴사할 때, 또는
+// 사용기간이 끝날 때 연차미사용수당이 됩니다 — 그런데 그 금액을 앱은 계산할 수
+// 있는 두 숫자(잔여와 시급)를 이미 들고 있으면서 말하지 않았습니다.
+//
+// 이제 잔여 칸 밑에 금액이, 대장의 설명 문단 끝에 식과 조건이 붙습니다.
+// 1일 통상임금은 휴업수당 상한과 같은 wRate × 8입니다.
+//
+// 다음 사람에게: 금액만 두지 마십시오. '지금 회사가 이만큼 빚졌다'로 읽힙니다.
+// 사용기간이 끝나 사라지는 연차는 회사가 제61조의 사용촉진을 했으면 수당이 되지
+// 않습니다 — 그 조건이 문장에서 빠지면 이 숫자는 틀린 숫자입니다.
+{
+  const c=mk(V2,'2026-09-25T10:00:00');
+  c.state.settings.basic=2156880; c.state.settings.divisor=209;
+  c.state.settings.annualBase=9;
+  c.state.settings.annualAsOf=new Date('2026-09-25T00:00:00').toISOString();
+  const daily=Math.round(c.wRate()*8);
+  ok('하루치는 휴업수당 상한과 같은 값입니다', daily===Math.round(c.rate()*8) && daily===82560, String(daily));
+  const lp=c.unusedLeavePay();
+  ok('잔여 9일 × 82,560 = 743,040', lp && lp.total===743040, JSON.stringify(lp));
+  let R=c.renderVals();
+  const cell=R.annLedger[2];
+  ok('잔여 칸 밑에 금액이 붙습니다', cell.won==='₩743,040', cell.won);
+  ok('발생·사용 칸에는 붙지 않습니다', R.annLedger[0].won==='' && R.annLedger[1].won==='');
+  ok('식이 문단에 있습니다', R.annVsCompany.includes('잔여 9일 × 1일 통상임금 ₩82,560 = ₩743,040'), R.annVsCompany);
+  ok('사용촉진 조건이 빠지지 않습니다', R.annVsCompany.includes('제61조') && R.annVsCompany.includes('사용촉진'));
+  ok('퇴사할 때를 말합니다', R.annVsCompany.includes('퇴사할 때'));
+  ok('원래 문단은 그대로 앞에 있습니다', R.annVsCompany.startsWith(c.T('this_is_what_the_law_gives_you_your_co')));
+
+  // 연차를 쓰면 금액이 함께 줄어듭니다 — 같은 annualLeft에서 나오니까요
+  c.state.extra=[{y:2026,m:9,day:26,type:'annual',c:{reg:8}}];
+  ok('하루 쓰면 8일치', c.unusedLeavePay().total===8*82560, String(c.unusedLeavePay().total));
+  c.state.extra=[];
+
+  c.state.settings.annualBase=0.5;
+  ok('반일은 반일치', c.unusedLeavePay().total===41280);
+
+  c.state.settings.annualBase=0;
+  R=c.renderVals();
+  ok('남은 것이 없으면 금액을 적지 않습니다 — 0원이 아니라 빈칸', R.annLedger[2].won==='' && c.unusedLeavePay()===null);
+  ok('문단도 원래대로', R.annVsCompany===c.T('this_is_what_the_law_gives_you_your_co'));
+
+  c.state.settings.annualBase=3;
+  c.state.settings.lang='en';
+  R=c.renderVals();
+  ok('영어에도 한국어 낱말이 앞섭니다', /잔여 3 days left × one day's 통상임금 ₩82,560 = ₩247,680/.test(R.annVsCompany), R.annVsCompany);
+  ok('여덟 말 모두 제61조를 말합니다',
+    ['ko','en','vi','zh','th','id','ne','km'].every(l=>{ c.state.settings.lang=l;
+      const t=c.T('unused_leave_pay_line',{p0:'X',p1:'Y',p2:'Z'});
+      return /61/.test(t) && t.includes('사용촉진') && t.includes('X') && t.includes('Y') && t.includes('Z'); }));
+  c.state.settings.lang='ko';
+  // 입사일을 몰라도 잔여는 근로자가 적은 숫자이므로 금액은 나옵니다
+  c.state.settings.hireDate='';
+  ok('입사일이 없어도 금액은 나옵니다', c.renderVals().annLedger[2].won==='₩247,680');
+}
+
+Promise.all(later).then(()=>{
+  console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
+  process.exit(fail?1:0);
+});
