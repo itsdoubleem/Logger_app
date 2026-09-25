@@ -3230,5 +3230,13 @@
   "settle_avg_projected_thin": {
     "en": "Yes — projected from the last 3 months, with too few records",
     "ko": "예 — 기록이 부족한 지난 3개월로 미리 본 값"
+  },
+  "last_day_wage_held": {
+    "en": "The pay period containing this day ({p0}) is held at 기본금 {p1} — that period's 급여 PAY tab, the 근무내역서 and the 퇴직금 on this screen all count with it.",
+    "ko": "이 날이 든 급여기간({p0})의 임금은 기본금 {p1} 그대로 붙들어 두었습니다 — 그 기간의 급여 탭, 근무내역서, 이 화면의 퇴직금이 모두 이 값으로 셉니다."
+  },
+  "last_day_wage_held_fix": {
+    "en": "If this is not your previous company's 기본금 (you typed the new company's pay before entering this day), then before this period ends: clear this box, correct 기본금, and enter the day again.",
+    "ko": "이것이 옛 회사의 기본금이 아니라면(이 날을 적기 전에 새 회사의 값을 적었다면), 이 기간이 끝나기 전에 이 칸을 비우고, 기본금을 고친 뒤, 다시 적으십시오."
   }
 }

@@ -757,5 +757,7 @@
   "sev_stopped_at_last_day": "✓ Thâm niên {p0} năm {p1} tháng — số tiền tính đến ngày làm cuối {p2}.",
   "sev_under_1_year_ended": "Kết thúc trước khi đủ 1 năm — không phát sinh 퇴직금 (근로자퇴직급여 보장법 §8①).",
   "settle_avg_projected": "Có — ước tính trước từ 3 tháng vừa qua",
-  "settle_avg_projected_thin": "Có — ước tính trước từ 3 tháng vừa qua, nhưng ghi chép còn thiếu"
+  "settle_avg_projected_thin": "Có — ước tính trước từ 3 tháng vừa qua, nhưng ghi chép còn thiếu",
+  "last_day_wage_held": "Kỳ lương chứa ngày này ({p0}) được giữ ở 기본금 {p1} — tab 급여 PAY của kỳ đó, 근무내역서 và 퇴직금 trên màn hình này đều tính theo giá trị này.",
+  "last_day_wage_held_fix": "Nếu đây không phải 기본금 của công ty cũ (bạn đã nhập lương công ty mới trước khi nhập ngày này), thì trước khi kỳ này kết thúc: xóa ô này, sửa 기본금, rồi nhập lại ngày."
 }

@@ -757,5 +757,7 @@
   "sev_stopped_at_last_day": "✓ 连续工作 {p0}年{p1}个月 — 截至最后工作日 {p2} 的金额。",
   "sev_under_1_year_ended": "未满1年就结束了 — 不产生 퇴직금（근로자퇴직급여 보장법 第8条①）。",
   "settle_avg_projected": "是 — 用最近3个月预估的值",
-  "settle_avg_projected_thin": "是 — 用记录不足的最近3个月预估的值"
+  "settle_avg_projected_thin": "是 — 用记录不足的最近3个月预估的值",
+  "last_day_wage_held": "包含这一天的工资期（{p0}）的工资固定为 기본금 {p1} — 那个期间的 급여 PAY 页、근무내역서 和本页的 퇴직금 都按这个值计算。",
+  "last_day_wage_held_fix": "如果这不是上一家公司的 기본금（你在填这一天之前先填了新公司的工资），请在这个期间结束前：清空这一栏，改正 기본금，再重新填写日期。"
 }

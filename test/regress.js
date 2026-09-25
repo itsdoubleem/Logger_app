@@ -8444,7 +8444,40 @@ console.log('\n== 새 회사 입사일을 적는 순간 옛 회사의 마지막 
   ok('다음 기간부터는 새 기본금', c.st().wageLog[V2.wageKey(c.period(c.now()))].basic===2600000);
   const R=c.renderVals();
   ok('칸 밑의 말이 비우라고 하지 않습니다 — 비우면 붙든 것이 풀립니다',
-    R.lastNote===c.T('last_day_before_hire') && !/비우십시오/.test(R.lastNote), R.lastNote);
+    R.lastNote.startsWith(c.T('last_day_before_hire')) && !/비우/.test(R.lastNote), R.lastNote);
+}
+
+console.log('\n== 새 기본금을 먼저 적고 마지막 근무일을 나중에 적으면 새 값이 굳었고, 화면은 말이 없었습니다 (S10) ==');
+// 굳힘은 그 순간의 도장을 붙듭니다. 09.28에 새 회사 기본금 ₩2,600,000을 먼저 적고 마지막 근무일
+// 09.22를 나중에 적으면, 도장은 이미 새 값이라 그것이 굳었습니다. 앱은 그 전의 값을 기억하지
+// 않아 되살릴 수 없습니다. 할 수 있는 것은 굳은 값을 보여 주고, 기간이 열려 있는 동안 고치는
+// 길을 말하는 것입니다. 시험이 그 길을 끝까지 걸어 봅니다.
+{
+  const at=(c,iso)=>{ c.base=new Date(iso); c.t0=Date.now(); };
+  const c=mk(V2,'2026-09-22T10:00:00');
+  c.state.settings.basic=2156880; c.state.settings.divisor=209; c.state.settings.hireDate='2023-05-01';
+  c.stampWage();
+  at(c,'2026-09-28T10:00:00');
+  c.state.settings.basic=2600000; c.stampWage();          // 새 회사 기본금을 먼저
+  c.state.settings.lastDay='2026-09-22'; c.stampWage();   // 마지막 근무일은 나중에
+  let R=c.renderVals();
+  ok('칸 밑에 굳은 기본금이 보입니다', R.lastNote.includes('₩2,600,000'), R.lastNote);
+  ok('기간이 열려 있으니 고치는 길을 말합니다', R.lastNote.includes('비우고'), R.lastNote);
+  // 그 길대로: 비우고, 고치고, 다시 적습니다
+  c.state.settings.lastDay=''; c.stampWage();
+  c.state.settings.basic=2156880; c.stampWage();
+  c.state.settings.lastDay='2026-09-22'; c.stampWage();
+  const P=c.period(new Date('2026-09-22T00:00:00'));
+  ok('그 길대로 하면 옛 기본금이 굳습니다', c.wageFor(P).basic===2156880);
+  R=c.renderVals();
+  ok('칸 밑의 값도 옛 기본금', R.lastNote.includes('₩2,156,880'), R.lastNote);
+  // 기간이 닫힌 뒤에는 고칠 길이 없으므로 그 말도 하지 않습니다 — 값만 보여 줍니다
+  at(c,'2026-10-25T10:00:00');
+  R=c.renderVals();
+  ok('닫힌 기간이면 값만', R.lastNote.includes('₩2,156,880') && !R.lastNote.includes('비우고'), R.lastNote);
+  // 마지막 근무일이 앞날이면 아직 굳은 것이 없으니 그 말도 없습니다
+  const d=mk(V2,'2026-09-22T10:00:00'); d.state.settings.hireDate='2023-05-01'; d.state.settings.lastDay='2026-10-30'; d.stampWage();
+  ok('앞날이면 굳었다는 말이 없습니다', d.renderVals().lastNote===d.T('last_day_note_set'));
 }
 
 Promise.all(later).then(()=>{

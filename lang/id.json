@@ -757,5 +757,7 @@
   "sev_stopped_at_last_day": "✓ Masa kerja {p0} tahun {p1} bulan — jumlah per hari kerja terakhir {p2}.",
   "sev_under_1_year_ended": "Berakhir sebelum 1 tahun — tidak ada 퇴직금 (근로자퇴직급여 보장법 §8①).",
   "settle_avg_projected": "Ya — perkiraan dari 3 bulan terakhir",
-  "settle_avg_projected_thin": "Ya — perkiraan dari 3 bulan terakhir, dengan catatan yang kurang"
+  "settle_avg_projected_thin": "Ya — perkiraan dari 3 bulan terakhir, dengan catatan yang kurang",
+  "last_day_wage_held": "Periode gaji yang memuat hari ini ({p0}) ditahan pada 기본금 {p1} — tab 급여 PAY periode itu, 근무내역서, dan 퇴직금 di layar ini semuanya dihitung dengan nilai ini.",
+  "last_day_wage_held_fix": "Jika ini bukan 기본금 perusahaan sebelumnya (Anda mengisi upah perusahaan baru sebelum mengisi hari ini), maka sebelum periode ini berakhir: kosongkan kotak ini, perbaiki 기본금, lalu isi lagi tanggalnya."
 }
