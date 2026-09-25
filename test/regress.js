@@ -7970,6 +7970,99 @@ console.log('\n== 잔여 9일이 얼마인지는 아무도 말하지 않았습�
   ok('입사일이 없어도 금액은 나옵니다', c.renderVals().annLedger[2].won==='₩247,680');
 }
 
+console.log('\n== 그만두는 날 받을 돈을 한 자리에서 셀 수 없었습니다 ==');
+// 퇴직금은 퇴직금 카드에, 남은 연차의 값은 연차 대장에, 기한은 어디에도 없었습니다.
+// 고용허가제 근로자는 사업장을 옮기거나 귀국하는데, 체불 진정의 대부분이 그 날
+// 받지 못한 임금과 퇴직금입니다. 마지막 근무일을 적으면 이제 퇴사 정산 카드가
+// 퇴직금 + 연차미사용수당과 근로기준법 제36조의 14일 기한을 말합니다.
+//
+// 다음 사람에게: 마지막 달 임금은 더하지 마십시오. 다 채우지 않은 달을 회사가
+// 어떻게 나누는지 앱은 모릅니다. 그리고 마지막 근무일이 지나면 다른 카드의 근속도
+// 멈춰야 합니다 — 그만둔 사람의 퇴직금이 매일 늘어나면 두 카드가 서로를 반박합니다.
+{
+  const base=iso=>{ const c=mk(V2,iso);
+    c.state.settings.basic=2156880; c.state.settings.divisor=209;
+    c.state.settings.hireDate='2024-03-04';
+    c.state.settings.annualBase=5; c.state.settings.annualAsOf=new Date('2026-09-01T00:00:00').toISOString();
+    return c; };
+  let c=base('2026-09-25T10:00:00');
+  let R=c.renderVals();
+  ok('비어 있으면 카드가 없습니다', R.settleShow===false && c.settlement()===null);
+  ok('비어 있는 것은 정상입니다 — 빨갛지 않습니다', R.lastBd==='var(--color-neutral-300)' && R.lastNote===c.T('last_day_note_empty'));
+
+  // 앞으로 올 마지막 근무일
+  c.state.settings.lastDay='2026-10-30';
+  const S=c.settlement(); R=c.renderVals();
+  ok('카드가 나옵니다', R.settleShow===true);
+  ok('근속은 마지막 근무일까지 셉니다', c.tenureDays(S.last)===c.tenureDays(new Date('2026-10-30T12:00:00')));
+  ok('퇴직금은 마지막 근무일 기준입니다',
+    S.eligible && S.sev===c.severancePay(new Date('2026-10-30T00:00:00'), new Date('2026-10-31T00:00:00')), String(S.sev));
+  ok('연차미사용수당은 잔여 × 1일 통상임금', S.leave===5*82560, String(S.leave));
+  ok('합은 둘을 더한 것', R.settleAmt===c.won(S.sev+S.leave), R.settleAmt);
+  ok('기한은 마지막 근무일 다음 날부터 14일 — 11.14', V2.dotDate(S.due)==='2026.11.14', V2.dotDate(S.due));
+  ok('오늘부터 50일 남음', R.settleRows[3].v==='2026.11.14 · 50일 남음', R.settleRows[3].v);
+  ok('마지막 달 임금은 금액이 아니라 자리를 가리킵니다', R.settleRows[2].v==='급여 탭');
+  ok('아직 다니는 중이면 다른 카드는 오늘을 말합니다', c.serviceOn()===undefined
+    && R.sevAmt===c.won(c.severancePay()), R.sevAmt);
+
+  // 평균임금 창은 마지막 근무일까지 — 그 날의 잔업이 들어갑니다
+  const withOt=base('2026-09-25T10:00:00'); withOt.state.settings.lastDay='2026-10-30';
+  withOt.state.extra=[{y:2026,m:10,day:30,kind:'day',type:'shift',inH:9,outH:21,c:withOt.calc(9,21,'day',false)}];
+  // 최저임금 근처에서는 하루 잔업이 통상임금 바닥(제2조②)을 넘지 못해 퇴직금이 같습니다.
+  // 그래서 금액이 아니라 창 자체와, 바닥 전의 계산값을 봅니다.
+  const lastD=new Date('2026-10-30T00:00:00');
+  ok('평균임금 창은 마지막 근무일에서 끝납니다',
+    withOt.avgWindow(V2.dayAfter(lastD)).end.getTime()===lastD.getTime());
+  ok('마지막 근무일의 잔업이 평균임금 계산에 들어갑니다',
+    withOt.avgDailyCalc(V2.dayAfter(lastD)) > c.avgDailyCalc(V2.dayAfter(lastD)),
+    withOt.avgDailyCalc(V2.dayAfter(lastD))+' vs '+c.avgDailyCalc(V2.dayAfter(lastD)));
+
+  // 이미 지난 마지막 근무일
+  c=base('2026-11-20T10:00:00'); c.state.settings.lastDay='2026-10-30';
+  R=c.renderVals();
+  ok('기한이 지났으면 지난 날수', R.settleRows[3].v==='2026.11.14 · 6일 지남', R.settleRows[3].v);
+  const last=new Date('2026-10-30T00:00:00');
+  ok('근속이 마지막 근무일에서 멈춥니다', c.serviceOn() && c.tenureDays(c.serviceOn())===c.tenureDays(last));
+  ok('퇴직금 카드와 정산 카드가 같은 금액을 말합니다', R.sevAmt===c.won(c.settlement().sev), R.sevAmt+' / '+c.settlement().sev);
+  ok('그만둔 사람에게 다음 기념일을 말하지 않습니다', R.sevStatus.includes('2026.10.30') && !R.sevStatus.includes('입사기념일'), R.sevStatus);
+  // 2024.03.04 → 2026.10.30은 971일, 2년 8개월입니다. 반년 뒤에 봐도 같아야 합니다.
+  ok('맨 위 근속도 멈춥니다', R.tenureLine===c.T('years_months_of_service',{p0:2,p1:8}), R.tenureLine);
+  const later2=base('2027-06-01T10:00:00'); later2.state.settings.lastDay='2026-10-30';
+  ok('반년 뒤에도 퇴직금은 그대로입니다', later2.renderVals().sevAmt===R.sevAmt);
+  ok('반년 뒤에도 근속은 그대로입니다', later2.renderVals().tenureLine===R.tenureLine);
+
+  c=base('2026-11-14T09:00:00'); c.state.settings.lastDay='2026-10-30';
+  ok('기한 당일은 오늘까지', c.renderVals().settleRows[3].v==='2026.11.14 · 오늘까지', c.renderVals().settleRows[3].v);
+
+  // 1년 미만
+  c=base('2026-09-25T10:00:00'); c.state.settings.hireDate='2026-03-01'; c.state.settings.lastDay='2026-08-31';
+  R=c.renderVals();
+  ok('1년 미만이면 퇴직금 줄은 없음', R.settleRows[0].v==='1년 미만 — 없음' && c.settlement().sev===0);
+  ok('합은 연차미사용수당만', R.settleAmt===c.won(5*82560), R.settleAmt);
+  ok('퇴직금 카드도 끝났다고 말합니다', R.sevStatus===c.T('sev_under_1_year_ended'), R.sevStatus);
+
+  // 입사일을 모르면
+  c=base('2026-09-25T10:00:00'); c.state.settings.hireDate=''; c.state.settings.lastDay='2026-10-30';
+  R=c.renderVals();
+  ok('입사일이 없으면 합을 쓰지 않습니다', R.settleAmt==='—' && R.settleRows[0].v==='?', R.settleAmt);
+  ok('기한은 입사일 없이도 나옵니다', R.settleRows[3].v.startsWith('2026.11.14'));
+
+  // 옛 회사의 날짜가 남아 있는 경우
+  c=base('2026-09-25T10:00:00'); c.state.settings.lastDay='2023-12-31';
+  R=c.renderVals();
+  ok('입사일보다 앞선 날은 쓰지 않습니다', c.lastDay()===null && R.settleShow===false);
+  ok('그 칸만 빨갛게 말합니다', R.lastBd==='var(--color-accent)' && R.lastNote===c.T('last_day_before_hire'));
+  ok('근속은 오늘까지 그대로', c.serviceOn()===undefined);
+
+  c.state.settings.lastDay='2026-02-30';
+  ok('없는 날짜는 없는 것', c.lastDayRaw()===null);
+
+  ok('여덟 말 모두 제36조와 14일을 말합니다',
+    ['ko','en','vi','zh','th','id','ne','km'].every(l=>{ c.state.settings.lang=l;
+      const t=c.T('settle_note'); return /36/.test(t) && /14/.test(t) && t.includes('사용촉진') && t.includes('출국만기보험'); }));
+  c.state.settings.lang='ko';
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);

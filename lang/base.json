@@ -3154,5 +3154,73 @@
   "unused_leave_pay_line": {
     "en": "잔여 {p0} left × one day's 통상임금 {p1} = {p2}. Leave you have not used becomes this much 연차미사용수당 (unused-leave pay) when you leave the company, or when its use period ends. The second case does not apply if your company followed the 사용촉진 procedure in 근로기준법 §61.",
     "ko": "잔여 {p0} × 1일 통상임금 {p1} = {p2}. 쓰지 못한 연차는 퇴사할 때, 또는 사용기간이 끝날 때 이 금액의 연차미사용수당이 됩니다. 사용기간이 끝나는 경우는, 회사가 근로기준법 제61조의 사용촉진을 했다면 예외입니다."
+  },
+  "last_day_worked": {
+    "en": "Last day worked",
+    "ko": "마지막 근무일"
+  },
+  "last_day_note_empty": {
+    "en": "Fill this in only once your leaving date is set. The app then works out below what is paid when you leave, and by when.",
+    "ko": "퇴사가 정해졌을 때만 적으십시오. 그 날로 퇴사할 때 받을 돈과 지급 기한을 아래에 계산합니다."
+  },
+  "last_day_note_set": {
+    "en": "Counted as your last day of work. After it, your service and severance stop growing.",
+    "ko": "이 날까지 일한 것으로 셉니다. 이 날이 지나면 근속도 퇴직금도 더 늘지 않습니다."
+  },
+  "last_day_before_hire": {
+    "en": "⚠ This is before your start date, so it is not used. If you have moved to a new company, clear this box.",
+    "ko": "⚠ 입사일보다 앞선 날이라 쓰지 않습니다. 다른 회사로 옮겼다면 이 칸을 비우십시오."
+  },
+  "final_settlement": {
+    "en": "Final settlement",
+    "ko": "퇴사 정산"
+  },
+  "settle_sum_label": {
+    "en": "퇴직금 severance + 연차미사용수당 unused-leave pay · last day {p0}",
+    "ko": "퇴직금 + 연차미사용수당 · 마지막 근무일 {p0}"
+  },
+  "settle_row_leave": {
+    "en": "연차미사용수당 unused-leave pay ({p0} left)",
+    "ko": "연차미사용수당 (잔여 {p0})"
+  },
+  "settle_sev_none": {
+    "en": "under 1 year — none",
+    "ko": "1년 미만 — 없음"
+  },
+  "settle_row_wage": {
+    "en": "Wages for the last pay period",
+    "ko": "마지막 급여기간 임금"
+  },
+  "settle_wage_see_pay": {
+    "en": "see 급여 PAY",
+    "ko": "급여 탭"
+  },
+  "settle_row_due": {
+    "en": "Due by (근로기준법 §36)",
+    "ko": "지급 기한 (근로기준법 제36조)"
+  },
+  "settle_due_left": {
+    "en": "{p0} to go",
+    "ko": "{p0} 남음"
+  },
+  "settle_due_today": {
+    "en": "today",
+    "ko": "오늘까지"
+  },
+  "settle_due_past": {
+    "en": "{p0} past",
+    "ko": "{p0} 지남"
+  },
+  "settle_note": {
+    "en": "근로기준법 §36: when you leave, all money owed — wages, 퇴직금, 연차미사용수당 and the rest — must be paid within 14 days of the day it became due. It can be extended by agreement between both sides if there are special circumstances. The date above counts 14 days from the day after your last day worked. Leave you could not use because you left becomes pay whether or not the company ran 사용촉진. For the last pay period's wages, see that period on the 급여 PAY tab — the app does not know how your company splits a month you did not finish. E-9 workers usually receive 퇴직금 as 출국만기보험 when they leave Korea, so the timing of that part can differ from this deadline.",
+    "ko": "근로기준법 제36조: 퇴직하면 임금·퇴직금·연차미사용수당 등 모든 금품을 지급 사유가 생긴 때부터 14일 안에 지급해야 합니다. 특별한 사정이 있으면 당사자 합의로 늦출 수 있습니다. 위 날짜는 마지막 근무일 다음 날부터 14일로 셉니다. 퇴사로 쓰지 못한 연차는 사용촉진과 관계없이 수당이 됩니다. 마지막 급여기간 임금은 급여 탭의 그 기간을 보십시오 — 한 달을 다 채우지 않은 달을 회사가 어떻게 나누는지 앱은 모릅니다. E-9 근로자의 퇴직금은 대개 출국만기보험으로 출국할 때 나오므로, 그 부분의 시기는 이 기한과 다를 수 있습니다."
+  },
+  "sev_stopped_at_last_day": {
+    "en": "✓ {p0}y {p1}m of service — the amount as of your last day worked, {p2}.",
+    "ko": "✓ 계속근로 {p0}년 {p1}개월 — 마지막 근무일 {p2}에서 멈춘 금액입니다."
+  },
+  "sev_under_1_year_ended": {
+    "en": "Service ended before 1 year — no severance is owed (근로자퇴직급여 보장법 §8①).",
+    "ko": "계속근로 1년이 되기 전에 끝났습니다 — 퇴직금이 발생하지 않습니다 (근로자퇴직급여 보장법 제8조①)."
   }
 }

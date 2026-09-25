@@ -738,5 +738,22 @@
   "backed_up_today": "dicadangkan hari ini",
   "backed_up_ago": "dicadangkan {p0} lalu",
   "never_backed_up": "belum pernah dicadangkan",
-  "unused_leave_pay_line": "잔여 sisa {p0} × 통상임금 upah biasa 1 hari {p1} = {p2}. Cuti yang belum dipakai menjadi 연차미사용수당 uang cuti tak terpakai sebesar ini saat Anda berhenti bekerja, atau saat masa pemakaiannya berakhir. Kasus berakhirnya masa pemakaian tidak berlaku jika perusahaan sudah menjalankan prosedur 사용촉진 dorongan memakai cuti menurut 근로기준법 §61."
+  "unused_leave_pay_line": "잔여 sisa {p0} × 통상임금 upah biasa 1 hari {p1} = {p2}. Cuti yang belum dipakai menjadi 연차미사용수당 uang cuti tak terpakai sebesar ini saat Anda berhenti bekerja, atau saat masa pemakaiannya berakhir. Kasus berakhirnya masa pemakaian tidak berlaku jika perusahaan sudah menjalankan prosedur 사용촉진 dorongan memakai cuti menurut 근로기준법 §61.",
+  "last_day_worked": "마지막 근무일 Hari kerja terakhir",
+  "last_day_note_empty": "Isi hanya jika tanggal berhenti sudah pasti. Aplikasi lalu menghitung di bawah uang yang dibayar saat Anda berhenti, dan batas waktunya.",
+  "last_day_note_set": "Dihitung sebagai hari kerja terakhir Anda. Setelah itu, masa kerja dan 퇴직금 tidak bertambah lagi.",
+  "last_day_before_hire": "⚠ Tanggal ini sebelum tanggal mulai kerja, jadi tidak dipakai. Jika Anda sudah pindah ke perusahaan baru, kosongkan kotak ini.",
+  "final_settlement": "퇴사 정산 Penyelesaian saat berhenti",
+  "settle_sum_label": "퇴직금 + 연차미사용수당 · hari kerja terakhir {p0}",
+  "settle_row_leave": "연차미사용수당 uang cuti tak terpakai (sisa {p0})",
+  "settle_sev_none": "kurang dari 1 tahun — tidak ada",
+  "settle_row_wage": "Upah periode gaji terakhir",
+  "settle_wage_see_pay": "lihat 급여 PAY",
+  "settle_row_due": "Batas bayar (근로기준법 §36)",
+  "settle_due_left": "{p0} lagi",
+  "settle_due_today": "hari ini",
+  "settle_due_past": "lewat {p0}",
+  "settle_note": "근로기준법 §36: saat berhenti, semua uang — upah, 퇴직금, 연차미사용수당 dan lainnya — harus dibayar dalam 14 hari sejak jatuh tempo. Jika ada keadaan khusus, bisa diperpanjang dengan kesepakatan kedua pihak. Tanggal di atas dihitung 14 hari dari hari setelah hari kerja terakhir. Cuti yang tidak sempat dipakai karena berhenti menjadi uang, baik perusahaan menjalankan 사용촉진 atau tidak. Untuk upah periode terakhir, lihat periode itu di tab 급여 PAY — aplikasi tidak tahu cara perusahaan membagi bulan yang tidak penuh. 퇴직금 pekerja E-9 biasanya diterima sebagai 출국만기보험 saat meninggalkan Korea, jadi waktu bagian itu bisa berbeda dari batas ini.",
+  "sev_stopped_at_last_day": "✓ Masa kerja {p0} tahun {p1} bulan — jumlah per hari kerja terakhir {p2}.",
+  "sev_under_1_year_ended": "Berakhir sebelum 1 tahun — tidak ada 퇴직금 (근로자퇴직급여 보장법 §8①)."
 }
