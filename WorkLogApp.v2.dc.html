@@ -3791,6 +3791,8 @@ class Component extends DCLogic {
     if (W && W.src === 'live' && on !== null) return { name: on, sure: true };
     return { name: now, sure: false };
   }
+  // 그 날짜가 든 급여기간의 W — 날짜를 아는 자리는 오늘이 아니라 이것으로 셉니다(S19, S20)
+  wageOn(d) { return this.wageFor(this.period(d || this.now())); }
   wageFor(P) {
     const Q = P || this.period(this.now());
     // 아직 끝나지 않은 기간은 언제나 지금 설정입니다 — 그 기간 안에서 이미 그만둔
@@ -5278,6 +5280,12 @@ class Component extends DCLogic {
       undoKeys: [],
     });
   }
+  pendingDate() { return this.state.pendingIso ? new Date(this.state.pendingIso) : this.now(); }
+  reasonDate() {
+    const k = this.state.reasonFor;
+    if (!k) return this.now();
+    return new Date(Math.floor(k / 10000), Math.floor(k / 100) % 100 - 1, k % 100);
+  }
   cancelPending() { this.setState({ pending: null, pendingIso: null, pendingEndIso: null, pendingEdit: false }); }
   // first tap sets a single day (already addable); the next tap extends it into a range
   pickDate(d) {
@@ -6005,7 +6013,7 @@ class Component extends DCLogic {
         label: this.T('last_shift'),
         sub: pad2(ls.m) + '.' + pad2(ls.day) + ' ' + this.dowShort(this.recDate(ls).getDay())
           + this.T('worked_h', { p0: this.hrs(ls.c.net) }),
-        value: this.won(this.dayPay(ls)),
+        value: this.won(this.dayPay(ls, this.wageOn(this.recDate(ls)))),
         ink: accent,
       }] : []).concat([
         { label: this.T('days_worked'), sub: this.T('pay_period', { p0: this.period(n).label }), value: t.days + this.T('d'), ink: 'var(--color-text)' },
@@ -6014,7 +6022,7 @@ class Component extends DCLogic {
         { label: this.T('night_hours'), sub: this.T('period_to_date_2'), value: this.hrs(t.night), ink: accent },
         { label: this.T('est_take_home'), sub: this.T('after_tax_insurance_dorm'), value: '', ink: accent },
       ]);
-      liveRows[liveRows.length - 1].value = this.won(this.payCalc(t).net);
+      liveRows[liveRows.length - 1].value = this.won(this.payCalc(t, this.wageOn()).net);
     }
     // ── 마지막 줄에는 밑줄이 없습니다 ──
     // 줄마다 1px 밑줄이 있고 마지막 줄에도 있었습니다. 카드의 위는 첫 줄의
@@ -6215,7 +6223,7 @@ class Component extends DCLogic {
           tag: '결', showTag: true, isSun: false, isMoon: false,
           tagBg: 'oklch(0.45 0.02 0)', tagInk: 'var(--color-bg)',
           io: this.T('absent_unpaid_this_day_is_taken_off_yo'),
-          net: '−' + this.won(this.absentDeduct()).replace('₩', '₩'),
+          net: '−' + this.won(this.absentDeduct(this.wageOn(this.recDate(s)))),
           open, rowBg: open ? 'var(--color-accent-100)' : 'transparent', dim: '1',
           toggle: () => this.setState({ openDay: open ? null : key }),
           del: () => this.removeEntry(key),
@@ -6694,8 +6702,9 @@ class Component extends DCLogic {
         annual: this.T('tap_once_for_a_single_day_again_to_ext'),
         vacation: this.T('tap_once_for_a_single_day_again_for_a_'),
         work: this.T('add_a_shift_you_already_worked_without'),
-        absent: this.T('a_day_you_did_not_come_in_it_is_unpaid', { p0: this.won(this.absentDeduct()) }),
-        shutdown: this.T('the_company_had_no_work_for_you_whethe', { p0: this.won(this.shutdownPay()) }),
+        // 고른 날짜의 기간과 그 날의 3개월 창으로 — 지난 날을 고르면 오늘과 다릅니다(S19)
+        absent: this.T('a_day_you_did_not_come_in_it_is_unpaid', { p0: this.won(this.absentDeduct(this.wageOn(this.pendingDate()))) }),
+        shutdown: this.T('the_company_had_no_work_for_you_whethe', { p0: this.won(this.shutdownPay(this.pendingDate(), this.wageOn(this.pendingDate()))) }),
         holiday: (() => {
           const hc = this.calc(9, 21, 'day', true);
           const sum = this.hrs(hc.hol) + ' × ' + this.won(this.otRate()) + ' = ' + this.won(hc.hol * this.otRate());
@@ -6810,7 +6819,8 @@ class Component extends DCLogic {
         if (id === 'injury') return this.T('rsn_fx_injury');
         if (id === 'weather') return this.T('rsn_fx_weather');
         const f = this.state.earlyFault;
-        if (f === 'employer') return this.T('rsn_fx_employer', { p0: this.won(this.shutdownPay()) });
+        // 사유 창은 그 기록의 날짜로 셉니다 — 지난 날의 사유를 고치면 오늘과 다릅니다(S19)
+        if (f === 'employer') { const d = this.reasonDate(); return this.T('rsn_fx_employer', { p0: this.won(this.shutdownPay(d, this.wageOn(d))) }); }
         if (f === 'worker') return this.T('rsn_fx_worker');
         return this.T('rsn_fx_other');
       })(),
