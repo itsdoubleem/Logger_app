@@ -8850,6 +8850,31 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('\'기간 고르기\' 줄이 양옆으로 12px 들어와 있습니다', src.split('justify-content:space-between;gap:10px;padding:0 12px;cursor:pointer">').length-1===2);
 }
 
+// ── 기간 고르기는 줄부터 카드 끝까지 탭 강조색입니다 (2026-09-25) ──
+// 근로자: 가르는 줄 아래를 PUNCH·LOGS·PAY가 켜질 때의 연분홍으로. 헤드리스에서 잰 것: 분홍 칸이
+// 카드와 좌우·아래 끝이 같습니다(8→376, 아래 끝 일치). 카드의 투명 2px 테두리는 overflow가 잘라서
+// 흰 테두리가 남았으므로 층이 그 테두리를 2px 여백으로 바꿉니다 — 크기는 그대로입니다.
+// '이번 기간으로 돌아가기'는 기간 고르기를 쓰고 나서 나오는 단추라 분홍 칸 안에 들어갑니다.
+{
+  const fs=require('fs');
+  const src=fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const ds=fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
+  ok('기간 고르기 칸이 두 탭 모두 탭 강조색입니다', src.split('<div style="margin:9px -9px -7px;padding:0 9px 7px;border-top:2px solid var(--color-neutral-300);background:var(--color-accent-100)">').length-1===2);
+  ok('활성 탭도 같은 accent-100입니다', ds.includes('[style*="border-top: 3px solid var(--color-accent)"] { background: var(--color-accent-100); }'));
+  ok('층이 스테퍼 테두리를 같은 폭의 여백으로 바꿉니다', ds.includes('#tabScroll > div > div[style*="padding: 5px 7px"] { border-width: 0 !important; padding: 7px 9px !important; }'));
+  ok('분홍 위의 고르지 않은 칸은 카드 흰색입니다', ds.includes('[style*="background: var(--color-accent-100)"][style*="border-top: 2px solid var(--color-neutral-300)"] [style*="background: transparent"] { background: var(--color-card) !important; }'));
+  ok('돌아가기 단추가 칸 안에도, 맨몸으로도 두 탭에 있습니다', src.split('{{ payViewingPast }}" hint-placeholder-val="{{ false }}"><div onClick="{{ payNow }}"').length-1===2 && src.split('{{ payNowBare }}').length-1===2);
+  const c=mk(V2,'2026-09-25T10:00:00');
+  c.state.extra=[];
+  for(let d=new Date('2026-05-01T00:00:00'); d<new Date('2026-09-25T00:00:00'); d=V2.dayAfter(d)){
+    if(d.getDay()===0||d.getDay()===6) continue;
+    c.state.extra.push({y:d.getFullYear(),m:d.getMonth()+1,day:d.getDate(),kind:'day',type:'shift',inH:9,outH:18,c:c.calc(9,18,'day',false)});
+  }
+  c.setState({payBack:2});
+  const v=c.renderVals();
+  ok('고르기가 있으면 맨몸 단추는 없습니다', v.jumpShow===true && v.payViewingPast===true && v.payNowBare===false);
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);

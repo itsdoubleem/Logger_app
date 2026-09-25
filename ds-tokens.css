@@ -311,6 +311,16 @@
    carry no border and no fill, so there the radius is simply invisible. */
 [style*="cursor: pointer"][style*="min-height: 44px; min-width: 44px"] { border-radius: var(--radius-pill); }
 #tabScroll > div > div[style*="padding: 5px 7px"] { border-radius: var(--radius-xl); }
+/* 기간 고르기 is tinted from its divider to the card's bottom edge, in the
+   active tab's pale red. The stepper's 2px border is transparent (rule 1), but
+   `overflow: hidden` clips at the padding box, so a panel stretched to the edge
+   still left a 2px white rim. The border is traded for 2px more padding — the
+   same box to the pixel — and the panel's -9px/-7px margins reach the corner. */
+#tabScroll > div > div[style*="padding: 5px 7px"] { border-width: 0 !important; padding: 7px 9px !important; }
+/* On that pink, `transparent` would show pink through the unpicked month and
+   year chips, and #e0dddd ink and borders sit ~2 luminance off #f2dbd7 — the
+   empty months vanish. Unpicked is card white, as everywhere else. */
+[style*="background: var(--color-accent-100)"][style*="border-top: 2px solid var(--color-neutral-300)"] [style*="background: transparent"] { background: var(--color-card) !important; }
 
 /* ── 2j · SETUP FLOW · a button has to answer the finger ────────────────── */
 /* The four intro questions are the first thing a new worker touches, and the
