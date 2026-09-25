@@ -8375,6 +8375,33 @@ console.log('\n== 상여와 직접 적은 평균임금은 아직 지금 설정�
   ok('옛 도장은 지금 설정으로 떨어집니다', d.avgDaily(d.now(), W)===d.avgDaily(d.now()));
 }
 
+console.log('\n== 앞날의 정산은 \'미리 본 값\'이라고만 하고 기록이 부족하다는 말을 빠뜨렸습니다 (S8) ==');
+// 09.01부터만 기록이 있고 마지막 근무일이 12.31이면, 오늘까지의 3개월은 절반만 차 있습니다
+// (avgCover 0.48). 정산 카드는 '미리 본 값'이라고만 했고, 바로 옆 퇴직금 카드는 같은 물음에
+// '기록이 부족'이라고 답했습니다. 큰 숫자를 내는 쪽이 그것이 낮을 수 있다는 것을 감췄습니다.
+{
+  const c=mk(V2,'2026-09-25T10:00:00');
+  c.state.settings.hireDate='2023-05-01'; c.state.settings.lastDay='2026-12-31';
+  const ex=[];
+  for(let d=new Date('2026-09-01T00:00:00'); d<new Date('2026-09-25T00:00:00'); d=V2.dayAfter(d)){
+    if(d.getDay()===0||d.getDay()===6) continue;
+    ex.push({y:d.getFullYear(),m:d.getMonth()+1,day:d.getDate(),kind:'day',type:'shift',inH:9,outH:18,c:c.calc(9,18,'day',false)});
+  }
+  c.state.extra=ex;
+  const S=c.settlement();
+  ok('미리 본 값이고 기록도 부족합니다', S.projected && S.avgEst);
+  const row=c.renderVals().settleRows.find(r=>r.k===c.T('is_this_average_a_guess'));
+  ok('정산 카드가 둘 다 말합니다', row && row.v===c.T('settle_avg_projected_thin'), row&&row.v);
+  // 기록이 넉넉한 앞날은 그대로 '미리 본 값'
+  const full=mk(V2,'2026-09-25T10:00:00'); full.state.settings.hireDate='2023-05-01'; full.state.settings.lastDay='2026-12-31';
+  const ex2=[]; for(let d=new Date('2026-06-01T00:00:00'); d<new Date('2026-09-25T00:00:00'); d=V2.dayAfter(d)){
+    if(d.getDay()===0||d.getDay()===6) continue;
+    ex2.push({y:d.getFullYear(),m:d.getMonth()+1,day:d.getDate(),kind:'day',type:'shift',inH:9,outH:18,c:full.calc(9,18,'day',false)}); }
+  full.state.extra=ex2;
+  const row2=full.renderVals().settleRows.find(r=>r.k===full.T('is_this_average_a_guess'));
+  ok('기록이 넉넉하면 미리 본 값만', row2 && row2.v===full.T('settle_avg_projected'), row2&&row2.v);
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);

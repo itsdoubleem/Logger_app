@@ -3226,5 +3226,9 @@
   "settle_avg_projected": {
     "en": "Yes — projected from the last 3 months",
     "ko": "예 — 지난 3개월로 미리 본 값"
+  },
+  "settle_avg_projected_thin": {
+    "en": "Yes — projected from the last 3 months, with too few records",
+    "ko": "예 — 기록이 부족한 지난 3개월로 미리 본 값"
   }
 }
