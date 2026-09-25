@@ -2533,7 +2533,8 @@ class Component extends DCLogic {
         + '위 「차액」은 회사가 일하지 않은 시간만큼 임금을 공제하는 경우의 금액입니다. '
         + '월급을 그대로 지급한다면 이미 기준을 넘으므로 추가 지급액은 없습니다. '
         + '1일 평균임금은 ' + this.won(this.avgDaily(P.e, W))
-        + (this.avgIsEst() ? ' (앱 기록이 3개월에 미치지 못해 낮게 추정된 값입니다 — 급여명세서 3개월분으로 확인이 필요합니다)' : '')
+        // 단서는 값과 같은 창(P.e의 3개월)을 봅니다 — 오늘의 창이 아닙니다(S3)
+        + (this.avgIsEst(P.e) ? ' (앱 기록이 3개월에 미치지 못해 낮게 추정된 값입니다 — 급여명세서 3개월분으로 확인이 필요합니다)' : '')
         + '.</div>' : '')
       + (shutDays.length ? '<div class="k" style="margin-top:8px">휴업으로 기록된 날 ' + shutDays.length
         + '일 — 이 날들은 근로자의 연차유급휴가가 아닙니다. 근로기준법 제60조⑤에 따라 연차는 근로자가 '
@@ -6259,7 +6260,7 @@ class Component extends DCLogic {
           { k: this.T('rsn_46_floor'), v: this.won(this.shutdownPay(this.recDate(s), W)) },
           { k: this.T('rsn_46_if_full'), v: this.T('rsn_46_if_full_v') },
           { k: this.T('rsn_46_if_cut', { p0: this.won(this.partialWorkedPay(s)) }), v: '+' + this.won(this.partialShort(s)) },
-          { k: this.T('rsn_46_est'), v: this.avgIsEst() ? this.T('rsn_46_est_low') : this.won(this.avgDaily(this.recDate(s))) },
+          { k: this.T('rsn_46_est'), v: this.avgIsEst(this.recDate(s)) ? this.T('rsn_46_est_low') : this.won(this.avgDaily(this.recDate(s))) },
         ] : []).concat(this.legalGap(s) ? [
           { k: this.T('legal_minimum_lsa_56_2'), v: '' },
           { k: this.T('shortfall_vs_what_the_company_pays'), v: '+' + this.won(this.legalGap(s)) },

@@ -8278,6 +8278,28 @@ console.log('\n== 내 권리는 \'근무내역서에도 이 금액들이 들어�
     c.state.settings.lang=l; const x=c.T('the_document_carries_these_figures_too'); return /46/.test(x) && x.includes('퇴직금') && x.includes('휴업수당'); }));
 }
 
+console.log('\n== 지난 기간의 근무내역서가 오늘의 3개월로 \'추정\'을 붙였습니다 (S3) ==');
+// 근무내역서의 1일 평균임금은 그 기간 끝(P.e)의 3개월로 셉니다. 그런데 '낮게 추정된 값'이라는
+// 단서는 오늘의 3개월을 보고 붙었습니다. 그만둔 뒤(오늘의 창이 비면) 뽑는 모든 기간에 단서가
+// 붙고, 반대로 기록이 얇던 옛 기간은 나중에 뽑으면 단서를 잃었습니다. 단서는 증거 문서 위에
+// 있습니다. 이제 값과 단서가 같은 창을 봅니다.
+{
+  const c=mk(V2,'2026-12-20T10:00:00');
+  c.state.settings.hireDate='2023-05-01';
+  const ex=[];
+  for(let d=new Date('2026-06-01T00:00:00'); d<=new Date('2026-09-20T00:00:00'); d=V2.dayAfter(d)){
+    if(d.getDay()===0||d.getDay()===6) continue;
+    if(d.getMonth()===8 && d.getDate()===10){ ex.push({y:2026,m:9,day:10,kind:'day',type:'shift',inH:9,outH:13,c:c.calc(9,13,'day',false),reason:{id:'machine',fault:'employer',ko:'기계 고장'}}); continue; }
+    ex.push({y:d.getFullYear(),m:d.getMonth()+1,day:d.getDate(),kind:'day',type:'shift',inH:9,outH:18,c:c.calc(9,18,'day',false)});
+  }
+  c.state.extra=ex;
+  const P=c.period(new Date('2026-09-10T00:00:00'));
+  ok('그 기간의 창은 기록으로 차 있습니다', !c.avgIsEst(P.e) && c.avgIsEst(), 'P.e cover '+c.avgCover(P.e).toFixed(2)+' / today '+c.avgCover().toFixed(2));
+  const doc=c.evidenceHtml(P);
+  ok('문서에 1일 평균임금이 나옵니다', doc.includes('1일 평균임금은'));
+  ok('오늘의 창이 비었다고 그 기간의 문서에 추정 단서가 붙지 않습니다', !doc.includes('낮게 추정된 값'));
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);
