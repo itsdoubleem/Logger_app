@@ -8402,6 +8402,26 @@ console.log('\n== 앞날의 정산은 \'미리 본 값\'이라고만 하고 기�
   ok('기록이 넉넉하면 미리 본 값만', row2 && row2.v===full.T('settle_avg_projected'), row2&&row2.v);
 }
 
+console.log('\n== 마지막 근무일 당일의 정산이 전날보다 적었습니다 (S9) ==');
+// 오늘이 마지막 근무일이면 창이 오늘에서 끝났는데, 오늘의 근무는 퇴근을 찍기 전까지 기록이
+// 없습니다. 그 평일이 무급처럼 셈해져서, 매일 잔업하는 사람의 정산이 전날(09.24)
+// ₩9,513,752에서 당일(09.25) ₩9,486,948로 내려갔습니다 — 근로자가 이 카드를 가장 많이 열
+// 바로 그 날입니다. 이제 당일도 앞날처럼, 평균임금은 어제까지의 3개월로 미리 봅니다.
+{
+  const mkW=last=>{ const c=mk(V2,'2026-09-25T10:00:00');
+    c.state.settings.basic=2156880; c.state.settings.divisor=209; c.state.settings.hireDate='2023-05-01';
+    const ex=[]; for(let d=new Date('2026-06-01T00:00:00'); d<new Date('2026-09-25T00:00:00'); d=V2.dayAfter(d)){
+      if(d.getDay()===0||d.getDay()===6) continue;
+      ex.push({y:d.getFullYear(),m:d.getMonth()+1,day:d.getDate(),kind:'day',type:'shift',inH:9,outH:20,c:c.calc(9,20,'day',false)}); }
+    c.state.extra=ex; c.state.settings.lastDay=last; return c; };
+  const y=mkW('2026-09-24').settlement(), t=mkW('2026-09-25').settlement(), n=mkW('2026-09-26').settlement();
+  ok('당일의 정산은 전날보다 적지 않습니다', t.sev>=y.sev, y.sev+' → '+t.sev);
+  ok('다음 날보다 많지도 않습니다', n.sev>=t.sev, t.sev+' → '+n.sev);
+  ok('당일은 미리 본 값', t.projected===true && y.projected===false);
+  const tc=mkW('2026-09-25');
+  ok('당일에도 퇴직금 카드와 정산 카드가 같은 금액', tc.renderVals().sevAmt===tc.won(tc.settlement().sev), tc.renderVals().sevAmt+' / '+tc.settlement().sev);
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);

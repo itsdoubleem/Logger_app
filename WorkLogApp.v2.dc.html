@@ -4060,7 +4060,9 @@ class Component extends DCLogic {
     if (!last) return null;
     const n = this.now();
     const today = new Date(n.getFullYear(), n.getMonth(), n.getDate());
-    const projected = last > today;
+    // 당일도 앞날로 봅니다(S9): 오늘의 근무는 퇴근을 찍기 전까지 기록이 없어서, 창을 오늘에서
+    // 끝내면 그 평일이 무급처럼 셈해지고 당일의 정산이 전날보다 적어집니다.
+    const projected = last >= today;
     const avgOn = projected ? today : Component.dayAfter(last);
     const known = !!this.hireDate();
     const eligible = known && this.severanceEligible(last);
@@ -6004,7 +6006,8 @@ class Component extends DCLogic {
     const minP = this.periodMinWage(P);
     // 마지막 근무일이 지났으면 근속은 그 날에서 멈춥니다
     const sOn = this.serviceOn();
-    const sAvg = sOn ? Component.dayAfter(sOn) : undefined;
+    // 마지막 근무일이 오늘이면 평균임금은 어제까지의 창 — 정산 카드와 같은 창입니다(S9)
+    const sAvg = sOn && Component.isoDay(sOn) < Component.isoDay(this.now()) ? Component.dayAfter(sOn) : undefined;
     const sW = this.serviceWage();
     const ten = this.tenureYM(sOn);
     const tenY = ten.y, tenM = ten.m;
