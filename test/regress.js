@@ -8744,8 +8744,9 @@ console.log('\n== 급여 합계와 근무내역서의 휴업 공제가 휴업한
 // 제46조의 평균임금은 그 사유가 생긴 날(휴업한 날) 이전 3개월입니다. 내 권리 합계·하루 화면·고를 때의 안내는
 // 그 날의 창을 썼는데, payCalc의 휴업 공제와 근무내역서, 근무기록의 휴업 줄은 shutdownPay(null, W) — 오늘의
 // 창이었습니다. 통상임금 바닥에 걸린 사람에게는 같아서 시험이 놓쳤습니다. 매일 잔업하는 사람(평균임금이 바닥
-// 위)에게서: 안내·내 권리 ₩60,710, 문서의 휴업 공제가 가리키는 값 ₩75,197. 그리고 닫힌 기간의 문서가 그 뒤에
-// 적은 근무에 따라 바뀌었습니다.
+// 위)에게서 — 이 시험의 사람은 그 날의 휴업수당 ₩62,358, 오늘의 창으로는 ₩77,435(리뷰가 잰 다른 사람은
+// ₩60,710 / ₩75,197). 그리고 닫힌 기간의 문서가 그 뒤에 적은 근무에 따라 바뀌었습니다(N13: 처음 주석은 리뷰의
+// 숫자를 이 시험의 숫자처럼 적었습니다).
 {
   const c=mk(V2,'2026-09-25T10:00:00');
   c.state.settings.basic=2156880; c.state.settings.divisor=209; c.state.settings.periodStart=1; c.state.settings.hireDate='2023-05-01';
@@ -8773,9 +8774,17 @@ console.log('\n== 급여 합계와 근무내역서의 휴업 공제가 휴업한
   const rows=deep(c.renderVals(), r=>r&&r.k===c.T('shutdown_allowance_lsa_46'));
   ok('근무기록의 휴업 줄도', rows && rows[0].v.endsWith(c.won(day)) && rows[1].v==='−'+c.won(cut), rows&&rows[0].v+' / '+rows[1].v);
   // 닫힌 기간의 문서는 그 뒤에 적은 근무로 바뀌지 않습니다
+  // 시계를 두 달 뒤로 옮기고 그 사이의 근무를 적어야 오늘의 창이 실제로 움직입니다(N14: 처음 시험은 시계를
+  // 옮기지 않아 고치기 전 코드에서도 통과했습니다).
   const before=c.evidenceHtml(P);
-  c.state.extra.push({y:2026,m:9,day:25,kind:'day',type:'shift',inH:9,outH:23,c:c.calc(9,23,'day',false)});
-  ok('닫힌 8월의 문서가 9월 기록에 흔들리지 않습니다', c.evidenceHtml(P).replace(/작성[^<]*/,'')===before.replace(/작성[^<]*/,''));
+  for(let d=new Date('2026-09-25T00:00:00'); d<new Date('2026-11-20T00:00:00'); d=V2.dayAfter(d)){
+    if(d.getDay()===0||d.getDay()===6) continue;
+    c.state.extra.push({y:d.getFullYear(),m:d.getMonth()+1,day:d.getDate(),kind:'day',type:'shift',inH:9,outH:23,c:c.calc(9,23,'day',false)});
+  }
+  c.base=new Date('2026-11-20T10:00:00'); c.t0=Date.now();
+  const strip=h=>h.replace(/작성[^<]*/g,'');
+  ok('시계를 옮기자 오늘의 창이 실제로 달라졌습니다', c.shutdownPay(null, W)!==today, c.shutdownPay(null, W)+' vs '+today);
+  ok('닫힌 8월의 문서는 두 달 뒤에 뽑아도 그대로입니다', strip(c.evidenceHtml(P))===strip(before));
 }
 
 console.log('\n== 세금 경고가 급여 탭과 다른 기본금으로 셌습니다 (N12) ==');
