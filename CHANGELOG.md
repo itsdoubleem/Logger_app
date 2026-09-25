@@ -1,6 +1,6 @@
 # 근무기록 LOGGER — change log beyond V2.md
 
-Seventy entries, newest first — sixty-three carry an ordinal (first … sixty-third),
+Seventy-one entries, newest first — sixty-four carry an ordinal (first … sixty-fourth),
 the seven oldest predate the numbering. Each one is a bug found by **actually using the app on
 shift**, what changed, and — the part worth reading — *why it was that and not the
 obvious fix*. Most entries end with a **다음 사람에게** paragraph: the rule the bug
@@ -18,7 +18,8 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 
 ## Index
 
-- 2026-09-14 (latest, sixty-third) — 카드를 쓸면 화면이 굳었고, 짚으면 출근이 찍혔습니다
+- 2026-09-25 (latest, sixty-fourth) — 마지막 백업이 언제였는지 아무 데도 없었습니다
+- 2026-09-14 (sixty-third) — 카드를 쓸면 화면이 굳었고, 짚으면 출근이 찍혔습니다
 - 2026-09-12 (sixty-second) — 홈 화면의 아이콘만 앱이 무엇인지 말하지 않았습니다
 - 2026-09-06 (sixty-first) — 백업을 펴면 띠와 본문 사이에 흰 줄이 하나 그어졌습니다
 - 2026-09-06 (sixtieth) — 근무중이라고 말하는 자리가 문장부호와 같은 무게였습니다
@@ -89,7 +90,52 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 - 2026-08-13 — the service worker was hiding every update
 - 2026-08-13 (earlier) — 조퇴 사유 became a popup with a dropdown
 
-### 2026-09-14 (latest, sixty-third) — 카드를 쓸면 화면이 굳었고, 짚으면 출근이 찍혔습니다
+### 2026-09-25 (latest, sixty-fourth) — 마지막 백업이 언제였는지 아무 데도 없었습니다
+
+기록은 이 폰의 `localStorage` 한 칸에만 있습니다. 환영 화면이 한 번 **"폰을 잃으면
+기록도 사라집니다 — 가끔 파일로 저장해 두세요"**라고 말하고 나면, 그 뒤로 앱은 마지막
+백업이 언제였는지 어디서도 말하지 않았습니다. 앱이 그것을 적어 두지도 않았습니다.
+몇 해치 근무내역서의 근거가 폰 한 대에 걸려 있는데, 그 위험이 얼마나 쌓였는지
+볼 자리가 없었습니다.
+
+#### 새 칸 없이, 이미 있는 두 자리에서
+
+| 자리 | 전 | 후 |
+|---|---|---|
+| 백업 묶음의 접힌 요약 | `기록 120일` | `기록 120일 · 43일 전 백업` |
+| 펼친 상자, 단추 밑 알림 자리 (알림이 없을 때) | 빈 줄 | `43일 전 백업 · 2026.08.13` |
+
+두 번째 자리가 필요한 이유: 묶음을 펴면 띠의 요약이 지워집니다(`setGroupVals`) —
+바로 밑에 같은 값이 다시 나온다는 전제인데, 백업 시각은 밑에 없었습니다. 알림 자리는
+원래 비어 있어도 `margin-top:9px`을 차지하던 줄이라 화면의 모양은 그대로입니다.
+방금 한 일의 알림(내보냈습니다, 불러왔습니다, 오류)이 있으면 그것이 먼저입니다.
+
+#### 무엇을 백업으로 치는가
+
+- **파일을 실제로 넘겼을 때만.** `saveFile`이 이제 넘겼으면 `true`를 돌려줍니다.
+  공유 시트를 닫은 것(`AbortError`)은 백업이 아닙니다.
+- 적는 값은 파일 안의 `exported`와 **같은 값**입니다. 화면과 파일이 다른 시각을
+  말하지 않습니다.
+- **불러오기는 그 파일의 `exported`로 맞춥니다.** 그 순간 폰의 기록은 정확히 그
+  파일이므로, 그 파일이 곧 마지막 백업입니다. `exported`가 없는 파일은 있던 값을
+  지우지 않습니다.
+- **날짜로 셉니다, 시간으로 나누지 않습니다.** 어젯밤 23:30의 백업은 오늘 아침
+  `1일 전`입니다. 24시간으로 나누면 `오늘`이라고 말합니다.
+
+#### settings가 아니라 저장 본문 곁에
+
+`backedUp`은 `tourSeen`처럼 `worklog.v2` 본문의 맨 위에 삽니다. settings에 두면
+백업 파일 안에 실려 가서, 그 파일을 불러오는 순간 **그 전의 백업 시각**이
+되살아납니다 — 방금 한 백업보다 이른 시각이 화면에 서게 됩니다.
+
+색도 무게도 바꾸지 않았습니다. 43일은 경고가 아니라 사실이고, 그것을 어떻게 할지는
+근로자가 정합니다.
+
+다음 사람에게: **닫힌 공유 시트를 성공으로 세지 마십시오.** 그리고 기록의 일부가
+아닌 '앱에 대한 사실'을 settings에 넣기 전에, 그 값이 백업 파일을 타고 다른 폰이나
+다른 날로 옮겨 가도 참인지 물으십시오. 백업 시각은 아닙니다.
+
+### 2026-09-14 (sixty-third) — 카드를 쓸면 화면이 굳었고, 짚으면 출근이 찍혔습니다
 
 쓰던 사람이 말했습니다: **출퇴근 화면에서 지문 카드 위를 쓸면 목록이 안 움직입니다.
 그리고 카드 아무 데나 눌러도 출근이 찍힙니다 — 지문 상자만 눌러지면 좋겠습니다.**

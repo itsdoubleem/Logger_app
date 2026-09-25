@@ -734,5 +734,8 @@
   "your_payslip_pays_more_than_the_app": "Phiếu lương trả nhiều hơn ứng dụng tính",
   "a_수당_allowance_the_app_does_not_know": "Có thể công ty trả một khoản 수당 phụ cấp mà ứng dụng chưa biết — 식대 tiền ăn, 교통비 đi lại, phụ cấp thâm niên. Thêm vào sẽ khớp tổng chi trả, và 식대 đánh dấu miễn thuế cũng được trừ khỏi cơ sở tính thuế và bảo hiểm.",
   "comes_off_every_shift": "Bị trừ vào giờ làm mỗi ca.",
-  "comes_off_only_on_overtime_days": "Chỉ bị trừ vào ngày có tăng ca."
+  "comes_off_only_on_overtime_days": "Chỉ bị trừ vào ngày có tăng ca.",
+  "backed_up_today": "đã sao lưu hôm nay",
+  "backed_up_ago": "đã sao lưu {p0} trước",
+  "never_backed_up": "chưa sao lưu lần nào"
 }

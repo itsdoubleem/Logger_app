@@ -3138,5 +3138,17 @@
   "comes_off_only_on_overtime_days": {
     "ko": "잔업이 있는 날에만 빠집니다.",
     "en": "Comes off only on days with overtime."
+  },
+  "backed_up_today": {
+    "en": "backed up today",
+    "ko": "오늘 백업"
+  },
+  "backed_up_ago": {
+    "en": "backed up {p0} ago",
+    "ko": "{p0} 전 백업"
+  },
+  "never_backed_up": {
+    "en": "never backed up",
+    "ko": "백업 없음"
   }
 }

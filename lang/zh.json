@@ -734,5 +734,8 @@
   "your_payslip_pays_more_than_the_app": "工资单比应用算的多",
   "a_수당_allowance_the_app_does_not_know": "公司可能发了应用不知道的 수당 津贴 — 식대 餐费、교통비 交通费、工龄津贴之类。补上后总额就对得上，标为免税的 식대 也会从税和四大保险的基数中扣除。",
   "comes_off_every_shift": "每个班次都从工时中扣除。",
-  "comes_off_only_on_overtime_days": "只在有加班的日子扣除。"
+  "comes_off_only_on_overtime_days": "只在有加班的日子扣除。",
+  "backed_up_today": "今天已备份",
+  "backed_up_ago": "{p0}前备份",
+  "never_backed_up": "从未备份"
 }
