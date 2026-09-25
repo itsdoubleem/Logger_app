@@ -8832,6 +8832,59 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('결근·휴업·휴일 가산이 빠진 금액이 아닙니다', !line.includes(c.won(c.payCalc({reg:0,ot:c.totals(null,Q).ot,night:c.totals(null,Q).night,hol:c.totals(null,Q).hol,days:0}, W).net)), line);
 }
 
+// ── 기간 고르기: 연도 칩이 머리의 날짜 알약과 같은 크기입니다 (2026-09-25) ──
+// 근로자의 말: '기간 고르기'와 +가 카드 가장자리에 너무 붙어 있고, 연도 칩이 달 칸만큼
+// 커다란 네모였습니다. 연도 칩은 머리의 09.21 → 10.20 알약과 같은 크기로, 길이는 글자만큼.
+// 4px 여백 + 2px 테두리 = 알약의 6px이므로 테두리가 있어도 커지지 않습니다. 헤드리스에서 잰
+// 높이: 알약 24px, 연도 칩 24px(line-height 12px — 알약의 →가 대체 글꼴이라 줄이 1px 높습니다).
+// 44px 누르는 자리는 칩이 아니라 칩을 감싼 맨 div가 집니다.
+{
+  const fs=require('fs');
+  const src=fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const ds=fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
+  const chip='<div style="font-size:10px;letter-spacing:0.12em;padding:4px 9px;border:2px solid var(--color-text);background:{{ a.bg }};color:{{ a.ink }};font-weight:700;line-height:12px;';
+  ok('연도 칩이 두 탭 모두 알약 크기입니다', src.split(chip).length-1===2);
+  ok('연도 칩을 감싼 자리가 44px 누르는 자리입니다', src.split('<div onClick="{{ a.go }}" style="min-width:44px;min-height:44px;display:inline-flex').length-1===2);
+  ok('예전 네모 연도 칸이 남아 있지 않습니다', !src.includes('padding:0 13px;border:2px solid var(--color-text);background:{{ a.bg }}'));
+  ok('층이 연도 칩을 알약으로 만듭니다', ds.includes('[style*="letter-spacing: 0.12em"][style*="padding: 4px 9px"] { border-radius: var(--radius-pill); }'));
+  ok('\'기간 고르기\' 줄이 양옆으로 12px 들어와 있습니다', src.split('justify-content:space-between;gap:10px;padding:0 12px;cursor:pointer">').length-1===2);
+}
+
+// ── 기간 고르기는 줄부터 카드 끝까지 탭 강조색입니다 (2026-09-25) ──
+// 근로자: 가르는 줄 아래를 PUNCH·LOGS·PAY가 켜질 때의 연분홍으로. 헤드리스에서 잰 것: 분홍 칸이
+// 카드와 좌우·아래 끝이 같습니다(8→376, 아래 끝 일치). 카드의 투명 2px 테두리는 overflow가 잘라서
+// 흰 테두리가 남았으므로 층이 그 테두리를 2px 여백으로 바꿉니다 — 크기는 그대로입니다.
+// '이번 기간으로 돌아가기'는 기간 고르기를 쓰고 나서 나오는 단추라 분홍 칸 안에 들어갑니다.
+{
+  const fs=require('fs');
+  const src=fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const ds=fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
+  ok('기간 고르기 칸이 두 탭 모두 탭 강조색입니다', src.split('<div style="margin:9px -9px -7px;padding:0 9px 4px;border-top:2px solid var(--color-neutral-300);background:var(--color-accent-100)">').length-1===2);
+  ok('활성 탭도 같은 accent-100입니다', ds.includes('[style*="border-top: 3px solid var(--color-accent)"] { background: var(--color-accent-100); }'));
+  ok('층이 스테퍼 테두리를 같은 폭의 여백으로 바꿉니다', ds.includes('#tabScroll > div > div[style*="padding: 5px 7px"] { border-width: 0 !important; padding: 7px 9px !important; }'));
+  ok('분홍 위의 고르지 않은 칸은 카드 흰색입니다', ds.includes('[style*="background: var(--color-accent-100)"][style*="border-top: 2px solid var(--color-neutral-300)"] [style*="background: transparent"] { background: var(--color-card) !important; }'));
+  ok('돌아가기 단추가 칸 안에도, 맨몸으로도 두 탭에 있습니다', src.split('{{ payViewingPast }}" hint-placeholder-val="{{ false }}"><div onClick="{{ payNow }}"').length-1===2 && src.split('{{ payNowBare }}').length-1===2);
+  const c=mk(V2,'2026-09-25T10:00:00');
+  c.state.extra=[];
+  for(let d=new Date('2026-05-01T00:00:00'); d<new Date('2026-09-25T00:00:00'); d=V2.dayAfter(d)){
+    if(d.getDay()===0||d.getDay()===6) continue;
+    c.state.extra.push({y:d.getFullYear(),m:d.getMonth()+1,day:d.getDate(),kind:'day',type:'shift',inH:9,outH:18,c:c.calc(9,18,'day',false)});
+  }
+  c.setState({payBack:2});
+  const v=c.renderVals();
+  // 분홍 띠를 4분의 1 줄였습니다: 2 + 44 + 7 = 53px → 2 + 34 + 4 = 40px(헤드리스에서 40px).
+  // 줄은 단추라서 44px 누르는 자리는 보이지 않는 띠가 지킵니다 — 위로 6px, 아래로 4px. 헤드리스로
+  // elementFromPoint를 훑어 누르는 높이 44px, 그 위쪽 끝이 ‹ › 보다 4.5px 아래임을 확인했습니다.
+  ok('기간 고르기 줄은 34px이고 두 탭 모두 그렇습니다', src.split('<div onClick="{{ jumpToggle }}" style="position:relative;min-height:34px;').length-1===2);
+  // 리뷰가 잡은 것 (M1): 그 띠가 아래로 4px 뻗어서, 펼치면 바로 밑 연도 칩의 위 4px를 덮었습니다 —
+  // 헤드리스에서 2025 칩 위 끝 +2px를 누르면 기간 고르기가 접혔습니다. 연도 줄에 position:relative를
+  // 주고(띠 위에 그려집니다) 4px를 띄웠습니다 — 띠의 아래 4px는 그 틈에 떨어지므로, 펼쳐도 기간 고르기
+  // 줄은 44px이고 연도 칩도 44px입니다. 둘 다 헤드리스로 elementFromPoint를 훑어 쟀습니다.
+  ok('연도 줄이 띠 위에 그려지고 띠의 4px만큼 떨어져 있습니다 (두 탭 모두)', src.split('<sc-if value="{{ jumpOpen }}" hint-placeholder-val="{{ false }}"><div style="position:relative;margin-top:4px;display:flex;flex-wrap:wrap;').length-1===2);
+  ok('보이지 않는 띠가 누르는 자리를 44px로 채웁니다 (6 + 34 + 4)', /min-height: 34px"\]::after \{\s*content: ""; position: absolute; left: 0; right: 0; top: -6px; bottom: -4px;/.test(ds));
+  ok('고르기가 있으면 맨몸 단추는 없습니다', v.jumpShow===true && v.payViewingPast===true && v.payNowBare===false);
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);

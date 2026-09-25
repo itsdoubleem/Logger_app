@@ -172,6 +172,10 @@
    The period chip beside it is a solid dark pill, set in the template. */
 [style*="border: 1px solid var(--color-divider)"] { border-radius: var(--radius-pill); }
 [style*="letter-spacing: 0.12em"][style*="padding: 6px 11px"] { border-radius: var(--radius-pill); }
+/* 기간 고르기's year chips are the same pill at the same size: 4px padding plus a
+   2px border is the period chip's 6px, so the unpicked years can carry an outline
+   without growing. The 44px tap target is the bare wrapper around it. */
+[style*="letter-spacing: 0.12em"][style*="padding: 4px 9px"] { border-radius: var(--radius-pill); }
 
 /* ── 2b · chips ─────────────────────────────────────────────────────────── */
 /* Seven elements in the app are `min-height: 30px` + `inline-flex`: the four
@@ -307,6 +311,26 @@
    carry no border and no fill, so there the radius is simply invisible. */
 [style*="cursor: pointer"][style*="min-height: 44px; min-width: 44px"] { border-radius: var(--radius-pill); }
 #tabScroll > div > div[style*="padding: 5px 7px"] { border-radius: var(--radius-xl); }
+/* 기간 고르기 is tinted from its divider to the card's bottom edge, in the
+   active tab's pale red. The stepper's 2px border is transparent (rule 1), but
+   `overflow: hidden` clips at the padding box, so a panel stretched to the edge
+   still left a 2px white rim. The border is traded for 2px more padding — the
+   same box to the pixel — and the panel's -9px/-7px margins reach the corner. */
+#tabScroll > div > div[style*="padding: 5px 7px"] { border-width: 0 !important; padding: 7px 9px !important; }
+/* On that pink, `transparent` would show pink through the unpicked month and
+   year chips, and #e0dddd ink and borders sit ~2 luminance off #f2dbd7 — the
+   empty months vanish. Unpicked is card white, as everywhere else. */
+[style*="background: var(--color-accent-100)"][style*="border-top: 2px solid var(--color-neutral-300)"] [style*="background: transparent"] { background: var(--color-card) !important; }
+/* The worker asked for the pink band a quarter shorter: 2 + 44 + 7 = 53px became
+   2 + 34 + 4 = 40px. The 기간 고르기 row is a button and 44px is the floor, so the
+   row keeps it invisibly — this strip reaches 6px up over the divider (into the
+   9px gap under the ‹ › arrows, which it does not touch) and 4px down: 6 + 34 + 4
+   = 44. Closed, those 4px end at the card's clipped bottom edge; open, they land in
+   the year row's `margin-top: 4px` in the source — change one and change the other,
+   or the strip takes the top of the year chips (sixty-seventh entry, M1). */
+[style*="background: var(--color-accent-100)"][style*="border-top: 2px solid var(--color-neutral-300)"] > [style*="cursor: pointer"][style*="min-height: 34px"]::after {
+  content: ""; position: absolute; left: 0; right: 0; top: -6px; bottom: -4px;
+}
 
 /* ── 2j · SETUP FLOW · a button has to answer the finger ────────────────── */
 /* The four intro questions are the first thing a new worker touches, and the

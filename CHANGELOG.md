@@ -1,6 +1,6 @@
 # 근무기록 LOGGER — change log beyond V2.md
 
-Seventy-three entries, newest first — sixty-six carry an ordinal (first … sixty-sixth),
+Seventy-four entries, newest first — sixty-seven carry an ordinal (first … sixty-seventh),
 the seven oldest predate the numbering. Each one is a bug found by **actually using the app on
 shift**, what changed, and — the part worth reading — *why it was that and not the
 obvious fix*. Most entries end with a **다음 사람에게** paragraph: the rule the bug
@@ -18,7 +18,8 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 
 ## Index
 
-- 2026-09-25 (latest, sixty-sixth) — 그만두는 날 받을 돈을 한 자리에서 셀 수 없었습니다
+- 2026-09-25 (latest, sixty-seventh) — 기간 고르기가 카드 가장자리에 붙어 있었고, 연도 칩만 네모였습니다
+- 2026-09-25 (sixty-sixth) — 그만두는 날 받을 돈을 한 자리에서 셀 수 없었습니다
 - 2026-09-25 (sixty-fifth) — 잔여 9일이 얼마인지는 말하지 않았습니다
 - 2026-09-25 (sixty-fourth) — 마지막 백업이 언제였는지 아무 데도 없었습니다
 - 2026-09-14 (sixty-third) — 카드를 쓸면 화면이 굳었고, 짚으면 출근이 찍혔습니다
@@ -92,7 +93,63 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 - 2026-08-13 — the service worker was hiding every update
 - 2026-08-13 (earlier) — 조퇴 사유 became a popup with a dropdown
 
-### 2026-09-25 (latest, sixty-sixth) — 그만두는 날 받을 돈을 한 자리에서 셀 수 없었습니다
+### 2026-09-25 (latest, sixty-seventh) — 기간 고르기가 카드 가장자리에 붙어 있었고, 연도 칩만 네모였습니다
+
+근로자가 급여 탭의 기간 고르기를 보고 세 가지를 차례로 말했습니다. 셈은 하나도 바뀌지
+않았습니다 — 바뀐 것은 모양뿐입니다.
+
+| 자리 | 전 | 후 |
+|---|---|---|
+| `기간 고르기 · PICK A PERIOD` 와 `+` | 카드 안쪽 끝에 붙음 (화면 끝에서 17px) | 양옆으로 12px 들어옴 (29px) |
+| 연도 칩 | 44px 네모, 12.5px, 달 칸과 같은 모양 | 머리의 `09.21 → 10.20` 알약과 같은 크기 — 10px·700, 높이 24px, 길이는 글자만큼 |
+| 줄 아래 | 카드 흰색 | 줄부터 카드 끝까지 탭 강조색 `--color-accent-100` |
+| 접힌 분홍 띠 | 53px (2 + 44 + 7) | 40px (2 + 34 + 4) — 4분의 1 |
+
+#### 누르는 자리는 줄이지 않았습니다
+
+연도 알약은 24px이고 기간 고르기 줄은 34px이지만, 둘 다 **44px 누르는 자리**를 그대로
+가집니다. 연도는 알약을 감싼 맨 div가, 기간 고르기 줄은 `ds-tokens.css`의 보이지 않는
+`::after` 띠가(위로 6px, 아래로 4px) 그 자리를 채웁니다. 헤드리스에서 `elementFromPoint`로
+훑어 44px, 그 위쪽 끝이 ‹ › 화살표보다 4.5px 아래임을 쟀습니다. 장갑 낀 엄지가 쓰는 앱입니다.
+
+#### 분홍이 가장자리까지 가게 한 것
+
+스테퍼 카드의 2px 테두리는 층이 투명하게 만들어 둔 것인데, `overflow: hidden`은
+padding 상자에서 자르므로 음의 margin으로 늘린 분홍 칸 둘레에 **흰 테두리 2px**가 남습니다.
+층이 그 테두리를 2px 여백으로 바꿨습니다(`border-width: 0; padding: 7px 9px`) — 카드 크기는
+화소까지 같고(368px), 분홍 칸은 좌우 8→376, 아래 끝이 카드와 같습니다.
+
+분홍 위에서는 `background: transparent`가 분홍을 비치게 하는데, 빈 달의 `#e0dddd` 글자와
+테두리는 `#f2dbd7`과 거의 같은 밝기라 **10·11·12월이 사라집니다**. 그래서 분홍 칸 안의
+고르지 않은 칸은 카드 흰색입니다 — 앱 전체의 약속과 같습니다.
+
+'이번 급여기간으로 돌아가기'는 기간 고르기를 쓰고 나서야 나오는 단추라, 분홍 칸 밖에 두면
+카드 아래에 흰 띠가 생깁니다. 기간 고르기가 있으면 그 칸 안에, 없으면(기간이 셋 미만)
+예전 자리에 섭니다(`payNowBare`).
+
+#### 열린 상태는 4분의 1 줄지 않았습니다
+
+열린 기간 고르기는 9px만 짧아졌습니다(13px에서, M1을 고치며 4px를 돌려받았습니다). 나머지는 44px 달 칸 두 줄과 연도 줄이고, 그것을
+줄이려면 누르는 자리를 44px 밑으로 내려야 합니다.
+
+다음 사람에게: 알약의 높이를 맞출 때는 **글자 줄의 높이까지 재십시오.** 머리 알약의 `→`는
+대체 글꼴이라 줄이 1px 높아서, 같은 글자 크기·같은 여백의 연도 칩이 23px로 나왔습니다.
+`line-height: 12px`가 그 1px입니다.
+
+#### 리뷰가 잡은 것 (M1) — 보이지 않는 띠가 연도 칩의 위 4px를 가져갔습니다
+
+기간 고르기 줄의 44px를 지키는 `::after` 띠는 아래로 4px 뻗습니다. 펼치면 바로 밑이 연도 줄이고,
+자리 잡힌(absolute) 띠가 자리 잡지 않은 연도 칩 위에 그려져서, 2025 칩의 위 끝을 누르면 **2025로
+가지 않고 기간 고르기가 접혔습니다.** 엄지가 조금 높게 닿았을 뿐인데 화면이 닫히고, 왜 닫혔는지는
+아무것도 말하지 않습니다. 연도 줄에 `position: relative`와 `margin-top: 4px`를 주었습니다 — 띠의
+4px는 그 틈에 떨어집니다. 헤드리스에서 두 탭 모두, 펼침·접힘 모두 `elementFromPoint`로 0.25px씩
+훑어: 기간 고르기 줄 44px, 연도 칩 44px, 칩의 위 끝은 그 칩이 받습니다.
+
+다음 사람에게: 누르는 자리를 **보이지 않게 늘렸으면, 그 늘린 자리 밑에 무엇이 오는지** 모든 상태에서
+보십시오. 접혀 있을 때 비어 있던 4px가 펼치면 옆 단추의 머리입니다. 문자열을 세는 시험은 이것을
+통과시켰습니다 — 잰 것은 `elementFromPoint`였습니다.
+
+### 2026-09-25 (sixty-sixth) — 그만두는 날 받을 돈을 한 자리에서 셀 수 없었습니다
 
 퇴직금은 퇴직금 카드에, 남은 연차의 값은 연차 대장에(예순다섯째), 그리고 **언제까지
 받아야 하는지는 어디에도** 없었습니다. 고용허가제 근로자는 사업장을 옮기거나 귀국하고,
