@@ -3238,5 +3238,9 @@
   "last_day_wage_held_fix": {
     "en": "If this is not your previous company's 기본금 (you typed the new company's pay before entering this day), then before this period ends: clear this box, correct 기본금, and enter the day again.",
     "ko": "이것이 옛 회사의 기본금이 아니라면(이 날을 적기 전에 새 회사의 값을 적었다면), 이 기간이 끝나기 전에 이 칸을 비우고, 기본금을 고친 뒤, 다시 적으십시오."
+  },
+  "accrual_needs_next_day": {
+    "en": "The year is complete, but the 15 days arise only if you are still employed on the day after it (대법원 2021다227100).",
+    "ko": "1년을 채웠지만, 15일은 1년의 근로를 마친 다음 날 재직 중이어야 생깁니다 (대법원 2021다227100)."
   }
 }
