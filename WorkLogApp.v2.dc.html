@@ -4671,16 +4671,6 @@ class Component extends DCLogic {
   }
   stepPay(d) { this.goPeriod(this.payBack() + d); }
 
-  prevTotals(P) {
-    const Q = P ? this.period(new Date(P.s.getTime() - 86400000)) : this.prevPeriod();
-    const t = { reg: 0, ot: 0, night: 0, hol: 0, days: 0 };
-    this.month().forEach(r => {
-      if (r.planned || !this.inPeriod(r, Q)) return;
-      t.reg += r.c.reg; t.ot += r.c.ot; t.night += r.c.night; t.hol += r.c.hol;
-      if (r.type === 'shift' && !r.review) t.days++;
-    });
-    return t;
-  }
   // ══ 지난 기록 · 연도로 건너뜁니다 ══
   // 예전에는 근무기록 맨 아래에 '다른 급여기간'이라는 목록이 있었습니다. 이번
   // 기간에 없는 기록을 전부 한 줄씩 늘어놓고, 연도 칩으로 그 목록을 걸렀습니다.
@@ -6943,9 +6933,11 @@ class Component extends DCLogic {
       // 보고 있는 기간의 '바로 앞 기간' — 스테퍼를 옮기면 이 줄도 함께 옮겨
       // 갑니다. 그러지 않으면 7월을 펼쳐 놓고 8월을 '지난 기간'이라고 부릅니다.
       lastPeriod: (() => {
-        const q = this.prevTotals(P);
-        if (!q.days) return ''; // nothing logged in the period before this one
+        // 그 기간의 totals()를 그대로 — 예전의 prevTotals()는 결근·휴업·휴일 8시간 초과를 모으지 않아
+        // 이 금액이 그 기간의 근무내역서보다 많았습니다(S22). 근로자가 명세서와 맞대 보는 숫자입니다.
         const Q = this.period(new Date(P.s.getTime() - 86400000));
+        const q = this.totals(null, Q);
+        if (!q.days) return ''; // nothing logged in the period before this one
         const net = this.payCalc(q, this.wageFor(Q)).net;
         return this.T('last_period_days_logged_app_total_comp', { p0: Q.label, p1: q.days, p2: this.won(net) });
       })(),

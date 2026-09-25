@@ -8744,8 +8744,9 @@ console.log('\n== 급여 합계와 근무내역서의 휴업 공제가 휴업한
 // 제46조의 평균임금은 그 사유가 생긴 날(휴업한 날) 이전 3개월입니다. 내 권리 합계·하루 화면·고를 때의 안내는
 // 그 날의 창을 썼는데, payCalc의 휴업 공제와 근무내역서, 근무기록의 휴업 줄은 shutdownPay(null, W) — 오늘의
 // 창이었습니다. 통상임금 바닥에 걸린 사람에게는 같아서 시험이 놓쳤습니다. 매일 잔업하는 사람(평균임금이 바닥
-// 위)에게서: 안내·내 권리 ₩60,710, 문서의 휴업 공제가 가리키는 값 ₩75,197. 그리고 닫힌 기간의 문서가 그 뒤에
-// 적은 근무에 따라 바뀌었습니다.
+// 위)에게서 — 이 시험의 사람은 그 날의 휴업수당 ₩62,358, 오늘의 창으로는 ₩77,435(리뷰가 잰 다른 사람은
+// ₩60,710 / ₩75,197). 그리고 닫힌 기간의 문서가 그 뒤에 적은 근무에 따라 바뀌었습니다(N13: 처음 주석은 리뷰의
+// 숫자를 이 시험의 숫자처럼 적었습니다).
 {
   const c=mk(V2,'2026-09-25T10:00:00');
   c.state.settings.basic=2156880; c.state.settings.divisor=209; c.state.settings.periodStart=1; c.state.settings.hireDate='2023-05-01';
@@ -8773,9 +8774,17 @@ console.log('\n== 급여 합계와 근무내역서의 휴업 공제가 휴업한
   const rows=deep(c.renderVals(), r=>r&&r.k===c.T('shutdown_allowance_lsa_46'));
   ok('근무기록의 휴업 줄도', rows && rows[0].v.endsWith(c.won(day)) && rows[1].v==='−'+c.won(cut), rows&&rows[0].v+' / '+rows[1].v);
   // 닫힌 기간의 문서는 그 뒤에 적은 근무로 바뀌지 않습니다
+  // 시계를 두 달 뒤로 옮기고 그 사이의 근무를 적어야 오늘의 창이 실제로 움직입니다(N14: 처음 시험은 시계를
+  // 옮기지 않아 고치기 전 코드에서도 통과했습니다).
   const before=c.evidenceHtml(P);
-  c.state.extra.push({y:2026,m:9,day:25,kind:'day',type:'shift',inH:9,outH:23,c:c.calc(9,23,'day',false)});
-  ok('닫힌 8월의 문서가 9월 기록에 흔들리지 않습니다', c.evidenceHtml(P).replace(/작성[^<]*/,'')===before.replace(/작성[^<]*/,''));
+  for(let d=new Date('2026-09-25T00:00:00'); d<new Date('2026-11-20T00:00:00'); d=V2.dayAfter(d)){
+    if(d.getDay()===0||d.getDay()===6) continue;
+    c.state.extra.push({y:d.getFullYear(),m:d.getMonth()+1,day:d.getDate(),kind:'day',type:'shift',inH:9,outH:23,c:c.calc(9,23,'day',false)});
+  }
+  c.base=new Date('2026-11-20T10:00:00'); c.t0=Date.now();
+  const strip=h=>h.replace(/작성[^<]*/g,'');
+  ok('시계를 옮기자 오늘의 창이 실제로 달라졌습니다', c.shutdownPay(null, W)!==today, c.shutdownPay(null, W)+' vs '+today);
+  ok('닫힌 8월의 문서는 두 달 뒤에 뽑아도 그대로입니다', strip(c.evidenceHtml(P))===strip(before));
 }
 
 console.log('\n== 세금 경고가 급여 탭과 다른 기본금으로 셌습니다 (N12) ==');
@@ -8793,6 +8802,34 @@ console.log('\n== 세금 경고가 급여 탭과 다른 기본금으로 셌습�
   ok('세금 경고도 그 W로 — 범위를 넘는다고 하지 않습니다', c.renderVals().taxWarn==='', c.renderVals().taxWarn);
   const d=mk(V2,'2026-09-25T10:00:00'); d.state.settings.basic=90000000;
   ok('그만두지 않은 사람에게는 여전히 경고', d.renderVals().taxWarn.includes('⚠'), d.renderVals().taxWarn);
+}
+
+console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의 근무내역서보다 많았습니다 (S22) ==');
+// 이 줄은 근로자가 지난 명세서와 맞대 보라고 주는 금액입니다. 그런데 prevTotals()는 결근·휴업 날수도 법정
+// 휴일 8시간 초과도 모으지 않아서, payCalc가 결근 공제·휴업 공제·×2.0 가산을 셀 수 없었습니다. 휴업 하루와
+// 결근 하루가 든 8월: 이 줄 ₩3,281,250, 8월의 근무내역서 ₩3,209,440 — 덜 받은 사람에게 더 받았어야 한다고,
+// 제대로 받은 사람에게도 덜 받았다고 말하는 숫자입니다. 이제 그 기간의 totals()를 그대로 씁니다.
+{
+  const c=mk(V2,'2026-09-25T10:00:00');
+  c.state.settings.basic=2156880; c.state.settings.divisor=209; c.state.settings.periodStart=1; c.state.settings.hireDate='2023-05-01';
+  c.state.settings.holOverPaid=true;
+  const ex=[];
+  for(let d=new Date('2026-08-01T00:00:00'); d<new Date('2026-09-25T00:00:00'); d=V2.dayAfter(d)){
+    if(d.getDay()===0||d.getDay()===6) continue;
+    if(d.getMonth()===7 && d.getDate()===12){ ex.push({y:2026,m:8,day:12,type:'shutdown',kind:'day',c:{gross:0,bk:0,net:0,reg:0,ot:0,night:0,hol:0,pay:0}}); continue; }
+    if(d.getMonth()===7 && d.getDate()===13){ ex.push({y:2026,m:8,day:13,type:'absent',kind:'day',c:{gross:0,bk:0,net:0,reg:0,ot:0,night:0,hol:0,pay:0}}); continue; }
+    ex.push({y:d.getFullYear(),m:d.getMonth()+1,day:d.getDate(),kind:'day',type:'shift',inH:9,outH:20,c:c.calc(9,20,'day',false)});
+  }
+  ex.push({y:2026,m:8,day:16,kind:'day',type:'shift',holiday:true,inH:8,outH:20,c:c.calc(8,20,'day',true)});
+  c.state.extra=ex;
+  const Q=c.period(new Date('2026-08-12T00:00:00'));
+  c.state.settings.wageLog={[V2.wageKey(Q)]: c.wageNow()};
+  const W=c.wageFor(Q);
+  const docNet=c.payCalc(c.totals(null,Q), W).net;
+  ok('8월의 근무내역서가 그 실수령을 찍습니다', c.evidenceHtml(Q).includes(c.won(docNet)), c.won(docNet));
+  const line=c.renderVals().lastPeriod;
+  ok('9월에서 본 \'지난 기간\' 줄이 같은 금액을 말합니다', line.includes(c.won(docNet)), line);
+  ok('결근·휴업·휴일 가산이 빠진 금액이 아닙니다', !line.includes(c.won(c.payCalc({reg:0,ot:c.totals(null,Q).ot,night:c.totals(null,Q).night,hol:c.totals(null,Q).hol,days:0}, W).net)), line);
 }
 
 Promise.all(later).then(()=>{
