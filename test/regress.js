@@ -8027,8 +8027,9 @@ console.log('\n== 그만두는 날 받을 돈을 한 자리에서 셀 수 없었
   ok('근속이 마지막 근무일에서 멈춥니다', c.serviceOn() && c.tenureDays(c.serviceOn())===c.tenureDays(last));
   ok('퇴직금 카드와 정산 카드가 같은 금액을 말합니다', R.sevAmt===c.won(c.settlement().sev), R.sevAmt+' / '+c.settlement().sev);
   ok('그만둔 사람에게 다음 기념일을 말하지 않습니다', R.sevStatus.includes('2026.10.30') && !R.sevStatus.includes('입사기념일'), R.sevStatus);
-  // 2024.03.04 → 2026.10.30은 971일, 2년 8개월입니다. 반년 뒤에 봐도 같아야 합니다.
-  ok('맨 위 근속도 멈춥니다', R.tenureLine===c.T('years_months_of_service',{p0:2,p1:8}), R.tenureLine);
+  // 2024.03.04 → 2026.10.30은 971일, 달력으로 2년 7개월(과 26일)입니다. 처음에는 971을 365와 30으로
+  // 나눠 '8개월'이라고 했습니다(S14). 반년 뒤에 봐도 같아야 합니다.
+  ok('맨 위 근속도 멈춥니다', R.tenureLine===c.T('years_months_of_service',{p0:2,p1:7}), R.tenureLine);
   const later2=base('2027-06-01T10:00:00'); later2.state.settings.lastDay='2026-10-30';
   ok('반년 뒤에도 퇴직금은 그대로입니다', later2.renderVals().sevAmt===R.sevAmt);
   ok('반년 뒤에도 근속은 그대로입니다', later2.renderVals().tenureLine===R.tenureLine);
@@ -8341,7 +8342,7 @@ console.log('\n== 1년은 365일이 아니었고, 15일은 그 1년의 다음 �
   ok('정산: 퇴직금은 발생합니다', c.settlement().eligible);
   const R=c.renderVals();
   ok('대장의 발생은 11일', R.annLedger[0].v===11, String(R.annLedger[0].v));
-  ok('대장의 설명은 1년 미만의 규칙', R.annLaw===c.T('under_1_year_1_day_for_each_full_month'), R.annLaw);
+  ok('대장의 설명은 1년 미만의 규칙 (그리고 S14의 한 줄)', R.annLaw.startsWith(c.T('under_1_year_1_day_for_each_full_month')), R.annLaw);
   const d=mk(V2,'2026-09-25T10:00:00'); d.state.settings.hireDate='2024-03-04';
   ok('다음 입사기념일까지는 달력으로 160일 (365로 나누면 159)', d.daysToAnniversary()===160, String(d.daysToAnniversary()));
 }
@@ -8371,7 +8372,8 @@ console.log('\n== 상여와 직접 적은 평균임금은 아직 지금 설정�
   d.state.settings.bonus=1000000; d.state.settings.bonusMonths=[6,12];
   ok('도장에 상여가 실립니다', d.wageNow().bonusYear===2000000);
   ok('도장에 직접 적은 평균임금도', (d.state.settings.avgDaily=90000, d.wageNow().avgManual===90000));
-  // 그 필드가 없는 옛 도장은 예전처럼 지금 설정으로 — 없는 것을 0으로 읽지 않습니다
+  // 그 필드가 없는 W는 지금 설정으로 — 없는 것을 0으로 읽지 않습니다. 저장된 도장은 앱을 열거나
+  // 백업을 불러올 때 fillStampFields가 채우므로(S12) 이 갈래에 오는 것은 손으로 만든 W뿐입니다.
   const W=Object.assign({}, d.wageNow()); delete W.bonusYear; delete W.avgManual;
   ok('옛 도장은 지금 설정으로 떨어집니다', d.avgDaily(d.now(), W)===d.avgDaily(d.now()));
 }
@@ -8478,6 +8480,97 @@ console.log('\n== 새 기본금을 먼저 적고 마지막 근무일을 나중�
   // 마지막 근무일이 앞날이면 아직 굳은 것이 없으니 그 말도 없습니다
   const d=mk(V2,'2026-09-22T10:00:00'); d.state.settings.hireDate='2023-05-01'; d.state.settings.lastDay='2026-10-30'; d.stampWage();
   ok('앞날이면 굳었다는 말이 없습니다', d.renderVals().lastNote===d.T('last_day_note_set'));
+}
+
+console.log('\n== v1.1.0이 찍은 도장에는 상여도 직접 적은 평균임금도 없었습니다 (S12) ==');
+// S7은 도장에 bonusYear와 avgManual을 실었지만, v1.1.0이 찍은 도장에는 둘 다 없습니다. 없으면
+// 지금 설정으로 떨어지므로, 1.1.0을 쓰다 그만둔 사람 — 정산 카드를 처음 여는 바로 그 사람 — 에게
+// S7의 덫은 열려 있었습니다: 새 회사를 위해 1일 평균임금 ₩150,000을 적으면 옛 퇴직금이
+// ₩8,271,833 → ₩15,028,767. 이제 앱을 열거나 백업을 불러올 때, 그 둘이 없는 도장에 그 순간의
+// 설정값을 한 번 채워 넣습니다. 그 뒤로는 설정을 바꿔도 옛 기간이 움직이지 않습니다.
+{
+  const probe=mk(V2,'2026-09-25T10:00:00');
+  probe.state.settings.basic=2156880; probe.state.settings.divisor=209;
+  const old=Object.assign({}, probe.wageNow()); delete old.bonusYear; delete old.avgManual;   // v1.1.0 모양
+  const key=V2.wageKey(probe.period(new Date('2026-08-31T00:00:00')));
+  const blob=JSON.stringify({v:2, tourSeen:true, setupDone:true, extra:[], removed:[], session:null,
+    settings:{basic:2156880, divisor:209, hireDate:'2023-05-01', lastDay:'2026-08-31', avgDaily:0, wageLog:{[key]:old}}});
+  const ls=global.window.localStorage;
+  global.window.localStorage={ getItem:()=>blob, setItem(){}, removeItem(){} };
+  const c=new V2({}); c.base=new Date('2026-09-25T10:00:00'); c.t0=Date.now();
+  global.window.localStorage=ls;
+  const W=c.st().wageLog[key];
+  ok('앱을 열면 옛 도장에 두 값이 채워집니다', W.bonusYear===0 && W.avgManual===0, JSON.stringify({b:W.bonusYear,m:W.avgManual}));
+  const before=c.settlement().sev;
+  c.state.settings.avgDaily=150000;
+  ok('그 뒤에 새 회사를 위해 적은 평균임금이 옛 퇴직금을 움직이지 않습니다', c.settlement().sev===before, before+' → '+c.settlement().sev);
+  c.state.settings.bonus=5000000; c.state.settings.bonusMonths=[6,12];
+  ok('상여도', c.settlement().sev===before);
+  // 백업을 불러올 때도 같습니다
+  const d=mk(V2,'2026-09-25T10:00:00');
+  d.setState({pendingImport:{app:'worklog',v:1,exported:new Date('2026-09-20T09:00:00').toISOString(),removed:[],session:null,extra:[],
+    settings:{basic:2156880, divisor:209, hireDate:'2023-05-01', avgDaily:77000, wageLog:{[key]:old}}}});
+  d.confirmImport();
+  const Wd=d.st().wageLog[key];
+  ok('불러온 옛 도장에도 채워집니다', Wd.avgManual===77000 && Wd.bonusYear===0, JSON.stringify({b:Wd.bonusYear,m:Wd.avgManual}));
+  ok('이미 값이 있는 도장은 건드리지 않습니다', V2.fillStampFields({wageLog:{a:{rate:1,bonusYear:5,avgManual:6}}, avgDaily:9}).wageLog.a.avgManual===6);
+}
+
+console.log('\n== \'추정입니까\'와 그 옆의 금액이 서로 다른 곳을 봤습니다 (S13) ==');
+// S7 뒤로 1일 평균임금은 도장의 avgManual을 읽는데, '낮게 추정된 값' 단서(avgIsEst)는 여전히 지금
+// 설정의 avgDaily를 읽었습니다(S3과 같은 종류). 기록이 얇은 닫힌 기간에서, 도장 0 / 설정 150,000이면
+// 문서는 통상임금 바닥 ₩82,560을 단서 없이 확정처럼 찍었고, 도장 90,000 / 설정 0이면 근로자가
+// 명세서에서 옮긴 ₩90,000을 '앱이 낮게 추정한 값'이라고 불렀습니다. 이제 단서도 W를 받습니다.
+{
+  const c=mk(V2,'2026-09-25T10:00:00'); c.state.settings.hireDate='2023-05-01';
+  const ex=[]; for(let d=new Date('2026-07-15T00:00:00'); d<=new Date('2026-08-20T00:00:00'); d=V2.dayAfter(d)){
+    if(d.getDay()===0||d.getDay()===6) continue;
+    ex.push({y:d.getFullYear(),m:d.getMonth()+1,day:d.getDate(),kind:'day',type:'shift',inH:9,outH:18,c:c.calc(9,18,'day',false)}); }
+  c.state.extra=ex;
+  const on=new Date('2026-08-21T00:00:00');
+  const W0=Object.assign({}, c.wageNow(), {avgManual:0}), W9=Object.assign({}, c.wageNow(), {avgManual:90000});
+  c.state.settings.avgDaily=150000;
+  ok('도장에 적은 값이 없고 기록이 얇으면 추정입니다 — 설정에 무엇이 있든', c.avgIsEst(on, W0)===true);
+  c.state.settings.avgDaily=0;
+  ok('도장에 명세서 값이 있으면 추정이 아닙니다 — 설정이 비어 있어도', c.avgIsEst(on, W9)===false);
+  ok('W가 없으면 예전처럼 지금 설정', (c.state.settings.avgDaily=150000, c.avgIsEst(on)===false));
+  // 그만둔 사람: 새 회사를 위해 평균임금을 적어도 정산의 '추정' 줄은 그대로
+  const L=mk(V2,'2026-09-25T10:00:00'); L.state.settings.hireDate='2023-05-01'; L.state.settings.lastDay='2026-08-31';
+  L.state.extra=ex; L.state.settings.wageLog={[V2.wageKey(L.period(new Date('2026-08-31T00:00:00')))]: L.wageNow()};
+  const est=()=>L.renderVals().settleRows.find(r=>r.k===L.T('is_this_average_a_guess')).v;
+  const b=est(); L.state.settings.avgDaily=150000;
+  ok('그만둔 뒤 적은 평균임금이 정산의 추정 줄을 바꾸지 않습니다', est()===b, b+' → '+est());
+  ok('퇴직금 카드의 추정 줄도', L.renderVals().sevRows[3].v===b, L.renderVals().sevRows[3].v);
+}
+
+console.log('\n== 근속 몇 년 몇 개월이 아직 365일로 셌습니다 (S14) ==');
+// S4가 퇴직금과 연차를 달력으로 옮기면서 근속 문장은 365일 해에 남겨 두었습니다. 그래서 카드가
+// 바로 그 경우들에서 스스로와 어긋났습니다: (a) 2023.03.01 입사, 2024.02.28에 '근속 1년 0개월'
+// 위에 '1년 미만 … 1일 남았습니다'. (b) 기념일 전날 그만둔 사람의 '1년 0개월 (365일)' 옆에 발생 11일,
+// 그리고 15일이 왜 없는지 아무 말이 없음. (c) 2020.03.01 입사, 2024.02.28에 '4년 0개월 … 다음
+// 입사기념일까지 2일'. 날수 % 365가 360을 넘으면 '0년 12개월'도 나왔습니다. 이제 근속은 그 날까지
+// (그 날 포함) 채운 달력의 해와 달이고, (b)에는 대법원 2021다227100의 한 줄이 붙습니다.
+{
+  const at=(hire,iso)=>{ const c=mk(V2,iso+'T10:00:00'); c.state.settings.hireDate=hire; return c; };
+  let c=at('2023-03-01','2024-02-28'); let R=c.renderVals();
+  ok('(a) 1년이 안 됐으면 0년 11개월', R.tenureLine===c.T('years_months_of_service',{p0:0,p1:11}), R.tenureLine);
+  ok('(a) 그리고 하루 남았다고', R.sevStatus.includes('1'), R.sevStatus);
+  c=at('2023-03-01','2024-02-29');
+  ok('기념일 전날까지 일했으면 1년 0개월 — 퇴직금과 같은 1년', c.renderVals().tenureLine===c.T('years_months_of_service',{p0:1,p1:0}) && c.severanceEligible());
+  c=at('2020-03-01','2024-02-28'); R=c.renderVals();
+  ok('(c) 3년 11개월, 기념일까지 2일', R.tenureLine===c.T('years_months_of_service',{p0:3,p1:11}) && c.daysToAnniversary()===2, R.tenureLine);
+  // 12개월이 나오는 날이 없습니다
+  const e=at('2021-01-17','2021-01-17'); let bad=null;
+  for(let i=0;i<1500;i++){ const d=new Date(2021,0,17+i); const t=e.tenureYM(d); if(t.m>11||t.m<0){ bad=d.toDateString()+' '+t.y+'y'+t.m+'m'; break; } }
+  ok('어느 날에도 12개월이 나오지 않습니다', bad===null, bad||'');
+  // (b) 기념일 전날 그만둔 사람
+  const L=mk(V2,'2026-09-25T10:00:00'); L.state.settings.hireDate='2025-03-01'; L.state.settings.lastDay='2026-02-28';
+  R=L.renderVals();
+  ok('(b) 퇴직금은 1년 — 근속도 1년 0개월', L.settlement().eligible && R.tenureLine===L.T('years_months_of_service',{p0:1,p1:0}), R.tenureLine);
+  ok('(b) 발생은 11일이고, 15일이 왜 없는지 말합니다', R.annLedger[0].v===11 && R.annLaw.includes(L.T('accrual_needs_next_day')), R.annLaw);
+  const cur=at('2025-03-01','2025-12-01');
+  ok('1년이 안 된 보통 사람에게는 그 줄이 없습니다', !cur.renderVals().annLaw.includes(cur.T('accrual_needs_next_day')));
+  ok('여덟 말 모두 2021다227100을', ['ko','en','vi','zh','th','id','ne','km'].every(l=>{ L.state.settings.lang=l; return L.T('accrual_needs_next_day').includes('2021다227100'); }));
 }
 
 Promise.all(later).then(()=>{
