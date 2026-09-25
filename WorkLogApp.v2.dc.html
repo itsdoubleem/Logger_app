@@ -3954,9 +3954,19 @@ class Component extends DCLogic {
   severanceEligible(on) { return !!this.hireDate() && this.tenureDays(on) >= 365; }
   // avgOn은 평균임금을 산정할 날입니다. 퇴직의 경우 그것은 마지막 근무일의 다음
   // 날(퇴직일)이고, avgWindow는 그 전날까지의 3개월을 씁니다 — 곧 마지막 근무일까지.
-  severancePay(on, avgOn) {
+  // W는 그 금액이 기대는 임금입니다. 그만둔 사람에게는 마지막 근무일이 든 기간의
+  // 도장이어야 합니다 — 지금 설정을 읽으면, 새 회사의 기본금을 적는 순간 옛 회사의
+  // 퇴직금이 바뀝니다(M2, 쉰여덟째와 같은 덫).
+  severancePay(on, avgOn, W) {
     if (!this.severanceEligible(on)) return 0;
-    return Math.round(this.avgDaily(avgOn || on) * 30 * this.tenureDays(on) / 365);
+    return Math.round(this.avgDaily(avgOn || on, W) * 30 * this.tenureDays(on) / 365);
+  }
+  // 그만둔 사람의 임금: 마지막 근무일이 든 급여기간의 도장. 아직 다니고 있으면
+  // undefined(=지금 설정). 그 기간이 아직 열려 있으면 wageFor가 지금 설정을 돌려주고,
+  // 기간이 닫히는 순간 그 날의 설정이 도장으로 굳습니다 — 다른 모든 금액과 같은 규칙입니다.
+  serviceWage() {
+    const on = this.serviceOn();
+    return on ? this.wageFor(this.period(on)) : undefined;
   }
   // ── 퇴사 정산 · 근로기준법 제36조 ──
   // 앱이 계산할 수 있는 것만 더합니다: 퇴직금과 연차미사용수당. 마지막 급여기간의
@@ -3983,8 +3993,9 @@ class Component extends DCLogic {
     const avgOn = projected ? today : Component.dayAfter(last);
     const known = !!this.hireDate();
     const eligible = known && this.severanceEligible(last);
-    const sev = eligible ? this.severancePay(last, avgOn) : 0;
-    const lp = this.unusedLeavePay();
+    const W = projected ? undefined : this.wageFor(this.period(last));
+    const sev = eligible ? this.severancePay(last, avgOn, W) : 0;
+    const lp = this.unusedLeavePay(W);
     const leave = lp ? lp.total : 0;
     const due = new Date(last.getFullYear(), last.getMonth(), last.getDate() + 15);
     return { last, known, eligible, sev, lp, leave, total: sev + leave, due,
@@ -4176,10 +4187,10 @@ class Component extends DCLogic {
   // 잔여 × 1일 통상임금. 1일 통상임금은 휴업수당의 상한과 같은 wRate × 8입니다
   // (shutdownPay) — 한 앱 안에서 '하루치 통상임금'이 두 가지 값이면 안 됩니다.
   // 남은 것이 없으면 null: 0원을 적을 자리가 아니라 말할 것이 없는 자리입니다.
-  unusedLeavePay() {
+  unusedLeavePay(W) {
     const days = this.annualLeft();
     if (!(days > 0)) return null;
-    const daily = Math.round(this.wRate() * 8);
+    const daily = Math.round(this.wRate(W) * 8);
     return { days, daily, total: Math.round(days * daily) };
   }
   won(n) { return '₩' + Math.round(n).toLocaleString('en-US'); }
@@ -5924,6 +5935,7 @@ class Component extends DCLogic {
     // 마지막 근무일이 지났으면 근속은 그 날에서 멈춥니다
     const sOn = this.serviceOn();
     const sAvg = sOn ? Component.dayAfter(sOn) : undefined;
+    const sW = this.serviceWage();
     const ten = this.tenureYM(sOn);
     const tenY = ten.y, tenM = ten.m;
     const today = pad2(n.getMonth() + 1) + '.' + pad2(n.getDate());
@@ -7670,7 +7682,7 @@ class Component extends DCLogic {
       })(),
 
       // ── 퇴직금 ──
-      sevAmt: this.hireDate() ? (this.severanceEligible(sOn) ? this.won(this.severancePay(sOn, sAvg)) : '—') : '—',
+      sevAmt: this.hireDate() ? (this.severanceEligible(sOn) ? this.won(this.severancePay(sOn, sAvg, sW)) : '—') : '—',
       sevInk: this.severanceEligible(sOn) ? 'var(--color-accent)' : 'var(--color-neutral-600)',
       sevShow: this.severanceEligible(sOn),
       sevStatus: !this.hireDate()
@@ -7686,8 +7698,8 @@ class Component extends DCLogic {
             { p0: this.tenureYM(sOn).y, p1: this.tenureYM(sOn).m, p2: 365 - (this.tenureDays(sOn) % 365) })
           : this.T('under_1_year_of_service_no_severance_y', { p0: 365 - this.tenureDays(sOn) })),
       sevRows: !this.severanceEligible(sOn) ? [] : [
-        { k: this.T('average_daily_wage_lsa_2_2'), v: this.won(this.avgDaily(sAvg)) },
-        { k: this.T('30_days_of_it'), v: this.won(this.avgDaily(sAvg) * 30) },
+        { k: this.T('average_daily_wage_lsa_2_2'), v: this.won(this.avgDaily(sAvg, sW)) },
+        { k: this.T('30_days_of_it'), v: this.won(this.avgDaily(sAvg, sW) * 30) },
         { k: this.T('days_of_service_365'), v: this.tenureDays(sOn) + ' / 365' },
         { k: this.T('is_this_average_a_guess'), v: this.avgIsEst(sAvg) ? this.T('yes_from_partial_records') : this.T('no_from_your_own_figure') },
       ],
@@ -7716,7 +7728,7 @@ class Component extends DCLogic {
         // 발생을 모르면 사용도 모릅니다 — 모르는 것은 숫자로 적지 않습니다
         const q = this.hireDate() ? null : '?';
         // 잔여 밑에만 금액이 붙습니다 — 발생·사용은 돈으로 바뀌는 날수가 아닙니다
-        const lp = this.unusedLeavePay();
+        const lp = this.unusedLeavePay(sW);
         return [
           { ko: this.T('accrued'), en: 'ACCRUED', v: q || acc, won: '', ink: 'var(--color-text)', bd: 'var(--color-neutral-300)', bg: 'transparent' },
           { ko: this.T('used'), en: 'USED', v: q || used, won: '', ink: 'var(--color-text)', bd: 'var(--color-neutral-300)', bg: 'transparent' },
@@ -7732,7 +7744,7 @@ class Component extends DCLogic {
       // 빚졌다'로 읽히는데, 사용기간이 끝나 사라지는 연차는 회사가 제61조의
       // 사용촉진을 했으면 수당이 되지 않습니다. 퇴사할 때는 그 예외가 없습니다.
       annVsCompany: this.T('this_is_what_the_law_gives_you_your_co') + (() => {
-        const lp = this.unusedLeavePay();
+        const lp = this.unusedLeavePay(sW);
         return lp ? ' ' + this.T('unused_leave_pay_line', {
           p0: this.dayCount(lp.days), p1: this.won(lp.daily), p2: this.won(lp.total) }) : '';
       })(),

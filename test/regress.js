@@ -8104,6 +8104,42 @@ console.log('\n== 두 달 더 일하면 퇴직금이 63만원 줄었습니다 (M
   ok('기록이 모자라면 그렇다고', et && et.v===thin.T('yes_from_partial_records'), et&&et.v);
 }
 
+console.log('\n== 그만둔 뒤 새 회사 기본금을 적자 옛 회사 퇴직금이 바뀌었습니다 (M2) ==');
+// 리뷰에서 나왔습니다. 마지막 근무일이 지나면 근속은 멈췄지만 돈은 멈추지 않았습니다.
+// avgDaily와 wRate가 기간의 도장이 아니라 지금 설정을 읽어서, 기본금을 30% 올리자
+// 퇴직금 ₩9,330,059 → ₩11,461,439, 연차미사용수당 ₩412,800 → ₩536,640. 사업장을
+// 옮긴 E-9 근로자가 새 회사 급여를 적는 바로 그 순간에 일어납니다 — 쉰여덟째의 덫
+// ('W를 받는 함수는 this.st()를 읽으면 안 됩니다') 그대로입니다.
+//
+// 이제 마지막 근무일이 들어 있는 급여기간의 도장(wageFor)으로 셉니다. 퇴직금 카드,
+// 정산 카드, 연차 대장의 금액이 모두 같은 W를 씁니다.
+{
+  const c=mk(V2,'2026-09-25T10:00:00');
+  c.state.settings.basic=2156880; c.state.settings.divisor=209;
+  c.state.settings.hireDate='2023-05-01';
+  c.state.settings.annualBase=5; c.state.settings.annualAsOf=new Date('2026-09-01T00:00:00').toISOString();
+  c.state.settings.lastDay='2026-08-31';
+  const last=new Date('2026-08-31T00:00:00');
+  // 그 기간(08.21–09.20)이 열려 있는 동안 앱이 찍어 둔 도장
+  c.state.settings.wageLog={[V2.wageKey(c.period(last))]: c.wageNow()};
+  const before={ S:c.settlement(), R:c.renderVals() };
+  c.state.settings.basic=Math.round(2156880*1.3);
+  const after={ S:c.settlement(), R:c.renderVals() };
+  ok('정산 카드의 퇴직금이 그대로입니다', after.S.sev===before.S.sev, before.S.sev+' → '+after.S.sev);
+  ok('정산 카드의 연차미사용수당이 그대로입니다', after.S.leave===before.S.leave, before.S.leave+' → '+after.S.leave);
+  ok('퇴직금 카드도 그대로입니다', after.R.sevAmt===before.R.sevAmt, before.R.sevAmt+' → '+after.R.sevAmt);
+  ok('퇴직금 카드의 1일 평균임금도', after.R.sevRows[0].v===before.R.sevRows[0].v);
+  ok('연차 대장의 금액도 그대로입니다', after.R.annLedger[2].won===before.R.annLedger[2].won,
+    before.R.annLedger[2].won+' → '+after.R.annLedger[2].won);
+  ok('두 카드가 같은 금액을 말합니다', after.R.sevAmt===c.won(after.S.sev));
+  // 아직 다니는 사람은 지금 기본금이 곧 그 사람의 기본금입니다
+  const d=mk(V2,'2026-09-25T10:00:00');
+  d.state.settings.basic=2156880; d.state.settings.divisor=209; d.state.settings.annualBase=5;
+  d.state.settings.annualAsOf=new Date('2026-09-01T00:00:00').toISOString();
+  const lp0=d.unusedLeavePay().total; d.state.settings.basic=Math.round(2156880*1.3);
+  ok('다니는 중이면 오늘 기본금을 따릅니다', d.unusedLeavePay().total>lp0);
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);
