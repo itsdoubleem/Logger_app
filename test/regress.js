@@ -8859,7 +8859,7 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   const fs=require('fs');
   const src=fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
   const ds=fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
-  ok('기간 고르기 칸이 두 탭 모두 탭 강조색입니다', src.split('<div style="margin:9px -9px -7px;padding:0 9px 7px;border-top:2px solid var(--color-neutral-300);background:var(--color-accent-100)">').length-1===2);
+  ok('기간 고르기 칸이 두 탭 모두 탭 강조색입니다', src.split('<div style="margin:9px -9px -7px;padding:0 9px 4px;border-top:2px solid var(--color-neutral-300);background:var(--color-accent-100)">').length-1===2);
   ok('활성 탭도 같은 accent-100입니다', ds.includes('[style*="border-top: 3px solid var(--color-accent)"] { background: var(--color-accent-100); }'));
   ok('층이 스테퍼 테두리를 같은 폭의 여백으로 바꿉니다', ds.includes('#tabScroll > div > div[style*="padding: 5px 7px"] { border-width: 0 !important; padding: 7px 9px !important; }'));
   ok('분홍 위의 고르지 않은 칸은 카드 흰색입니다', ds.includes('[style*="background: var(--color-accent-100)"][style*="border-top: 2px solid var(--color-neutral-300)"] [style*="background: transparent"] { background: var(--color-card) !important; }'));
@@ -8872,6 +8872,11 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   }
   c.setState({payBack:2});
   const v=c.renderVals();
+  // 분홍 띠를 4분의 1 줄였습니다: 2 + 44 + 7 = 53px → 2 + 34 + 4 = 40px(헤드리스에서 40px).
+  // 줄은 단추라서 44px 누르는 자리는 보이지 않는 띠가 지킵니다 — 위로 6px, 아래로 4px. 헤드리스로
+  // elementFromPoint를 훑어 누르는 높이 44px, 그 위쪽 끝이 ‹ › 보다 4.5px 아래임을 확인했습니다.
+  ok('기간 고르기 줄은 34px이고 두 탭 모두 그렇습니다', src.split('<div onClick="{{ jumpToggle }}" style="position:relative;min-height:34px;').length-1===2);
+  ok('보이지 않는 띠가 누르는 자리를 44px로 채웁니다 (6 + 34 + 4)', /min-height: 34px"\]::after \{\s*content: ""; position: absolute; left: 0; right: 0; top: -6px; bottom: -4px;/.test(ds));
   ok('고르기가 있으면 맨몸 단추는 없습니다', v.jumpShow===true && v.payViewingPast===true && v.payNowBare===false);
 }
 
