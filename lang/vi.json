@@ -755,5 +755,6 @@
   "settle_due_past": "đã quá {p0}",
   "settle_note": "근로기준법 §36: khi nghỉ việc, mọi khoản tiền — lương, 퇴직금, 연차미사용수당… — phải được trả trong 14 ngày kể từ khi phát sinh. Nếu có hoàn cảnh đặc biệt, hai bên có thể thỏa thuận kéo dài. Ngày ở trên tính 14 ngày từ ngày sau ngày làm cuối. Phép không dùng được vì nghỉ việc vẫn thành tiền, dù công ty có làm 사용촉진 hay không. Lương kỳ cuối, hãy xem kỳ đó ở tab 급여 PAY — ứng dụng không biết công ty chia tháng làm chưa trọn thế nào. 퇴직금 của lao động E-9 thường nhận qua 출국만기보험 khi rời Hàn Quốc, nên thời điểm của phần đó có thể khác hạn này.",
   "sev_stopped_at_last_day": "✓ Thâm niên {p0} năm {p1} tháng — số tiền tính đến ngày làm cuối {p2}.",
-  "sev_under_1_year_ended": "Kết thúc trước khi đủ 1 năm — không phát sinh 퇴직금 (근로자퇴직급여 보장법 §8①)."
+  "sev_under_1_year_ended": "Kết thúc trước khi đủ 1 năm — không phát sinh 퇴직금 (근로자퇴직급여 보장법 §8①).",
+  "settle_avg_projected": "Có — ước tính trước từ 3 tháng vừa qua"
 }

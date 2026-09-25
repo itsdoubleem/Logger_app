@@ -3222,5 +3222,9 @@
   "sev_under_1_year_ended": {
     "en": "Service ended before 1 year — no severance is owed (근로자퇴직급여 보장법 §8①).",
     "ko": "계속근로 1년이 되기 전에 끝났습니다 — 퇴직금이 발생하지 않습니다 (근로자퇴직급여 보장법 제8조①)."
+  },
+  "settle_avg_projected": {
+    "en": "Yes — projected from the last 3 months",
+    "ko": "예 — 지난 3개월로 미리 본 값"
   }
 }

@@ -7995,8 +7995,10 @@ console.log('\n== 그만두는 날 받을 돈을 한 자리에서 셀 수 없었
   const S=c.settlement(); R=c.renderVals();
   ok('카드가 나옵니다', R.settleShow===true);
   ok('근속은 마지막 근무일까지 셉니다', c.tenureDays(S.last)===c.tenureDays(new Date('2026-10-30T12:00:00')));
-  ok('퇴직금은 마지막 근무일 기준입니다',
-    S.eligible && S.sev===c.severancePay(new Date('2026-10-30T00:00:00'), new Date('2026-10-31T00:00:00')), String(S.sev));
+  // 아직 오지 않은 마지막 근무일의 3개월에는 기록이 없는 평일이 섞입니다. 그래서
+  // 평균임금은 오늘까지의 3개월로 미리 보고, 근속만 마지막 근무일까지 셉니다(M1).
+  ok('퇴직금은 마지막 근무일까지의 근속 × 오늘까지 3개월의 평균임금',
+    S.eligible && S.sev===c.severancePay(new Date('2026-10-30T00:00:00'), c.now()), String(S.sev));
   ok('연차미사용수당은 잔여 × 1일 통상임금', S.leave===5*82560, String(S.leave));
   ok('합은 둘을 더한 것', R.settleAmt===c.won(S.sev+S.leave), R.settleAmt);
   ok('기한은 마지막 근무일 다음 날부터 14일 — 11.14', V2.dotDate(S.due)==='2026.11.14', V2.dotDate(S.due));
@@ -8061,6 +8063,45 @@ console.log('\n== 그만두는 날 받을 돈을 한 자리에서 셀 수 없었
     ['ko','en','vi','zh','th','id','ne','km'].every(l=>{ c.state.settings.lang=l;
       const t=c.T('settle_note'); return /36/.test(t) && /14/.test(t) && t.includes('사용촉진') && t.includes('출국만기보험'); }));
   c.state.settings.lang='ko';
+}
+
+console.log('\n== 두 달 더 일하면 퇴직금이 63만원 줄었습니다 (M1) ==');
+// 리뷰에서 나왔습니다. 마지막 근무일을 앞날로 적으면 평균임금 3개월 창이 그 날에서
+// 끝났습니다 — 아직 일하지 않은, 기록이 없는 평일이 창에 들어가 무급처럼 셈해졌고,
+// 매일 잔업하는 사람의 평균임금이 통상임금 바닥까지 내려앉았습니다. 오늘 그만두면
+// ₩9,521,406, 11.30에 그만두면 ₩8,889,337. 더 일할수록 덜 받는다고 말했고, 추정이라는
+// 표시도 없었습니다.
+//
+// 이제 앞날의 마지막 근무일은 근속만 그 날까지 세고, 평균임금은 오늘까지의 3개월로
+// 미리 봅니다. 카드에 '평균임금이 추정입니까?' 줄이 붙고, 앞날이면 '미리 본 값'이라고
+// 말합니다.
+//
+// 다음 사람에게: 기록이 없는 날은 0원인 날이 아닙니다. 아직 오지 않은 날을 창에
+// 넣지 마십시오.
+{
+  const mkW=()=>{ const c=mk(V2,'2026-09-25T10:00:00');
+    c.state.settings.basic=2156880; c.state.settings.divisor=209;
+    c.state.settings.hireDate='2023-05-01';
+    const ex=[];
+    for(let d=new Date('2026-06-01T00:00:00'); d<new Date('2026-09-25T00:00:00'); d=new Date(d.getFullYear(),d.getMonth(),d.getDate()+1)){
+      if(d.getDay()===0||d.getDay()===6) continue;
+      ex.push({y:d.getFullYear(),m:d.getMonth()+1,day:d.getDate(),kind:'day',type:'shift',inH:9,outH:20,c:c.calc(9,20,'day',false)});
+    }
+    c.state.extra=ex; return c; };
+  const a=mkW(); a.state.settings.lastDay='2026-09-24';
+  const b=mkW(); b.state.settings.lastDay='2026-11-30';
+  const sa=a.settlement(), sb=b.settlement();
+  ok('더 오래 일하면 퇴직금은 줄지 않습니다', sb.sev>=sa.sev, sb.sev+' vs '+sa.sev);
+  ok('두 달 더 일한 만큼 늘어납니다 — 같은 평균임금 × 더 긴 근속',
+    sb.sev===Math.round(b.avgDaily(b.now())*30*b.tenureDays(new Date('2026-11-30T00:00:00'))/365), String(sb.sev));
+  const rb=b.renderVals().settleRows, ra=a.renderVals().settleRows;
+  const est=rs=>rs.find(r=>r.k===b.T('is_this_average_a_guess'));
+  ok('정산 카드가 평균임금이 추정인지 말합니다', !!est(rb) && !!est(ra));
+  ok('앞날이면 미리 본 값이라고', est(rb) && est(rb).v===b.T('settle_avg_projected'), est(rb)&&est(rb).v);
+  ok('지난 날이고 기록이 넉넉하면 추정이 아닙니다', est(ra) && est(ra).v===a.T('no_from_your_own_figure'), est(ra)&&est(ra).v);
+  const thin=mk(V2,'2026-09-25T10:00:00'); thin.state.settings.hireDate='2023-05-01'; thin.state.settings.lastDay='2026-09-20';
+  const et=thin.renderVals().settleRows.find(r=>r.k===thin.T('is_this_average_a_guess'));
+  ok('기록이 모자라면 그렇다고', et && et.v===thin.T('yes_from_partial_records'), et&&et.v);
 }
 
 Promise.all(later).then(()=>{
