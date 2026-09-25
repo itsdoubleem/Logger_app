@@ -8672,6 +8672,30 @@ console.log('\n== 세어 보니 W 없이 부르는 곳이 둘 더 있었습니�
   ok('마지막 근무의 벌이는 그 날의 금액', ls && ls.value===c.won(c.dayPay(c.state.extra[1], W)), ls&&ls.value);
 }
 
+console.log('\n== 고치는 길이 기본금만 말했습니다 (S18) ==');
+// S16 뒤로 칸 밑의 말은 붙들린 평균임금과 상여도 적는데, 그 뒤의 '고치는 길'은 여전히 '옛 회사의 기본금이
+// 아니라면 … 기본금을 고친 뒤'였습니다. 붙들린 평균임금이 새 회사의 것인 사람은 이미 맞는 기본금을 고치라는
+// 말만 들었습니다. 기간이 열려 있는 동안이 고칠 수 있는 유일한 때입니다. 이제 위의 값 어느 것이든, 그리고
+// 다시 적은 뒤 새 회사의 값을 되돌려 적는 것까지 말합니다.
+{
+  const c=mk(V2,'2026-09-25T10:00:00');
+  const t=c.T('last_day_wage_held_fix');
+  ok('기본금만이 아니라 위의 값 어느 것이든', !t.includes('기본금을 고친') && t.includes('위'), t);
+  ok('다시 적은 뒤 새 회사의 값을 되돌려 적으라고', t.includes('되돌려'), t);
+  // 그 길이 평균임금에도 통하는지 끝까지 걸어 봅니다
+  const at=(x,iso)=>{ x.base=new Date(iso); x.t0=Date.now(); };
+  const d=mk(V2,'2026-09-22T10:00:00'); d.state.settings.basic=2156880; d.state.settings.hireDate='2023-05-01'; d.stampWage();
+  at(d,'2026-09-28T10:00:00');
+  d.state.settings.avgDaily=150000; d.stampWage(); d.state.settings.lastDay='2026-09-22'; d.stampWage();   // 새 회사 값을 먼저 적은 사람
+  const Q=d.period(new Date('2026-09-22T00:00:00'));
+  ok('붙들린 평균임금이 새 회사의 값', d.wageFor(Q).avgManual===150000);
+  d.state.settings.lastDay=''; d.stampWage(); d.state.settings.avgDaily=0; d.stampWage(); d.state.settings.lastDay='2026-09-22'; d.stampWage();
+  d.state.settings.avgDaily=150000; d.stampWage();                                                            // 새 회사 값을 되돌려 적습니다
+  ok('길대로 하면 옛 기간은 옛 값, 설정은 새 회사의 값', d.wageFor(Q).avgManual===0 && d.st().avgDaily===150000);
+  ok('여덟 말 모두 기본금 하나만 고치라고 하지 않습니다', ['en','vi','zh','th','id','ne','km'].every(l=>{ c.state.settings.lang=l;
+    return !/correct 기본금,|sửa 기본금,|改正 기본금，|แก้ 기본금 |perbaiki 기본금,|기본금 सच्याउनुहोस्|កែ 기본금 /.test(c.T('last_day_wage_held_fix')); }));
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);

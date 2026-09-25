@@ -3236,8 +3236,8 @@
     "ko": "이 날이 든 급여기간({p0})의 임금은 기본금 {p1} 그대로 붙들어 두었습니다 — 그 기간의 급여 탭, 근무내역서, 이 화면의 퇴직금이 모두 이 값으로 셉니다."
   },
   "last_day_wage_held_fix": {
-    "en": "If this is not your previous company's 기본금 (you typed the new company's pay before entering this day), then before this period ends: clear this box, correct 기본금, and enter the day again.",
-    "ko": "이것이 옛 회사의 기본금이 아니라면(이 날을 적기 전에 새 회사의 값을 적었다면), 이 기간이 끝나기 전에 이 칸을 비우고, 기본금을 고친 뒤, 다시 적으십시오."
+    "en": "If any value above is not your previous company's (you typed the new company's before entering this day), then before this period ends: clear this box, change that value back to the previous company's, and enter the day again. After that, type the new company's value back in.",
+    "ko": "위의 값 가운데 옛 회사의 것이 아닌 것이 있다면(이 날을 적기 전에 새 회사의 값을 적었다면), 이 기간이 끝나기 전에: 이 칸을 비우고, 그 값을 옛 회사의 것으로 고친 뒤, 이 날을 다시 적으십시오. 그 다음 새 회사의 값을 되돌려 적으면 됩니다."
   },
   "accrual_needs_next_day": {
     "en": "The year is complete, but the 15 days arise only if you are still employed on the day after it (대법원 2021다227100).",
