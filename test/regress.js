@@ -8668,7 +8668,7 @@ console.log('\n== 세어 보니 W 없이 부르는 곳이 둘 더 있었습니�
     if(Array.isArray(o)){ const x=o.find(r=>r&&r.label===c.T('last_shift')); if(x) return x; for(const y of o){ const f=find(y,seen); if(f) return f; } return null; }
     for(const k of Object.keys(o)){ const f=find(o[k],seen); if(f) return f; } return null; };
   const ls=find(R);
-  // dayPay는 W가 없으면 기록에 박힌 그 날의 금액을 씁니다 — 이미 맞았고, 이 줄이 그것을 붙듭니다
+  // 보통 날이라 기록에 박힌 금액과 W의 금액이 같습니다. 휴일 8시간 초과가 든 날은 다릅니다 — 아래 S20이 봅니다
   ok('마지막 근무의 벌이는 그 날의 금액', ls && ls.value===c.won(c.dayPay(c.state.extra[1], W)), ls&&ls.value);
 }
 
@@ -8694,6 +8694,50 @@ console.log('\n== 고치는 길이 기본금만 말했습니다 (S18) ==');
   ok('길대로 하면 옛 기간은 옛 값, 설정은 새 회사의 값', d.wageFor(Q).avgManual===0 && d.st().avgDaily===150000);
   ok('여덟 말 모두 기본금 하나만 고치라고 하지 않습니다', ['en','vi','zh','th','id','ne','km'].every(l=>{ c.state.settings.lang=l;
     return !/correct 기본금,|sửa 기본금,|改正 기본금，|แก้ 기본금 |perbaiki 기본금,|기본금 सच्याउनुहोस्|កែ 기본금 /.test(c.T('last_day_wage_held_fix')); }));
+}
+
+console.log('\n== 날짜를 알면서 오늘의 시급과 오늘의 창으로 센 다섯 자리 (S19, S20) ==');
+// 일곱 번째 리뷰가 W 없이 부르는 곳을 다시 세어, 제가 CHANGELOG (19)에 '셋, 셋 다 맞다'고 적은 것이 틀렸음을
+// 보였습니다. 이번에는 W를 받는 26개 메서드의 호출을 모두 기계로 세었습니다(20곳). 오늘이 맞는 곳을 빼면,
+// 지난 날짜를 알면서 오늘로 센 곳이 다섯입니다: 사유 창의 제46조 안내, 휴업·결근을 고를 때의 안내 둘, 근무기록
+// 목록의 결근 공제, 출퇴근 화면의 '마지막 근무'(휴일 8시간 초과가 든 날). 닫힌 8월, 기본금을 올린 뒤:
+// 사유 창과 휴업 안내는 ₩75,023(그 날의 값 ₩57,792), 마지막 근무는 ₩190,374(문서 ₩185,760).
+{
+  const mkC=()=>{ const c=mk(V2,'2026-09-25T10:00:00');
+    c.state.settings.basic=2156880; c.state.settings.divisor=209; c.state.settings.periodStart=1; c.state.settings.hireDate='2023-05-01';
+    c.state.settings.holOverPaid=true;
+    c.state.extra=[{y:2026,m:8,day:11,kind:'day',type:'shift',inH:9,outH:14,c:c.calc(9,14,'day',false),reason:{id:'machine',fault:'employer',ko:'기계 고장'}},
+      {y:2026,m:8,day:13,kind:'day',type:'absent',c:{gross:0,bk:0,net:0,reg:0,ot:0,night:0,hol:0,pay:0}},
+      {y:2026,m:8,day:16,kind:'day',type:'shift',holiday:true,inH:8,outH:20,c:c.calc(8,20,'day',true)}];
+    const P=c.period(new Date('2026-08-11T00:00:00'));
+    c.state.settings.wageLog={[V2.wageKey(P)]: c.wageNow()};
+    c.state.settings.basic=2800000;
+    return {c,P,W:c.wageFor(P)}; };
+  const deep=(o,pred,seen=new Set())=>{ if(!o||typeof o!=='object'||seen.has(o)) return null; seen.add(o);
+    if(pred(o)) return o; for(const k of Object.keys(o)){ const f=deep(o[k],pred,seen); if(f) return f; } return null; };
+  let {c,P,W}=mkC();
+  const d11=new Date('2026-08-11T00:00:00'), d12=new Date('2026-08-12T00:00:00');
+  // 사유 창 — 그 기록의 날짜와 그 기간의 W
+  c.setState({reasonFor:20260811, earlyPick:'machine', earlyFault:'employer'});
+  const sp=c.won(c.shutdownPay(d11, W));
+  ok('사유 창의 제46조 안내는 그 날의 값', c.renderVals().rsnEffect.includes(sp) && !c.renderVals().rsnEffect.includes(c.won(c.shutdownPay())), c.renderVals().rsnEffect.slice(0,80)+' / '+sp);
+  // 휴업·결근을 고를 때 — 고른 날짜와 그 기간의 W
+  c.setState({reasonFor:null, pending:'shutdown', pendingIso:d12.toISOString()});
+  let R=c.renderVals();
+  ok('휴업 안내는 고른 날의 값', R.pendingEffect.includes(c.won(c.shutdownPay(d12, W))), R.pendingEffect.slice(0,90));
+  c.setState({pending:'absent'}); R=c.renderVals();
+  ok('결근 안내도 고른 날의 기본금으로', R.pendingEffect.includes(c.won(c.absentDeduct(W))), R.pendingEffect.slice(0,90));
+  // 근무기록 목록의 결근 줄
+  c.setState({pending:null, pendingIso:null, payBack:1});
+  R=c.renderVals();
+  const ab=deep(R, o=>o.date==='08.13' && o.tag==='결');
+  ok('목록의 결근 공제는 그 기간의 기본금으로 — 문서와 같게', ab && ab.net==='−'+c.won(c.absentDeduct(W)) && c.evidenceHtml(P).includes(c.won(c.absentDeduct(W))), ab&&ab.net);
+  // 마지막 근무 — 휴일 8시간 초과가 든 날, holOverPaid
+  c.setState({payBack:0});
+  R=c.renderVals();
+  const ls=deep(R, o=>o.label===c.T('last_shift'));
+  const r16=c.state.extra[2];
+  ok('마지막 근무는 그 날이 든 기간의 W로 — 문서의 그 날과 같게', ls && ls.value===c.won(c.dayPay(r16, W)), (ls&&ls.value)+' / '+c.won(c.dayPay(r16, W)));
 }
 
 Promise.all(later).then(()=>{
