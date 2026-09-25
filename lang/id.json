@@ -760,5 +760,7 @@
   "settle_avg_projected_thin": "Ya — perkiraan dari 3 bulan terakhir, dengan catatan yang kurang",
   "last_day_wage_held": "Periode gaji yang memuat hari ini ({p0}) ditahan pada 기본금 {p1} — tab 급여 PAY periode itu, 근무내역서, dan 퇴직금 di layar ini semuanya dihitung dengan nilai ini.",
   "last_day_wage_held_fix": "Jika ini bukan 기본금 perusahaan sebelumnya (Anda mengisi upah perusahaan baru sebelum mengisi hari ini), maka sebelum periode ini berakhir: kosongkan kotak ini, perbaiki 기본금, lalu isi lagi tanggalnya.",
-  "accrual_needs_next_day": "Satu tahun sudah genap, tetapi 15 hari itu baru timbul jika Anda masih bekerja pada hari setelah tahun itu selesai (대법원 2021다227100)."
+  "accrual_needs_next_day": "Satu tahun sudah genap, tetapi 15 hari itu baru timbul jika Anda masih bekerja pada hari setelah tahun itu selesai (대법원 2021다227100).",
+  "held_avg_manual": "1일 평균임금 yang Anda isi, {p0}, juga ditahan untuk periode ini.",
+  "held_bonus": "상여 sebesar {p0} per tahun juga ikut ditahan."
 }
