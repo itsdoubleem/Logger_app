@@ -9138,6 +9138,76 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('야간 03:00–03:00도 건너뜁니다', n.breaks('night').length===1 && n.calc(21,30,'night',false).net===8, String(n.calc(21,30,'night',false).net));
 }
 
+// ── 고친 날을 저장해도 조퇴 사유와 법정 휴일 표시가 남습니다 (리뷰 S2, 2026-10-11) ──
+// 고치기 → 저장은 기록을 새로 만들면서 그 날의 조퇴 사유(reason)와 손으로 켠 법정 휴일
+// 표시(legalHol)를 옮기지 않았습니다. 사유는 근무내역서에서 사라지고, 앱이 모르는 설날에
+// 켜 둔 표시가 꺼지면 8시간을 넘긴 시간의 ×2.0이 빠집니다 — 증거와 돈이 함께 줄어듭니다.
+{
+  const c=mk(V2,'2028-02-16T23:00:00');   // 표가 모르는 설날
+  c.state.settings.periodStart=1;
+  const rsn={ id:'machine', fault:'employer', ko:'기계 고장', note:'금형 파손' };
+  const rec={y:2028,m:2,day:16,kind:'day',type:'shift',holiday:true,inH:9,outH:22,c:c.calc(9,22,'day',true),reason:rsn};
+  c.state.extra=[rec];
+  c.toggleLegalHol(rec);
+  ok('표시를 켜면 ×2.0', c.holOverHours(c.state.extra[0])>0);
+  c.editDay(c.state.extra[0]);
+  c.setState({ pendingOut:'21:00' });
+  c.confirmPending();
+  const e=c.state.extra.filter(x=>x.day===16)[0];
+  ok('고친 시각이 들어갔습니다', e.outH===21, String(e.outH));
+  ok('조퇴 사유가 남습니다', !!e.reason && e.reason.id==='machine' && e.reason.note==='금형 파손', JSON.stringify(e.reason));
+  ok('법정 휴일 표시가 남습니다', e.legalHol===true && c.isTrueHoliday(e)===true);
+  ok('그래서 ×2.0도 남습니다', c.holOverHours(e)>0, 'holOver='+c.holOverHours(e));
+  ok('특근 표시도 그대로', e.holiday===true);
+
+  // 고치기가 아니라 비어 있는 날에 손으로 넣는 근무는 아무것도 물려받지 않습니다
+  const d=mk(V2,'2026-08-05T23:00:00');
+  d.state.extra=[];
+  d.openPending('work');
+  d.setState({ pendingIso:new Date(2026,7,4).toISOString(), pendingIn:'09:00', pendingOut:'18:00' });
+  d.confirmPending();
+  const n=d.state.extra.filter(x=>x.day===4)[0];
+  ok('새로 넣는 근무에는 사유도 표시도 없습니다', !!n && !n.reason && !n.legalHol, JSON.stringify(n));
+}
+
+// ── 고치는 도중에 날짜를 바꾸면 (리뷰 M1, 2026-10-11) ──
+// 고치기로 02.16을 열고 달력에서 02.17을 누른 뒤 저장하면, 02.17이 덮어써지면서 02.17의 조퇴
+// 사유를 물려받아 13시간짜리 날에 조퇴 사유가 찍혔습니다. 그리고 되돌리기는 손대지 않은 02.16을
+// 되살리고 덮어쓴 02.17은 그대로 두었습니다 — 02.17의 원래 기록을 찾을 길이 없었습니다.
+{
+  const c=mk(V2,'2028-02-20T23:00:00');
+  c.state.settings.periodStart=1;
+  const r16={y:2028,m:2,day:16,kind:'day',type:'shift',inH:9,outH:22,c:c.calc(9,22,'day',false)};
+  const r17={y:2028,m:2,day:17,kind:'day',type:'shift',inH:9,outH:15,c:c.calc(9,15,'day',false),
+    reason:{ id:'machine', fault:'employer', ko:'기계 고장', note:'17일 사유' }};
+  c.state.extra=[r16, r17];
+  const keep16=JSON.stringify(r16), keep17=JSON.stringify(r17);
+  c.editDay(c.state.extra[0]);
+  c.pickDate(new Date(2028,1,17));
+  c.confirmPending();
+  const e17=c.state.extra.filter(x=>x.day===17)[0];
+  ok('날짜를 바꿔 저장한 날은 다른 날의 사유를 물려받지 않습니다', !!e17 && e17.outH===22 && !e17.reason, JSON.stringify(e17));
+  ok('16일은 그대로입니다', JSON.stringify(c.state.extra.filter(x=>x.day===16)[0])===keep16);
+  c.undoLast();
+  ok('되돌리면 덮어쓴 17일이 원래대로 돌아옵니다', JSON.stringify(c.state.extra.filter(x=>x.day===17)[0])===keep17,
+    JSON.stringify(c.state.extra.filter(x=>x.day===17)[0]));
+  ok('되돌려도 16일은 그대로입니다', JSON.stringify(c.state.extra.filter(x=>x.day===16)[0])===keep16);
+
+  // 같은 날을 고친 뒤 되돌리면 원래 기록이 글자 하나 다르지 않게 돌아옵니다
+  const d=mk(V2,'2028-02-20T23:00:00');
+  d.state.settings.periodStart=1;
+  const orig={y:2028,m:2,day:16,kind:'day',type:'shift',holiday:true,legalHol:true,inH:9,outH:22,c:d.calc(9,22,'day',true),
+    reason:{ id:'machine', fault:'employer', ko:'기계 고장' }};
+  d.state.extra=[orig];
+  const keep=JSON.stringify(orig);
+  d.editDay(d.state.extra[0]); d.setState({ pendingOut:'21:00' }); d.confirmPending();
+  const ed=d.state.extra.filter(x=>x.day===16)[0];
+  ok('같은 날 고치면 사유와 표시가 남습니다', ed.outH===21 && !!ed.reason && ed.legalHol===true);
+  ok('사유는 복사본입니다 — 원래 기록과 같은 객체를 나누지 않습니다', ed.reason!==orig.reason);
+  d.undoLast();
+  ok('같은 날 고친 뒤 되돌리면 원래 기록 그대로', JSON.stringify(d.state.extra.filter(x=>x.day===16)[0])===keep);
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);
