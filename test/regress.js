@@ -9021,7 +9021,11 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   let r=c.renderVals().dayBreakRows[0];
   ok('연장 시로 저장된 점심은 스위치가 남고 켜져 보입니다', r.hasSwitch===true && r.otOnly===true);
   r.toggleOt(); r=c.renderVals().dayBreakRows[0];
-  ok('끄면 그때부터 스위치가 사라집니다', c.st().breaksDay[0].ot===false && r.otOnly===false && r.hasSwitch===false);
+  // 끈 뒤에도 스위치는 남습니다(리뷰 N1) — 손가락 밑에서 사라지면, 잘못 누른 한 번을 되돌릴 길이 없습니다
+  ok('끈 뒤에도 스위치가 남아 다시 켤 수 있습니다', c.st().breaksDay[0].ot===false && r.otOnly===false && r.hasSwitch===true);
+  r.toggleOt(); r=c.renderVals().dayBreakRows[0];
+  ok('다시 켜집니다', c.st().breaksDay[0].ot===true && r.otOnly===true && r.hasSwitch===true);
+  r.toggleOt(); r=c.renderVals().dayBreakRows[0];
   ok('그리고 점심 1시간이 평소 날에도 빠집니다', c.calc(8,17,'day',false).net===8, String(c.calc(8,17,'day',false).net));
 
   // 자리로 '연장 시'인 휴게가 유일한 줄이면(9-6 공장의 18:00 저녁만 적은 경우) 스위치를 남깁니다
@@ -9074,6 +9078,23 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('9–21: 켜든 끄든 11시간', plain.calc(9,21,'day',false).net===11 && tagged.calc(9,21,'day',false).net===11);
   ok('9–17: 끄면 7시간, 켜면 8시간 — 틀리는 날은 여기뿐', plain.calc(9,17,'day',false).net===7 && tagged.calc(9,17,'day',false).net===8,
     plain.calc(9,17,'day',false).net+' / '+tagged.calc(9,17,'day',false).net);
+}
+
+// ── '식사 휴게가 없습니다' 뒤에 남은 저녁 한 줄 (리뷰 N1, 2026-10-11) ──
+// 교대에서 그 단추를 누르면 17:00 저녁(ot:true) 한 줄만 남고, 그것이 식사 휴게 자리가 됩니다.
+// 스위치를 한 번 잘못 누르면 매일 빠지는 휴게가 되고 스위치가 사라졌습니다. 이제 남습니다.
+{
+  const c=mk(V2);
+  c.setS({ shifts:'both', dayStart:'08:00', nightStart:'20:00', breaksDay:[{from:'17:00',to:'17:30',ot:true}] });
+  let r=c.renderVals().dayBreakRows[0];
+  ok('남은 저녁은 켜져 있고 스위치가 있습니다', r.otOnly===true && r.hasSwitch===true);
+  r.toggleOt(); r=c.renderVals().dayBreakRows[0];
+  ok('잘못 눌러도 스위치가 남습니다', r.otOnly===false && r.hasSwitch===true);
+  r.toggleOt(); r=c.renderVals().dayBreakRows[0];
+  ok('한 번 더 누르면 되돌아갑니다', r.otOnly===true && c.st().breaksDay[0].ot===true);
+  // 손대지 않은 점심(ot를 적은 적 없음)에는 여전히 스위치가 없습니다
+  c.setS({ breaksDay:[{from:'12:00',to:'13:00'},{from:'17:00',to:'17:30',ot:true}] });
+  ok('손대지 않은 점심에는 스위치가 없습니다', c.renderVals().dayBreakRows[0].hasSwitch===false);
 }
 
 Promise.all(later).then(()=>{
