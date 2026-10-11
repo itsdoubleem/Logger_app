@@ -9170,6 +9170,44 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('새로 넣는 근무에는 사유도 표시도 없습니다', !!n && !n.reason && !n.legalHol, JSON.stringify(n));
 }
 
+// ── 고치는 도중에 날짜를 바꾸면 (리뷰 M1, 2026-10-11) ──
+// 고치기로 02.16을 열고 달력에서 02.17을 누른 뒤 저장하면, 02.17이 덮어써지면서 02.17의 조퇴
+// 사유를 물려받아 13시간짜리 날에 조퇴 사유가 찍혔습니다. 그리고 되돌리기는 손대지 않은 02.16을
+// 되살리고 덮어쓴 02.17은 그대로 두었습니다 — 02.17의 원래 기록을 찾을 길이 없었습니다.
+{
+  const c=mk(V2,'2028-02-20T23:00:00');
+  c.state.settings.periodStart=1;
+  const r16={y:2028,m:2,day:16,kind:'day',type:'shift',inH:9,outH:22,c:c.calc(9,22,'day',false)};
+  const r17={y:2028,m:2,day:17,kind:'day',type:'shift',inH:9,outH:15,c:c.calc(9,15,'day',false),
+    reason:{ id:'machine', fault:'employer', ko:'기계 고장', note:'17일 사유' }};
+  c.state.extra=[r16, r17];
+  const keep16=JSON.stringify(r16), keep17=JSON.stringify(r17);
+  c.editDay(c.state.extra[0]);
+  c.pickDate(new Date(2028,1,17));
+  c.confirmPending();
+  const e17=c.state.extra.filter(x=>x.day===17)[0];
+  ok('날짜를 바꿔 저장한 날은 다른 날의 사유를 물려받지 않습니다', !!e17 && e17.outH===22 && !e17.reason, JSON.stringify(e17));
+  ok('16일은 그대로입니다', JSON.stringify(c.state.extra.filter(x=>x.day===16)[0])===keep16);
+  c.undoLast();
+  ok('되돌리면 덮어쓴 17일이 원래대로 돌아옵니다', JSON.stringify(c.state.extra.filter(x=>x.day===17)[0])===keep17,
+    JSON.stringify(c.state.extra.filter(x=>x.day===17)[0]));
+  ok('되돌려도 16일은 그대로입니다', JSON.stringify(c.state.extra.filter(x=>x.day===16)[0])===keep16);
+
+  // 같은 날을 고친 뒤 되돌리면 원래 기록이 글자 하나 다르지 않게 돌아옵니다
+  const d=mk(V2,'2028-02-20T23:00:00');
+  d.state.settings.periodStart=1;
+  const orig={y:2028,m:2,day:16,kind:'day',type:'shift',holiday:true,legalHol:true,inH:9,outH:22,c:d.calc(9,22,'day',true),
+    reason:{ id:'machine', fault:'employer', ko:'기계 고장' }};
+  d.state.extra=[orig];
+  const keep=JSON.stringify(orig);
+  d.editDay(d.state.extra[0]); d.setState({ pendingOut:'21:00' }); d.confirmPending();
+  const ed=d.state.extra.filter(x=>x.day===16)[0];
+  ok('같은 날 고치면 사유와 표시가 남습니다', ed.outH===21 && !!ed.reason && ed.legalHol===true);
+  ok('사유는 복사본입니다 — 원래 기록과 같은 객체를 나누지 않습니다', ed.reason!==orig.reason);
+  d.undoLast();
+  ok('같은 날 고친 뒤 되돌리면 원래 기록 그대로', JSON.stringify(d.state.extra.filter(x=>x.day===16)[0])===keep);
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);
