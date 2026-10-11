@@ -140,7 +140,7 @@
   "days_of_service_365": "× hari masa kerja ÷ 365",
   "days_per_year": "Hari per tahun",
   "days_worked": "Hari kerja",
-  "rng_worked_day": "Hari sudah bekerja",
+  "rng_worked_day": "Sudah masuk kerja",
   "days_worked_ot_night_as_of_basic_and_f": "{p0} hari kerja · {p1} 잔업 · {p2} 야간 malam, per {p3}.{p4}. 기본금 dan tunjangan tetap dihitung penuh.",
   "days_worked_ot_night_whole_period": "{p0} hari kerja · {p1} 잔업 · {p2} 야간 malam, untuk seluruh periode. 기본금 dan tunjangan tetap dihitung penuh.",
   "days_you_booked_ahead_they_sit_in_a_pa": "Hari yang Anda catat di muka. Hari itu ada di periode gaji yang belum mulai, jadi ‹ › belum menjangkaunya.",
