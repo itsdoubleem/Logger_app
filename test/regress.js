@@ -20,6 +20,9 @@ console.log('\n== wage engine unchanged from v1 (verified against real payslips)
   b.state.settings.nightStart=a.state.settings.nightStart;
   b.state.settings.breaksDay=JSON.parse(JSON.stringify(a.state.settings.breaksDay));
   b.state.settings.breaksNight=JSON.parse(JSON.stringify(a.state.settings.breaksNight));
+  // 퇴근 유예도 같습니다 — v2의 새 설치 기본값은 0분이 되었지만(F8, 2026-10-12) v1은 15분이고,
+  // 여기서 견주는 것은 snapOut의 식입니다
+  b.state.settings.outGrace=a.state.settings.outGrace;
   const cases=[[8+40/60,20+50/60,'day',false],[20+40/60,32+50/60,'night',false],
                [9,21,'day',true],[9,23,'day',true],[6,15,'day',false],[22,30,'night',false]];
   let same=true, detail='';
@@ -2735,7 +2738,8 @@ console.log('\n== 퇴근을 찍는 순간 그 날 벌이가 화면에서 사라�
 {
   const mkN=(iso)=>{
     const c=mk(V2,iso);
-    c.setS({ periodStart:21, payday:25, shifts:'both' });
+    // 이 근무자의 회사는 정시 15분 전 퇴근을 정시로 칩니다(08:50 → 09:00) — 새 설치 기본값은 0분(F8)
+    c.setS({ periodStart:21, payday:25, shifts:'both', outGrace:15 });
     for(let d=21; d<=31; d++) c.state.extra.push({y:2026,m:7,day:d,kind:'night',type:'shift',
       inH:20+40/60,outH:32+50/60,c:c.calc(20+40/60,32+50/60,'night',false)});
     for(let d=1; d<=19; d++) c.state.extra.push({y:2026,m:8,day:d,kind:'night',type:'shift',
@@ -9622,6 +9626,39 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
       ok(t.name+' / '+kind+' — 쓴 차감 없음 = 일하지 않은 제외일 수', inR.filter(r=>r.type==='redday').length===days.filter(x=>!x.deduct&&!x.keep).length);
     });
   });
+}
+
+// ── 새로 깐 앱의 퇴근 유예는 0분입니다 (F8, 2026-10-12) ──
+// 퇴근 유예는 정시 몇 분 전 퇴근을 정시로 쳐 주는 회사의 호의입니다(15분이면 20:45 → 21:00). 기본값이
+// 15분이면, 그런 호의가 없는 회사의 근로자는 :45–:59에 퇴근한 날마다 앱이 30분을 더 셉니다 — 명세서가
+// 실제보다 모자라 보이고, 그 숫자가 1350이나 근로감독관 앞에 갈 수 있습니다. 기본값은 호의를 가정하지
+// 않습니다(토요일 휴일 지정이 꺼진 채 시작하는 것과 같습니다). 쓰던 사람의 저장된 값은 그대로입니다.
+{
+  ok('기본값은 0분', V2.DEFAULTS.outGrace===0);
+  const c=mk(V2);
+  ok('새로 깐 앱의 퇴근 유예는 0분', c.st().outGrace===0);
+  ok('새로 깐 앱에서 20:45 퇴근은 20:30', c.snapOut(20.75)===20.5);
+  ok('정시 퇴근은 그대로 21:00', c.snapOut(21)===21);
+  c.setS({ outGrace:15 });
+  ok('15분으로 바꾸면 20:45 퇴근은 21:00', c.snapOut(20.75)===21);
+  // 쓰던 사람: 저장본에 15분이 적혀 있으면 그대로 15분 — 기본값이 바뀌어도 숫자가 조용히 바뀌지 않습니다
+  const store={'worklog.v2':JSON.stringify({v:2,setupDone:true,tourSeen:true,
+    settings:{basic:2600000,divisor:209,outGrace:15},extra:[],removed:[]})};
+  const g=global.window.localStorage.getItem;
+  global.window.localStorage.getItem=k=>store[k]||null;
+  const old=new V2({}); old.base=new Date('2026-10-12T10:00:00'); old.t0=Date.now();
+  global.window.localStorage.getItem=g;
+  ok('쓰던 사람의 15분은 그대로', old.st().outGrace===15, String(old.st().outGrace));
+  ok('그래서 그 사람의 20:45 퇴근은 여전히 21:00', old.snapOut(20.75)===21);
+  // 근무내역서에는 쓴 값이 찍힙니다 — 0분이어도 숨지 않습니다
+  const src=require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  // 설정의 안내는 '0으로 두세요'라고 했는데 이제 0이 시작값입니다 — 여덟 언어 모두 새 문장
+  ['ko','en','vi','zh','th','id','ne','km'].forEach(Lg=>{
+    const t=V2.STR['clock_in_rounds_up_to_the_next_30_minu'][Lg];
+    ok(Lg+' 안내가 0이 시작값이라고 말합니다', /0/.test(t.slice(-120)) && t.indexOf('20:45')>0, t.slice(-90));
+  });
+  ok('ko 안내', V2.STR['clock_in_rounds_up_to_the_next_30_minu'].ko.indexOf('새로 깐 앱은 0분입니다')>0);
+  ok('근무내역서의 퇴근 유예 줄은 0분도 적습니다', src.indexOf("{ k: this.T('clock_out_grace'), v: (+this.st().outGrace || 0) + this.T('min_before_the_hour') }")>0);
 }
 
 Promise.all(later).then(()=>{

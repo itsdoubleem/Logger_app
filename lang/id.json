@@ -96,7 +96,7 @@
   "clock_in": "Jam masuk",
   "clock_in_2": "JAM MASUK",
   "clock_in_rounds": "Pembulatan jam masuk",
-  "clock_in_rounds_up_to_the_next_30_minu": "Jam masuk dibulatkan NAIK ke kelipatan 30 menit berikutnya — 08:40 menjadi 09:00, jadi keterlambatan tidak pernah hilang karena pembulatan. Absen 30 menit lebih awal pada 08:30 tetap 08:30, dan setengah jam itu dibayar. Jam pulang dibulatkan TURUN ke kelipatan 30 menit sebelumnya — 20:15 menjadi 20:00. Dengan toleransi 15 menit, absen pulang pukul 20:45 dihitung 21:00. Setel 0 jika perusahaan Anda hanya mengakui jam bulat.",
+  "clock_in_rounds_up_to_the_next_30_minu": "Jam masuk dibulatkan NAIK ke kelipatan 30 menit berikutnya — 08:40 menjadi 09:00, jadi keterlambatan tidak pernah hilang karena pembulatan. Absen 30 menit lebih awal pada 08:30 tetap 08:30, dan setengah jam itu dibayar. Jam pulang dibulatkan TURUN ke kelipatan 30 menit sebelumnya — 20:15 menjadi 20:00. Dengan toleransi 15 menit, absen pulang pukul 20:45 dihitung 21:00. Aplikasi yang baru dipasang mulai dari 0 — isi toleransi hanya jika perusahaan Anda memang menghitungnya sebagai jam bulat.",
   "clock_out": "Jam pulang",
   "clock_out_2": "JAM PULANG",
   "clock_out_grace": "Toleransi jam pulang",

@@ -96,7 +96,7 @@
   "clock_in": "Giờ vào",
   "clock_in_2": "GIỜ VÀO",
   "clock_in_rounds": "Làm tròn giờ vào",
-  "clock_in_rounds_up_to_the_next_30_minu": "Giờ vào được làm tròn LÊN mốc 30 phút kế tiếp — 08:40 thành 09:00, nên đi muộn không bao giờ bị làm tròn mất. Chấm công sớm 30 phút lúc 08:30 thì vẫn là 08:30, và nửa giờ đó được trả lương. Giờ ra được làm tròn XUỐNG mốc 30 phút trước đó — 20:15 thành 20:00. Nếu đặt ân hạn 15 phút, chấm ra lúc 20:45 được tính là 21:00. Đặt 0 nếu công ty bạn chỉ tính đúng giờ tròn.",
+  "clock_in_rounds_up_to_the_next_30_minu": "Giờ vào được làm tròn LÊN mốc 30 phút kế tiếp — 08:40 thành 09:00, nên đi muộn không bao giờ bị làm tròn mất. Chấm công sớm 30 phút lúc 08:30 thì vẫn là 08:30, và nửa giờ đó được trả lương. Giờ ra được làm tròn XUỐNG mốc 30 phút trước đó — 20:15 thành 20:00. Nếu đặt ân hạn 15 phút, chấm ra lúc 20:45 được tính là 21:00. Ứng dụng mới cài bắt đầu ở 0 — chỉ nhập ân hạn nếu công ty bạn thật sự tính tròn giờ sớm.",
   "clock_out": "Giờ ra",
   "clock_out_2": "GIỜ RA",
   "clock_out_grace": "Ân hạn giờ ra",
