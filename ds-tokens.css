@@ -369,10 +369,11 @@
    black things on this screen lift instead: the two nav chips, and the picked
    급여기간 / 월급날 chips on 4/4, which fill black when chosen. One direction
    for light, the other for dark; both say "your finger landed here".
-   Five attribute selectors — the rule above is five too since it gained
-   `:not([role="switch"])`, so this one wins by coming after it. Keep it after. */
-[style*="z-index: 22"] [style*="cursor: pointer"][style*="min-height:"][style*="background: var(--color-text)"]:active,
-[style*="z-index: 30"] [style*="cursor: pointer"][style*="min-height:"][style*="background: var(--color-text)"]:active {
+   It carries the same `:not([role="switch"])` as the rule above plus one more
+   attribute, so it is one selector heavier and wins wherever it sits. It also
+   comes after, and a test holds both. */
+[style*="z-index: 22"] [style*="cursor: pointer"][style*="min-height:"][style*="background: var(--color-text)"]:not([role="switch"]):active,
+[style*="z-index: 30"] [style*="cursor: pointer"][style*="min-height:"][style*="background: var(--color-text)"]:not([role="switch"]):active {
   filter: brightness(1.9);
 }
 

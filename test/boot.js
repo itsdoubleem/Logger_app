@@ -516,13 +516,15 @@ console.log('\n== 설정 흐름의 단추가 눌린 티를 냅니다 ==');
   // 검은 것은 더 어두워질 수 없습니다 — #201e1d에 .86을 곱하면 #1b1a19이고,
   // 그것이 근로자가 '아무 일도 안 일어난다'고 말한 그 화면입니다. 그래서 검은
   // 것만 반대 방향으로 갑니다(뒤로·건너뛰기 칩 둘 + 4/4에서 고른 급여기간·월급날 칩).
-  const lift = (css.match(/\[style\*="z-index: 22"\][^{]*background: var\(--color-text\)"\]:active\s*\{[^}]*\}/) || [''])[0];
+  const lift = (css.match(/\[style\*="z-index: 22"\][^{]*background: var\(--color-text\)"\](:not\(\[role="switch"\]\))?:active\s*\{[^}]*\}/) || [''])[0];
   ok('검은 것은 어두워지는 대신 밝아집니다', /brightness\(1\./.test(lift), lift.slice(0, 90));
-  // 무게가 같으면 앞 규칙의 .86이 이기고, 칩만 조용히 예전처럼 아무 일도 하지
-  // 않게 됩니다 — 그것은 오류를 내지 않습니다(마흔째). 선택자가 하나 더 많아야 합니다.
-  // 두 규칙 다 이제 쉼표로 이은 목록입니다(설정 흐름 22 · 사유 시트 30) —
+  // 무게가 같으면 뒤에 적힌 규칙이 이깁니다. 그래서 순서만으로도 지금은 맞지만, 누가
+  // 순서를 바꾸면 칩만 조용히 예전처럼 아무 일도 하지 않게 됩니다 — 그것은 오류를 내지
+  // 않습니다(마흔째). 그래서 선택자가 하나 더 많아야 합니다. `:not(...)`도 속성 선택자와
+  // 같은 무게이므로 함께 셉니다(일흔째에 누름 규칙이 `:not([role="switch"])`를 얻었습니다).
+  // 두 규칙 다 쉼표로 이은 목록입니다(설정 흐름 22 · 사유 시트 30) —
   // 무게는 목록 전체가 아니라 **한 선택자**의 것이므로 첫 벌끼리 견줍니다.
-  const attrs = t => (t.split(',')[0].match(/\[style\*=/g) || []).length;
+  const attrs = t => (t.split(',')[0].match(/\[style\*=|:not\(/g) || []).length;
   ok('그 규칙이 앞 규칙보다 무겁습니다', attrs(lift.split('{')[0]) === attrs(act.split('{')[0]) + 1,
     attrs(lift.split('{')[0]) + ' vs ' + attrs(act.split('{')[0]));
   ok('그리고 뒤에 있습니다', css.indexOf(lift) > css.indexOf(act));
@@ -575,7 +577,7 @@ console.log('\n== 조퇴 사유 창도 카드입니다 ==');
   ok('사유 시트의 단추도 눌린 티를 냅니다',
     /\[style\*="z-index: 30"\] \[style\*="cursor: pointer"\]\[style\*="min-height:"\](:not\(\[role="switch"\]\))?:active/.test(css));
   ok('검은 것은 시트에서도 반대로 갑니다',
-    /\[style\*="z-index: 30"\] \[style\*="cursor: pointer"\]\[style\*="min-height:"\]\[style\*="background: var\(--color-text\)"\]:active/.test(css));
+    /\[style\*="z-index: 30"\] \[style\*="cursor: pointer"\]\[style\*="min-height:"\]\[style\*="background: var\(--color-text\)"\](:not\(\[role="switch"\]\))?:active/.test(css));
   ok('두 오버레이가 규칙 한 벌을 나눠 씁니다 — 복사본이 아닙니다',
     (css.match(/filter: brightness\(\.86\)/g) || []).length === 1
     && (css.match(/filter: brightness\(1\.9\)/g) || []).length === 1);

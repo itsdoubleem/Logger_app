@@ -8981,7 +8981,7 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   const css=require('fs').readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
   const press=css.split('\n').filter(l=>/^\[style\*="z-index: (22|30)"\] \[style\*="cursor: pointer"\]\[style\*="min-height:"\]/.test(l) && !/background: var\(--color-text\)/.test(l));
   ok('누름 규칙 네 줄 다 스위치를 뺍니다', press.length===4 && press.every(l=>l.includes(':not([role="switch"])')), press.join('\n'));
-  const i=css.indexOf(':not([role="switch"]):active {'), j=css.indexOf('[style*="background: var(--color-text)"]:active');
+  const i=css.indexOf(':not([role="switch"]):active {'), j=css.indexOf('[style*="background: var(--color-text)"]:not([role="switch"]):active');
   ok('검은 단추 규칙이 그 뒤에 남아 이깁니다', i>0 && j>i);
 }
 
