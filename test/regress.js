@@ -9228,6 +9228,27 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('손으로 덮어 넣어도 법정 휴일 표시가 남습니다', e.outH===21 && e.legalHol===true && d.holOverHours(e)>0, JSON.stringify({lh:e.legalHol,ho:d.holOverHours(e)}));
 }
 
+// ── 손으로 덮어 넣은 뒤 되돌리면 원래 날이 돌아옵니다 (리뷰 S2, 2026-10-11) ──
+// 이미 기록이 있는 날에 손으로 근무를 넣고 되돌리기를 누르면, 원래 기록까지 지워져 그 날이 통째로
+// 비었습니다. '되돌리기'라고 적힌 단추가 기록을 없앴습니다. 고치기와 똑같이 덮어쓴 기록을 돌려놓습니다.
+{
+  const c=mk(V2,'2028-02-20T23:00:00'); c.state.settings.periodStart=1;
+  const orig={y:2028,m:2,day:17,kind:'day',type:'shift',inH:9,outH:15,c:c.calc(9,15,'day',false),reason:{id:'machine',fault:'employer',ko:'기계 고장'}};
+  c.state.extra=[orig]; const keep=JSON.stringify(orig);
+  c.openPending('work'); c.setState({ pendingIso:new Date(2028,1,17).toISOString(), pendingIn:'09:00', pendingOut:'18:00' }); c.confirmPending();
+  ok('덮어 넣으면 새 시각', c.state.extra.filter(x=>x.day===17)[0].outH===18);
+  ok('그 저장은 고침으로 적히지 않습니다', c.state.editedKeys.length===0);
+  c.undoLast();
+  const back=c.state.extra.filter(x=>x.day===17)[0];
+  ok('되돌리면 원래 기록이 그대로 돌아옵니다', !!back && JSON.stringify(back)===keep, JSON.stringify(back));
+  ok('지운 날 목록에 들어가지 않습니다', c.state.removed.indexOf(c.key(orig))<0);
+  // 빈 날에 넣은 것을 되돌리면 그냥 지워집니다 — 전과 같습니다
+  const d=mk(V2,'2028-02-20T23:00:00'); d.state.settings.periodStart=1; d.state.extra=[];
+  d.openPending('work'); d.setState({ pendingIso:new Date(2028,1,18).toISOString(), pendingIn:'09:00', pendingOut:'18:00' }); d.confirmPending();
+  d.undoLast();
+  ok('빈 날에 넣은 것은 되돌리면 사라집니다', d.state.extra.filter(x=>x.day===18).length===0);
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);

@@ -5416,7 +5416,9 @@ class Component extends DCLogic {
       removed: this.state.removed.filter(x => ks.indexOf(x) === -1),
       pending: null, pendingIso: null, pendingEndIso: null, undoKeys: ks,
       pendingEdit: false, editedKeys: wasEdit ? ks : [],
-      undoPrev: wasEdit ? replaced : null, editPrev: null,
+      // 되돌리기는 이 저장이 덮어쓴 기록을 돌려놓습니다 — 고치기든 손 입력이든. 손 입력에서
+      // null로 두면 되돌리기가 원래 있던 날까지 지웠습니다(리뷰 S2).
+      undoPrev: replaced, editPrev: null,
     });
     clearTimeout(this.addT);
     this.addT = setTimeout(() => this.setState({ undoKeys: [], editedKeys: [], undoPrev: null }), 9000);
