@@ -501,7 +501,7 @@ console.log('\n== 설정 흐름의 단추가 눌린 티를 냅니다 ==');
   // 걸리지 않습니다. 던져서 굴리는 중에 바탕이 번쩍이면 되먹임이 아니라 고장으로
   // 읽히고, 거기에 transform을 걸면 무는 자리가 옮겨 갑니다(마흔다섯째).
   ok('선택자가 min-height를 함께 요구합니다',
-    /\[style\*="z-index: 22"\] \[style\*="cursor: pointer"\]\[style\*="min-height:"\]:active/.test(css));
+    /\[style\*="z-index: 22"\] \[style\*="cursor: pointer"\]\[style\*="min-height:"\](:not\(\[role="switch"\]\))?:active/.test(css));
   ok('그 규칙은 transform을 건드리지 않습니다', !/transform/.test(act));
 
   // 열쇠는 오버레이의 z-index 하나입니다 — 다섯 탭에는 닿지 않습니다
@@ -572,7 +572,7 @@ console.log('\n== 조퇴 사유 창도 카드입니다 ==');
   // 두 오버레이의 누름이 서로 다르게 되는 날이 옵니다(쉰다섯째).
   const act = (css.match(/:active,?\s*\n?[^{]*:active\s*\{[^}]*brightness\(\.86\)[^}]*\}/) || [''])[0];
   ok('사유 시트의 단추도 눌린 티를 냅니다',
-    /\[style\*="z-index: 30"\] \[style\*="cursor: pointer"\]\[style\*="min-height:"\]:active/.test(css));
+    /\[style\*="z-index: 30"\] \[style\*="cursor: pointer"\]\[style\*="min-height:"\](:not\(\[role="switch"\]\))?:active/.test(css));
   ok('검은 것은 시트에서도 반대로 갑니다',
     /\[style\*="z-index: 30"\] \[style\*="cursor: pointer"\]\[style\*="min-height:"\]\[style\*="background: var\(--color-text\)"\]:active/.test(css));
   ok('두 오버레이가 규칙 한 벌을 나눠 씁니다 — 복사본이 아닙니다',

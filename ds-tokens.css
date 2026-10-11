@@ -352,12 +352,15 @@
 /* The 조퇴 사유 sheet (z-index 30) is the app's other full-screen overlay and
    its buttons were just as mute, so it joins the same rule rather than getting
    a copy of it — one value, both overlays, no way for the two to drift. */
-[style*="z-index: 22"] [style*="cursor: pointer"][style*="min-height:"],
-[style*="z-index: 30"] [style*="cursor: pointer"][style*="min-height:"] {
+/* A switch answers by moving its knob, and it does so the same on every
+   screen. Without `:not([role="switch"])` the 휴게 switches in this overlay
+   flashed a grey box on press while the same switch in 설정 did not. */
+[style*="z-index: 22"] [style*="cursor: pointer"][style*="min-height:"]:not([role="switch"]),
+[style*="z-index: 30"] [style*="cursor: pointer"][style*="min-height:"]:not([role="switch"]) {
   transition: filter .12s ease, background-color .12s ease;
 }
-[style*="z-index: 22"] [style*="cursor: pointer"][style*="min-height:"]:active,
-[style*="z-index: 30"] [style*="cursor: pointer"][style*="min-height:"]:active {
+[style*="z-index: 22"] [style*="cursor: pointer"][style*="min-height:"]:not([role="switch"]):active,
+[style*="z-index: 30"] [style*="cursor: pointer"][style*="min-height:"]:not([role="switch"]):active {
   filter: brightness(.86);
   background-color: var(--color-neutral-200);
 }
@@ -366,7 +369,8 @@
    black things on this screen lift instead: the two nav chips, and the picked
    급여기간 / 월급날 chips on 4/4, which fill black when chosen. One direction
    for light, the other for dark; both say "your finger landed here".
-   Five attribute selectors, so it out-weighs the rule above it (four). */
+   Five attribute selectors — the rule above is five too since it gained
+   `:not([role="switch"])`, so this one wins by coming after it. Keep it after. */
 [style*="z-index: 22"] [style*="cursor: pointer"][style*="min-height:"][style*="background: var(--color-text)"]:active,
 [style*="z-index: 30"] [style*="cursor: pointer"][style*="min-height:"][style*="background: var(--color-text)"]:active {
   filter: brightness(1.9);

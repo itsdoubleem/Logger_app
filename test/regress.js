@@ -7695,7 +7695,7 @@ console.log('\n== 사유 창의 접는 표시가 앱의 다른 접는 표시와 
   // 말하고, 그 규칙은 두 오버레이가 한 벌을 나눠 씁니다(쉰여섯째).
   ok('머리에 style-hover가 없습니다', head.indexOf('style-hover') < 0);
   ok('누름은 여전히 층이 말합니다',
-    /\[style\*="z-index: 30"\] \[style\*="cursor: pointer"\]\[style\*="min-height:"\]:active/.test(ds));
+    /\[style\*="z-index: 30"\] \[style\*="cursor: pointer"\]\[style\*="min-height:"\](:not\(\[role="switch"\]\))?:active/.test(ds));
 
   // ── 5 · 메모 칸은 이 앱의 다른 서른네 칸과 같은 테두리입니다 ───────────
   // 검은 2px 테두리는 이 앱에서 **묻는 카드**의 것입니다 — 기본금·성명·손으로
@@ -8961,6 +8961,17 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('일곱 다 이름이 있습니다', sw.every(t=>/aria-label="\{\{ [^}]+ \}\}"/.test(t)), sw.filter(t=>!/aria-label=/.test(t)).join('\n'));
   ok('이름은 옆 줄 제목과 같은 값입니다', tpl.split('aria-label="{{ r.tag }}"').length-1===4
     && ['lSatHol','lRestHol','lHolOver'].every(k=>tpl.includes('aria-label="{{ L.'+k+' }}"') && tpl.includes('>{{ L.'+k+' }}</div>')));
+}
+
+// ── 스위치는 누를 때 회색 상자로 번쩍이지 않습니다 (리뷰 N4, 2026-10-11) ──
+// 설정 흐름의 누름 규칙(2j)이 64×44 스위치 자리까지 잡아, 같은 스위치가 설정 흐름에서만
+// 회색 둥근 상자로 번쩍였습니다. 스위치는 손잡이가 움직이는 것으로 답합니다.
+{
+  const css=require('fs').readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
+  const press=css.split('\n').filter(l=>/^\[style\*="z-index: (22|30)"\] \[style\*="cursor: pointer"\]\[style\*="min-height:"\]/.test(l) && !/background: var\(--color-text\)/.test(l));
+  ok('누름 규칙 네 줄 다 스위치를 뺍니다', press.length===4 && press.every(l=>l.includes(':not([role="switch"])')), press.join('\n'));
+  const i=css.indexOf(':not([role="switch"]):active {'), j=css.indexOf('[style*="background: var(--color-text)"]:active');
+  ok('검은 단추 규칙이 그 뒤에 남아 이깁니다', i>0 && j>i);
 }
 
 Promise.all(later).then(()=>{
