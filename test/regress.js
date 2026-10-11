@@ -8988,8 +8988,8 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
 // ── 그 근무조의 첫 휴게에는 스위치가 없습니다 (F7, 2026-10-11) ──
 // 근로자: '연장 시에 왜 켜고 끄는 것이 필요합니까? 점심은 법으로 줘야 하는 것이니 이미
 // 주어진 것이고, 잔업하는 날에만 저녁 휴게가 있습니다.' 맞습니다 — §54는 8시간에 1시간을
-// 요구하고 8시간을 넘는 근무에는 더 요구하지 않습니다. 점심을 '연장 시'로 켜면 평소 날마다
-// 1시간이 실근무로 더해집니다. 그래서 첫 휴게는 언제나 매일이고, 스위치는 그 뒤의 줄에만 섭니다.
+// 요구하고 8시간을 넘는 근무에는 더 요구하지 않습니다. 점심을 '연장 시'로 켜면 잔업이 없는
+// 날(출퇴근 사이 8시간 이하)에 점심 1시간이 실근무로 남습니다. 그래서 첫 휴게는 언제나 매일이고, 스위치는 그 뒤의 줄에만 섭니다.
 {
   const src=require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
   const tpl=src.split('class Component')[0];
@@ -9061,6 +9061,19 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   c.setS({ shifts:'night', nightStart:'20:00', breaksNight:[{from:'23:30',to:'00:30'},{from:'04:00',to:'04:30'}] });
   v=c.renderVals().nightBreakRows;
   ok('자정을 넘는 야간 식사 휴게', v[0].hasSwitch===false && v[1].hasSwitch===true, JSON.stringify(v.map(r=>r.hasSwitch)));
+}
+
+// ── 점심을 '연장 시'로 켜면 어느 날이 틀리는지 (리뷰 S2, 2026-10-11) ──
+// 일흔한째는 '평소 날마다 1시간'이라고 적었지만, 계산은 기본 8시간을 넘는 날에는 표가 있어도
+// 휴게를 뺍니다. 틀리는 것은 잔업이 없는 짧은 날뿐입니다 — 그래서 더 눈에 띄지 않습니다.
+{
+  const plain=mk(V2), tagged=mk(V2);
+  plain.setS({ shifts:'day', dayStart:'09:00', breaksDay:[{from:'12:00',to:'13:00'}] });
+  tagged.setS({ shifts:'day', dayStart:'09:00', breaksDay:[{from:'12:00',to:'13:00',ot:true}] });
+  ok('9–18: 켜든 끄든 8시간', plain.calc(9,18,'day',false).net===8 && tagged.calc(9,18,'day',false).net===8);
+  ok('9–21: 켜든 끄든 11시간', plain.calc(9,21,'day',false).net===11 && tagged.calc(9,21,'day',false).net===11);
+  ok('9–17: 끄면 7시간, 켜면 8시간 — 틀리는 날은 여기뿐', plain.calc(9,17,'day',false).net===7 && tagged.calc(9,17,'day',false).net===8,
+    plain.calc(9,17,'day',false).net+' / '+tagged.calc(9,17,'day',false).net);
 }
 
 Promise.all(later).then(()=>{
