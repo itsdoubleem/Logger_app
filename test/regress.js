@@ -8930,6 +8930,26 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('야간 줄도 켜집니다', n.otOnly===true && n.otTrack==='var(--color-accent)' && c.st().breaksNight[0].ot===true);
 }
 
+// ── 시각을 아직 안 적은 휴게 줄의 스위치 (리뷰 S1, 2026-10-11) ──
+// '휴게시간 추가'로 막 생긴 줄은 시작 시각이 비어 있습니다. 거기서 스위치를 누르면 저장은
+// ot:true로 바뀌는데 화면의 스위치는 꺼진 채로 남았습니다. 그 뒤 10:00–10:10을 적으면 스위치가
+// 저절로 켜져 있었고, 오전 휴게가 잔업한 날에만 빠지는 것으로 계산됐습니다 — 평소 날의
+// 실근무가 그만큼 부풀어 보입니다. 스위치는 저장된 값을 그대로 보여야 합니다.
+{
+  const c=mk(V2);
+  c.setS({ shifts:'day', dayStart:'09:00', breaksDay:[{from:'11:30',to:'12:30'}] });
+  c.addBreak('breaksDay');
+  let r=c.renderVals().dayBreakRows[1];
+  ok('빈 줄의 스위치는 꺼져 있습니다', r.otOnly===false && r.otKnobX==='0px');
+  r.toggleOt(); r=c.renderVals().dayBreakRows[1];
+  ok('빈 줄에서 누르면 스위치가 켜집니다 — 저장과 같이', c.st().breaksDay[1].ot===true && r.otOnly===true && r.otKnobX==='15px', JSON.stringify(c.st().breaksDay[1]));
+  r.toggleOt(); r=c.renderVals().dayBreakRows[1];
+  ok('한 번 더 누르면 꺼집니다 — 저장과 같이', c.st().breaksDay[1].ot===false && r.otOnly===false);
+  // 꺼 둔 빈 줄에 오전 시각을 적으면 매일 빠지는 휴게입니다
+  c.setS({ breaksDay:c.st().breaksDay.map((b,i)=>i===1?Object.assign({},b,{from:'10:00',to:'10:10'}):b) });
+  ok('꺼 둔 채 시각을 적으면 매일 빠집니다', c.renderVals().dayBreakRows[1].otOnly===false && Math.abs(c.calc(9,18,'day',false).net-(9-70/60))<1e-9, String(c.calc(9,18,'day',false).net));
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);

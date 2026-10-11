@@ -5084,7 +5084,9 @@ class Component extends DCLogic {
         const ns = this.schedStart('night');
         if (a2 < ns) a2 += 24;
       }
-      const otOnly = a2 !== null && this.isOtBreak(kind, [a2, null, b.ot]);
+      // 근로자가 정한 값(b.ot)은 시각이 비어 있어도 그대로 보입니다. 시각이 없다고
+      // 꺼짐으로 그리면, 누를 때마다 저장은 바뀌는데 스위치는 꿈쩍하지 않습니다(리뷰 S1).
+      const otOnly = b.ot !== undefined ? !!b.ot : (a2 !== null && this.isOtBreak(kind, [a2, null]));
       // ── 휴게 시각도 알람처럼 굴려서 고릅니다 ──
       // 한 번에 한 칸만 엽니다. 줄마다 드럼 넷을 늘 펴 두면 화면이 세 배로
       // 길어지고, 근로자는 고칠 것 하나를 찾으러 굴려 내려가야 합니다.
