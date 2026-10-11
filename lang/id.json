@@ -76,7 +76,6 @@
   "bonus_paid_in_months_p1": "{p0} pada bulan {p1}. 상여 dihitung ke dalam 평균임금, dan 퇴직금 dihitung dari rata-rata itu.",
   "break": "istirahat",
   "break_deducted": "Istirahat dipotong",
-  "break_every_day": "매일 SETIAP HARI",
   "breaks_are_unpaid_so_these_times_decid": "Istirahat tidak dibayar, jadi jam-jam ini menentukan jam kerja Anda yang dibayar. Setiap perusahaan berbeda — masukkan jam Anda sendiri.",
   "by_hand": "MANUAL",
   "calculate": "HITUNG OTOMATIS",

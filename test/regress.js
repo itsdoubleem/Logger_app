@@ -4728,7 +4728,6 @@ console.log('\n== 표는 눌러서 달고 뗍니다 ==');
   // 안내가 여덟 개 언어에 다 있고, 무급 안내는 그대로 남아 있습니다
   ['ko','en','vi','zh','th','id','ne','km'].forEach(Lg => {
     ok(Lg + ' 잔업 휴게 안내가 있습니다', !!(V2.STR['a_break_tagged_only_if_late_comes_off'] || {})[Lg]);
-    ok(Lg + ' 매일 표가 있습니다', !!(V2.STR['break_every_day'] || {})[Lg]);
   });
   const V = new V2({}).renderVals();
   ok('무급 휴게 안내는 그대로 있습니다', !!V.L.breaksUnpaidNote && V.L.breaksUnpaidNote.indexOf('제54조') >= 0);

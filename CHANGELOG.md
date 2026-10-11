@@ -112,7 +112,7 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 표가 서는 네 자리(설정 흐름 주·야, 설정 탭 주·야)를 함께 바꿨습니다 — 같은 `breakRows()`에서
 나오는 같은 줄이고, 테스트가 이미 '한 곳만 고치면 다른 화면이 예전 모양으로 남는다'고 적어 두었습니다.
 30px 알약은 일곱에서 셋(출퇴근 카드)이 됐고, 그 수를 세던 `boot.js`와 `regress.js`를 같이 고쳤습니다.
-`break_every_day` 문자열은 화면에서 더 쓰이지 않지만 지우지 않았습니다.
+화면에서 더 쓰이지 않는 `break_every_day` 문자열은 여덟 언어에서 지웠습니다.
 
 **다음 사람에게.** 같은 성격의 단추는 앱 전체에서 같은 모양이어야 합니다. 켜고 끄는 것을 새로 찾으면
 `aria-checked`를 grep해서 스위치가 몇 개인지 세고, 그 수를 테스트에 적으세요.
