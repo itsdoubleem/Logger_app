@@ -140,6 +140,7 @@
   "days_of_service_365": "× 在职天数 ÷ 365",
   "days_per_year": "全年年假天数",
   "days_worked": "出勤天数",
+  "rng_worked_day": "已出勤的日子",
   "days_worked_ot_night_as_of_basic_and_f": "出勤{p0}天 · 잔업 {p1} · 야간 夜班 {p2}（截至 {p3}.{p4}）。기본금 和固定津贴已全额计入。",
   "days_worked_ot_night_whole_period": "出勤{p0}天 · 잔업 {p1} · 야간 夜班 {p2}（整个期间）。기본금 和固定津贴已全额计入。",
   "days_you_booked_ahead_they_sit_in_a_pa": "你提前登记的日子。它们在尚未开始的工资期里，所以 ‹ › 还到不了。",

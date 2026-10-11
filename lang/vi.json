@@ -140,6 +140,7 @@
   "days_of_service_365": "× số ngày làm việc ÷ 365",
   "days_per_year": "Số ngày mỗi năm",
   "days_worked": "Số ngày đã làm",
+  "rng_worked_day": "Ngày đã làm",
   "days_worked_ot_night_as_of_basic_and_f": "{p0} ngày làm · {p1} 잔업 · {p2} 야간 đêm, tính đến {p3}.{p4}. 기본금 và phụ cấp cố định được tính đủ.",
   "days_worked_ot_night_whole_period": "{p0} ngày làm · {p1} 잔업 · {p2} 야간 đêm, cho cả kỳ. 기본금 và phụ cấp cố định được tính đủ.",
   "days_you_booked_ahead_they_sit_in_a_pa": "Những ngày bạn đã ghi trước. Chúng nằm trong kỳ lương chưa bắt đầu, nên ‹ › chưa tới được.",
