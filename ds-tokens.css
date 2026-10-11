@@ -427,11 +427,11 @@
    ink on the panel is exactly what it was on the card. `box-shadow` is
    unclaimed in the source (zero inline), so no !important is needed. */
 
-/* ── 2m · LOGS · the 근무내역서 name prompt is rounded ─────────────────── */
+/* ── 2m · PAY · the 근무내역서 name prompt is rounded ──────────────────── */
 /* 'Whose record is this?' (askName) is a borderless tinted box above CREATE
    A WORK RECORD. Rule 2 rounds only boxes with a border, so this one stayed
    square while the input, the 'Not now' button and CREATE inside and below
-   it were all 12px (2026-10-12, asked by the worker). Same radius as its
+   it were all 12px (2026-10-12, asked by the worker; it sits on the 급여 tab). Same radius as its
    neighbours. The two other `padding: 12px 13px` tinted boxes carry a 2px
    border and are already `--radius-md` from rule 2, so this changes nothing
    for them. */
