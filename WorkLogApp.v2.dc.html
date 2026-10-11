@@ -2672,7 +2672,7 @@ class Component extends DCLogic {
       session: d.session || null,
       pendingImport: null,
       openDay: null, pending: null, pendingIso: null, pendingEndIso: null,
-      shortOut: false, staleOut: false, undoKeys: [], editedKeys: [], undoPrev: null,
+      shortOut: false, staleOut: false, undoKeys: [], editedKeys: [], undoPrev: null, undoRm: [],
       earlyPick: null, earlyNote: '', earlyFault: 'employer', reasonFor: null, reasonFresh: false,
       rsnOpen: false,
       backedUp: d.exported && !isNaN(new Date(d.exported)) ? d.exported : this.state.backedUp,
@@ -5247,14 +5247,22 @@ class Component extends DCLogic {
     const b = new Date(this.state.pendingEndIso || this.state.pendingIso);
     const s = a <= b ? a : b, e = a <= b ? b : a;
     const out = [];
+    // 이미 일한 날(찍은 근무, 미리 잡아 두기만 한 것은 아님)은 범위가 건드리지 않습니다.
+    // 쉬는 날인지는 달력이 정하지만, 그 날 일했는지는 기록이 정합니다 — 덮어쓰면 그 날의
+    // 근무와 수당이 사라지고 연차가 하루 더 빠졌습니다(리뷰 S2, 2026-10-12). 미리보기의
+    // '제외'에 '근무일'로 세어, 저장하기 전에 보입니다(S3). keep이면 저장이 그 날을 건너뜁니다.
+    const m = this.month();
+    const worked = d => m.some(r => this.key(r) === this.keyOf(d) && r.type === 'shift' && !r.planned && !r.awaiting);
     for (let d = new Date(s); d <= e; d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)) {
       const hol = this.holidayName(d);
       const sun = d.getDay() === 0;
       const sat = d.getDay() === 6 && this.state.satOff;
+      const keep = worked(d);
       out.push({
         d: new Date(d),
-        deduct: !hol && !sun && !sat,
-        why: hol || (sun ? this.T('sunday_2') : (sat ? this.T('saturday_off') : '')),
+        deduct: !hol && !sun && !sat && !keep,
+        keep,
+        why: keep ? this.T('days_worked') : (hol || (sun ? this.T('sunday_2') : (sat ? this.T('saturday_off') : ''))),
       });
     }
     return out;
@@ -5280,6 +5288,9 @@ class Component extends DCLogic {
   }
   undoLast() {
     const ks = this.state.undoKeys || [];
+    // 되돌릴 저장이 없으면 아무것도 하지 않습니다 — 남은 undoRm이 방금 저장한 날을 다시
+    // 가리는 일이 없도록(리뷰 S1, 2026-10-12)
+    if (!ks.length) return;
     const prev = Array.isArray(this.state.undoPrev) ? this.state.undoPrev : [];
     const rm = Array.isArray(this.state.undoRm) ? this.state.undoRm : [];
     const back = prev.filter(Boolean);
@@ -5416,12 +5427,9 @@ class Component extends DCLogic {
         mon: false, planned: true, awaiting: true, inH: 9, outH: 21, c: this.calc(9, 21, 'day', true),
       }];
     } else {
-      // 쉬는 날(일요일·공휴일·쉬는 토요일)에 이미 일한 근무가 있으면 그 날은 건너뜁니다.
-      // 범위가 그 위에 '차감 없음'을 적어 특근 수당이 조용히 사라졌습니다(리뷰 S2,
-      // 2026-10-12). 미리 잡아 두기만 한 특근(planned/awaiting)은 일한 날이 아니므로 덮습니다.
-      const m = this.month();
-      const worked = d => m.some(r => this.key(r) === this.keyOf(d) && r.type === 'shift' && !r.planned && !r.awaiting);
-      recs = this.rangeDays().filter(x => x.deduct || !worked(x.d)).map(x => x.deduct
+      // 이미 일한 날은 건너뜁니다 — 어느 요일이든(rangeDays의 keep). 미리 잡아 두기만 한
+      // 특근(planned/awaiting)은 일한 날이 아니므로 덮습니다.
+      recs = this.rangeDays().filter(x => !x.keep).map(x => x.deduct
         ? {
           y: x.d.getFullYear(), m: x.d.getMonth() + 1, day: x.d.getDate(), kind: 'day', type, mon: false,
           planned: x.d > now, c: { gross: 0, bk: 0, net: 8, reg: 8, ot: 0, night: 0, hol: 0, pay: 0 },
@@ -5446,7 +5454,7 @@ class Component extends DCLogic {
       editPrev: null,
     }));
     clearTimeout(this.addT);
-    this.addT = setTimeout(() => this.setState({ undoKeys: [], editedKeys: [], undoPrev: null }), 9000);
+    this.addT = setTimeout(() => this.setState({ undoKeys: [], editedKeys: [], undoPrev: null, undoRm: [] }), 9000);
   }
   // single source of truth for elapsed time — same rollover rule as punch()
   //
@@ -5558,7 +5566,7 @@ class Component extends DCLogic {
       earlyPick: 'no_work', earlyFault: 'employer', earlyNote: '',
     }));
     clearTimeout(this.addT);
-    this.addT = setTimeout(() => this.setState({ undoKeys: [], editedKeys: [], undoPrev: null }), 9000);
+    this.addT = setTimeout(() => this.setState({ undoKeys: [], editedKeys: [], undoPrev: null, undoRm: [] }), 9000);
   }
   forceClockOut() {
     const L = this.sessionHours();
@@ -5585,7 +5593,7 @@ class Component extends DCLogic {
       earlyPick: null, earlyFault: 'employer', earlyNote: '',
     }));
     clearTimeout(this.addT);
-    this.addT = setTimeout(() => this.setState({ undoKeys: [], editedKeys: [], undoPrev: null }), 9000);
+    this.addT = setTimeout(() => this.setState({ undoKeys: [], editedKeys: [], undoPrev: null, undoRm: [] }), 9000);
   }
   // ── 앱이 모르는 명절을 직접 휴일로 ──
   // 공휴일 표는 2026–2027년만 들어 있습니다. 그 밖의 해의 설날·추석에 일했다면
@@ -5612,7 +5620,7 @@ class Component extends DCLogic {
       removed: this.state.removed.filter(x => x !== k),
       // 이 표시는 다시 누르면 꺼지는 스위치라 따로 되돌리기가 없습니다. 다만 다른 저장이 남긴
       // 되돌리기가 화면에 떠 있으면 그것이 이 날을 덮어쓸 수 있으므로 비웁니다(리뷰 M2).
-      undoKeys: [], editedKeys: [], undoPrev: null,
+      undoKeys: [], editedKeys: [], undoPrev: null, undoRm: [],
     });
   }
   removeEntry(k) {
@@ -5663,7 +5671,7 @@ class Component extends DCLogic {
       rsnOpen: false, editedKeys: [k],
     }));
     clearTimeout(this.addT);
-    this.addT = setTimeout(() => this.setState({ undoKeys: [], editedKeys: [], undoPrev: null }), 9000);
+    this.addT = setTimeout(() => this.setState({ undoKeys: [], editedKeys: [], undoPrev: null, undoRm: [] }), 9000);
   }
   // ── 근로소득 간이세액표 ──
   // 소득세법 시행령 [별표 2] <개정 2026. 2. 27.> · 2026년 3월 1일 이후 지급분부터.
@@ -5951,7 +5959,7 @@ class Component extends DCLogic {
       editedKeys: [],
     }));
     clearTimeout(this.addT);
-    this.addT = setTimeout(() => this.setState({ undoKeys: [], editedKeys: [], undoPrev: null }), 9000);
+    this.addT = setTimeout(() => this.setState({ undoKeys: [], editedKeys: [], undoPrev: null, undoRm: [] }), 9000);
   }
   // ── 조퇴 사유 시트 ──
   // 목록에서 고르면 fault가 따라오고, '직접 입력'을 고르면 근로자가 문장을

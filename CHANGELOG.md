@@ -1,6 +1,6 @@
 # 근무기록 LOGGER — change log beyond V2.md
 
-Eighty-three entries, newest first — seventy-six carry an ordinal (first … seventy-sixth),
+Eighty-four entries, newest first — seventy-seven carry an ordinal (first … seventy-seventh),
 the seven oldest predate the numbering. Each one is a bug found by **actually using the app on
 shift**, what changed, and — the part worth reading — *why it was that and not the
 obvious fix*. Most entries end with a **다음 사람에게** paragraph: the rule the bug
@@ -18,7 +18,8 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 
 ## Index
 
-- 2026-10-12 (latest, seventy-sixth) — 휴가를 길게 잡으면 그 안의 일한 일요일이 쉬는 날로 바뀌었습니다
+- 2026-10-12 (latest, seventy-seventh) — 연차 범위가 일한 평일까지 덮었고, 미리보기는 그것을 몰랐습니다
+- 2026-10-12 (seventy-sixth) — 휴가를 길게 잡으면 그 안의 일한 일요일이 쉬는 날로 바뀌었습니다
 - 2026-10-11 (seventy-fifth) — 법정 휴일 표시는 날짜의 것인데, 기록을 새로 만드는 자리마다 빠졌습니다
 - 2026-10-11 (seventy-fourth) — 고친 날을 저장하면 조퇴 사유와 법정 휴일 표시가 사라졌습니다
 - 2026-10-11 (seventy-third) — 10:00–10:00 한 줄이 하루를 통째로 휴게로 만들었습니다
@@ -102,7 +103,36 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 - 2026-08-13 — the service worker was hiding every update
 - 2026-08-13 (earlier) — 조퇴 사유 became a popup with a dropdown
 
-### 2026-10-12 (latest, seventy-sixth) — 휴가를 길게 잡으면 그 안의 일한 일요일이 쉬는 날로 바뀌었습니다
+### 2026-10-12 (latest, seventy-seventh) — 연차 범위가 일한 평일까지 덮었고, 미리보기는 그것을 몰랐습니다
+
+v1.2.16의 리뷰가 일흔여섯째의 고침이 반쪽이었다는 것을 찾았습니다. 그 판은 범위 안의 **일한 쉬는 날**만
+건너뛰었고, **일한 평일**은 여전히 연차로 덮었습니다. 02.14–18 연차를 잡으면 수요일(02.16)에 일한 근무가
+사라지고 연차가 하루 더 빠졌습니다(15 → 10). 미리보기는 '5일 / 차감 5일'이라고만 했습니다. 일흔여섯째가
+스스로 적은 규칙 — '그 날 일했는지는 기록이 정합니다' — 을 평일에는 지키지 않은 것입니다.
+
+| 범위 안의 날 | v1.2.16 | 이제 |
+|---|---|---|
+| 일하지 않은 평일 | 연차·휴가 | 연차·휴가 |
+| **일한** 평일 | 연차로 덮임, 근무 사라짐, 연차 하루 더 빠짐 | 그대로 — 미리보기에 '제외 · 근무일' |
+| 일한 일요일·공휴일·쉬는 토요일 | 그대로, 미리보기는 '일요일'로 셈 | 그대로 — 미리보기에 '근무일' |
+| 미리 잡아 두기만 한 근무(아직 안 찍음) | 덮임 | 덮임 — 일한 날이 아닙니다 |
+
+이제 범위를 정하는 `rangeDays()` 한 곳이 날마다 '일한 날인지'(`keep`)를 정하고, 미리보기(`rangeInfo`)와
+저장(`confirmPending()`)이 그것을 함께 읽습니다. 그래서 미리보기의 '차감 N일'과 실제로 빠지는 연차가
+어긋날 수 없습니다. '근무일'은 이미 여덟 언어에 있는 문구(`days_worked`)라 새 문구를 만들지 않았습니다.
+
+같은 리뷰에서 되돌리기를 하나 더 막았습니다. 9초가 지나 되돌리기가 닫혀도 '원래 가려져 있던 날'(`undoRm`)이
+남아, 그 뒤에 되돌리기가 불리면 방금 저장한 날을 다시 가릴 수 있었습니다. 화면의 되돌리기 단추는 그때
+보이지 않으므로 손으로는 닿기 어렵지만, 되돌릴 저장이 없으면 이제 `undoLast()`는 아무것도 하지 않고, 되돌리기를
+닫는 모든 자리(타이머 다섯, 법정 휴일 스위치, 백업 불러오기)가 `undoRm`도 비웁니다.
+
+일흔여섯째가 '손으로 넣은 근무의 안내가 수정됨'이라고 적은 것은 좁게 적은 것입니다 — 결근·휴업·특근·하루짜리
+연차도 기록이 있던 날을 덮으면 '수정됨'입니다. 여러 날짜리는 여전히 'N일 기록 추가됨'입니다.
+
+**다음 사람에게.** 미리보기와 저장이 같은 것을 각자 셈하면 언젠가 어긋납니다. 하루를 어떻게 다룰지는
+`rangeDays()` 한 곳에서 정하고, 둘 다 그것을 읽게 하세요.
+
+### 2026-10-12 (seventy-sixth) — 휴가를 길게 잡으면 그 안의 일한 일요일이 쉬는 날로 바뀌었습니다
 
 v1.2.15의 리뷰가 찾은 것입니다. 연차·휴가를 여러 날로 잡으면 앱은 그 안의 일요일·공휴일·쉬는 토요일에
 '차감 없음'(`redday`) 기록을 적습니다 — 휴가에서 빼는 날이라는 표시입니다. 그런데 그 날에 **이미 일한
