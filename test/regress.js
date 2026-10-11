@@ -9667,6 +9667,8 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ['ko','en','vi','zh','th','id','ne','km'].forEach(Lg=>{
     const t=V2.STR['clock_in_rounds_up_to_the_next_30_minu'][Lg];
     ok(Lg+' 안내가 0이 시작값이라고 말합니다', t.indexOf(NEW[Lg])>0 && t.indexOf(OLD[Lg])<0, t.slice(-90));
+    // 예시 20:45 → 21:00은 문장에 그대로 남습니다(리뷰 N4 — 앞 시험이 그것을 보던 자리를 이어받습니다)
+    ok(Lg+' 안내에 20:45 → 21:00 예시가 남아 있습니다', t.indexOf('20:45')>0 && t.indexOf('21:00')>t.indexOf('20:45'));
   });
   ok('ko 안내', V2.STR['clock_in_rounds_up_to_the_next_30_minu'].ko.indexOf('새로 깐 앱은 0분입니다')>0);
   ok('근무내역서의 퇴근 유예 줄은 0분도 적습니다', src.indexOf("{ k: this.T('clock_out_grace'), v: (+this.st().outGrace || 0) + this.T('min_before_the_hour') }")>0);
@@ -9730,6 +9732,10 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   const ins=body('gInsOpen');
   ok('4대보험의 옛 테두리 상자가 남아 있지 않습니다', ins.indexOf('border:2px solid var(--color-divider);padding:13px 15px')<0);
   ok('직접 적는 표가 법이 정한 값보다 앞입니다', ins.indexOf('{{ insManual }}')<ins.indexOf('{{ insAutoOn }}'));
+  // 판의 첫 줄은 판의 padding에서 시작합니다 — 옛 상자에서 남은 margin-top이 있으면 이 판만 21px 안쪽에서
+  // 시작했습니다(리뷰 N1). 카드 안에서는 margin이 아니라 padding입니다.
+  const ins1=ins.split('padding:12px 14px 10px;background:var(--color-card)">')[1];
+  ok('4대보험 첫 판의 첫 줄에 margin-top이 없습니다', /^\s*<div style="display:flex;gap:7px">/.test(ins1), ins1.slice(0,80));
   // 내 급여 조건: 설명이 제 판 안으로 — 기본금 설명은 첫 판, 기준시간 설명은 둘째 판
   const pay=body('gPayOpen').split(PANEL);
   ok('기본금 설명은 내 명세서 판에', pay[1].indexOf('{{ basicDefaultNote }}')>0 && pay[1].indexOf('{{ L.secMine2 }}')>0);
