@@ -8928,6 +8928,17 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   let n=c.renderVals().nightBreakRows[0];
   n.toggleOt(); n=c.renderVals().nightBreakRows[0];
   ok('야간 줄도 켜집니다', n.otOnly===true && n.otTrack==='var(--color-accent)' && c.st().breaksNight[0].ot===true);
+  n.toggleOt(); n=c.renderVals().nightBreakRows[0];
+  ok('야간 줄을 다시 누르면 꺼집니다', n.otOnly===false && n.otKnobX==='0px' && c.st().breaksNight[0].ot===false);
+  // 자리로 '연장 시'인 줄(ot를 적지 않았고 평소 하루가 끝난 뒤에 앉은 휴게)은
+  // 처음부터 켜져 보이고, 첫 번째 누름이 그것을 끕니다 — toggleBreakOt가 지금 값을
+  // 셈하는 방법이 화면과 같아야 합니다.
+  const d=mk(V2);
+  d.setS({ shifts:'day', dayStart:'09:00', breaksDay:[{from:'11:30',to:'12:30'},{from:'18:00',to:'18:30'}] });
+  let p=d.renderVals().dayBreakRows[1];
+  ok('평소 하루가 끝난 뒤의 휴게는 처음부터 켜져 있습니다', d.st().breaksDay[1].ot===undefined && p.otOnly===true && p.otKnobX==='15px');
+  p.toggleOt(); p=d.renderVals().dayBreakRows[1];
+  ok('첫 누름이 그것을 끕니다', d.st().breaksDay[1].ot===false && p.otOnly===false && p.otKnobX==='0px');
 }
 
 // ── 시각을 아직 안 적은 휴게 줄의 스위치 (리뷰 S1, 2026-10-11) ──
