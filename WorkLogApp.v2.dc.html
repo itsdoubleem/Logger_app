@@ -4368,8 +4368,8 @@ class Component extends DCLogic {
       let a = this.parseHM(b.from), z = this.parseHM(b.to);
       if (a === null || z === null) return null;
       // 시작과 끝이 같은 줄은 24시간 휴게가 아니라 아직 적다 만 줄입니다. 그대로 두면
-      // 아래 z += 24가 하루 전체를 휴게로 만들어, 그 줄이 있는 동안 찍은 근무가 전부
-      // 실근무 0시간이 됩니다(리뷰 S1, 2026-10-11).
+      // 아래 z += 24가 그 시각부터 24시간을 휴게로 만들어, 그 줄이 있는 동안 찍은 근무는
+      // 그 시각 뒤가 통째로 빠집니다 — 그 뒤에 출근한 날은 0시간(리뷰 S1, 2026-10-11).
       if (a === z) return null;
       if (kind === 'night') {
         // a break earlier in the clock than the night start belongs to the FOLLOWING day
