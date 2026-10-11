@@ -4783,7 +4783,7 @@ console.log('\n== 표 옆에 그 표가 무슨 뜻인지 적습니다 ==');
   ok('설명도 넷입니다', cnt(src, '{{ r.tagNote }}') === 4, cnt(src, '{{ r.tagNote }}'));
   // 2026-10-11부터 표는 스위치입니다 — 설명은 제목 바로 밑에 섭니다
   ok('넷 다 설명이 제목 바로 밑입니다',
-    cnt(src, '{{ r.tag }}</div><div style="padding-top:2px;font-size:9.5px;') === 4);
+    cnt(src, '{{ r.tag }}</div></sc-if><div style="padding-top:2px;font-size:9.5px;') === 4);
   // 옆에 글이 서도 스위치는 찌그러지지 않습니다 — flex:none이 그것을 막습니다.
   ok('스위치는 줄어들지 않습니다', cnt(src, '{{ r.toggleOt }}" role="switch" aria-checked="{{ r.otOnly }}" aria-label="{{ r.tag }}" style="flex:none;min-height:44px;min-width:64px;') === 4);
 
@@ -8918,17 +8918,18 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('글자가 바뀌는 알약은 남지 않았습니다', tpl.indexOf('r.tagBd')<0 && tpl.indexOf('{{ r.toggleOt }}" style=')<0);
   const c=mk(V2);
   c.setS({ shifts:'both', dayStart:'08:00', nightStart:'20:00',
-    breaksDay:[{from:'11:30',to:'12:30'},{from:'17:00',to:'17:30'}], breaksNight:[{from:'00:00',to:'01:00'}] });
-  let r=c.renderVals().dayBreakRows[0];
+    breaksDay:[{from:'11:30',to:'12:30'},{from:'17:00',to:'17:30'}], breaksNight:[{from:'00:00',to:'01:00'},{from:'04:00',to:'04:30'}] });
+  // 첫 휴게(점심)에는 스위치가 없으므로(F7) 둘째 줄로 확인합니다
+  let r=c.renderVals().dayBreakRows[1];
   ok('제목은 상태와 상관없이 같습니다', r.tag===c.T('only_if_you_work_late'));
-  const was=r.otOnly; r.toggleOt(); r=c.renderVals().dayBreakRows[0];
+  const was=r.otOnly; r.toggleOt(); r=c.renderVals().dayBreakRows[1];
   ok('누르면 뒤집히고 제목은 그대로', r.otOnly===!was && r.tag===c.T('only_if_you_work_late') && r.otTrack===V2.switchTrack(!was) && r.otKnobX===V2.switchKnobX(!was));
   // 야간 줄도 같은 빌더를 지나가지만, 다른 kind로 갈 수 있으니 따로 확인합니다
-  let n=c.renderVals().nightBreakRows[0];
-  n.toggleOt(); n=c.renderVals().nightBreakRows[0];
-  ok('야간 줄도 켜집니다', n.otOnly===true && n.otTrack==='var(--color-accent)' && c.st().breaksNight[0].ot===true);
-  n.toggleOt(); n=c.renderVals().nightBreakRows[0];
-  ok('야간 줄을 다시 누르면 꺼집니다', n.otOnly===false && n.otKnobX==='0px' && c.st().breaksNight[0].ot===false);
+  let n=c.renderVals().nightBreakRows[1];
+  n.toggleOt(); n=c.renderVals().nightBreakRows[1];
+  ok('야간 줄도 켜집니다', n.otOnly===true && n.otTrack==='var(--color-accent)' && c.st().breaksNight[1].ot===true);
+  n.toggleOt(); n=c.renderVals().nightBreakRows[1];
+  ok('야간 줄을 다시 누르면 꺼집니다', n.otOnly===false && n.otKnobX==='0px' && c.st().breaksNight[1].ot===false);
   // 자리로 '연장 시'인 줄(ot를 적지 않았고 평소 하루가 끝난 뒤에 앉은 휴게)은
   // 처음부터 켜져 보이고, 첫 번째 누름이 그것을 끕니다 — toggleBreakOt가 지금 값을
   // 셈하는 방법이 화면과 같아야 합니다.
@@ -8982,6 +8983,57 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('누름 규칙 네 줄 다 스위치를 뺍니다', press.length===4 && press.every(l=>l.includes(':not([role="switch"])')), press.join('\n'));
   const i=css.indexOf(':not([role="switch"]):active {'), j=css.indexOf('[style*="background: var(--color-text)"]:active');
   ok('검은 단추 규칙이 그 뒤에 남아 이깁니다', i>0 && j>i);
+}
+
+// ── 그 근무조의 첫 휴게에는 스위치가 없습니다 (F7, 2026-10-11) ──
+// 근로자: '연장 시에 왜 켜고 끄는 것이 필요합니까? 점심은 법으로 줘야 하는 것이니 이미
+// 주어진 것이고, 잔업하는 날에만 저녁 휴게가 있습니다.' 맞습니다 — §54는 8시간에 1시간을
+// 요구하고 8시간을 넘는 근무에는 더 요구하지 않습니다. 점심을 '연장 시'로 켜면 평소 날마다
+// 1시간이 실근무로 더해집니다. 그래서 첫 휴게는 언제나 매일이고, 스위치는 그 뒤의 줄에만 섭니다.
+{
+  const src=require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tpl=src.split('class Component')[0];
+  ok('네 자리 다 스위치가 hasSwitch 안에 있습니다',
+    tpl.split('<sc-if value="{{ r.hasSwitch }}" hint-placeholder-val="{{ true }}"><div onClick="{{ r.toggleOt }}" role="switch"').length-1===4);
+  ok('제목도 hasSwitch 안에 있습니다 — 첫 줄은 설명 한 줄만',
+    tpl.split('<sc-if value="{{ r.hasSwitch }}" hint-placeholder-val="{{ true }}"><div style="font-size:12.5px;font-weight:600">{{ r.tag }}</div></sc-if>').length-1===4);
+
+  const c=mk(V2);
+  c.setS({ shifts:'both', dayStart:'08:00', nightStart:'20:00',
+    breaksDay:[{from:'11:30',to:'12:30'},{from:'17:00',to:'17:30'}],
+    breaksNight:[{from:'00:00',to:'01:00'},{from:'04:00',to:'04:30'}] });
+  let v=c.renderVals();
+  ok('주간 점심에는 스위치가 없고 매일 빠집니다', v.dayBreakRows[0].hasSwitch===false && v.dayBreakRows[0].otOnly===false && v.dayBreakRows[0].tagNote===c.T('comes_off_every_shift'));
+  ok('주간 저녁에는 스위치가 있습니다', v.dayBreakRows[1].hasSwitch===true);
+  // 야간은 자정을 넘겨 셉니다 — 00:00은 20:00 시작의 첫 휴게, 04:00은 그 뒤
+  ok('야간 00:00이 첫 휴게입니다', v.nightBreakRows[0].hasSwitch===false && v.nightBreakRows[1].hasSwitch===true);
+  // 목록 순서가 아니라 시작 시각입니다
+  c.setS({ breaksDay:[{from:'17:00',to:'17:30'},{from:'11:30',to:'12:30'}] });
+  v=c.renderVals();
+  ok('줄 순서가 바뀌어도 이른 쪽이 첫 휴게입니다', v.dayBreakRows[1].hasSwitch===false && v.dayBreakRows[0].hasSwitch===true);
+  // 야간에서 23:30은 00:00보다 이릅니다(20:00 시작)
+  c.setS({ breaksNight:[{from:'00:00',to:'01:00'},{from:'23:30',to:'23:45'}] });
+  v=c.renderVals();
+  ok('야간 23:30이 00:00보다 앞섭니다', v.nightBreakRows[1].hasSwitch===false && v.nightBreakRows[0].hasSwitch===true);
+
+  // 이미 '연장 시'로 저장된 첫 줄은 스위치를 남깁니다 — 되돌릴 길을 숨기지 않습니다
+  c.setS({ breaksDay:[{from:'11:30',to:'12:30',ot:true},{from:'17:00',to:'17:30'}] });
+  let r=c.renderVals().dayBreakRows[0];
+  ok('연장 시로 저장된 점심은 스위치가 남고 켜져 보입니다', r.hasSwitch===true && r.otOnly===true);
+  r.toggleOt(); r=c.renderVals().dayBreakRows[0];
+  ok('끄면 그때부터 스위치가 사라집니다', c.st().breaksDay[0].ot===false && r.otOnly===false && r.hasSwitch===false);
+  ok('그리고 점심 1시간이 평소 날에도 빠집니다', c.calc(8,17,'day',false).net===8, String(c.calc(8,17,'day',false).net));
+
+  // 자리로 '연장 시'인 휴게가 유일한 줄이면(9-6 공장의 18:00 저녁만 적은 경우) 스위치를 남깁니다
+  const d=mk(V2);
+  d.setS({ shifts:'day', dayStart:'09:00', breaksDay:[{from:'18:00',to:'18:30'}] });
+  r=d.renderVals().dayBreakRows[0];
+  ok('평소 하루 뒤의 휴게 하나뿐이면 스위치가 남습니다', r.otOnly===true && r.hasSwitch===true);
+
+  // 시각이 빈 줄은 첫 휴게가 될 수 없습니다 — 막 더한 줄에도 스위치가 있습니다
+  d.setS({ breaksDay:[{from:'',to:''},{from:'12:00',to:'13:00'}] });
+  v=d.renderVals();
+  ok('빈 줄은 스위치를 갖고, 시각이 있는 줄이 첫 휴게입니다', v.dayBreakRows[0].hasSwitch===true && v.dayBreakRows[1].hasSwitch===false);
 }
 
 Promise.all(later).then(()=>{

@@ -1,6 +1,6 @@
 # 근무기록 LOGGER — change log beyond V2.md
 
-Seventy-seven entries, newest first — seventy carry an ordinal (first … seventieth),
+Seventy-eight entries, newest first — seventy-one carry an ordinal (first … seventy-first),
 the seven oldest predate the numbering. Each one is a bug found by **actually using the app on
 shift**, what changed, and — the part worth reading — *why it was that and not the
 obvious fix*. Most entries end with a **다음 사람에게** paragraph: the rule the bug
@@ -18,7 +18,8 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 
 ## Index
 
-- 2026-10-11 (latest, seventieth) — 빈 휴게 줄의 스위치는 눌러도 꿈쩍하지 않았는데 저장은 바뀌었습니다
+- 2026-10-11 (latest, seventy-first) — 점심에 '연장 시' 스위치가 있을 까닭이 없었습니다
+- 2026-10-11 (seventieth) — 빈 휴게 줄의 스위치는 눌러도 꿈쩍하지 않았는데 저장은 바뀌었습니다
 - 2026-10-11 (sixty-ninth) — 휴게 줄의 '매일 ↔ 연장 시'도 글자가 바뀌는 단추였습니다
 - 2026-10-11 (sixty-eighth) — 켜졌는지 꺼졌는지 단추가 말하지 않았습니다
 - 2026-09-25 (sixty-seventh) — 기간 고르기가 카드 가장자리에 붙어 있었고, 연도 칩만 네모였습니다
@@ -96,7 +97,35 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 - 2026-08-13 — the service worker was hiding every update
 - 2026-08-13 (earlier) — 조퇴 사유 became a popup with a dropdown
 
-### 2026-10-11 (latest, seventieth) — 빈 휴게 줄의 스위치는 눌러도 꿈쩍하지 않았는데 저장은 바뀌었습니다
+### 2026-10-11 (latest, seventy-first) — 점심에 '연장 시' 스위치가 있을 까닭이 없었습니다
+
+스위치가 나온 날, 근로자가 설정 흐름 2/4를 보고 물었습니다: **점심은 법으로 줘야 하는 휴게인데 왜
+켜고 끄는 것이 있습니까? 잔업하는 날에만 있는 것은 저녁 휴게이고, 저녁 시간은 사람마다 다릅니다.**
+맞습니다. 근로기준법 §54는 4시간에 30분, 8시간에 1시간의 휴게를 근로시간 도중에 주라고 하고,
+8시간을 넘는 근무에는 더 요구하지 않습니다. 저녁 휴게는 회사의 관행이고, 그래서 잔업하는 날에만
+있습니다.
+
+화면은 두 군데서 틀렸습니다. 모든 줄의 제목이 `연장 시 ONLY IF LATE`여서 점심 줄이 잔업 휴게처럼
+읽혔고(예순아홉째가 제목을 '켜졌을 때의 뜻'으로 고정한 탓입니다), 점심에도 스위치가 있었습니다.
+점심을 켜면 평소 날마다 1시간이 실근무로 더해져 근로감독관 앞에 낼 기록에 남습니다.
+
+| | 전 | 후 |
+|---|---|---|
+| 그 근무조의 첫 휴게 (주간 점심, 야간 00:00) | 제목 + 스위치 | 설명 한 줄만 — '날마다 실근무에서 빠집니다' |
+| 그 뒤의 휴게 (저녁 등) | 제목 + 스위치 | 그대로 |
+| 이미 '연장 시'인 첫 휴게 (저장된 `ot:true`, 또는 평소 하루 뒤에 앉은 유일한 휴게) | 제목 + 스위치 | 그대로 — 끄면 그때 사라집니다 |
+
+'첫 휴게'는 목록 순서가 아니라 **시작 시각이 가장 이른 줄**입니다. 야간은 야간 시작 기준으로 자정을
+넘겨 셉니다(20:00 시작이면 23:30이 00:00보다 앞). 시각이 빈 줄은 첫 휴게가 될 수 없습니다. 점심
+줄은 여전히 고치고 지울 수 있습니다 — 법이 정한 것은 휴게를 *줘야 한다*는 것이지 *줬다*는 것이
+아니고, 기계 앞에서 밥을 먹는 사람에게 그 시간은 휴게가 아닙니다('식사 휴게가 없습니다').
+줄마다의 스위치 자체는 남깁니다: 12시간 교대의 17:00 저녁은 평소 하루 *안*에 있어서 자리로는
+'연장 시'를 말할 수 없습니다(스물아홉째).
+
+**다음 사람에게.** 스위치를 달기 전에 그 값이 정말 근로자가 고르는 것인지 물으세요. 법이 정한 것을
+켜고 끌 수 있게 두면, 한 번의 누름이 기록을 틀리게 만듭니다 — 그리고 그것은 오류를 내지 않습니다.
+
+### 2026-10-11 (seventieth) — 빈 휴게 줄의 스위치는 눌러도 꿈쩍하지 않았는데 저장은 바뀌었습니다
 
 v1.2.9를 낸 뒤의 리뷰가 찾았습니다. '휴게시간 추가'로 막 생긴 줄은 시작 시각이 비어 있고,
 `breakRows()`는 시각이 없으면 `otOnly`를 무조건 거짓으로 그렸습니다. 그런데 `toggleBreakOt()`는
