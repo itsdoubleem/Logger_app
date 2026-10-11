@@ -9267,6 +9267,20 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ['forceClockOut','sentHome'].forEach(n=>ok(n+'도 앞의 되돌리기를 비웁니다', /undoKeys: \[k\],[^}]*undoPrev: null/.test(body(n)) && /editedKeys: \[\]/.test(body(n))));
 }
 
+// ── 고치다가 빈 날로 옮겨 저장한 뒤 되돌리기 (리뷰 S4, 2026-10-11) ──
+// 고치기 가운데 덮어쓴 기록이 없는(replaced = null) 유일한 길입니다. 되돌리면 새로 생긴 날만
+// 지워지고, 고치기로 연 날은 손대지 않은 그대로입니다.
+{
+  const c=mk(V2,'2028-02-20T23:00:00'); c.state.settings.periodStart=1;
+  const orig={y:2028,m:2,day:16,kind:'day',type:'shift',inH:9,outH:22,c:c.calc(9,22,'day',false),reason:{id:'machine',fault:'employer',ko:'기계 고장'}};
+  c.state.extra=[orig]; const keep=JSON.stringify(orig);
+  c.editDay(c.state.extra[0]); c.pickDate(new Date(2028,1,18)); c.confirmPending();
+  ok('빈 날로 옮겨 저장하면 그 날이 생깁니다', c.state.extra.filter(x=>x.day===18).length===1 && c.state.undoPrev===null);
+  c.undoLast();
+  ok('되돌리면 새로 생긴 날이 사라집니다', c.state.extra.filter(x=>x.day===18).length===0);
+  ok('고치기로 연 날은 그대로입니다', JSON.stringify(c.state.extra.filter(x=>x.day===16)[0])===keep);
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);
