@@ -9118,6 +9118,25 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('시작이 같으면 앞선 줄이 식사 휴게입니다', v[0].hasSwitch===false && v[1].hasSwitch===true, JSON.stringify(v.map(r=>r.hasSwitch)));
 }
 
+// ── 시작과 끝이 같은 휴게는 24시간이 아니라 없는 휴게입니다 (리뷰 S1, 2026-10-11) ──
+// 설정 탭의 글자 칸에 10:00–10:00을 잘못 적으면 그 줄이 24시간 휴게로 읽혀, 그 줄이 있는 동안
+// 찍은 근무가 모두 실근무 0시간으로 저장됐습니다. 끝 시각이 빈 줄과 똑같이 건너뜁니다.
+{
+  const c=mk(V2);
+  c.setS({ shifts:'day', dayStart:'09:00', breaksDay:[{from:'12:00',to:'13:00'}] });
+  const base=c.calc(9,18,'day',false).net;
+  c.setS({ breaksDay:[{from:'12:00',to:'13:00'},{from:'10:00',to:'10:00'}] });
+  ok('10:00–10:00 줄이 있어도 9–18은 8시간', base===8 && c.calc(9,18,'day',false).net===8, String(c.calc(9,18,'day',false).net));
+  ok('임금 계산의 휴게 목록에 들어가지 않습니다', c.breaks('day').length===1);
+  const v=c.renderVals().dayBreakRows;
+  ok('식사 휴게는 여전히 점심입니다', v[0].hasSwitch===false && v[1].hasSwitch===true, JSON.stringify(v.map(r=>r.hasSwitch)));
+  ok('그 줄은 0분으로 보입니다', v[1].mins==='0'+c.T('m'), v[1].mins);
+  // 야간도 같습니다 — 자정을 넘겨 세는 쪽에서도 24시간이 되면 안 됩니다
+  const n=mk(V2);
+  n.setS({ shifts:'night', nightStart:'21:00', breaksNight:[{from:'00:00',to:'01:00'},{from:'03:00',to:'03:00'}] });
+  ok('야간 03:00–03:00도 건너뜁니다', n.breaks('night').length===1 && n.calc(21,30,'night',false).net===8, String(n.calc(21,30,'night',false).net));
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);

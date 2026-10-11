@@ -4367,6 +4367,10 @@ class Component extends DCLogic {
     return (list || []).map(b => {
       let a = this.parseHM(b.from), z = this.parseHM(b.to);
       if (a === null || z === null) return null;
+      // 시작과 끝이 같은 줄은 24시간 휴게가 아니라 아직 적다 만 줄입니다. 그대로 두면
+      // 아래 z += 24가 하루 전체를 휴게로 만들어, 그 줄이 있는 동안 찍은 근무가 전부
+      // 실근무 0시간이 됩니다(리뷰 S1, 2026-10-11).
+      if (a === z) return null;
       if (kind === 'night') {
         // a break earlier in the clock than the night start belongs to the FOLLOWING day
         const ns = this.schedStart('night');
@@ -5074,8 +5078,8 @@ class Component extends DCLogic {
     list.forEach((b, i) => {
       let at = this.parseHM(b.from);
       const to = this.parseHM(b.to);
-      if (at === null || to === null) return;
-      let len = to - at; if (len <= 0) len += 24;
+      if (at === null || to === null || at === to) return;
+      let len = to - at; if (len < 0) len += 24;
       if (len < 0.5 - 1e-9) return;
       if (kind === 'night' && at < this.schedStart('night')) at += 24;
       if (at < mealAt) { mealAt = at; meal = i; }
@@ -5085,7 +5089,8 @@ class Component extends DCLogic {
       let mins = '';
       if (a === null || z === null) mins = '—';
       else {
-        let d = z - a; if (d <= 0) d += 24;
+        // 시작과 끝이 같으면 0분입니다 — breaks()도 그 줄을 빼므로 화면이 그것과 같아야 합니다
+        let d = z - a; if (d < 0) d += 24;
         mins = Math.round(d * 60) + this.T('m');
       }
       // an untouched seeded time stays quiet, so it reads as a suggestion
