@@ -9108,6 +9108,16 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('시각이 빈 줄은 제목만', v[2].switchName===c.T('only_if_you_work_late'));
 }
 
+// ── 시작이 같은 두 휴게 (리뷰 N4, 2026-10-11) ──
+// 같은 시각에 시작하는 30분 이상의 휴게가 둘이면, 목록에서 앞선 줄이 식사 휴게입니다.
+// '<'를 '<='로 바꾸면 뒤 줄로 넘어가는데, 그것은 오류를 내지 않습니다.
+{
+  const c=mk(V2);
+  c.setS({ shifts:'day', dayStart:'08:00', breaksDay:[{from:'12:00',to:'13:00'},{from:'12:00',to:'12:30'}] });
+  const v=c.renderVals().dayBreakRows;
+  ok('시작이 같으면 앞선 줄이 식사 휴게입니다', v[0].hasSwitch===false && v[1].hasSwitch===true, JSON.stringify(v.map(r=>r.hasSwitch)));
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);
