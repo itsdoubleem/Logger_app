@@ -1,6 +1,6 @@
 # 근무기록 LOGGER — change log beyond V2.md
 
-Eighty entries, newest first — seventy-three carry an ordinal (first … seventy-third),
+Eighty-one entries, newest first — seventy-four carry an ordinal (first … seventy-fourth),
 the seven oldest predate the numbering. Each one is a bug found by **actually using the app on
 shift**, what changed, and — the part worth reading — *why it was that and not the
 obvious fix*. Most entries end with a **다음 사람에게** paragraph: the rule the bug
@@ -18,7 +18,8 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 
 ## Index
 
-- 2026-10-11 (latest, seventy-third) — 10:00–10:00 한 줄이 하루를 통째로 휴게로 만들었습니다
+- 2026-10-11 (latest, seventy-fourth) — 고친 날을 저장하면 조퇴 사유와 법정 휴일 표시가 사라졌습니다
+- 2026-10-11 (seventy-third) — 10:00–10:00 한 줄이 하루를 통째로 휴게로 만들었습니다
 - 2026-10-11 (seventy-second) — 스위치가 빠진 줄이 점심이 아니라 10분 쉬는 시간일 수 있었습니다
 - 2026-10-11 (seventy-first) — 점심에 '연장 시' 스위치가 있을 까닭이 없었습니다
 - 2026-10-11 (seventieth) — 빈 휴게 줄의 스위치는 눌러도 꿈쩍하지 않았는데 저장은 바뀌었습니다
@@ -99,7 +100,29 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 - 2026-08-13 — the service worker was hiding every update
 - 2026-08-13 (earlier) — 조퇴 사유 became a popup with a dropdown
 
-### 2026-10-11 (latest, seventy-third) — 10:00–10:00 한 줄이 하루를 통째로 휴게로 만들었습니다
+### 2026-10-11 (latest, seventy-fourth) — 고친 날을 저장하면 조퇴 사유와 법정 휴일 표시가 사라졌습니다
+
+일흔셋째를 쓰다가, 짧게 저장된 날을 고치기로 되살리라고 적었는데 리뷰가 그 길을 재 보았습니다. 고치기
+(`editDay()`)는 입력 칸을 열 뿐이고, 저장(`confirmPending()`)은 그 날의 기록을 **새로** 만듭니다 — 시각,
+근무조, 특근 여부, 계산(`c`)만 담아서. 그 날에 근로자가 달아 둔 두 가지가 빠졌습니다.
+
+| 그 날에 달린 것 | 고쳐 저장하기 전 | 전 | 후 |
+|---|---|---|---|
+| 조퇴 사유 (`reason` — 사유, 누구 사정, 메모) | 근무내역서에 찍힘 | 사라짐 | 남음 |
+| 손으로 켠 법정 휴일 (`legalHol`) | 8시간 넘긴 시간 ×2.0 | 꺼짐 — ×2.0이 빠짐 | 남음, 다시 계산해도 ×2.0 |
+
+특근 표시(`holiday`)는 전에도 남았습니다 — `autoHoliday()`가 앞 기록의 것을 읽기 때문입니다. 그래서
+화면에는 여전히 특근으로 보이면서 `isTrueHoliday()`만 거짓이 되어, 틀린 것이 눈에 띄지 않았습니다.
+
+옮기는 것은 **고치기로 연 저장**뿐입니다. 비어 있는 날에 손으로 근무를 넣는 것은 아무것도 물려받지
+않습니다. 사유는 근무 시간과 상관없이 어느 근무일에나 달 수 있는 것이므로(금형이 깨져 잔업이 없어진
+날은 짧지 않아도 회사 사정입니다) 시각을 고쳐도 그대로 둡니다.
+
+**다음 사람에게.** 기록을 새로 만드는 자리는 그 기록에 무엇이 달려 있는지 셀 줄 알아야 합니다. 기록에
+칸을 하나 더할 때마다 `confirmPending()`, `toggleLegalHol()`, `saveReason()` — 기록을 다시 쓰는 곳 —
+을 찾아 그 칸이 살아남는지 물으세요. 빠진 칸은 오류를 내지 않습니다.
+
+### 2026-10-11 (seventy-third) — 10:00–10:00 한 줄이 하루를 통째로 휴게로 만들었습니다
 
 v1.2.11의 리뷰가 찾았습니다. 휴게의 끝이 시작보다 이르거나 같으면 `breaks()`는 자정을 넘은 것으로
 보고 24시간을 더했습니다(`if (z <= a) z += 24`). 23:30–00:30에는 맞지만, **시작과 끝이 같은 줄은
@@ -126,10 +149,11 @@ v1.2.11의 리뷰가 찾았습니다. 휴게의 끝이 시작보다 이르거나
 원칙 — 지난 기록은 그 날 그대로입니다 — 과 같습니다.
 
 **고치기로 되살리는 것은 조심하세요.** 근무기록의 고치기(`editDay()`)는 입력 칸을 열 뿐이고, 다시
-계산하는 것은 저장(`confirmPending()`)입니다. 그런데 그 저장은 기록을 새로 만들면서 **그 날의 조퇴 사유
-(`reason`)를 옮기지 않습니다** — 근무내역서에 찍히던 사유가 조용히 사라집니다. 시간은 바로잡혀도
-증거가 줄어드는 것이므로, 조퇴 사유가 있는 날은 고치기 전에 사유를 따로 적어 두세요. 이 누락은 이번
-변경보다 오래된 것이고 따로 고칠 일입니다. (처음 이 항목은 `e.c = this.calc(...)`를 인용했는데, 그것은
+계산하는 것은 저장(`confirmPending()`)입니다. v1.2.13까지 그 저장은 기록을 새로 만들면서 **그 날의 조퇴
+사유(`reason`)와 손으로 켠 법정 휴일 표시(`legalHol`)를 옮기지 않았습니다** — 근무내역서에 찍히던 사유가
+조용히 사라지고, 앱의 표가 모르는 명절에 켜 둔 표시가 꺼져 8시간을 넘긴 시간의 ×2.0이 빠졌습니다.
+v1.2.14부터는 둘 다 남습니다(일흔넷째). 그 전 판으로 고칠 일이 있다면 사유를 따로 적어 두고, 저장한 뒤
+사유와 법정 휴일 표시를 다시 다세요. (처음 이 항목은 `e.c = this.calc(...)`를 인용했는데, 그것은
 고치기가 아니라 '이 날은 법정 휴일' 표시(`toggleLegalHol()`)의 코드였습니다.)
 
 **다음 사람에게.** `+= 24`로 자정을 넘기는 자리마다 '시작과 끝이 같으면?'을 물으세요. 0과 24는
