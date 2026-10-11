@@ -9783,6 +9783,23 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('판·열린 묶음에 걸린 층 규칙은 글자색을 바꾸지 않습니다', hit.length===0, hit.map(x=>x[0].trim()).join(' | '));
 }
 
+// ── 근무내역서의 이름 묻는 상자도 모서리가 둥급니다 (2026-10-12) ──
+// '이 기록은 누구의 것입니까?' 상자는 테두리가 없어서 층의 규칙 2(테두리 있는 상자를 둥글게)에 걸리지 않아 네모로
+// 남았습니다 — 그 안의 입력칸과 '지금은 안 함', 아래의 근무내역서 단추는 모두 둥근데. 이웃과 같은 --radius-md.
+{
+  const fs=require('fs');
+  const src=fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8').split('class Component')[0];
+  const css=fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
+  const box='<div style="margin-top:11px;background:var(--color-accent-100);padding:12px 13px">';
+  const i=src.indexOf(box);
+  ok('이름 묻는 상자가 그 자리에 있습니다', i>0 && src.slice(i, i+400).indexOf('{{ L.askNameTitle }}')>0);
+  ok('층이 그 상자를 --radius-md로 둥글게 합니다', /\[style\*="background: var\(--color-accent-100\)"\]\[style\*="padding: 12px 13px"\] \{\s*border-radius: var\(--radius-md\)/.test(css));
+  // 같은 선택자에 걸리는 다른 상자는 이미 테두리가 있어 같은 반지름 — 테두리 없는 것은 이 하나뿐
+  const all=src.split('background:var(--color-accent-100);padding:12px 13px').length-1;
+  const borderless=(src.match(/<div style="[^"]*background:var\(--color-accent-100\);padding:12px 13px[^"]*">/g)||[]).filter(t=>t.indexOf('border:')<0).length;
+  ok('테두리 없는 것은 이름 묻는 상자 하나', all===3 && borderless===1, all+'/'+borderless);
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);
