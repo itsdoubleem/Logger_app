@@ -9208,6 +9208,26 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('같은 날 고친 뒤 되돌리면 원래 기록 그대로', JSON.stringify(d.state.extra.filter(x=>x.day===16)[0])===keep);
 }
 
+// ── 법정 휴일 표시는 날짜의 것입니다 (리뷰 S1, 2026-10-11) ──
+// 고치다가 법정 휴일을 켜 둔 다른 날로 옮겨 저장하거나, 그 날에 손으로 근무를 넣으면 특근은 남고
+// legalHol만 빠져 ×2.0이 조용히 사라졌습니다. 표시는 그 날짜에 달린 것이므로 덮어쓰는 기록에서 옮깁니다.
+// (조퇴 사유는 그 날 근무의 것이라, 같은 날짜를 고칠 때만 옮깁니다.)
+{
+  const mkDay=(c,day,extra)=>Object.assign({y:2028,m:2,day,kind:'day',type:'shift',inH:9,outH:22,c:c.calc(9,22,'day',false)},extra||{});
+  const c=mk(V2,'2028-02-20T23:00:00'); c.state.settings.periodStart=1;
+  c.state.extra=[mkDay(c,16), mkDay(c,17,{holiday:true,legalHol:true,c:c.calc(9,22,'day',true),reason:{id:'machine',fault:'employer',ko:'기계 고장'}})];
+  c.editDay(c.state.extra[0]); c.pickDate(new Date(2028,1,17)); c.confirmPending();
+  let e=c.state.extra.filter(x=>x.day===17)[0];
+  ok('다른 날로 옮겨 저장해도 그 날의 법정 휴일 표시가 남습니다', e.legalHol===true && c.isTrueHoliday(e)===true && c.holOverHours(e)>0, JSON.stringify({lh:e.legalHol,ho:c.holOverHours(e)}));
+  ok('사유는 옮기지 않습니다 — 다른 날 근무의 것이었습니다', !e.reason);
+
+  const d=mk(V2,'2028-02-20T23:00:00'); d.state.settings.periodStart=1;
+  d.state.extra=[mkDay(d,17,{holiday:true,legalHol:true,c:d.calc(9,22,'day',true)})];
+  d.openPending('work'); d.setState({ pendingIso:new Date(2028,1,17).toISOString(), pendingIn:'09:00', pendingOut:'21:00' }); d.confirmPending();
+  e=d.state.extra.filter(x=>x.day===17)[0];
+  ok('손으로 덮어 넣어도 법정 휴일 표시가 남습니다', e.outH===21 && e.legalHol===true && d.holOverHours(e)>0, JSON.stringify({lh:e.legalHol,ho:d.holOverHours(e)}));
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);

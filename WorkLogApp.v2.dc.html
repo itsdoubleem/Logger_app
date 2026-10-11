@@ -5370,21 +5370,18 @@ class Component extends DCLogic {
         inH, outH, c: this.calc(inH, outH, kind, wasHol),
       }];
       // ── 고친 날은 시각만 바뀝니다 ──
-      // 고치기 → 저장은 기록을 새로 만들기 때문에, 그 날에 근로자가 달아 둔 것을 따로
-      // 옮겨야 합니다. 조퇴 사유(reason)는 근무내역서에 찍히는 증거이고, 손으로 켠 법정
-      // 휴일 표시(legalHol)는 앱의 표가 모르는 명절의 ×2.0입니다. 옮기지 않으면 둘 다
-      // 조용히 사라졌습니다(리뷰 S2, 2026-10-11). 고치기가 아닌 손 입력은 물려받지 않습니다.
-      // 물려주는 것은 고치기로 연 그 날뿐이고, 같은 날짜에 저장할 때뿐입니다 — 도중에 다른
-      // 날을 누르면 그 날의 조퇴 사유가 13시간짜리 날에 붙었습니다(리뷰 M1).
+      // 이 저장은 기록을 새로 만들기 때문에, 그 날에 근로자가 달아 둔 것을 따로 옮겨야
+      // 합니다. 옮기지 않으면 조용히 사라졌습니다(리뷰 S2, 2026-10-11).
+      // · 법정 휴일 표시(legalHol)는 그 **날짜**의 것입니다 — 덮어쓰는 기록(before)에서
+      //   옮깁니다. 고치기든 손 입력이든, 고치다가 다른 날로 옮겼든 같습니다(keepLegalHol).
+      // · 조퇴 사유(reason)는 그 날 **근무**의 것입니다 — 고치기로 연 그 날을 같은 날짜에
+      //   저장할 때만 옮깁니다. 도중에 다른 날을 누르면 그 날의 조퇴 사유가 13시간짜리
+      //   날에 붙었습니다(리뷰 M1).
       replaced = before || null;
+      this.keepLegalHol(recs[0], before, true);
       const ep = this.state.editPrev;
-      if (wasEdit && ep && ep.type === 'shift' && this.key(ep) === k0) {
-        if (ep.reason) recs[0].reason = Object.assign({}, ep.reason);
-        if (ep.legalHol) {
-          recs[0].legalHol = true;
-          recs[0].holiday = true;
-          recs[0].c = this.calc(inH, outH, kind, true);
-        }
+      if (wasEdit && ep && ep.type === 'shift' && this.key(ep) === k0 && ep.reason) {
+        recs[0].reason = Object.assign({}, ep.reason);
       }
     } else if (type === 'absent' || type === 'shutdown') {
       // 하루짜리 · 시간이 없는 날. 결근은 그 날 임금이 빠지고, 휴업은 70%만 나옵니다.
@@ -5564,6 +5561,17 @@ class Component extends DCLogic {
   // 공휴일 표는 2026–2027년만 들어 있습니다. 그 밖의 해의 설날·추석에 일했다면
   // 8시간 초과분 ×2.0이 그냥 빠져 버렸습니다. 그 날을 휴일로 표시할 수 있게 하면
   // 표가 오래되어도 근로자가 손해를 보지 않습니다.
+  // ── 손으로 켠 법정 휴일 표시는 그 날짜에 남습니다 ──
+  // 기록을 새로 만드는 자리(고치기·손 입력 저장, 퇴근, 강제 퇴근)마다 덮어쓰는 기록에서
+  // 옮깁니다. 특근(holiday)은 autoHoliday()가 앞 기록에서 읽어 남지만 legalHol은 아무도
+  // 읽지 않아, 화면은 특근인 채 ×2.0만 빠졌습니다. recalc이면 계산도 휴일로 다시 합니다.
+  keepLegalHol(e, prev, recalc) {
+    if (!prev || !prev.legalHol) return e;
+    e.legalHol = true;
+    e.holiday = true;
+    if (recalc) e.c = this.calc(e.inH, e.outH, e.kind, true);
+    return e;
+  }
   toggleLegalHol(rec) {
     const k = this.key(rec);
     const cur = this.month().filter(r => this.key(r) === k)[0] || rec;
