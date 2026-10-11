@@ -1,6 +1,6 @@
 # 근무기록 LOGGER — change log beyond V2.md
 
-Eighty-two entries, newest first — seventy-five carry an ordinal (first … seventy-fifth),
+Eighty-three entries, newest first — seventy-six carry an ordinal (first … seventy-sixth),
 the seven oldest predate the numbering. Each one is a bug found by **actually using the app on
 shift**, what changed, and — the part worth reading — *why it was that and not the
 obvious fix*. Most entries end with a **다음 사람에게** paragraph: the rule the bug
@@ -18,7 +18,8 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 
 ## Index
 
-- 2026-10-11 (latest, seventy-fifth) — 법정 휴일 표시는 날짜의 것인데, 기록을 새로 만드는 자리마다 빠졌습니다
+- 2026-10-12 (latest, seventy-sixth) — 휴가를 길게 잡으면 그 안의 일한 일요일이 쉬는 날로 바뀌었습니다
+- 2026-10-11 (seventy-fifth) — 법정 휴일 표시는 날짜의 것인데, 기록을 새로 만드는 자리마다 빠졌습니다
 - 2026-10-11 (seventy-fourth) — 고친 날을 저장하면 조퇴 사유와 법정 휴일 표시가 사라졌습니다
 - 2026-10-11 (seventy-third) — 10:00–10:00 한 줄이 하루를 통째로 휴게로 만들었습니다
 - 2026-10-11 (seventy-second) — 스위치가 빠진 줄이 점심이 아니라 10분 쉬는 시간일 수 있었습니다
@@ -101,7 +102,31 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 - 2026-08-13 — the service worker was hiding every update
 - 2026-08-13 (earlier) — 조퇴 사유 became a popup with a dropdown
 
-### 2026-10-11 (latest, seventy-fifth) — 법정 휴일 표시는 날짜의 것인데, 기록을 새로 만드는 자리마다 빠졌습니다
+### 2026-10-12 (latest, seventy-sixth) — 휴가를 길게 잡으면 그 안의 일한 일요일이 쉬는 날로 바뀌었습니다
+
+v1.2.15의 리뷰가 찾은 것입니다. 연차·휴가를 여러 날로 잡으면 앱은 그 안의 일요일·공휴일·쉬는 토요일에
+'차감 없음'(`redday`) 기록을 적습니다 — 휴가에서 빼는 날이라는 표시입니다. 그런데 그 날에 **이미 일한
+특근**이 있어도 덮어썼습니다. 미리보기는 '1일 제외'라고만 했고, 특근 수당은 근무내역서에서 조용히
+사라졌습니다. 되돌리기로 살릴 수 있는 것은 9초뿐이었습니다.
+
+| 범위 안의 날 | 전 | 이제 |
+|---|---|---|
+| 평일 | 휴가 | 휴가 |
+| 일하지 않은 일요일·공휴일·쉬는 토요일 | 차감 없음 | 차감 없음 |
+| **일한** 일요일·공휴일·쉬는 토요일 | 차감 없음으로 덮임, 특근 수당 사라짐 | 그대로 — 일한 기록과 수당이 남음 |
+| 미리 잡아 두기만 한 특근(아직 안 찍음) | 차감 없음 | 차감 없음 — 일한 날이 아닙니다 |
+
+같은 리뷰에서 되돌리기를 하나 더 다듬었습니다. 일흔다섯째의 되돌리기는 저장 전에 비어 있던 날을 모두
+'지운 날 목록'(`removed`)에 넣었습니다 — 열나흘짜리 휴가를 되돌리면 열네 개가 영영 남아 백업마다 실렸습니다.
+`removed`는 시범 기록을 가리는 목록이라 화면에는 아무것도 보이지 않았습니다. 이제 저장마다 `undoState(ks)`가
+쓸 날들, 그 날들의 지금 기록, 그 가운데 원래 가려져 있던 날을 함께 적어 두고, 되돌리기는 `removed`까지
+저장 전 그대로 돌려놓습니다. 기록이 있던 날에 손으로 넣은 근무의 안내도 '추가됨'에서 '수정됨'으로
+바꿨습니다 — '추가됨'이라고 하면 그 날에 기록이 둘 생긴 줄 압니다.
+
+**다음 사람에게.** 범위로 여러 날을 한꺼번에 쓰는 자리는, 그 범위 안에 이미 무엇이 있는지 하루씩 물어야
+합니다. '쉬는 날'은 달력이 정하지만, 그 날 일했는지는 기록이 정합니다.
+
+### 2026-10-11 (seventy-fifth) — 법정 휴일 표시는 날짜의 것인데, 기록을 새로 만드는 자리마다 빠졌습니다
 
 v1.2.14의 리뷰가 일흔넷째의 고침이 반쪽이었다는 것을 찾았습니다. 그 판은 법정 휴일 표시(`legalHol`)를
 조퇴 사유와 함께 '고치기로 연 그 날'에서만 옮겼는데, 둘은 성격이 다릅니다. **조퇴 사유는 그 날 근무의
