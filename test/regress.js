@@ -9667,6 +9667,8 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ['ko','en','vi','zh','th','id','ne','km'].forEach(Lg=>{
     const t=V2.STR['clock_in_rounds_up_to_the_next_30_minu'][Lg];
     ok(Lg+' 안내가 0이 시작값이라고 말합니다', t.indexOf(NEW[Lg])>0 && t.indexOf(OLD[Lg])<0, t.slice(-90));
+    // 예시 20:45 → 21:00은 문장에 그대로 남습니다(리뷰 N4 — 앞 시험이 그것을 보던 자리를 이어받습니다)
+    ok(Lg+' 안내에 20:45 → 21:00 예시가 남아 있습니다', t.indexOf('20:45')>0 && t.indexOf('21:00')>t.indexOf('20:45'));
   });
   ok('ko 안내', V2.STR['clock_in_rounds_up_to_the_next_30_minu'].ko.indexOf('새로 깐 앱은 0분입니다')>0);
   ok('근무내역서의 퇴근 유예 줄은 0분도 적습니다', src.indexOf("{ k: this.T('clock_out_grace'), v: (+this.st().outGrace || 0) + this.T('min_before_the_hour') }")>0);
@@ -9682,11 +9684,11 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   const css=fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
   const a=src.indexOf('<sc-if value="{{ gRulesOpen }}"'), b=src.indexOf('</sc-if>', a);
   const blk=src.slice(a,b);
-  const PANEL='<div style="padding:12px 14px 10px;background:var(--color-card)">';
+  const PANEL='<div style="padding:12px 14px 10px;background:var(--color-accent-50)">';
   ok('회사 규칙에 판이 다섯입니다', blk.split(PANEL).length-1===5, String(blk.split(PANEL).length-1));
   // F10부터 묶음이 둘 이상인 접이식 넷이 같은 판을 씁니다: 회사 규칙 5 · 근무조와 휴게 4 · 내 급여 조건 2 · 4대보험 3
   ok('판 모양은 그 판들 말고는 없습니다 — 층의 선택자가 판만 잡습니다', src.split('padding:12px 14px 10px').length-1===14
-    && src.split('padding:12px 14px 10px;background:var(--color-card)').length-1===14);
+    && src.split('padding:12px 14px 10px;background:var(--color-accent-50)').length-1===14);
   // 판마다 첫 줄이 묶음 이름입니다 — 다섯 이름이 차례로
   const order=['{{ L.secRound }}','{{ L.secByLaw }}','{{ L.secDoes }}','{{ L.secMult }}','{{ L.secBonus }}'];
   const parts=blk.split(PANEL).slice(1);
@@ -9697,7 +9699,7 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
     ok(n+' 바로 밑 줄에 구분선이 없습니다', next.indexOf('border-top')<0, next.slice(-160));
   });
   ok('판 사이는 gap — 카드 안의 margin은 층이 가져갑니다', blk.indexOf('display:flex;flex-direction:column;gap:10px;padding:4px 14px 14px')>0);
-  ok('둥근 모서리는 층(2l)에 있습니다', /\[style\*="padding: 12px 14px 10px"\]\[style\*="background: var\(--color-card\)"\] \{\s*border-radius: var\(--radius-md\)/.test(css));
+  ok('둥근 모서리는 층(2l)에 있습니다', /\[style\*="padding: 12px 14px 10px"\]\[style\*="background: var\(--color-accent-50\)"\] \{\s*border-radius: var\(--radius-md\)/.test(css));
   ok('소스에는 여전히 border-radius가 없습니다', src.split('class Component')[0].indexOf('border-radius')<0);
   // 단수 설명 — 하나뿐인 묶음 둘은 단수, 여럿인 4대보험은 복수 그대로
   ok('단수 설명은 두 곳', src.split('{{ L.byLawNoteOne }}').length-1===2);
@@ -9713,7 +9715,7 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
 // 근무조와 휴게의 주간·야간 휴게 목록은 곧장 이어져 있었습니다.
 {
   const src=require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8').split('class Component')[0];
-  const PANEL='padding:12px 14px 10px;background:var(--color-card)';
+  const PANEL='padding:12px 14px 10px;background:var(--color-accent-50)';
   const body=g=>{ const a=src.indexOf('<sc-if value="{{ '+g+' }}"'); let i=a+5,d=1; while(d){ const o=src.indexOf('<sc-if',i), c=src.indexOf('</sc-if>',i); if(o!==-1&&o<c){d++;i=o+6;} else {d--;i=c+8;} } return src.slice(a,i); };
   const K='letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:var(--color-text)';
   [['gShiftOpen',4],['gPayOpen',2],['gInsOpen',3],['gRulesOpen',5]].forEach(([g,n])=>{
@@ -9730,10 +9732,34 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   const ins=body('gInsOpen');
   ok('4대보험의 옛 테두리 상자가 남아 있지 않습니다', ins.indexOf('border:2px solid var(--color-divider);padding:13px 15px')<0);
   ok('직접 적는 표가 법이 정한 값보다 앞입니다', ins.indexOf('{{ insManual }}')<ins.indexOf('{{ insAutoOn }}'));
+  // 판의 첫 줄은 판의 padding에서 시작합니다 — 옛 상자에서 남은 margin-top이 있으면 이 판만 21px 안쪽에서
+  // 시작했습니다(리뷰 N1). 카드 안에서는 margin이 아니라 padding입니다.
+  const ins1=ins.split('padding:12px 14px 10px;background:var(--color-accent-50)">')[1];
+  ok('4대보험 첫 판의 첫 줄에 margin-top이 없습니다', /^\s*<div style="display:flex;gap:7px">/.test(ins1), ins1.slice(0,80));
   // 내 급여 조건: 설명이 제 판 안으로 — 기본금 설명은 첫 판, 기준시간 설명은 둘째 판
   const pay=body('gPayOpen').split(PANEL);
   ok('기본금 설명은 내 명세서 판에', pay[1].indexOf('{{ basicDefaultNote }}')>0 && pay[1].indexOf('{{ L.secMine2 }}')>0);
   ok('기준시간 설명은 법이 정한 값 판에', pay[2].indexOf('{{ L.noteDivisor }}')>0 && pay[2].indexOf('{{ L.byLawNoteOne }}')>0);
+}
+
+// ── 판은 붉은 테두리입니다 — 판 안의 색은 카드 그대로 (F11, 2026-10-12) ──
+// 근로자는 흰 판이 싫다고 했고, 먼저 붉게 채운 판(accent-300)을 만들었다가 내기 전에 버렸습니다. 이 앱은 빨강으로
+// 말합니다 — 어긋난 금액, 경고, 고른 단추, 켜진 스위치. 붉은 바탕 위에서 그것들이 모두 조용해졌고, 4대보험 직접 입력
+// 표에서는 명세서와 다른 보험료(빨강)가 맞는 줄(회색)과 똑같이 검게 보였습니다. 그래서 판은 열린 카드의 바탕
+// (accent-50) 그대로이고, 빨강은 테두리입니다. 판 안에서는 어떤 색도 바꾸지 않습니다.
+{
+  const fs=require('fs');
+  const css=fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
+  const src=fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tpl=src.split('class Component')[0];
+  const PS='[style*="padding: 12px 14px 10px"][style*="background: var(--color-accent-50)"]';
+  ok('판 열넷이 열린 카드의 바탕색입니다', tpl.split('padding:12px 14px 10px;background:var(--color-accent-50)').length-1===14
+    && tpl.indexOf('padding:12px 14px 10px;background:var(--color-accent-300)')<0 && tpl.indexOf('padding:12px 14px 10px;background:var(--color-card)')<0);
+  ok('열린 묶음의 바탕도 accent-50입니다 — 판과 바탕이 같은 색', src.indexOf("V['g' + pfx + 'Bg'] = on ? 'var(--color-accent-50)'")>0);
+  const i=css.indexOf(PS+' {'), body=css.slice(i, css.indexOf('}',i));
+  ok('빨강은 2px 안쪽 테두리(그림자)입니다', i>=0 && body.indexOf('box-shadow: inset 0 0 0 2px var(--color-accent-300)')>0);
+  ok('판 안의 색을 바꾸는 규칙이 없습니다', css.indexOf(PS+' :not(input)')<0 && css.indexOf(PS+' [style*="color:')<0 && css.indexOf(PS+' [style*="width: 34px"]')<0);
+  ok('소스에는 여전히 box-shadow가 없습니다 — 층이 그것을 씁니다', tpl.indexOf('box-shadow')<0);
 }
 
 Promise.all(later).then(()=>{
