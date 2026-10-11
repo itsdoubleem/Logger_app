@@ -9471,7 +9471,7 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   c.openPending('annual'); c.pickDate(new Date(2028,1,14)); c.pickDate(new Date(2028,1,18));
   const ri=c.renderVals().rangeInfo;
   ok('미리보기: 차감 4일', ri.deduct===c.dayCount(4), ri.deduct);
-  ok('미리보기: 제외 1일 · 근무일', ri.skip===c.T('n_excluded_why',{ n:c.dayCount(1), why:c.T('days_worked') }), ri.skip);
+  ok('미리보기: 제외 1일 · 근무일', ri.skip===c.T('n_excluded_why',{ n:c.dayCount(1), why:c.T('rng_worked_day') }), ri.skip);
   c.confirmPending();
   const g=d=>c.state.extra.filter(x=>x.y===2028&&x.m===2&&x.day===d)[0];
   ok('일한 수요일은 그대로', JSON.stringify(g(16))===keep, JSON.stringify(g(16)));
@@ -9482,7 +9482,7 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   d.state.extra=[{y:2028,m:2,day:13,kind:'day',type:'shift',holiday:true,mon:false,inH:9,outH:18,c:d.calc(9,18,'day',true)}];
   d.openPending('vacation'); d.pickDate(new Date(2028,1,13)); d.pickDate(new Date(2028,1,13));
   const r2=d.renderVals().rangeInfo;
-  ok('일한 일요일만 고르면 미리보기가 근무일이라고 말합니다', r2.skip===d.T('n_excluded_why',{ n:d.dayCount(1), why:d.T('days_worked') }), r2.skip);
+  ok('일한 일요일만 고르면 미리보기가 근무일이라고 말합니다', r2.skip===d.T('n_excluded_why',{ n:d.dayCount(1), why:d.T('rng_worked_day') }), r2.skip);
   d.confirmPending();
   ok('그리고 그 날은 그대로', d.state.extra.filter(x=>x.day===13)[0].type==='shift');
   // 미리 잡아 두기만 한(찍지 않은) 근무는 일한 날이 아닙니다
@@ -9490,6 +9490,67 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   e.state.extra=[{y:2028,m:2,day:16,kind:'day',type:'shift',mon:false,planned:true,awaiting:true,holiday:true,inH:9,outH:21,c:e.calc(9,21,'day',true)}];
   e.openPending('annual'); e.pickDate(new Date(2028,1,16)); e.pickDate(new Date(2028,1,16)); e.confirmPending();
   ok('찍지 않은 근무 위의 연차는 전처럼 연차', e.state.extra.filter(x=>x.day===16)[0].type==='annual');
+}
+
+// ── 달력도 일한 날을 '제외'로 그립니다 (리뷰 S1, 2026-10-12) ──
+// 미리보기는 '1일 제외 · 근무일'이라고 하는데 달력은 그 수요일을 앞뒤 날과 같은 진한 '차감' 색으로
+// 칠했습니다. 같은 화면이 두 가지로 말하면 근로자는 어느 쪽을 믿어야 할지 모릅니다.
+{
+  const c=mk(V2,'2028-02-28T23:00:00'); c.state.settings.periodStart=1;
+  c.state.extra=[{y:2028,m:2,day:16,kind:'day',type:'shift',mon:false,inH:9,outH:18,c:c.calc(9,18,'day',false)}];
+  c.openPending('annual'); c.pickDate(new Date(2028,1,14)); c.pickDate(new Date(2028,1,18));
+  c.setState({ calIso:new Date(2028,1,1).toISOString() });
+  const cells=c.renderVals().calCells.filter(x=>!x.empty);
+  const cell=d=>cells.filter(x=>x.dd===String(d))[0];
+  ok('일한 수요일은 제외된 날처럼 옅고 그어집니다', cell(16).bg==='var(--color-neutral-200)' && cell(16).strike==='line-through', JSON.stringify({bg:cell(16).bg,st:cell(16).strike}));
+  ok('일한 수요일의 글자는 평일 색 그대로', cell(16).ink==='var(--color-text)');
+  ok('앞뒤 평일은 차감 색', cell(15).bg==='var(--color-accent-300)' && cell(17).bg==='var(--color-accent-300)');
+}
+
+// ── 제외 이유는 '일한 날'입니다 — 급여 탭의 '근무일 수'가 아니라 (리뷰 S2, 2026-10-12) ──
+// 빌려 쓴 days_worked는 급여 탭의 머리말이라, 여러 언어에서 '근무 일수'로 읽혔습니다
+// ('1일 제외 · 출근 일수'). 제외 이유는 일요일·쉬는 토요일처럼 하루를 가리키는 말이어야 합니다.
+{
+  ['ko','en','vi','zh','th','id','ne','km'].forEach(Lg=>{
+    const v=(V2.STR['rng_worked_day']||{})[Lg];
+    ok(Lg+' 일한 날 문구가 있습니다', !!v, v);
+    ok(Lg+' 급여 탭의 근무일 수와 다릅니다', v!==V2.STR['days_worked'][Lg]);
+  });
+  ok('ko는 일한 날', V2.STR['rng_worked_day'].ko==='일한 날');
+  const src=require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  ok('범위의 제외 이유는 days_worked를 쓰지 않습니다', src.indexOf("keep ? this.T('rng_worked_day')")>0 && src.indexOf("keep ? this.T('days_worked')")<0);
+}
+
+// ── 모두 일한 날이면 추가 단추가 꺼져 있습니다 (리뷰 S4, 2026-10-12) ──
+// 일한 일요일 하나만 골라 추가를 누르면 아무것도 쓰지 않고 달력만 닫혀, '안 눌렸다'로 읽혔습니다.
+// 쓸 날이 없으면 단추를 회색으로 두고, 눌러도 달력이 열린 채로 남습니다.
+{
+  const c=mk(V2,'2028-02-28T23:00:00'); c.state.settings.periodStart=1;
+  c.state.extra=[{y:2028,m:2,day:13,kind:'day',type:'shift',holiday:true,mon:false,inH:9,outH:18,c:c.calc(9,18,'day',true)}];
+  c.openPending('vacation'); c.pickDate(new Date(2028,1,13)); c.pickDate(new Date(2028,1,13));
+  let v=c.renderVals();
+  ok('쓸 날이 없으면 추가가 회색', v.addBg==='var(--color-neutral-300)' && v.addInk==='var(--color-neutral-600)', v.addBg);
+  c.confirmPending();
+  ok('눌러도 달력이 열린 채로 남습니다', c.state.pending==='vacation' && c.state.extra.length===1 && c.state.extra[0].type==='shift');
+  // 하루라도 쓸 날이 있으면 평소처럼 빨강
+  c.pickDate(new Date(2028,1,13)); c.pickDate(new Date(2028,1,14));
+  v=c.renderVals();
+  ok('쓸 날이 있으면 추가는 빨강', v.addBg==='var(--color-accent)' && v.addInk==='var(--color-bg)', v.addBg);
+  // 다른 카드(결근 등)는 언제나 빨강
+  const d=mk(V2,'2028-02-28T23:00:00'); d.openPending('absent'); d.setState({ pendingIso:new Date(2028,1,13).toISOString() });
+  ok('결근 카드의 추가는 빨강', d.renderVals().addBg==='var(--color-accent)');
+}
+
+// ── 회색 추가 단추는 눌러도 빨개지지 않습니다 (리뷰 M1, 2026-10-12) ──
+// 단추에 style-hover가 남아 있었습니다. 런타임이 그것을 !important :hover 규칙으로 만들고, 터치에서는 손을
+// 뗀 뒤에도 :hover가 남으므로(마흔넷째) 회색 단추를 한 번 누르면 진한 빨강으로 바뀌어 그대로 있었습니다 —
+// '이제 된다'로 읽힙니다. 사유 시트의 저장 단추처럼 hover 없이 빨강/회색 두 가지로만 말합니다.
+{
+  const src=require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tag=(src.match(/<div onClick="\{\{ confirmPending \}\}"[^>]*>/)||[''])[0];
+  ok('추가 단추가 있습니다', tag.length>0);
+  ok('추가 단추에 style-hover가 없습니다', tag.indexOf('style-hover')<0, tag);
+  ok('색은 addBg/addInk 하나로만 정해집니다', tag.indexOf('background:{{ addBg }};color:{{ addInk }}')>0);
 }
 
 Promise.all(later).then(()=>{

@@ -567,6 +567,10 @@
     "en": "Days worked",
     "ko": "근무일"
   },
+  "rng_worked_day": {
+    "en": "Day worked",
+    "ko": "일한 날"
+  },
   "days_worked_ot_night_as_of_basic_and_f": {
     "en": "{p0} days worked · {p1} OT · {p2} night, as of {p3}.{p4}. Basic and fixed allowances are counted in full.",
     "ko": "{p0}일 근무 · 잔업 {p1} · 야간 {p2} ({p3}.{p4} 기준). 기본금·고정수당은 전액 반영됩니다."

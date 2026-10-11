@@ -1,6 +1,6 @@
 # 근무기록 LOGGER — change log beyond V2.md
 
-Eighty-four entries, newest first — seventy-seven carry an ordinal (first … seventy-seventh),
+Eighty-five entries, newest first — seventy-eight carry an ordinal (first … seventy-eighth),
 the seven oldest predate the numbering. Each one is a bug found by **actually using the app on
 shift**, what changed, and — the part worth reading — *why it was that and not the
 obvious fix*. Most entries end with a **다음 사람에게** paragraph: the rule the bug
@@ -18,7 +18,8 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 
 ## Index
 
-- 2026-10-12 (latest, seventy-seventh) — 연차 범위가 일한 평일까지 덮었고, 미리보기는 그것을 몰랐습니다
+- 2026-10-12 (latest, seventy-eighth) — 달력과 미리보기가 같은 날을 두 가지로 말했습니다
+- 2026-10-12 (seventy-seventh) — 연차 범위가 일한 평일까지 덮었고, 미리보기는 그것을 몰랐습니다
 - 2026-10-12 (seventy-sixth) — 휴가를 길게 잡으면 그 안의 일한 일요일이 쉬는 날로 바뀌었습니다
 - 2026-10-11 (seventy-fifth) — 법정 휴일 표시는 날짜의 것인데, 기록을 새로 만드는 자리마다 빠졌습니다
 - 2026-10-11 (seventy-fourth) — 고친 날을 저장하면 조퇴 사유와 법정 휴일 표시가 사라졌습니다
@@ -103,7 +104,34 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 - 2026-08-13 — the service worker was hiding every update
 - 2026-08-13 (earlier) — 조퇴 사유 became a popup with a dropdown
 
-### 2026-10-12 (latest, seventy-seventh) — 연차 범위가 일한 평일까지 덮었고, 미리보기는 그것을 몰랐습니다
+### 2026-10-12 (latest, seventy-eighth) — 달력과 미리보기가 같은 날을 두 가지로 말했습니다
+
+v1.2.17의 리뷰가 찾은 넷입니다. 일흔일곱째는 범위 안의 일한 날을 건너뛰게 했는데, 그것을 아는 곳이
+미리보기와 저장뿐이었습니다.
+
+| | v1.2.17 | 이제 |
+|---|---|---|
+| 달력의 일한 평일 | 앞뒤 날과 같은 진한 '차감' 색 — 미리보기는 '제외'라고 하는데 | 일요일처럼 옅고 그어짐 |
+| 미리보기의 제외 이유 | '근무일'(`days_worked`) — 급여 탭의 머리말이라 vi·zh·th·km에서 '근무 일수', en은 'Days worked' | '일한 날'(`rng_worked_day`, 여덟 언어) |
+| 고른 날이 모두 일한 날일 때 추가 | 아무것도 쓰지 않고 달력이 조용히 닫힘 | 회색, 눌러도 달력이 열린 채 |
+
+달력은 미리보기와 같은 `rangeDays()`의 `keep`을 읽습니다. 추가 단추의 회색은 사유 시트의 저장과 같은
+두 색(`neutral-300` 바탕, `neutral-600` 글자)이고, 저장처럼 **hover가 없습니다.** 처음 고친 판은 단추에
+`style-hover`가 남아 있었는데, 런타임이 그것을 `!important`인 `:hover` 규칙으로 만들고 터치에서는 손을 뗀
+뒤에도 `:hover`가 남으므로(마흔넷째), 회색 단추를 한 번 누르면 진한 빨강이 되어 그대로 있었습니다 —
+'이제 된다'로 읽히는 색입니다. 리뷰가 잡아 지웠습니다.
+
+일흔일곱째가 '미리보기와 실제로 빠지는 연차가 어긋날 수 없다'고 적은 것은 넘친 말이었습니다. 일한 날
+때문에는 어긋나지 않지만, 이 판보다 오래된 세 경우가 남아 있습니다 — 리뷰가 잰 것입니다.
+
+- 이미 연차인 날 위에 다시 연차를 잡으면, 미리보기는 그 날을 또 빼서 하루 적게 보여 줍니다.
+- 잔여 기준일(`annualAsOf`) 전으로 연차를 잡으면, 그 날은 이미 잔여에 반영돼 있어 실제로는 빠지지 않습니다.
+- 오늘을 포함해 잡고 지금 출근 중이면, 열린 근무는 아직 기록이 아니라 미리보기가 오늘도 차감으로 셉니다.
+
+**다음 사람에게.** 같은 날을 그리는 자리가 셋(달력, 미리보기, 저장)이면 셋이 한 곳을 읽어야 합니다.
+둘만 맞춰 놓으면 셋째가 다른 말을 합니다.
+
+### 2026-10-12 (seventy-seventh) — 연차 범위가 일한 평일까지 덮었고, 미리보기는 그것을 몰랐습니다
 
 v1.2.16의 리뷰가 일흔여섯째의 고침이 반쪽이었다는 것을 찾았습니다. 그 판은 범위 안의 **일한 쉬는 날**만
 건너뛰었고, **일한 평일**은 여전히 연차로 덮었습니다. 02.14–18 연차를 잡으면 수요일(02.16)에 일한 근무가
@@ -118,13 +146,16 @@ v1.2.16의 리뷰가 일흔여섯째의 고침이 반쪽이었다는 것을 찾�
 | 미리 잡아 두기만 한 근무(아직 안 찍음) | 덮임 | 덮임 — 일한 날이 아닙니다 |
 
 이제 범위를 정하는 `rangeDays()` 한 곳이 날마다 '일한 날인지'(`keep`)를 정하고, 미리보기(`rangeInfo`)와
-저장(`confirmPending()`)이 그것을 함께 읽습니다. 그래서 미리보기의 '차감 N일'과 실제로 빠지는 연차가
-어긋날 수 없습니다. '근무일'은 이미 여덟 언어에 있는 문구(`days_worked`)라 새 문구를 만들지 않았습니다.
+저장(`confirmPending()`)이 그것을 함께 읽습니다. 그래서 **일한 날 때문에** 미리보기의 '차감 N일'과 실제로
+빠지는 연차가 어긋나는 일은 없습니다. (모든 경우에 어긋날 수 없다고 처음에 적었는데 틀렸습니다 — 일흔여덟째에
+남은 세 경우가 있습니다.) '근무일'은 이미 여덟 언어에 있는 문구(`days_worked`)를 빌렸는데, 급여 탭의
+머리말이라 여러 언어에서 '근무 일수'로 읽혀 일흔여덟째에서 새 문구로 바꿨습니다.
 
 같은 리뷰에서 되돌리기를 하나 더 막았습니다. 9초가 지나 되돌리기가 닫혀도 '원래 가려져 있던 날'(`undoRm`)이
 남아, 그 뒤에 되돌리기가 불리면 방금 저장한 날을 다시 가릴 수 있었습니다. 화면의 되돌리기 단추는 그때
-보이지 않으므로 손으로는 닿기 어렵지만, 되돌릴 저장이 없으면 이제 `undoLast()`는 아무것도 하지 않고, 되돌리기를
-닫는 모든 자리(타이머 다섯, 법정 휴일 스위치, 백업 불러오기)가 `undoRm`도 비웁니다.
+보이지 않으므로 손으로는 닿기 어렵지만, 되돌릴 저장이 없으면 이제 `undoLast()`는 아무것도 하지 않고, 타이머
+다섯과 법정 휴일 스위치, 백업 불러오기가 `undoRm`도 비웁니다. (`removeEntries`와 `editDay`는 비우지 않지만,
+둘 다 `undoKeys`를 비우므로 위의 첫 줄이 막습니다.)
 
 일흔여섯째가 '손으로 넣은 근무의 안내가 수정됨'이라고 적은 것은 좁게 적은 것입니다 — 결근·휴업·특근·하루짜리
 연차도 기록이 있던 날을 덮으면 '수정됨'입니다. 여러 날짜리는 여전히 'N일 기록 추가됨'입니다.
