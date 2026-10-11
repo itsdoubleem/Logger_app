@@ -29,8 +29,8 @@ android {
         applicationId 'app.worklog.punch'
         minSdk 24
         targetSdk 36
-        versionCode 26
-        versionName '1.2.22'
+        versionCode 27
+        versionName '1.2.23'
     }
 
     signingConfigs {
