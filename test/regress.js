@@ -9332,11 +9332,13 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
     ok(t+' 뒤 되돌리면 2일이 원래대로', same(c,[1,2,3],keep), JSON.stringify(c.state.extra.filter(x=>x.day===2)[0]));
     ok(t+' 뒤 되돌려도 지운 날 목록에 남지 않습니다', c.state.removed.indexOf(2028*10000+2*100+2)<0);
   });
-  // 여러 날을 덮는 휴가 — 덮인 날 모두 돌아옵니다
+  // 여러 날을 덮는 휴가 — 덮인 날 모두 돌아옵니다. (일한 근무는 범위가 건너뛰므로 — 2026-10-12
+  // 리뷰 S2 — 여기서는 결근으로 적힌 사흘을 덮습니다.)
   const v=mk(V2,'2028-02-20T23:00:00'); v.state.settings.periodStart=1;
-  v.state.extra=base(v); const vk=v.state.extra.map(x=>JSON.stringify(x));
+  v.state.extra=[1,2,3].map(d=>({y:2028,m:2,day:d,kind:'day',type:'absent',mon:false,planned:false,c:{gross:0,bk:0,net:0,reg:0,ot:0,night:0,hol:0,pay:0}}));
+  const vk=v.state.extra.map(x=>JSON.stringify(x));
   v.openPending('vacation'); v.pickDate(new Date(2028,1,1)); v.pickDate(new Date(2028,1,3)); v.confirmPending();
-  ok('휴가가 사흘을 덮습니다', [1,2,3].every(d=>v.state.extra.filter(x=>x.day===d)[0].type!=='shift'));
+  ok('휴가가 사흘을 덮습니다', [1,2,3].every(d=>v.state.extra.filter(x=>x.day===d)[0].type==='vacation'));
   v.undoLast();
   ok('되돌리면 사흘 모두 원래대로', same(v,[1,2,3],vk));
 
@@ -9454,6 +9456,40 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   const src=require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
   ok('9초 타이머가 모두 undoRm도 비웁니다', (src.match(/undoKeys: \[\], editedKeys: \[\], undoPrev: null \}\), 9000/g)||[]).length===0
     && (src.match(/undoKeys: \[\], editedKeys: \[\], undoPrev: null, undoRm: \[\] \}\), 9000/g)||[]).length===5);
+}
+
+// ── 연차 범위 안의 일한 평일도 그대로 남고, 미리보기가 그것을 말합니다 (리뷰 S2·S3, 2026-10-12) ──
+// 일흔여섯째는 일한 쉬는 날만 건너뛰었습니다. 02.14–18 연차를 잡으면 수요일(02.16)에 일한 근무가 연차로
+// 덮이고 연차가 하루 더 빠졌습니다 — 미리보기는 '5일 / 차감 5일'이라고만 했습니다. 일했는지는 기록이
+// 정하므로, 일한 날은 어느 요일이든 건너뛰고 미리보기의 '제외'에 '근무일'로 셉니다.
+{
+  const c=mk(V2,'2028-02-28T23:00:00'); c.state.settings.periodStart=1;
+  ok('2028-02-16은 수요일', new Date(2028,1,16).getDay()===3);
+  const wed={y:2028,m:2,day:16,kind:'day',type:'shift',mon:false,inH:9,outH:18,c:c.calc(9,18,'day',false)};
+  c.state.extra=[wed]; const keep=JSON.stringify(wed);
+  const before=c.annualLeft();
+  c.openPending('annual'); c.pickDate(new Date(2028,1,14)); c.pickDate(new Date(2028,1,18));
+  const ri=c.renderVals().rangeInfo;
+  ok('미리보기: 차감 4일', ri.deduct===c.dayCount(4), ri.deduct);
+  ok('미리보기: 제외 1일 · 근무일', ri.skip===c.T('n_excluded_why',{ n:c.dayCount(1), why:c.T('days_worked') }), ri.skip);
+  c.confirmPending();
+  const g=d=>c.state.extra.filter(x=>x.y===2028&&x.m===2&&x.day===d)[0];
+  ok('일한 수요일은 그대로', JSON.stringify(g(16))===keep, JSON.stringify(g(16)));
+  ok('나머지 평일은 연차', [14,15,17,18].every(d=>g(d)&&g(d).type==='annual'));
+  ok('연차는 나흘만 빠집니다', before-c.annualLeft()===4, before+' → '+c.annualLeft());
+  // 일한 일요일 하나만 고르면 미리보기가 그것을 말하고, 저장은 아무것도 쓰지 않습니다
+  const d=mk(V2,'2028-02-28T23:00:00'); d.state.settings.periodStart=1;
+  d.state.extra=[{y:2028,m:2,day:13,kind:'day',type:'shift',holiday:true,mon:false,inH:9,outH:18,c:d.calc(9,18,'day',true)}];
+  d.openPending('vacation'); d.pickDate(new Date(2028,1,13)); d.pickDate(new Date(2028,1,13));
+  const r2=d.renderVals().rangeInfo;
+  ok('일한 일요일만 고르면 미리보기가 근무일이라고 말합니다', r2.skip===d.T('n_excluded_why',{ n:d.dayCount(1), why:d.T('days_worked') }), r2.skip);
+  d.confirmPending();
+  ok('그리고 그 날은 그대로', d.state.extra.filter(x=>x.day===13)[0].type==='shift');
+  // 미리 잡아 두기만 한(찍지 않은) 근무는 일한 날이 아닙니다
+  const e=mk(V2,'2028-02-28T23:00:00'); e.state.settings.periodStart=1;
+  e.state.extra=[{y:2028,m:2,day:16,kind:'day',type:'shift',mon:false,planned:true,awaiting:true,holiday:true,inH:9,outH:21,c:e.calc(9,21,'day',true)}];
+  e.openPending('annual'); e.pickDate(new Date(2028,1,16)); e.pickDate(new Date(2028,1,16)); e.confirmPending();
+  ok('찍지 않은 근무 위의 연차는 전처럼 연차', e.state.extra.filter(x=>x.day===16)[0].type==='annual');
 }
 
 Promise.all(later).then(()=>{

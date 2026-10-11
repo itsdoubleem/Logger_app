@@ -5247,14 +5247,22 @@ class Component extends DCLogic {
     const b = new Date(this.state.pendingEndIso || this.state.pendingIso);
     const s = a <= b ? a : b, e = a <= b ? b : a;
     const out = [];
+    // 이미 일한 날(찍은 근무, 미리 잡아 두기만 한 것은 아님)은 범위가 건드리지 않습니다.
+    // 쉬는 날인지는 달력이 정하지만, 그 날 일했는지는 기록이 정합니다 — 덮어쓰면 그 날의
+    // 근무와 수당이 사라지고 연차가 하루 더 빠졌습니다(리뷰 S2, 2026-10-12). 미리보기의
+    // '제외'에 '근무일'로 세어, 저장하기 전에 보입니다(S3). keep이면 저장이 그 날을 건너뜁니다.
+    const m = this.month();
+    const worked = d => m.some(r => this.key(r) === this.keyOf(d) && r.type === 'shift' && !r.planned && !r.awaiting);
     for (let d = new Date(s); d <= e; d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)) {
       const hol = this.holidayName(d);
       const sun = d.getDay() === 0;
       const sat = d.getDay() === 6 && this.state.satOff;
+      const keep = worked(d);
       out.push({
         d: new Date(d),
-        deduct: !hol && !sun && !sat,
-        why: hol || (sun ? this.T('sunday_2') : (sat ? this.T('saturday_off') : '')),
+        deduct: !hol && !sun && !sat && !keep,
+        keep,
+        why: keep ? this.T('days_worked') : (hol || (sun ? this.T('sunday_2') : (sat ? this.T('saturday_off') : ''))),
       });
     }
     return out;
@@ -5419,12 +5427,9 @@ class Component extends DCLogic {
         mon: false, planned: true, awaiting: true, inH: 9, outH: 21, c: this.calc(9, 21, 'day', true),
       }];
     } else {
-      // 쉬는 날(일요일·공휴일·쉬는 토요일)에 이미 일한 근무가 있으면 그 날은 건너뜁니다.
-      // 범위가 그 위에 '차감 없음'을 적어 특근 수당이 조용히 사라졌습니다(리뷰 S2,
-      // 2026-10-12). 미리 잡아 두기만 한 특근(planned/awaiting)은 일한 날이 아니므로 덮습니다.
-      const m = this.month();
-      const worked = d => m.some(r => this.key(r) === this.keyOf(d) && r.type === 'shift' && !r.planned && !r.awaiting);
-      recs = this.rangeDays().filter(x => x.deduct || !worked(x.d)).map(x => x.deduct
+      // 이미 일한 날은 건너뜁니다 — 어느 요일이든(rangeDays의 keep). 미리 잡아 두기만 한
+      // 특근(planned/awaiting)은 일한 날이 아니므로 덮습니다.
+      recs = this.rangeDays().filter(x => !x.keep).map(x => x.deduct
         ? {
           y: x.d.getFullYear(), m: x.d.getMonth() + 1, day: x.d.getDate(), kind: 'day', type, mon: false,
           planned: x.d > now, c: { gross: 0, bk: 0, net: 8, reg: 8, ot: 0, night: 0, hol: 0, pay: 0 },
