@@ -1,6 +1,6 @@
 # 근무기록 LOGGER — change log beyond V2.md
 
-Eighty-eight entries, newest first — eighty-one carry an ordinal (first … eighty-first),
+Eighty-nine entries, newest first — eighty-two carry an ordinal (first … eighty-second),
 the seven oldest predate the numbering. Each one is a bug found by **actually using the app on
 shift**, what changed, and — the part worth reading — *why it was that and not the
 obvious fix*. Most entries end with a **다음 사람에게** paragraph: the rule the bug
@@ -18,7 +18,8 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 
 ## Index
 
-- 2026-10-12 (latest, eighty-first) — 회사 규칙만 판이고 나머지 접이식은 평면이었습니다
+- 2026-10-12 (latest, eighty-second) — 흰 판이 아니라 붉은 판으로
+- 2026-10-12 (eighty-first) — 회사 규칙만 판이고 나머지 접이식은 평면이었습니다
 - 2026-10-12 (eightieth) — '법이 정한 값'이 아래 전부를 말하는 줄 알았습니다
 - 2026-10-12 (seventy-ninth) — 새로 깐 앱이 회사의 호의를 가정하고 있었습니다
 - 2026-10-12 (seventy-eighth) — 달력과 미리보기가 같은 날을 두 가지로 말했습니다
@@ -107,7 +108,31 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 - 2026-08-13 — the service worker was hiding every update
 - 2026-08-13 (earlier) — 조퇴 사유 became a popup with a dropdown
 
-### 2026-10-12 (latest, eighty-first) — 회사 규칙만 판이고 나머지 접이식은 평면이었습니다
+### 2026-10-12 (latest, eighty-second) — 흰 판이 아니라 붉은 판으로
+
+근로자가 흰 판이 싫다고 했습니다. 세 가지를 실제 화면에 그려 견주었습니다 — 가장 옅은 분홍(`accent-50`),
+붉은 테두리, 붉게 채운 판(`accent-300` #f1b5ab). 가장 옅은 분홍은 열린 카드의 바탕(`accent-100`)과 1.09:1이라
+판이 사라져 버렸고, 근로자는 채운 판을 골랐습니다.
+
+채운 붉은 위에서는 글자와 스위치를 다시 재야 했습니다. 넷이 모자랐습니다.
+
+| 판 위의 것 | 흰 판 | 붉은 판, 그대로 두면 | 이제 (판 안에서만) |
+|---|---|---|---|
+| 설명 글자 `neutral-700` | 7.6:1 | 4.3:1 — AA 미달 | `neutral-800` 6.6:1 |
+| 보조 글자 `neutral-600` | 4.7:1 | 2.7:1 | `neutral-800` 6.6:1 |
+| 경고 `accent-700` | — | 4.1:1 | 본문 검정 9.4:1 (굵기는 그대로) |
+| 꺼진 스위치 트랙 `neutral-400` | — | 1.02:1 — 스위치가 **사라짐** | `neutral-700` 4.35:1 |
+
+입력칸 안의 흐린 숫자는 바꾸지 않았습니다 — 그 숫자는 칸 자신의 밝은 바탕 위에 있고, 흐림이 곧 '아직 법정
+최저'라는 뜻입니다. 켜진 스위치(빨강, 2.39:1)는 흰 손잡이와 그림자가 읽히므로 그대로 두었습니다. 고른 상태의
+붉은 단추(계산, 교대, 보험 ON)는 이제 붉은 위의 빨강이라 흰 판에서보다 덜 튀지만, 검은 테두리와 흰 글자가
+남아 구별됩니다. 바꾼 것은 모두 `ds-tokens.css` 2l에 있고, 소스의 판 열넷은 바탕 하나만 바뀌었습니다. 시험이
+판 위의 대비를 토큰에서 다시 재어, 숫자가 바뀌면 먼저 압니다.
+
+**다음 사람에게.** 바탕 색을 바꾸면 그 위에 있는 모든 것을 다시 재세요 — 글자만이 아니라 스위치의 꺼진 트랙처럼
+'바탕보다 조금 진한 회색'으로 그려진 것은, 바탕이 진해지는 순간 조용히 사라집니다.
+
+### 2026-10-12 (eighty-first) — 회사 규칙만 판이고 나머지 접이식은 평면이었습니다
 
 여든째가 회사 규칙의 묶음을 흰 판으로 만들자, 근로자가 물었습니다: **설정의 다른 접이식에는 이 상자가
 없는데, 같게 해야 하지 않습니까?** 모든 접이식에 상자를 두면 모양은 같아지지만 뜻이 사라집니다 — 묶음이
