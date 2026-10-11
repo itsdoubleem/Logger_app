@@ -9563,17 +9563,18 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
 {
   const sh=(c,m,d,o)=>Object.assign({y:2028,m,day:d,kind:'day',type:'shift',mon:false,inH:9,outH:18,c:c.calc(9,18,'day',!!(o&&o.holiday))},o||{});
   const cases=[
-    { name:'일한 평일', recs:c=>[sh(c,2,16)], a:[2,14], b:[2,18] },
-    { name:'일한 일요일', recs:c=>[sh(c,2,13,{holiday:true})], a:[2,11], b:[2,15] },
-    { name:'일한 삼일절', recs:c=>[sh(c,3,1,{holiday:true})], a:[2,28], b:[3,3] },
-    { name:'일한 토요일 · 쉬는 토요일 끔', recs:c=>[sh(c,2,12,{holiday:true})], a:[2,10], b:[2,14], satOff:false },
-    { name:'일한 토요일 · 쉬는 토요일 켬', recs:c=>[sh(c,2,12,{holiday:true})], a:[2,10], b:[2,14], satOff:true },
-    { name:'미리 잡은 평일 특근', recs:c=>[sh(c,2,16,{holiday:true,planned:true,awaiting:true})], a:[2,14], b:[2,18] },
-    { name:'미리 잡은 일요일 특근', recs:c=>[sh(c,2,13,{holiday:true,planned:true,awaiting:true})], a:[2,11], b:[2,15] },
-    { name:'두 달에 걸친 범위', recs:c=>[sh(c,2,24),sh(c,3,2)], a:[2,21], b:[3,6] },
-    // 리뷰 S1: 끝 칸에 일한 날·일요일이 앉는 경우 — 끝 칸은 선택 색이라 그음만 보입니다
-    { name:'시작 칸이 일한 날', recs:c=>[sh(c,2,16)], a:[2,16], b:[2,18] },
-    { name:'끝 칸이 일요일', recs:c=>[], a:[2,10], b:[2,13] },
+    { name:'일한 평일', recs:c=>[sh(c,2,16)], a:[2,14], b:[2,18], ded:4 },   // 월–금, 수요일은 일한 날,
+    { name:'일한 일요일', recs:c=>[sh(c,2,13,{holiday:true})], a:[2,11], b:[2,15], ded:4 },   // 금·토·월·화 — 일요일은 제외,
+    { name:'일한 삼일절', recs:c=>[sh(c,3,1,{holiday:true})], a:[2,28], b:[3,3], ded:4 },   // 월·화·목·금 — 삼일절은 제외,
+    { name:'일한 토요일 · 쉬는 토요일 끔', recs:c=>[sh(c,2,12,{holiday:true})], a:[2,10], b:[2,14], satOff:false, ded:3 },   // 목·금·월 — 토요일은 일한 날, 일요일은 제외,
+    { name:'일한 토요일 · 쉬는 토요일 켬', recs:c=>[sh(c,2,12,{holiday:true})], a:[2,10], b:[2,14], satOff:true, ded:3 },   // 목·금·월,
+    { name:'미리 잡은 평일 특근', recs:c=>[sh(c,2,16,{holiday:true,planned:true,awaiting:true})], a:[2,14], b:[2,18], ded:5 },   // 찍지 않은 근무는 일한 날이 아닙니다 — 닷새 모두 차감,
+    { name:'미리 잡은 일요일 특근', recs:c=>[sh(c,2,13,{holiday:true,planned:true,awaiting:true})], a:[2,11], b:[2,15], ded:4 },   // 금·토·월·화 — 일요일은 쉬는 날로 제외,
+    { name:'두 달에 걸친 범위', recs:c=>[sh(c,2,24),sh(c,3,2)], a:[2,21], b:[3,6], ded:10 },   // 15일 − 일요일 둘 − 삼일절 − 일한 날 둘,
+    // 리뷰 S1: 범위의 양 끝 칸(시작·끝)에 일한 날·일요일이 앉는 경우 — 끝 칸은 선택 색이라 그음만 보입니다
+    // 리뷰(2026-10-12) S1: 열두 경우 모두 차감 수를 손으로 세어 박았습니다 — 셋이 함께 움직여도(rangeDays가 바뀌어도) 잡힙니다
+    { name:'시작 칸이 일한 날', recs:c=>[sh(c,2,16)], a:[2,16], b:[2,18], ded:2 },   // 목·금,
+    { name:'끝 칸이 일요일', recs:c=>[], a:[2,10], b:[2,13], ded:3 },   // 목·금·토,
     // 리뷰 S3: 쉬는 토요일을 켜면 일하지 않은 토요일이 실제로 빠집니다 — 켜고 끈 두 경우의 차감이 달라야 합니다
     { name:'일하지 않은 토요일 · 쉬는 토요일 끔', recs:c=>[], a:[2,10], b:[2,14], satOff:false, ded:4 },
     { name:'일하지 않은 토요일 · 쉬는 토요일 켬', recs:c=>[], a:[2,10], b:[2,14], satOff:true, ded:3 },
