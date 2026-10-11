@@ -9011,10 +9011,10 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   c.setS({ breaksDay:[{from:'17:00',to:'17:30'},{from:'11:30',to:'12:30'}] });
   v=c.renderVals();
   ok('줄 순서가 바뀌어도 이른 쪽이 첫 휴게입니다', v.dayBreakRows[1].hasSwitch===false && v.dayBreakRows[0].hasSwitch===true);
-  // 야간에서 23:30은 00:00보다 이릅니다(20:00 시작)
-  c.setS({ breaksNight:[{from:'00:00',to:'01:00'},{from:'23:30',to:'23:45'}] });
+  // 야간에서 23:00은 00:00보다 이릅니다(20:00 시작)
+  c.setS({ breaksNight:[{from:'00:00',to:'01:00'},{from:'23:00',to:'23:30'}] });
   v=c.renderVals();
-  ok('야간 23:30이 00:00보다 앞섭니다', v.nightBreakRows[1].hasSwitch===false && v.nightBreakRows[0].hasSwitch===true);
+  ok('야간 23:00이 00:00보다 앞섭니다', v.nightBreakRows[1].hasSwitch===false && v.nightBreakRows[0].hasSwitch===true);
 
   // 이미 '연장 시'로 저장된 첫 줄은 스위치를 남깁니다 — 되돌릴 길을 숨기지 않습니다
   c.setS({ breaksDay:[{from:'11:30',to:'12:30',ot:true},{from:'17:00',to:'17:30'}] });
@@ -9034,6 +9034,33 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   d.setS({ breaksDay:[{from:'',to:''},{from:'12:00',to:'13:00'}] });
   v=d.renderVals();
   ok('빈 줄은 스위치를 갖고, 시각이 있는 줄이 첫 휴게입니다', v.dayBreakRows[0].hasSwitch===true && v.dayBreakRows[1].hasSwitch===false);
+}
+
+// ── 스위치가 없는 줄은 '가장 이른 휴게'가 아니라 식사 휴게입니다 (리뷰 S1, 2026-10-11) ──
+// v1.2.10은 시작 시각이 가장 이른 줄에서 스위치를 뺐습니다. 10:00–10:10 쉬는 시간이 있는
+// 공장에서는 그 10분이 스위치를 잃고 점심이 스위치를 가졌습니다 — F7이 없애려던 바로 그것.
+// §54의 최소 단위는 30분이므로, 식사 휴게 = 두 시각이 다 있고 30분 이상인 줄 가운데 가장 이른 것.
+{
+  const c=mk(V2);
+  c.setS({ shifts:'day', dayStart:'08:00', breaksDay:[{from:'10:00',to:'10:10'},{from:'12:00',to:'13:00'}] });
+  let v=c.renderVals().dayBreakRows;
+  ok('점심이 스위치 없는 줄이고 10분 쉬는 시간은 스위치를 가집니다', v[1].hasSwitch===false && v[0].hasSwitch===true, JSON.stringify(v.map(r=>r.hasSwitch)));
+  // 시작만 적고 끝을 아직 안 적은 줄은 식사 휴게가 될 수 없습니다 — 임금 계산도 그 줄을 보지 않습니다
+  c.setS({ breaksDay:[{from:'12:00',to:'13:00'},{from:'10:00',to:''}] });
+  v=c.renderVals().dayBreakRows;
+  ok('끝 시각이 빈 줄 때문에 점심이 스위치를 얻지 않습니다', v[0].hasSwitch===false && v[1].hasSwitch===true, JSON.stringify(v.map(r=>r.hasSwitch)));
+  // 30분짜리도 식사 휴게입니다(§54, 4시간에 30분)
+  c.setS({ breaksDay:[{from:'12:00',to:'12:30'},{from:'17:00',to:'17:30'}] });
+  v=c.renderVals().dayBreakRows;
+  ok('30분 점심도 식사 휴게입니다', v[0].hasSwitch===false && v[1].hasSwitch===true);
+  // 30분 미만의 쉬는 시간만 있으면 식사 휴게가 없는 것이고, 모든 줄이 스위치를 가집니다(기본은 꺼짐)
+  c.setS({ breaksDay:[{from:'10:00',to:'10:10'},{from:'15:00',to:'15:10'}] });
+  v=c.renderVals().dayBreakRows;
+  ok('짧은 쉬는 시간만 있으면 스위치가 다 남고 다 꺼져 있습니다', v.every(r=>r.hasSwitch===true && r.otOnly===false));
+  // 자정을 넘는 식사 휴게(23:30–00:30)도 30분 이상입니다
+  c.setS({ shifts:'night', nightStart:'20:00', breaksNight:[{from:'23:30',to:'00:30'},{from:'04:00',to:'04:30'}] });
+  v=c.renderVals().nightBreakRows;
+  ok('자정을 넘는 야간 식사 휴게', v[0].hasSwitch===false && v[1].hasSwitch===true, JSON.stringify(v.map(r=>r.hasSwitch)));
 }
 
 Promise.all(later).then(()=>{
