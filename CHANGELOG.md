@@ -1,6 +1,6 @@
 # 근무기록 LOGGER — change log beyond V2.md
 
-Eighty-six entries, newest first — seventy-nine carry an ordinal (first … seventy-ninth),
+Eighty-seven entries, newest first — eighty carry an ordinal (first … eightieth),
 the seven oldest predate the numbering. Each one is a bug found by **actually using the app on
 shift**, what changed, and — the part worth reading — *why it was that and not the
 obvious fix*. Most entries end with a **다음 사람에게** paragraph: the rule the bug
@@ -18,7 +18,8 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 
 ## Index
 
-- 2026-10-12 (latest, seventy-ninth) — 새로 깐 앱이 회사의 호의를 가정하고 있었습니다
+- 2026-10-12 (latest, eightieth) — '법이 정한 값'이 아래 전부를 말하는 줄 알았습니다
+- 2026-10-12 (seventy-ninth) — 새로 깐 앱이 회사의 호의를 가정하고 있었습니다
 - 2026-10-12 (seventy-eighth) — 달력과 미리보기가 같은 날을 두 가지로 말했습니다
 - 2026-10-12 (seventy-seventh) — 연차 범위가 일한 평일까지 덮었고, 미리보기는 그것을 몰랐습니다
 - 2026-10-12 (seventy-sixth) — 휴가를 길게 잡으면 그 안의 일한 일요일이 쉬는 날로 바뀌었습니다
@@ -105,7 +106,34 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 - 2026-08-13 — the service worker was hiding every update
 - 2026-08-13 (earlier) — 조퇴 사유 became a popup with a dropdown
 
-### 2026-10-12 (latest, seventy-ninth) — 새로 깐 앱이 회사의 호의를 가정하고 있었습니다
+### 2026-10-12 (latest, eightieth) — '법이 정한 값'이 아래 전부를 말하는 줄 알았습니다
+
+이 앱을 만든 사람이 회사 규칙을 보다가 물었습니다: **'법이 정한 값'은 1일 평균임금 하나만 말하는 것입니까?
+휴업수당률과 그 아래는 법이 정한 것이 아닙니까?** 맞습니다 — 법이 정한 값은 1일 평균임금 한 줄뿐이고,
+휴업수당률(§46은 최저 70%만 정합니다)·토요일·약정휴일·×2.0 지급은 회사가 실제로 하는 것입니다. 만든 사람이
+헷갈렸다면 근로자는 더 헷갈립니다.
+
+까닭은 모양이었습니다. 묶음 이름 밑에 설명이 오고, **그 밑의 구분선이 이름을 제 줄들에서 떼어 놓았습니다.**
+앞 묶음의 긴 설명은 다음 이름에 14px 만에 붙어, 이름이 위의 끝처럼 읽혔습니다. 그리고 하나뿐인 값 위에서
+설명은 'You do not need to change **these**'라고 복수로 말했습니다.
+
+| | 전 | 후 |
+|---|---|---|
+| 묶음 | 한 줄로 이어짐, 이름 밑에 구분선 | 묶음마다 흰 판 다섯 — 출퇴근 처리 · 법이 정한 값 · 회사가 실제로 하는 것 · 배수 · 상여 |
+| 이름과 줄 사이 | 구분선 | 없음 — 이름·설명·줄이 한 판 |
+| 판 사이 | — | 10px `gap` (카드 안의 margin은 층이 가져가므로 쓰지 않음) |
+| 둥근 모서리 | — | `ds-tokens.css` 2l, `--radius-md` |
+| 하나뿐인 법정 값 위의 설명 | 복수 (en·vi·zh·th·ne·km) | 단수 — 새 문구 `you_do_not_need_to_change_this_the_la` |
+
+단수 문구는 하나뿐인 두 곳(내 급여 조건의 기준시간, 회사 규칙의 1일 평균임금)에만 씁니다. 4대보험은 법이 정한
+요율이 여럿이라 복수 그대로입니다. 판 모양(`padding: 12px 14px 10px` + 카드 흰색)은 앱의 다른 어디에도 없어
+층의 선택자가 판만 잡습니다(시험이 셉니다). 처음 계획은 넷이었는데 상여도 같은 모양의 묶음이라 다섯이 되었습니다.
+
+**다음 사람에게.** 묶음 이름은 아래를 위한 것이므로 위와 떨어지고 아래와 붙어야 합니다. 이름과 그 줄들
+사이에 선을 긋지 마세요 — 선은 묶음과 묶음 사이에 있어야 합니다. 그리고 같은 문장을 여러 곳에서 빌려 쓸
+때는, 그 문장이 가리키는 것이 몇 개인지 자리마다 물으세요.
+
+### 2026-10-12 (seventy-ninth) — 새로 깐 앱이 회사의 호의를 가정하고 있었습니다
 
 근로자가 새로 깐 앱의 회사 규칙을 보다가 물었습니다: **퇴근 유예가 왜 15분으로 시작합니까? 대부분의 회사는
 유예를 주지 않을 것 같습니다.** 이름 때문에 지각을 봐주는 시간처럼 읽히지만, 이 앱의 퇴근 유예는 그 반대쪽
