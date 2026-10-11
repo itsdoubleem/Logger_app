@@ -9492,6 +9492,21 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('찍지 않은 근무 위의 연차는 전처럼 연차', e.state.extra.filter(x=>x.day===16)[0].type==='annual');
 }
 
+// ── 달력도 일한 날을 '제외'로 그립니다 (리뷰 S1, 2026-10-12) ──
+// 미리보기는 '1일 제외 · 근무일'이라고 하는데 달력은 그 수요일을 앞뒤 날과 같은 진한 '차감' 색으로
+// 칠했습니다. 같은 화면이 두 가지로 말하면 근로자는 어느 쪽을 믿어야 할지 모릅니다.
+{
+  const c=mk(V2,'2028-02-28T23:00:00'); c.state.settings.periodStart=1;
+  c.state.extra=[{y:2028,m:2,day:16,kind:'day',type:'shift',mon:false,inH:9,outH:18,c:c.calc(9,18,'day',false)}];
+  c.openPending('annual'); c.pickDate(new Date(2028,1,14)); c.pickDate(new Date(2028,1,18));
+  c.setState({ calIso:new Date(2028,1,1).toISOString() });
+  const cells=c.renderVals().calCells.filter(x=>!x.empty);
+  const cell=d=>cells.filter(x=>x.dd===String(d))[0];
+  ok('일한 수요일은 제외된 날처럼 옅고 그어집니다', cell(16).bg==='var(--color-neutral-200)' && cell(16).strike==='line-through', JSON.stringify({bg:cell(16).bg,st:cell(16).strike}));
+  ok('일한 수요일의 글자는 평일 색 그대로', cell(16).ink==='var(--color-text)');
+  ok('앞뒤 평일은 차감 색', cell(15).bg==='var(--color-accent-300)' && cell(17).bg==='var(--color-accent-300)');
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);

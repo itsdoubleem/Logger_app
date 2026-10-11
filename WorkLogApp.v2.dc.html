@@ -6210,6 +6210,12 @@ class Component extends DCLogic {
       // strike must be present — the template writes it into text-decoration and
       // a missing value leaves the declaration dangling on every leading blank
       const blank = { empty: true, dd: '', bg: 'transparent', ink: 'transparent', bd: 'transparent', strike: 'none', bars: [], pick: () => {} };
+      // 범위 안의 일한 날은 저장이 건너뛰는 날입니다 — 미리보기와 같은 rangeDays()에서 읽어,
+      // 달력도 그 날을 '제외'로 그립니다(리뷰 S1, 2026-10-12)
+      const keepK = {};
+      if (rs !== null && (this.state.pending === 'annual' || this.state.pending === 'vacation')) {
+        this.rangeDays().forEach(x => { if (x.keep) keepK[this.keyOf(x.d)] = true; });
+      }
       const cells = [];
       for (let i = 0; i < lead; i++) cells.push(blank);
       for (let d = 1; d <= dim; d++) {
@@ -6218,6 +6224,7 @@ class Component extends DCLogic {
         const edge = T === rs || T === re;
         const inR = rs !== null && T >= rs && T <= re;
         const red = !!this.holidayName(dt) || dt.getDay() === 0 || (dt.getDay() === 6 && this.state.satOff);
+        const off = red || !!keepK[this.keyOf(dt)];
         // on the selected edge the cell turns solid accent, so a coloured dot
         // would disappear into it — those two go white for the moment they are
         // selected, exactly as the single dot used to
@@ -6226,10 +6233,10 @@ class Component extends DCLogic {
           bars,
           empty: false, dd: String(d),
           // affected (deducted) days carry the strong tint; excluded red days stay pale
-          bg: edge ? 'var(--color-accent)' : (inR ? (red ? 'var(--color-neutral-200)' : 'var(--color-accent-300)') : 'transparent'),
+          bg: edge ? 'var(--color-accent)' : (inR ? (off ? 'var(--color-neutral-200)' : 'var(--color-accent-300)') : 'transparent'),
           ink: edge ? 'var(--color-bg)' : (red ? 'var(--color-accent-700)' : 'var(--color-text)'),
           bd: T === todayT ? 'var(--color-text)' : 'transparent',
-          strike: inR && red ? 'line-through' : 'none',
+          strike: inR && off ? 'line-through' : 'none',
           pick: () => this.pickDate(dt),
         });
       }
