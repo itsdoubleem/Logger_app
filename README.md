@@ -140,8 +140,9 @@ All of it lives in the `Component` class in `WorkLogApp.v2.dc.html`. Read `calc(
 - Clock-IN rounds **up** to the next 30 min (08:40 -> 09:00, 08:20 -> 08:30). Lateness is
   never rounded away. A genuinely early 08:30 stays 08:30 and is paid.
 - Clock-OUT rounds **down** to the last 30 min (20:15 -> 20:00). Unworked time is never paid.
-- Exception: a configurable grace before the hour (default 15 min) credits the hour
-  (20:45 -> 21:00). Set to 0 for companies that credit only the exact hour.
+- Exception: a configurable grace before the hour credits the hour (with 15 min,
+  20:45 -> 21:00). A new install starts at 0, so nothing is credited that the company
+  may not give; set it to what your company actually does.
 
 **Shift detection:** the user sets their own 주간 시작 / 야간 시작 times. A punch is logged as
 whichever of the two it is *circularly nearer* to. No fixed windows. Watch the wrap-around

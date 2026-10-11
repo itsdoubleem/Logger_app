@@ -400,6 +400,18 @@
   transition: transform .15s ease;
 }
 
+/* ── 2l · SETUP · 회사 규칙: each group is one white panel ──────────────── */
+/* The groups in 회사 규칙 (출퇴근 처리, 법이 정한 값, 회사가 실제로 하는 것,
+   배수, 상여) used to run one under another with a divider *below* each
+   label, which cut the label off from its own rows; a label read as the end
+   of the group above it (2026-10-12, F9). Each group is now a white panel on
+   the open card's tint, spaced by the column's `gap`, not margins — rule 1
+   owns margin inside cards. `padding: 12px 14px 10px` with the card white
+   appears nowhere else in the source (asserted), so this catches only them. */
+[style*="padding: 12px 14px 10px"][style*="background: var(--color-card)"] {
+  border-radius: var(--radius-md);
+}
+
 /* ── 3 · the header bar ─────────────────────────────────────────────────── */
 [style*="align-items: flex-end"][style*="padding: 8px 18px 10px"] {
   position: relative;

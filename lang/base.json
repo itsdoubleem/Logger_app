@@ -392,8 +392,8 @@
     "ko": "출근 처리"
   },
   "clock_in_rounds_up_to_the_next_30_minu": {
-    "en": "Clock-in rounds up to the next 30 minutes — 08:40 becomes 09:00, so being late is never rounded away. Punch in 30 minutes early at 08:30 and it stays 08:30, and that half hour is paid. Clock-out rounds down to the last 30 minutes — 20:15 becomes 20:00. With the grace set to 15, punching out at 20:45 counts as 21:00. Set it to 0 if your company only credits the exact hour.",
-    "ko": "출근은 다음 30분 단위로 올림 — 08:40은 09:00이 됩니다. 지각이 반올림으로 덮이지 않습니다. 30분 일찍 08:30에 찍으면 그대로 08:30, 그 30분은 지급됩니다. 퇴근은 지난 30분 단위로 내림 — 20:15는 20:00. 유예를 15분으로 두면 20:45는 21:00으로 인정됩니다. 정확히 정시에만 인정되는 회사면 0으로 두세요."
+    "en": "Clock-in rounds up to the next 30 minutes — 08:40 becomes 09:00, so being late is never rounded away. Punch in 30 minutes early at 08:30 and it stays 08:30, and that half hour is paid. Clock-out rounds down to the last 30 minutes — 20:15 becomes 20:00. With the grace set to 15, punching out at 20:45 counts as 21:00. A new install starts at 0 — enter a grace only if your company really credits the hour early.",
+    "ko": "출근은 다음 30분 단위로 올림 — 08:40은 09:00이 됩니다. 지각이 반올림으로 덮이지 않습니다. 30분 일찍 08:30에 찍으면 그대로 08:30, 그 30분은 지급됩니다. 퇴근은 지난 30분 단위로 내림 — 20:15는 20:00. 유예를 15분으로 두면 20:45는 21:00으로 인정됩니다. 새로 깐 앱은 0분입니다 — 회사가 실제로 정시 전 퇴근을 쳐 줄 때만 그 분을 적으세요."
   },
   "clock_out": {
     "en": "Clock out",
@@ -2909,6 +2909,10 @@
   },
   "you_do_not_need_to_change_these_the_la": {
     "en": "You do not need to change these. The law sets them, and the app already has the current figures.",
+    "ko": "고치지 않아도 됩니다. 법이 정하는 값이고, 앱이 지금 값을 이미 갖고 있습니다."
+  },
+  "you_do_not_need_to_change_this_the_la": {
+    "en": "You do not need to change this. The law sets it, and the app already has the current figure.",
     "ko": "고치지 않아도 됩니다. 법이 정하는 값이고, 앱이 지금 값을 이미 갖고 있습니다."
   },
   "you_have_passed_1_year_this_is_owed_wh": {
