@@ -1316,8 +1316,8 @@
     "ko": "근로기준법 제50조·제53조 — 1주 소정근로는 40시간, 연장근로는 12시간까지입니다. 합쳐서 52시간이 상한이고, 본인이 동의했더라도 이 한도를 넘길 수는 없습니다. 넘긴 시간에 수당을 받았더라도 초과 자체가 위반입니다. 기록은 그대로 두세요 — 증빙이 됩니다."
   },
   "labour_standards_act_56_2_holiday_work": {
-    "en": "Labour Standards Act §56(2) — holiday work pays ×1.5 for the first 8 hours and ×2.0 for every hour past 8. That is the legal floor, so the app assumes it is paid. If your payslip shows a flat ×1.5 no matter how long the day ran, switch this to NOT PAID and the app will show the difference as money you are owed. The ×2.0 tier applies to Sundays and public holidays only — Saturday is not a 휴일 and stays at ×1.5 however long you work, unless you switch on the setting just above.",
-    "ko": "근로기준법 제56조② — 휴일근로는 8시간 이내 ×1.5, 8시간을 넘긴 시간은 ×2.0입니다. 법이 정한 최저라 기본은 ‘지급함’입니다. 명세서를 보고 회사가 8시간을 넘겨도 ×1.5만 준다면 ‘미지급’으로 바꾸세요 — 그러면 앱이 그 차액을 급여 화면에 ‘받지 못한 금액’으로 따로 보여줍니다. 이 가산은 일요일과 공휴일에만 걸립니다. 토요일은 휴일이 아니라 몇 시간을 일해도 ×1.5이며, 바로 위 항목을 켜야 토요일에도 적용됩니다."
+    "en": "Labour Standards Act §56(2) — holiday work pays ×1.5 for the first 8 hours and ×2.0 for every hour past 8. That is the legal floor, so the app assumes it is paid. If your payslip shows a flat ×1.5 no matter how long the day ran, switch this off and the app will show the difference as money you are owed. The ×2.0 tier applies to Sundays and public holidays only — Saturday is not a 휴일 and stays at ×1.5 however long you work, unless you switch on the setting just above.",
+    "ko": "근로기준법 제56조② — 휴일근로는 8시간 이내 ×1.5, 8시간을 넘긴 시간은 ×2.0입니다. 법이 정한 최저라 기본은 ‘지급함’입니다. 명세서를 보고 회사가 8시간을 넘겨도 ×1.5만 준다면 이 항목을 끄세요 — 그러면 앱이 그 차액을 급여 화면에 ‘받지 못한 금액’으로 따로 보여줍니다. 이 가산은 일요일과 공휴일에만 걸립니다. 토요일은 휴일이 아니라 몇 시간을 일해도 ×1.5이며, 바로 위 항목을 켜야 토요일에도 적용됩니다."
   },
   "language": {
     "en": "LANGUAGE",

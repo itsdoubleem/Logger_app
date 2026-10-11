@@ -8885,6 +8885,31 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('고르기가 있으면 맨몸 단추는 없습니다', v.jumpShow===true && v.payViewingPast===true && v.payNowBare===false);
 }
 
+// ── 켜고 끄는 설정은 스위치입니다 (2026-10-11) ──
+// 근로자: '토요일을 휴일로 지정'을 켰는지 껐는지 헷갈립니다. 상자 안의 글자가 휴무일↔휴일,
+// 자동 특근↔직접, 미지급↔지급으로 바뀌었는데, 글자는 상태의 이름일 뿐 그것이 '켜짐'인지는
+// 말하지 않습니다. 휴대폰의 스위치로 바꿨습니다 — 회색 왼쪽 = 꺼짐, 빨강 오른쪽 = 켜짐.
+// ×2.0 설명은 'NOT PAID로 바꾸세요'라고 했는데 그 글자가 사라졌으므로 '끄세요'가 됐습니다.
+{
+  const fs=require('fs');
+  const src=fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const ds=fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
+  for (const n of ['satHol','restHol','holOver']) {
+    ok(n+' — 스위치 하나, 글자 없음', src.includes('aria-checked="{{ '+n+'On }}"') && !src.includes('{{ '+n+'Lbl }}'));
+  }
+  const c=mk(V2);
+  c.st().satIsHoliday=false; let v=c.renderVals();
+  ok('토요일 꺼짐 → 회색, 손잡이 왼쪽', v.satHolOn===false && v.satHolTrack==='var(--color-neutral-400)' && v.satHolKnobX==='0px');
+  v.toggleSatHol(); v=c.renderVals();
+  ok('누르면 켜짐 → 빨강, 손잡이 오른쪽', c.st().satIsHoliday===true && v.satHolOn===true && v.satHolTrack==='var(--color-accent)' && v.satHolKnobX==='15px');
+  // 근로자: 스위치 높이를 4분의 3으로. 31 → 23px, 손잡이가 동그랗게 남도록 폭도 같이 51 → 38px.
+  ok('손잡이가 가는 거리 = 트랙 34 − 손잡이 19', src.includes('width:34px;height:19px;padding:2px') && src.includes('width:19px;height:19px;'));
+  ok('층이 트랙과 손잡이를 둥글게 합니다 (정규화된 값으로)', ds.includes('[style*="width: 34px"][style*="height: 19px"] {') && ds.includes('[style*="width: 19px"][style*="height: 19px"] {'));
+  ok('34×19와 19×19는 스위치 말고는 없습니다', src.split('width:34px;height:19px').length-1===3 && src.split('height:19px').length-1===6 && src.split('width:19px').length-1===3);
+  const t=V2.STR['labour_standards_act_56_2_holiday_work'];
+  ok('×2.0 설명이 사라진 글자를 가리키지 않습니다', /switch this off/.test(t.en) && /이 항목을 끄세요/.test(t.ko) && !/NOT PAID|미지급’으로|KHÔNG TRẢ|TIDAK DIBAYAR|「未支付」/.test(JSON.stringify(t)));
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);

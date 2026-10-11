@@ -1,6 +1,6 @@
 # 근무기록 LOGGER — change log beyond V2.md
 
-Seventy-four entries, newest first — sixty-seven carry an ordinal (first … sixty-seventh),
+Seventy-five entries, newest first — sixty-eight carry an ordinal (first … sixty-eighth),
 the seven oldest predate the numbering. Each one is a bug found by **actually using the app on
 shift**, what changed, and — the part worth reading — *why it was that and not the
 obvious fix*. Most entries end with a **다음 사람에게** paragraph: the rule the bug
@@ -18,7 +18,8 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 
 ## Index
 
-- 2026-09-25 (latest, sixty-seventh) — 기간 고르기가 카드 가장자리에 붙어 있었고, 연도 칩만 네모였습니다
+- 2026-10-11 (latest, sixty-eighth) — 켜졌는지 꺼졌는지 단추가 말하지 않았습니다
+- 2026-09-25 (sixty-seventh) — 기간 고르기가 카드 가장자리에 붙어 있었고, 연도 칩만 네모였습니다
 - 2026-09-25 (sixty-sixth) — 그만두는 날 받을 돈을 한 자리에서 셀 수 없었습니다
 - 2026-09-25 (sixty-fifth) — 잔여 9일이 얼마인지는 말하지 않았습니다
 - 2026-09-25 (sixty-fourth) — 마지막 백업이 언제였는지 아무 데도 없었습니다
@@ -93,7 +94,38 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 - 2026-08-13 — the service worker was hiding every update
 - 2026-08-13 (earlier) — 조퇴 사유 became a popup with a dropdown
 
-### 2026-09-25 (latest, sixty-seventh) — 기간 고르기가 카드 가장자리에 붙어 있었고, 연도 칩만 네모였습니다
+### 2026-10-11 (latest, sixty-eighth) — 켜졌는지 꺼졌는지 단추가 말하지 않았습니다
+
+근로자가 10.03과 10.10 두 토요일의 내역을 비교하다가 하나에만 ×2.0 차액(12,900원)이 붙은 것을
+봤습니다. 10.03은 개천절이라 공휴일로 휴일이었고, 10.10은 '토요일을 휴일로 지정'이 꺼져 있어서
+휴무일이었습니다. 근로계약서 6번 휴일 칸에는 '매주 토요일'이 체크되어 있었습니다. 그런데 설정에서
+그 항목을 보고도 **켰는지 껐는지 헷갈린다**고 했습니다.
+
+회사 규칙의 세 항목은 글자가 바뀌는 상자였습니다 — `휴무일 ↔ 휴일`, `자동 특근 ↔ 직접`,
+`미지급 ↔ 지급`. 켜지면 빨갛게 칠해졌지만, 글자는 상태의 이름일 뿐 그것이 '켜짐'인지는 말하지
+않습니다. '휴무일'이라고 적힌 흰 상자를 보고 '이게 지금 고른 것인가, 누르면 이렇게 되는 것인가'를
+물을 수밖에 없습니다. 근로자는 휴대폰의 스위치 모양을 원했습니다.
+
+| | 전 | 후 |
+|---|---|---|
+| 모양 | 64×44 상자, 2px 검은 테두리, 글자 | 38×23 스위치 (트랙 34×19 + 2px, 손잡이 19×19) — 처음 51×31로 냈다가 근로자가 높이를 4분의 3으로 줄여 달라고 해서, 손잡이가 동그랗게 남도록 폭도 같이 줄였습니다 |
+| 꺼짐 | 투명 바탕 + 글자 | 회색 `neutral-400`, 손잡이 왼쪽 |
+| 켜짐 | 빨강 바탕 + 글자 | 빨강 `accent`, 손잡이 오른쪽 (15px 이동) |
+| 누르는 자리 | 64×44 | 그대로 64×44 |
+| 뜻 | 상자 안의 글자 | 줄 제목 — 켜짐 = 제목이 참 |
+
+세 항목 모두 제목이 '켜졌을 때의 뜻'으로 이미 적혀 있었으므로(토요일을 휴일로 지정 · 쉬는 날
+근무는 자동 특근 · 회사가 ×2.0을 지급) 글자 없이 스위치만으로 읽힙니다. 둥근 끝과 손잡이 그림자는
+`ds-tokens.css` 2k에 있습니다 — 34×19와 19×19 조합은 앱의 다른 어디에도 없어서 선택자가 스위치만 잡습니다.
+×2.0 설명은 'NOT PAID로 바꾸세요'라고 했는데 그 글자가 사라졌으므로 여덟 언어 모두 '끄세요'로
+고쳤습니다. 기본값은 바꾸지 않았습니다: 토요일이 휴일인지는 법이 아니라 계약서가 정하므로(§55는
+주휴일과 공휴일만) 꺼짐이 맞고, 계약서에 체크된 근로자가 켭니다.
+
+**다음 사람에게.** 켜고 끄는 설정에 상태의 이름을 적지 마세요. 이름은 두 상태 중 어느 쪽이 지금인지,
+어느 쪽이 '켜짐'인지 말하지 않습니다. 제목을 켜졌을 때의 문장으로 쓰고 스위치를 다세요. 그리고
+설명문이 단추의 글자를 가리키고 있지 않은지 확인하세요 — 글자를 없애면 그 문장이 없는 것을 가리킵니다.
+
+### 2026-09-25 (sixty-seventh) — 기간 고르기가 카드 가장자리에 붙어 있었고, 연도 칩만 네모였습니다
 
 근로자가 급여 탭의 기간 고르기를 보고 세 가지를 차례로 말했습니다. 셈은 하나도 바뀌지
 않았습니다 — 바뀐 것은 모양뿐입니다.
