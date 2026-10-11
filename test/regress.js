@@ -4785,7 +4785,7 @@ console.log('\n== 표 옆에 그 표가 무슨 뜻인지 적습니다 ==');
   ok('넷 다 설명이 제목 바로 밑입니다',
     cnt(src, '{{ r.tag }}</div></sc-if><div style="padding-top:2px;font-size:9.5px;') === 4);
   // 옆에 글이 서도 스위치는 찌그러지지 않습니다 — flex:none이 그것을 막습니다.
-  ok('스위치는 줄어들지 않습니다', cnt(src, '{{ r.toggleOt }}" role="switch" aria-checked="{{ r.otOnly }}" aria-label="{{ r.tag }}" style="flex:none;min-height:44px;min-width:64px;') === 4);
+  ok('스위치는 줄어들지 않습니다', cnt(src, '{{ r.toggleOt }}" role="switch" aria-checked="{{ r.otOnly }}" aria-label="{{ r.switchName }}" style="flex:none;min-height:44px;min-width:64px;') === 4);
 
   // 설정 탭의 긴 안내는 지우지 않았습니다 — 표를 어떤 휴게에 달아야 하는지는
   // 옆의 한 줄이 말할 수 있는 것이 아닙니다
@@ -8970,7 +8970,7 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   const sw=tpl.match(/<div [^>]*role="switch"[^>]*>/g)||[];
   ok('스위치는 일곱입니다', sw.length===7, String(sw.length));
   ok('일곱 다 이름이 있습니다', sw.every(t=>/aria-label="\{\{ [^}]+ \}\}"/.test(t)), sw.filter(t=>!/aria-label=/.test(t)).join('\n'));
-  ok('이름은 옆 줄 제목과 같은 값입니다', tpl.split('aria-label="{{ r.tag }}"').length-1===4
+  ok('이름은 옆 줄 제목과 같은 값입니다', tpl.split('aria-label="{{ r.switchName }}"').length-1===4
     && ['lSatHol','lRestHol','lHolOver'].every(k=>tpl.includes('aria-label="{{ L.'+k+' }}"') && tpl.includes('>{{ L.'+k+' }}</div>')));
 }
 
@@ -9095,6 +9095,17 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   // 손대지 않은 점심(ot를 적은 적 없음)에는 여전히 스위치가 없습니다
   c.setS({ breaksDay:[{from:'12:00',to:'13:00'},{from:'17:00',to:'17:30',ot:true}] });
   ok('손대지 않은 점심에는 스위치가 없습니다', c.renderVals().dayBreakRows[0].hasSwitch===false);
+}
+
+// ── 휴게 스위치의 이름에는 시각이 들어갑니다 (리뷰 N2, 2026-10-11) ──
+// 이름이 다 '연장 시에만'이면 TalkBack으로는 어느 줄의 스위치인지 알 수 없습니다.
+{
+  const c=mk(V2);
+  c.setS({ shifts:'day', dayStart:'08:00', breaksDay:[{from:'12:00',to:'13:00'},{from:'17:00',to:'17:30'},{from:'',to:''}] });
+  const v=c.renderVals().dayBreakRows;
+  ok('이름 = 제목 + 시각', v[1].switchName===c.T('only_if_you_work_late')+' 17:00–17:30', v[1].switchName);
+  ok('줄마다 이름이 다릅니다', v[0].switchName!==v[1].switchName);
+  ok('시각이 빈 줄은 제목만', v[2].switchName===c.T('only_if_you_work_late'));
 }
 
 Promise.all(later).then(()=>{
