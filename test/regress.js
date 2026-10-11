@@ -9775,12 +9775,41 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   const h=rows.filter(r=>r.calc===c.won(calc.health))[0], p=rows.filter(r=>r.calc===c.won(calc.pension))[0];
   ok('명세서와 다른 건강보험은 빨강', !!h && h.ink==='var(--color-accent-700)' && h.now===c.won(99999), JSON.stringify(h));
   ok('맞는 국민연금은 흐린 회색', !!p && p.ink==='var(--color-neutral-600)', JSON.stringify(p));
-  ok('명세서에 없는 장기요양도 빨강', rows.filter(r=>r.now===c.T('not_on_payslip')).every(r=>r.ink==='var(--color-accent-700)'));
+  // 줄을 이름으로 먼저 찾습니다 — 걸러서 every()만 하면 빈 목록에서도 참이었습니다(리뷰 S1)
+  const care=rows.filter(r=>r.name===c.T('ins_care_short'));
+  ok('명세서에 없는 장기요양도 빨강', care.length===1 && care[0].now===c.T('not_on_payslip') && care[0].ink==='var(--color-accent-700)', JSON.stringify(care));
   // 층: 판이나 열린 묶음을 고르는 규칙 가운데 글자색을 정하는 것이 없어야 합니다
   const css=require('fs').readFileSync(__dirname + '/../ds-tokens.css', 'utf8').replace(/\/\*[\s\S]*?\*\//g,'');
-  const blocks=css.split('}').map(b=>b.split('{')).filter(x=>x.length===2);
-  const hit=blocks.filter(([sel,decl])=>/background: var\(--color-accent-50\)/.test(sel) && /(^|[;\s])color\s*:/.test(decl));
+  // 규칙 덩어리를 셉니다 — @media 같은 감싼 규칙 안의 것도 꺼냅니다(리뷰 N1): 가장 안쪽 '선택자 { 선언 }'만 남깁니다
+  const blocks=[]; { const re=/([^{}]+)\{([^{}]*)\}/g; let m; while((m=re.exec(css))) blocks.push([m[1], m[2]]); }
+  ok('층의 규칙 덩어리를 찾았습니다', blocks.length>=40, String(blocks.length));
+  const onPanel=blocks.filter(([sel])=>/background: var\(--color-accent-50\)/.test(sel));
+  const hit=onPanel.filter(([,decl])=>/(^|[;\s])color\s*:/.test(decl));
   ok('판·열린 묶음에 걸린 층 규칙은 글자색을 바꾸지 않습니다', hit.length===0, hit.map(x=>x[0].trim()).join(' | '));
+  // 실제로 났던 실패는 글자색 규칙이 아니라 판을 붉게 '채운' 것이었습니다(F11의 첫 판). 판에 걸린 규칙이 바탕을
+  // 바꾸지 못하게 하고, 판 규칙 자체는 둥근 모서리와 테두리(그림자) 둘만 갖게 묶어 둡니다(리뷰 S2).
+  const bg=onPanel.filter(([,decl])=>/(^|[;\s])background(-color)?\s*:/.test(decl));
+  ok('판·열린 묶음에 걸린 층 규칙은 바탕을 바꾸지 않습니다', bg.length===0, bg.map(x=>x[0].trim()).join(' | '));
+  const panelRule=onPanel.filter(([sel])=>sel.trim()==='[style*="padding: 12px 14px 10px"][style*="background: var(--color-accent-50)"]');
+  const props=panelRule.length===1 ? panelRule[0][1].split(';').map(d=>d.split(':')[0].trim()).filter(Boolean).sort().join(',') : '';
+  ok('판 규칙은 border-radius와 box-shadow 둘뿐입니다', props==='border-radius,box-shadow', props);
+}
+
+// ── 근무내역서의 이름 묻는 상자도 모서리가 둥급니다 (2026-10-12) ──
+// '이 기록은 누구의 것입니까?' 상자는 테두리가 없어서 층의 규칙 2(테두리 있는 상자를 둥글게)에 걸리지 않아 네모로
+// 남았습니다 — 그 안의 입력칸과 '지금은 안 함', 아래의 근무내역서 단추는 모두 둥근데. 이웃과 같은 --radius-md.
+{
+  const fs=require('fs');
+  const src=fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8').split('class Component')[0];
+  const css=fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
+  const box='<div style="margin-top:11px;background:var(--color-accent-100);padding:12px 13px">';
+  const i=src.indexOf(box);
+  ok('이름 묻는 상자가 그 자리에 있습니다', i>0 && src.slice(i, i+400).indexOf('{{ L.askNameTitle }}')>0);
+  ok('층이 그 상자를 --radius-md로 둥글게 합니다', /\[style\*="background: var\(--color-accent-100\)"\]\[style\*="padding: 12px 13px"\] \{\s*border-radius: var\(--radius-md\)/.test(css));
+  // 같은 선택자에 걸리는 다른 상자는 이미 테두리가 있어 같은 반지름 — 테두리 없는 것은 이 하나뿐
+  const all=src.split('background:var(--color-accent-100);padding:12px 13px').length-1;
+  const borderless=(src.match(/<div style="[^"]*background:var\(--color-accent-100\);padding:12px 13px[^"]*">/g)||[]).filter(t=>t.indexOf('border:')<0).length;
+  ok('테두리 없는 것은 이름 묻는 상자 하나', all===3 && borderless===1, all+'/'+borderless);
 }
 
 Promise.all(later).then(()=>{
