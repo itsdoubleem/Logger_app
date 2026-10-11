@@ -5259,7 +5259,6 @@ class Component extends DCLogic {
     }
     return out;
   }
-  // 되돌리기: 수정한 경우에는 이전 기록을 되살리고, 새로 추가한 경우에는 지웁니다
   // ── 되돌리기 ──
   // 저장마다 따로 '무엇을 돌려놓을지' 정하던 때에는, 정하지 않은 길마다 원래 기록이
   // 지워졌습니다 — 결근·휴업·특근·연차·휴가를 기존 날 위에 넣거나, 퇴근 직후 조퇴 사유를
@@ -5270,18 +5269,27 @@ class Component extends DCLogic {
     const m = this.month();
     return ks.map(k => m.filter(r => this.key(r) === k)[0] || null);
   }
+  // 기록을 쓰는 자리마다 setState에 펼쳐 넣는 되돌리기 상태 — 쓸 날들, 그 날들의 지금 기록,
+  // 그리고 그 가운데 '지운 날 목록(removed)'에 있던 날. removed는 시범 기록을 가리는 목록이라,
+  // 되돌리기가 저장 전에 비어 있던 날까지 넣으면 백업마다 실리며 끝없이 불었습니다(리뷰 S1).
+  undoState(ks) {
+    return {
+      undoKeys: ks, undoPrev: this.snapUndo(ks),
+      undoRm: ks.filter(k => this.state.removed.indexOf(k) !== -1),
+    };
+  }
   undoLast() {
     const ks = this.state.undoKeys || [];
     const prev = Array.isArray(this.state.undoPrev) ? this.state.undoPrev : [];
+    const rm = Array.isArray(this.state.undoRm) ? this.state.undoRm : [];
     const back = prev.filter(Boolean);
-    if (!back.length) { this.removeEntries(ks); this.setState({ editedKeys: [], undoPrev: null }); return; }
     const backKs = back.map(r => this.key(r));
-    const gone = ks.filter(k => backKs.indexOf(k) === -1);
     this.setState({
       extra: this.state.extra.filter(x => ks.indexOf(this.key(x)) === -1 && backKs.indexOf(this.key(x)) === -1).concat(back),
-      removed: this.state.removed.filter(x => backKs.indexOf(x) === -1)
-        .concat(gone.filter(k => this.state.removed.indexOf(k) === -1)),
-      undoKeys: [], editedKeys: [], undoPrev: null, openDay: null,
+      // 쓴 날들의 removed를 저장 전 그대로 — 가려져 있던 날만 다시 가립니다
+      removed: this.state.removed.filter(x => ks.indexOf(x) === -1 && backKs.indexOf(x) === -1)
+        .concat(rm.filter(k => backKs.indexOf(k) === -1)),
+      undoKeys: [], editedKeys: [], undoPrev: null, undoRm: [], openDay: null,
     });
   }
   removeEntries(ks) {
@@ -5427,14 +5435,14 @@ class Component extends DCLogic {
     }
     const ks = recs.map(r => this.key(r));
     // 쓰기 전에 덮어쓸 날들을 적어 둡니다 — 고치는 도중에 다른 날을 눌렀다면 그 다른 날입니다
-    const undoPrev = this.snapUndo(ks);
-    this.setState({
+    const undo = this.undoState(ks);
+    this.setState(Object.assign(undo, {
       extra: this.state.extra.filter(x => ks.indexOf(this.key(x)) === -1).concat(recs),
       removed: this.state.removed.filter(x => ks.indexOf(x) === -1),
-      pending: null, pendingIso: null, pendingEndIso: null, undoKeys: ks,
+      pending: null, pendingIso: null, pendingEndIso: null,
       pendingEdit: false, editedKeys: wasEdit ? ks : [],
-      undoPrev, editPrev: null,
-    });
+      editPrev: null,
+    }));
     clearTimeout(this.addT);
     this.addT = setTimeout(() => this.setState({ undoKeys: [], editedKeys: [], undoPrev: null }), 9000);
   }
@@ -5540,13 +5548,13 @@ class Component extends DCLogic {
       reason: { id: 'no_work', fault: 'employer', ko: this.reasonDef('no_work').ko },
       c: { gross: 0, bk: 0, net: 0, reg: 0, ot: 0, night: 0, hol: 0, pay: 0 },
     };
-    this.setState({
-      session: null, shortOut: false, undoKeys: [k], undoPrev: this.snapUndo([k]), editedKeys: [],
+    this.setState(Object.assign(this.undoState([k]), {
+      session: null, shortOut: false, editedKeys: [],
       extra: this.state.extra.filter(x => this.key(x) !== k).concat([e]),
       removed: this.state.removed.filter(x => x !== k),
       reasonFor: k, reasonFresh: true, rsnOpen: false,
       earlyPick: 'no_work', earlyFault: 'employer', earlyNote: '',
-    });
+    }));
     clearTimeout(this.addT);
     this.addT = setTimeout(() => this.setState({ undoKeys: [], editedKeys: [], undoPrev: null }), 9000);
   }
@@ -5564,8 +5572,8 @@ class Component extends DCLogic {
     // 시간을 믿을 수 없어 계산은 비워 두지만(review), 날짜에 달린 법정 휴일 표시는 남깁니다 —
     // 나중에 고치기로 시간을 바로잡을 때 ×2.0이 함께 돌아옵니다.
     this.keepLegalHol(e, prev, false);
-    this.setState({
-      session: null, shortOut: false, undoKeys: [k], undoPrev: this.snapUndo([k]), editedKeys: [],
+    this.setState(Object.assign(this.undoState([k]), {
+      session: null, shortOut: false, editedKeys: [],
       extra: this.state.extra.filter(x => this.key(x) !== k).concat([e]),
       removed: this.state.removed.filter(x => x !== k),
       // 이 길로 나온 날은 정의상 아주 짧은 날입니다 — 사유를 물어볼 자리가
@@ -5573,7 +5581,7 @@ class Component extends DCLogic {
       // 있었나'는 여전히 남겨 둘 수 있고, 남겨 두어야 나중에 설명이 됩니다.
       reasonFor: k, reasonFresh: true, rsnOpen: false,
       earlyPick: null, earlyFault: 'employer', earlyNote: '',
-    });
+    }));
     clearTimeout(this.addT);
     this.addT = setTimeout(() => this.setState({ undoKeys: [], editedKeys: [], undoPrev: null }), 9000);
   }
@@ -5644,14 +5652,14 @@ class Component extends DCLogic {
     const rs = this.builtReason();
     const e = Object.assign({}, cur);
     if (rs) e.reason = rs; else delete e.reason;
-    this.setState({
+    this.setState(Object.assign(this.undoState([k]), {
       extra: this.state.extra.filter(x => this.key(x) !== k).concat([e]),
       removed: this.state.removed.filter(x => x !== k),
       reasonFor: null, reasonFresh: false, earlyPick: null, earlyNote: '', earlyFault: 'employer',
       // '기록 수정됨 · 되돌리기'의 되돌리기는 이 사유만 되돌립니다. 전에는 퇴근이 남긴
       // undoKeys를 그대로 써서, 방금 찍은 근무를 통째로 지웠습니다(리뷰 M2).
-      rsnOpen: false, editedKeys: [k], undoKeys: [k], undoPrev: [cur],
-    });
+      rsnOpen: false, editedKeys: [k],
+    }));
     clearTimeout(this.addT);
     this.addT = setTimeout(() => this.setState({ undoKeys: [], editedKeys: [], undoPrev: null }), 9000);
   }
@@ -5932,14 +5940,14 @@ class Component extends DCLogic {
   // 근무 하나를 기록에 넣습니다
   commitShift(e) {
     const k = this.key(e);
-    this.setState({
+    this.setState(Object.assign(this.undoState([k]), {
       session: null,
       extra: this.state.extra.filter(x => this.key(x) !== k).concat([e]),
       removed: this.state.removed.filter(x => x !== k),
       // 되돌리기는 이 퇴근만 — 앞의 고침에서 남은 것은 여기서 바뀝니다(리뷰 S3). 미리 잡아 둔
       // 특근 날에 찍은 퇴근을 되돌리면 그 날이 지워지지 않고 미리 잡은 대로 돌아옵니다.
-      undoKeys: [k], undoPrev: this.snapUndo([k]), editedKeys: [],
-    });
+      editedKeys: [],
+    }));
     clearTimeout(this.addT);
     this.addT = setTimeout(() => this.setState({ undoKeys: [], editedKeys: [], undoPrev: null }), 9000);
   }

@@ -9262,10 +9262,18 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   c.undoLast();
   ok('되돌리면 퇴근이 사라집니다', c.state.extra.filter(x=>x.day===20).length===0);
   ok('앞의 고침은 그대로입니다', c.state.extra.filter(x=>x.day===16)[0].outH===21);
-  // 강제 퇴근과 돌려보내진 날도 앞의 되돌리기를 비웁니다
-  const src=require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
-  const body=n=>{ const i=src.indexOf('\n  '+n+'() {'); return src.slice(i, src.indexOf('\n  }\n', i)); };
-  ['forceClockOut','sentHome'].forEach(n=>ok(n+'도 앞의 되돌리기를 자기 것으로 바꿉니다', /undoKeys: \[k\], undoPrev: this\.snapUndo\(\[k\]\), editedKeys: \[\]/.test(body(n))));
+  // 강제 퇴근과 돌려보내진 날도 앞의 되돌리기를 자기 것으로 바꿉니다 — 실제로 돌려 봅니다
+  ['forceClockOut','sentHome'].forEach(n=>{
+    const t=mk(V2,'2028-02-21T10:00:00'); t.state.settings.periodStart=1;
+    const r16={y:2028,m:2,day:16,kind:'day',type:'shift',inH:9,outH:22,c:t.calc(9,22,'day',false)};
+    t.state.extra=[r16];
+    t.editDay(t.state.extra[0]); t.setState({ pendingOut:'21:00' }); t.confirmPending();
+    t.state.session={ inIso:new Date('2028-02-20T09:00:00').toISOString() };
+    t[n]();
+    ok(n+'의 되돌리기는 자기 날 하나입니다', JSON.stringify(t.state.undoKeys)==='[20280220]' && t.state.editedKeys.length===0, JSON.stringify(t.state.undoKeys));
+    t.undoLast();
+    ok(n+'을 되돌리면 그 날만 사라지고 앞의 고침은 남습니다', t.state.extra.filter(x=>x.day===20).length===0 && t.state.extra.filter(x=>x.day===16)[0].outH===21);
+  });
 }
 
 // ── 고치다가 빈 날로 옮겨 저장한 뒤 되돌리기 (리뷰 S4, 2026-10-11) ──
@@ -9382,6 +9390,31 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   d.state.extra=[{y:2028,m:2,day:13,kind:'day',type:'shift',holiday:true,mon:false,planned:true,awaiting:true,inH:9,outH:21,c:d.calc(9,21,'day',true)}];
   d.openPending('vacation'); d.pickDate(new Date(2028,1,11)); d.pickDate(new Date(2028,1,14)); d.confirmPending();
   ok('찍지 않은 특근은 휴가에 덮입니다', d.state.extra.filter(x=>x.day===13)[0].type==='redday');
+}
+
+// ── 되돌리기가 '지운 날 목록'을 불리지 않습니다 (리뷰 S1, 2026-10-12) ──
+// removed는 시범 기록을 가리는 목록입니다. 되돌리기는 저장 전에 비어 있던 날을 모두 그 목록에 넣어,
+// 열이틀짜리 휴가를 되돌리면 아홉 개가 영영 남아 백업마다 실렸습니다. 이제 되돌리기는 removed를
+// 저장 전 그대로 돌려놓습니다 — 원래 가려져 있던 날만 다시 가립니다.
+{
+  const c=mk(V2,'2028-02-28T23:00:00'); c.state.settings.periodStart=1;
+  c.state.extra=[]; c.state.removed=[20280101];
+  c.openPending('vacation'); c.pickDate(new Date(2028,1,12)); c.pickDate(new Date(2028,1,25)); c.confirmPending();
+  ok('열나흘이 기록됩니다', c.state.extra.length===14, String(c.state.extra.length));
+  c.undoLast();
+  ok('되돌리면 다 사라집니다', c.state.extra.length===0);
+  ok('지운 날 목록은 저장 전 그대로', JSON.stringify(c.state.removed)==='[20280101]', JSON.stringify(c.state.removed));
+  // 손 입력 한 날도 같습니다
+  c.openPending('work'); c.setState({ pendingIso:new Date(2028,1,16).toISOString(), pendingIn:'09:00', pendingOut:'18:00' }); c.confirmPending();
+  c.undoLast();
+  ok('손 입력을 되돌려도 목록이 늘지 않습니다', JSON.stringify(c.state.removed)==='[20280101]', JSON.stringify(c.state.removed));
+  // 원래 가려져 있던 날에 넣었다가 되돌리면 다시 가려집니다
+  const k=2028*10000+2*100+16;
+  c.state.removed=[k];
+  c.openPending('work'); c.setState({ pendingIso:new Date(2028,1,16).toISOString(), pendingIn:'09:00', pendingOut:'18:00' }); c.confirmPending();
+  ok('넣으면 가림이 풀립니다', c.state.removed.indexOf(k)<0);
+  c.undoLast();
+  ok('되돌리면 다시 가려집니다', JSON.stringify(c.state.removed)===JSON.stringify([k]), JSON.stringify(c.state.removed));
 }
 
 Promise.all(later).then(()=>{
