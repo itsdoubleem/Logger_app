@@ -9653,9 +9653,17 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   // 근무내역서에는 쓴 값이 찍힙니다 — 0분이어도 숨지 않습니다
   const src=require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
   // 설정의 안내는 '0으로 두세요'라고 했는데 이제 0이 시작값입니다 — 여덟 언어 모두 새 문장
+  // 언어마다 새 문장의 한 토막을 박습니다 — 옛 문장도 끝 120자 안에 '0'과 '21:00'이 있어서, 숫자만
+  // 보는 시험은 바뀌지 않았어도 통과했습니다(리뷰 S1). 옛 문장의 끝('0으로 두세요' 류)이 남아 있지 않은지도 봅니다.
+  const NEW={ ko:'새로 깐 앱은 0분입니다', en:'A new install starts at 0', vi:'Ứng dụng mới cài bắt đầu ở 0',
+    zh:'新安装的应用从0开始', th:'แอปที่ติดตั้งใหม่เริ่มที่ 0', id:'Aplikasi yang baru dipasang mulai dari 0',
+    ne:'नयाँ इन्स्टल गरिएको एप 0 बाट सुरु हुन्छ', km:'កម្មវិធីដែលទើបដំឡើងចាប់ផ្តើមពី 0' };
+  const OLD={ ko:'정확히 정시에만 인정되는 회사면 0으로 두세요', en:'Set it to 0 if your company only credits the exact hour',
+    vi:'Đặt 0 nếu công ty bạn chỉ tính đúng giờ tròn', zh:'如果你公司只认整点，请设为0', th:'ตั้งเป็น 0 ถ้าบริษัทของคุณนับเฉพาะเวลาเต็มชั่วโมงเท่านั้น',
+    id:'Setel 0 jika perusahaan Anda hanya mengakui jam bulat', ne:'तपाईंको कम्पनीले पूरा घण्टा मात्र गन्छ भने 0 राख्नुहोस्', km:'សូមកំណត់ 0 បើក្រុមហ៊ុនរបស់អ្នកគិតតែម៉ោងគត់' };
   ['ko','en','vi','zh','th','id','ne','km'].forEach(Lg=>{
     const t=V2.STR['clock_in_rounds_up_to_the_next_30_minu'][Lg];
-    ok(Lg+' 안내가 0이 시작값이라고 말합니다', /0/.test(t.slice(-120)) && t.indexOf('20:45')>0, t.slice(-90));
+    ok(Lg+' 안내가 0이 시작값이라고 말합니다', t.indexOf(NEW[Lg])>0 && t.indexOf(OLD[Lg])<0, t.slice(-90));
   });
   ok('ko 안내', V2.STR['clock_in_rounds_up_to_the_next_30_minu'].ko.indexOf('새로 깐 앱은 0분입니다')>0);
   ok('근무내역서의 퇴근 유예 줄은 0분도 적습니다', src.indexOf("{ k: this.T('clock_out_grace'), v: (+this.st().outGrace || 0) + this.T('min_before_the_hour') }")>0);
