@@ -9783,6 +9783,8 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   // 규칙 덩어리를 셉니다 — @media 같은 감싼 규칙 안의 것도 꺼냅니다(리뷰 N1): 가장 안쪽 '선택자 { 선언 }'만 남깁니다
   const blocks=[]; { const re=/([^{}]+)\{([^{}]*)\}/g; let m; while((m=re.exec(css))) blocks.push([m[1], m[2]]); }
   ok('층의 규칙 덩어리를 찾았습니다', blocks.length>=40, String(blocks.length));
+  // 감싼 규칙 안의 것도 정말 꺼내는지, 알려진 하나로 확인합니다 — 예전 방식(split('}'))은 이것을 놓쳤습니다(리뷰 S2)
+  ok('@media 안의 규칙도 꺼냅니다(움직임 줄이기의 등불)', blocks.some(([sel,decl])=>/width: 4px/.test(sel) && /animation:\s*none/.test(decl)));
   const onPanel=blocks.filter(([sel])=>/background: var\(--color-accent-50\)/.test(sel));
   const hit=onPanel.filter(([,decl])=>/(^|[;\s])color\s*:/.test(decl));
   ok('판·열린 묶음에 걸린 층 규칙은 글자색을 바꾸지 않습니다', hit.length===0, hit.map(x=>x[0].trim()).join(' | '));
