@@ -665,7 +665,7 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
             <div style="font-size:11px;line-height:1.5;color:var(--color-neutral-700);margin-top:10px;text-wrap:pretty">{{ pendingEffect }}</div>
             <div style="display:flex;gap:8px;margin-top:12px">
               <div onClick="{{ cancelPending }}" style="flex:1;min-height:44px;display:flex;align-items:center;padding:0 14px;border:2px solid var(--color-text);font-family:var(--font-heading);font-weight:800;font-size:12.5px;cursor:pointer" style-hover="background:var(--color-neutral-300)">{{ L.cancel }}</div>
-              <div onClick="{{ confirmPending }}" style="flex:1;min-height:44px;display:flex;align-items:center;padding:0 14px;background:var(--color-accent);color:var(--color-bg);font-family:var(--font-heading);font-weight:800;font-size:12.5px;cursor:pointer" style-hover="background:var(--color-accent-600)">{{ L.add }}</div>
+              <div onClick="{{ confirmPending }}" style="flex:1;min-height:44px;display:flex;align-items:center;padding:0 14px;background:{{ addBg }};color:{{ addInk }};font-family:var(--font-heading);font-weight:800;font-size:12.5px;cursor:pointer" style-hover="background:var(--color-accent-600)">{{ L.add }}</div>
             </div>
           </div>
         </sc-if>
@@ -5241,6 +5241,14 @@ class Component extends DCLogic {
   // 음력 명절이 들어 있는 연도만 정확합니다 — 그 밖의 해는 특근을 직접 표시하세요
   holidayYearKnown(y) { return y === 2026 || y === 2027; }
 
+  // 연차·휴가 범위의 모든 날이 이미 일한 날이라 저장할 것이 없는지 — 그때 추가 단추는
+  // 회색이고, 눌러도 달력이 닫히지 않습니다. 전에는 아무것도 쓰지 않고 조용히 닫혀
+  // '안 눌렸다'로 읽혔습니다(리뷰 S4, 2026-10-12).
+  rangeAllKept() {
+    if (this.state.pending !== 'annual' && this.state.pending !== 'vacation') return false;
+    const days = this.rangeDays();
+    return days.length > 0 && days.every(x => x.keep);
+  }
   rangeDays() {
     if (!this.state.pendingIso) return [];
     const a = new Date(this.state.pendingIso);
@@ -5427,6 +5435,7 @@ class Component extends DCLogic {
         mon: false, planned: true, awaiting: true, inH: 9, outH: 21, c: this.calc(9, 21, 'day', true),
       }];
     } else {
+      if (this.rangeAllKept()) return;
       // 이미 일한 날은 건너뜁니다 — 어느 요일이든(rangeDays의 keep). 미리 잡아 두기만 한
       // 특근(planned/awaiting)은 일한 날이 아니므로 덮습니다.
       recs = this.rangeDays().filter(x => !x.keep).map(x => x.deduct
@@ -7020,6 +7029,9 @@ class Component extends DCLogic {
         };
       })() : { total: '', deduct: '', skip: '', label: '' },
       isRange: this.state.pending === 'annual' || this.state.pending === 'vacation',
+      // 고른 날이 모두 일한 날이면 쓸 것이 없습니다 — 추가를 회색으로(리뷰 S4)
+      addBg: this.rangeAllKept() ? 'var(--color-neutral-300)' : 'var(--color-accent)',
+      addInk: this.rangeAllKept() ? 'var(--color-neutral-600)' : 'var(--color-bg)',
       calHint: (this.state.pending === 'annual' || this.state.pending === 'vacation') ? this.T('calendar_start_end') : this.T('calendar_pick_a_date'),
       satOff: !!this.state.satOff,
       satLabel: this.state.satOff

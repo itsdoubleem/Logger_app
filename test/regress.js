@@ -9521,6 +9521,26 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('범위의 제외 이유는 days_worked를 쓰지 않습니다', src.indexOf("keep ? this.T('rng_worked_day')")>0 && src.indexOf("keep ? this.T('days_worked')")<0);
 }
 
+// ── 모두 일한 날이면 추가 단추가 꺼져 있습니다 (리뷰 S4, 2026-10-12) ──
+// 일한 일요일 하나만 골라 추가를 누르면 아무것도 쓰지 않고 달력만 닫혀, '안 눌렸다'로 읽혔습니다.
+// 쓸 날이 없으면 단추를 회색으로 두고, 눌러도 달력이 열린 채로 남습니다.
+{
+  const c=mk(V2,'2028-02-28T23:00:00'); c.state.settings.periodStart=1;
+  c.state.extra=[{y:2028,m:2,day:13,kind:'day',type:'shift',holiday:true,mon:false,inH:9,outH:18,c:c.calc(9,18,'day',true)}];
+  c.openPending('vacation'); c.pickDate(new Date(2028,1,13)); c.pickDate(new Date(2028,1,13));
+  let v=c.renderVals();
+  ok('쓸 날이 없으면 추가가 회색', v.addBg==='var(--color-neutral-300)' && v.addInk==='var(--color-neutral-600)', v.addBg);
+  c.confirmPending();
+  ok('눌러도 달력이 열린 채로 남습니다', c.state.pending==='vacation' && c.state.extra.length===1 && c.state.extra[0].type==='shift');
+  // 하루라도 쓸 날이 있으면 평소처럼 빨강
+  c.pickDate(new Date(2028,1,13)); c.pickDate(new Date(2028,1,14));
+  v=c.renderVals();
+  ok('쓸 날이 있으면 추가는 빨강', v.addBg==='var(--color-accent)' && v.addInk==='var(--color-bg)', v.addBg);
+  // 다른 카드(결근 등)는 언제나 빨강
+  const d=mk(V2,'2028-02-28T23:00:00'); d.openPending('absent'); d.setState({ pendingIso:new Date(2028,1,13).toISOString() });
+  ok('결근 카드의 추가는 빨강', d.renderVals().addBg==='var(--color-accent)');
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);
