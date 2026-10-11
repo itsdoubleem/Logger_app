@@ -9517,6 +9517,9 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
     ok(Lg+' 급여 탭의 근무일 수와 다릅니다', v!==V2.STR['days_worked'][Lg]);
   });
   ok('ko는 일한 날', V2.STR['rng_worked_day'].ko==='일한 날');
+  // 리뷰 S2·N1: id 'Hari sudah bekerja'는 '그 날이 일했다'로 읽혀 'Sudah masuk kerja'로, en은 'Already worked'로
+  ok('id는 Sudah masuk kerja', V2.STR['rng_worked_day'].id==='Sudah masuk kerja');
+  ok('en은 Already worked', V2.STR['rng_worked_day'].en==='Already worked');
   const src=require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
   ok('범위의 제외 이유는 days_worked를 쓰지 않습니다', src.indexOf("keep ? this.T('rng_worked_day')")>0 && src.indexOf("keep ? this.T('days_worked')")<0);
 }
