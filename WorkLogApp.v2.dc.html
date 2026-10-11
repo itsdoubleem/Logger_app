@@ -665,7 +665,7 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
             <div style="font-size:11px;line-height:1.5;color:var(--color-neutral-700);margin-top:10px;text-wrap:pretty">{{ pendingEffect }}</div>
             <div style="display:flex;gap:8px;margin-top:12px">
               <div onClick="{{ cancelPending }}" style="flex:1;min-height:44px;display:flex;align-items:center;padding:0 14px;border:2px solid var(--color-text);font-family:var(--font-heading);font-weight:800;font-size:12.5px;cursor:pointer" style-hover="background:var(--color-neutral-300)">{{ L.cancel }}</div>
-              <div onClick="{{ confirmPending }}" style="flex:1;min-height:44px;display:flex;align-items:center;padding:0 14px;background:{{ addBg }};color:{{ addInk }};font-family:var(--font-heading);font-weight:800;font-size:12.5px;cursor:pointer" style-hover="background:var(--color-accent-600)">{{ L.add }}</div>
+              <div onClick="{{ confirmPending }}" style="flex:1;min-height:44px;display:flex;align-items:center;padding:0 14px;background:{{ addBg }};color:{{ addInk }};font-family:var(--font-heading);font-weight:800;font-size:12.5px;cursor:pointer">{{ L.add }}</div>
             </div>
           </div>
         </sc-if>

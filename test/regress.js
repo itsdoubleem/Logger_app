@@ -9541,6 +9541,18 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('결근 카드의 추가는 빨강', d.renderVals().addBg==='var(--color-accent)');
 }
 
+// ── 회색 추가 단추는 눌러도 빨개지지 않습니다 (리뷰 M1, 2026-10-12) ──
+// 단추에 style-hover가 남아 있었습니다. 런타임이 그것을 !important :hover 규칙으로 만들고, 터치에서는 손을
+// 뗀 뒤에도 :hover가 남으므로(마흔넷째) 회색 단추를 한 번 누르면 진한 빨강으로 바뀌어 그대로 있었습니다 —
+// '이제 된다'로 읽힙니다. 사유 시트의 저장 단추처럼 hover 없이 빨강/회색 두 가지로만 말합니다.
+{
+  const src=require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tag=(src.match(/<div onClick="\{\{ confirmPending \}\}"[^>]*>/)||[''])[0];
+  ok('추가 단추가 있습니다', tag.length>0);
+  ok('추가 단추에 style-hover가 없습니다', tag.indexOf('style-hover')<0, tag);
+  ok('색은 addBg/addInk 하나로만 정해집니다', tag.indexOf('background:{{ addBg }};color:{{ addInk }}')>0);
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);
