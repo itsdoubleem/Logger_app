@@ -1,6 +1,6 @@
 # 근무기록 LOGGER — change log beyond V2.md
 
-Seventy-six entries, newest first — sixty-nine carry an ordinal (first … sixty-ninth),
+Seventy-seven entries, newest first — seventy carry an ordinal (first … seventieth),
 the seven oldest predate the numbering. Each one is a bug found by **actually using the app on
 shift**, what changed, and — the part worth reading — *why it was that and not the
 obvious fix*. Most entries end with a **다음 사람에게** paragraph: the rule the bug
@@ -18,7 +18,8 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 
 ## Index
 
-- 2026-10-11 (latest, sixty-ninth) — 휴게 줄의 '매일 ↔ 연장 시'도 글자가 바뀌는 단추였습니다
+- 2026-10-11 (latest, seventieth) — 빈 휴게 줄의 스위치는 눌러도 꿈쩍하지 않았는데 저장은 바뀌었습니다
+- 2026-10-11 (sixty-ninth) — 휴게 줄의 '매일 ↔ 연장 시'도 글자가 바뀌는 단추였습니다
 - 2026-10-11 (sixty-eighth) — 켜졌는지 꺼졌는지 단추가 말하지 않았습니다
 - 2026-09-25 (sixty-seventh) — 기간 고르기가 카드 가장자리에 붙어 있었고, 연도 칩만 네모였습니다
 - 2026-09-25 (sixty-sixth) — 그만두는 날 받을 돈을 한 자리에서 셀 수 없었습니다
@@ -95,7 +96,31 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 - 2026-08-13 — the service worker was hiding every update
 - 2026-08-13 (earlier) — 조퇴 사유 became a popup with a dropdown
 
-### 2026-10-11 (latest, sixty-ninth) — 휴게 줄의 '매일 ↔ 연장 시'도 글자가 바뀌는 단추였습니다
+### 2026-10-11 (latest, seventieth) — 빈 휴게 줄의 스위치는 눌러도 꿈쩍하지 않았는데 저장은 바뀌었습니다
+
+v1.2.9를 낸 뒤의 리뷰가 찾았습니다. '휴게시간 추가'로 막 생긴 줄은 시작 시각이 비어 있고,
+`breakRows()`는 시각이 없으면 `otOnly`를 무조건 거짓으로 그렸습니다. 그런데 `toggleBreakOt()`는
+누를 때마다 `ot`를 뒤집어 저장했습니다. 한 번 누르면 저장은 `ot:true`, 스위치는 꺼짐. 그 뒤
+`10:00–10:10`을 적으면 스위치가 저절로 켜져 있었고, 오전 휴게가 잔업한 날에만 빠지는 것으로
+계산돼 평소 날의 실근무가 10분 부풀었습니다. 알약일 때도 같은 논리였지만, 스위치는 '지금 상태'를
+말하는 것이 일이므로 틀린 상태를 또렷하게 말하게 됐습니다.
+
+| | 전 | 후 |
+|---|---|---|
+| 빈 줄, `ot` 저장됨 | 꺼짐으로 그림 | 저장된 값 그대로 |
+| 빈 줄, `ot` 없음 | 꺼짐 | 꺼짐 (그대로) |
+| 시각 있음, `ot` 없음 | 자리로 판단 | 자리로 판단 (그대로) |
+
+같은 리뷰에서 함께 고친 것: 일곱 스위치 모두 줄 제목을 `aria-label`로 답니다(알약은 글자가 단추
+안에 있어서 TalkBack이 읽었지만 스위치는 빈 상자 둘이었습니다). 설정 흐름의 누름 규칙(2j)이 스위치의
+64×44 자리까지 잡아 설정 흐름에서만 회색 상자로 번쩍이던 것을 `:not([role="switch"])`로 뺐습니다.
+쓰이지 않게 된 `break_every_day` 문자열은 여덟 언어에서 지웠습니다.
+
+**다음 사람에게.** 화면이 그리는 값과 누름이 뒤집는 값은 같은 식에서 나와야 합니다. 둘이 각자
+'지금 값'을 셈하면, 한쪽이 조건 하나를 더 보는 순간 스위치가 저장과 어긋나고, 그것은 오류를 내지
+않습니다.
+
+### 2026-10-11 (sixty-ninth) — 휴게 줄의 '매일 ↔ 연장 시'도 글자가 바뀌는 단추였습니다
 
 회사 규칙을 스위치로 바꾼 날(예순여덟째), 근로자가 앱을 새로 깔고 설정 흐름 2/4 '무급 식사 휴게'를
 열었습니다. 휴게 줄마다 `매일 EVERY DAY ↔ 연장 시 ONLY IF LATE`로 글자가 바뀌는 알약이 있었고 —
@@ -112,7 +137,7 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 표가 서는 네 자리(설정 흐름 주·야, 설정 탭 주·야)를 함께 바꿨습니다 — 같은 `breakRows()`에서
 나오는 같은 줄이고, 테스트가 이미 '한 곳만 고치면 다른 화면이 예전 모양으로 남는다'고 적어 두었습니다.
 30px 알약은 일곱에서 셋(출퇴근 카드)이 됐고, 그 수를 세던 `boot.js`와 `regress.js`를 같이 고쳤습니다.
-화면에서 더 쓰이지 않는 `break_every_day` 문자열은 여덟 언어에서 지웠습니다.
+`break_every_day` 문자열은 화면에서 더 쓰이지 않지만 지우지 않았습니다.
 
 **다음 사람에게.** 같은 성격의 단추는 앱 전체에서 같은 모양이어야 합니다. 켜고 끄는 것을 새로 찾으면
 `aria-checked`를 grep해서 스위치가 몇 개인지 세고, 그 수를 테스트에 적으세요.
