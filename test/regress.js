@@ -9553,6 +9553,58 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('색은 addBg/addInk 하나로만 정해집니다', tag.indexOf('background:{{ addBg }};color:{{ addInk }}')>0);
 }
 
+// ── 달력·미리보기·저장이 모든 경우에 같은 날을 '제외'로 셉니다 (리뷰 S1, 2026-10-12) ──
+// 일흔여덟째의 달력 시험은 일한 평일 하나만 보았습니다. 리뷰가 손으로 잰 경우들을 모두 돌립니다 —
+// 일한 평일·일요일·공휴일(삼일절), 쉬는 토요일 켜고 끄기, 일한 토요일, 미리 잡은 특근(평일·일요일),
+// 두 달에 걸친 범위(달력은 한 달씩 보입니다). 각 날마다 세 곳이 같은 답을 내야 합니다.
+{
+  const sh=(c,m,d,o)=>Object.assign({y:2028,m,day:d,kind:'day',type:'shift',mon:false,inH:9,outH:18,c:c.calc(9,18,'day',!!(o&&o.holiday))},o||{});
+  const cases=[
+    { name:'일한 평일', recs:c=>[sh(c,2,16)], a:[2,14], b:[2,18] },
+    { name:'일한 일요일', recs:c=>[sh(c,2,13,{holiday:true})], a:[2,11], b:[2,15] },
+    { name:'일한 삼일절', recs:c=>[sh(c,3,1,{holiday:true})], a:[2,28], b:[3,3] },
+    { name:'일한 토요일 · 쉬는 토요일 끔', recs:c=>[sh(c,2,12,{holiday:true})], a:[2,10], b:[2,14], satOff:false },
+    { name:'일한 토요일 · 쉬는 토요일 켬', recs:c=>[sh(c,2,12,{holiday:true})], a:[2,10], b:[2,14], satOff:true },
+    { name:'미리 잡은 평일 특근', recs:c=>[sh(c,2,16,{holiday:true,planned:true,awaiting:true})], a:[2,14], b:[2,18] },
+    { name:'미리 잡은 일요일 특근', recs:c=>[sh(c,2,13,{holiday:true,planned:true,awaiting:true})], a:[2,11], b:[2,15] },
+    { name:'두 달에 걸친 범위', recs:c=>[sh(c,2,24),sh(c,3,2)], a:[2,21], b:[3,6] },
+  ];
+  cases.forEach(t=>{
+    ['annual','vacation'].forEach(kind=>{
+      const c=mk(V2,'2028-03-20T23:00:00'); c.state.settings.periodStart=1;
+      c.state.extra=t.recs(c);
+      c.openPending(kind);
+      if (t.satOff!==undefined) c.setState({ satOff:t.satOff });
+      c.pickDate(new Date(2028,t.a[0]-1,t.a[1])); c.pickDate(new Date(2028,t.b[0]-1,t.b[1]));
+      const days=c.rangeDays();
+      const ded=days.filter(x=>x.deduct).length;
+      // 달력: 범위가 걸친 달마다 그려 보고, 범위 안의 칸이 '제외'(옅음+그음)인지 '차감'(진함)인지 셉니다
+      let calOff=0, calDed=0, bad=[];
+      [t.a[0], t.b[0]].filter((m,i,arr)=>arr.indexOf(m)===i).forEach(m=>{
+        c.setState({ calIso:new Date(2028,m-1,1).toISOString() });
+        c.renderVals().calCells.filter(x=>!x.empty).forEach(x=>{
+          const dt=new Date(2028,m-1,+x.dd);
+          const r=days.filter(z=>z.d.getTime()===dt.getTime())[0];
+          if (!r) return;
+          const edge=x.bg==='var(--color-accent)';
+          if (edge) { (r.deduct?calDed++:calOff++); return; }   // 끝 칸은 선택 색 — 판단은 rangeDays에 맡깁니다
+          const off=x.bg==='var(--color-neutral-200)' && x.strike==='line-through';
+          if (off) calOff++; else calDed++;
+          if (off===r.deduct) bad.push(m+'.'+x.dd);
+        });
+      });
+      ok(t.name+' / '+kind+' — 달력이 rangeDays와 같습니다', bad.length===0 && calDed===ded, bad.join(',')+' ded='+ded+' cal='+calDed);
+      // 미리보기의 차감 수 = rangeDays의 차감 수
+      ok(t.name+' / '+kind+' — 미리보기 차감 = rangeDays', c.renderVals().rangeInfo.deduct===c.dayCount(ded));
+      // 저장: 일한 날은 그대로, 나머지는 범위로 바뀝니다
+      const worked=days.filter(x=>x.keep).map(x=>c.keyOf(x.d));
+      const before=JSON.stringify(c.state.extra.filter(r=>worked.indexOf(c.key(r))>=0));
+      if (!c.rangeAllKept()) c.confirmPending();
+      ok(t.name+' / '+kind+' — 저장이 일한 날을 그대로 둡니다', JSON.stringify(c.state.extra.filter(r=>worked.indexOf(c.key(r))>=0))===before);
+    });
+  });
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);
