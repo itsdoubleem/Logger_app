@@ -311,10 +311,6 @@
     "en": "Break deducted",
     "ko": "휴게시간 차감"
   },
-  "break_every_day": {
-    "ko": "매일",
-    "en": "매일 EVERY DAY"
-  },
   "breaks_are_unpaid_so_these_times_decid": {
     "en": "Breaks are unpaid, so these times decide your paid hours. They differ by company — enter your own.",
     "ko": "휴게시간은 무급입니다 — 이 시간이 실근무 시간을 결정합니다. 회사마다 다르니 본인 시간을 넣으세요."

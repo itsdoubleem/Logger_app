@@ -76,7 +76,6 @@
   "bonus_paid_in_months_p1": "{p1}月发放 {p0}。상여 计入 평균임금，而 퇴직금 正是按那个平均值算的。",
   "break": "休息",
   "break_deducted": "扣除的休息时间",
-  "break_every_day": "매일 每天",
   "breaks_are_unpaid_so_these_times_decid": "休息时间不计薪，所以这些时间决定你的计薪工时。各公司不同 — 请填你自己的时间。",
   "by_hand": "手动标记",
   "calculate": "自动计算",

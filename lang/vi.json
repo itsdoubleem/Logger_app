@@ -76,7 +76,6 @@
   "bonus_paid_in_months_p1": "{p0} vào tháng {p1}. 상여 được tính vào 평균임금, và 퇴직금 được tính từ mức bình quân đó.",
   "break": "giờ nghỉ",
   "break_deducted": "Giờ nghỉ bị trừ",
-  "break_every_day": "매일 MỖI NGÀY",
   "breaks_are_unpaid_so_these_times_decid": "Giờ nghỉ không được trả lương, nên các giờ này quyết định số giờ được tính lương. Mỗi công ty một khác — hãy nhập giờ của bạn.",
   "by_hand": "TỰ ĐÁNH DẤU",
   "calculate": "TỰ TÍNH",
