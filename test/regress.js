@@ -9257,14 +9257,15 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   c.state.extra=[{y:2028,m:2,day:16,kind:'day',type:'shift',inH:9,outH:22,c:c.calc(9,22,'day',false)}];
   c.editDay(c.state.extra[0]); c.setState({ pendingOut:'21:00' }); c.confirmPending();
   c.commitShift({y:2028,m:2,day:20,kind:'day',type:'shift',inH:9,outH:18,c:c.calc(9,18,'day',false)});
-  ok('퇴근은 고침으로 적히지 않습니다', c.state.editedKeys.length===0 && c.state.undoPrev===null);
+  // 되돌리기는 이 퇴근의 것으로 바뀝니다 — 20일은 비어 있던 날이라 돌려놓을 기록이 없습니다
+  ok('퇴근은 고침으로 적히지 않습니다', c.state.editedKeys.length===0 && JSON.stringify(c.state.undoPrev)==='[null]', JSON.stringify(c.state.undoPrev));
   c.undoLast();
   ok('되돌리면 퇴근이 사라집니다', c.state.extra.filter(x=>x.day===20).length===0);
   ok('앞의 고침은 그대로입니다', c.state.extra.filter(x=>x.day===16)[0].outH===21);
   // 강제 퇴근과 돌려보내진 날도 앞의 되돌리기를 비웁니다
   const src=require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
   const body=n=>{ const i=src.indexOf('\n  '+n+'() {'); return src.slice(i, src.indexOf('\n  }\n', i)); };
-  ['forceClockOut','sentHome'].forEach(n=>ok(n+'도 앞의 되돌리기를 비웁니다', /undoKeys: \[k\],[^}]*undoPrev: null/.test(body(n)) && /editedKeys: \[\]/.test(body(n))));
+  ['forceClockOut','sentHome'].forEach(n=>ok(n+'도 앞의 되돌리기를 자기 것으로 바꿉니다', /undoKeys: \[k\], undoPrev: this\.snapUndo\(\[k\]\), editedKeys: \[\]/.test(body(n))));
 }
 
 // ── 고치다가 빈 날로 옮겨 저장한 뒤 되돌리기 (리뷰 S4, 2026-10-11) ──
@@ -9275,7 +9276,7 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   const orig={y:2028,m:2,day:16,kind:'day',type:'shift',inH:9,outH:22,c:c.calc(9,22,'day',false),reason:{id:'machine',fault:'employer',ko:'기계 고장'}};
   c.state.extra=[orig]; const keep=JSON.stringify(orig);
   c.editDay(c.state.extra[0]); c.pickDate(new Date(2028,1,18)); c.confirmPending();
-  ok('빈 날로 옮겨 저장하면 그 날이 생깁니다', c.state.extra.filter(x=>x.day===18).length===1 && c.state.undoPrev===null);
+  ok('빈 날로 옮겨 저장하면 그 날이 생깁니다', c.state.extra.filter(x=>x.day===18).length===1 && JSON.stringify(c.state.undoPrev)==='[null]');
   c.undoLast();
   ok('되돌리면 새로 생긴 날이 사라집니다', c.state.extra.filter(x=>x.day===18).length===0);
   ok('고치기로 연 날은 그대로입니다', JSON.stringify(c.state.extra.filter(x=>x.day===16)[0])===keep);
@@ -9302,6 +9303,63 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   f.forceClockOut();
   const g=f.state.extra.filter(x=>x.day===16)[0];
   ok('강제 퇴근도 법정 휴일 표시를 남깁니다', g.legalHol===true && g.holiday===true && g.review===true, JSON.stringify(g).slice(0,160));
+}
+
+// ── 되돌리기는 저장이 덮어쓴 기록을 그대로 돌려놓습니다 — 어떤 저장이든 (리뷰 M1·M2, 2026-10-12) ──
+// 되돌리기는 저장마다 따로 '무엇을 돌려놓을지' 적어 왔고, 적지 않은 길마다 원래 기록을 지웠습니다.
+// 결근·휴업·특근·연차·휴가를 기존 날 위에 넣고 되돌리면 그 날이 사라졌고, 퇴근한 뒤 9초 안에 조퇴 사유를
+// 저장하고 되돌리면 방금 찍은 근무가 사라졌습니다. 이제 모든 저장이 덮어쓸 날들의 지금 기록을 먼저
+// 적어 두고(snapUndo), 되돌리기는 그것만 그대로 돌려놓습니다.
+{
+  const base=c=>[1,2,3].map(d=>({y:2028,m:2,day:d,kind:'day',type:'shift',inH:9,outH:18,c:c.calc(9,18,'day',false),
+    reason:{id:'machine',fault:'employer',ko:'기계 고장',note:'2월 '+d+'일'}}));
+  const same=(c,days,keep)=>days.every((d,i)=>JSON.stringify(c.state.extra.filter(x=>x.y===2028&&x.m===2&&x.day===d)[0])===keep[i]);
+  ['absent','shutdown','holiday'].forEach(t=>{
+    const c=mk(V2,'2028-02-20T23:00:00'); c.state.settings.periodStart=1;
+    c.state.extra=base(c); const keep=c.state.extra.map(x=>JSON.stringify(x));
+    c.openPending(t); c.setState({ pendingIso:new Date(2028,1,2).toISOString() }); c.confirmPending();
+    ok(t+' 저장이 2일을 덮어씁니다', c.state.extra.filter(x=>x.day===2)[0].reason===undefined);
+    c.undoLast();
+    ok(t+' 뒤 되돌리면 2일이 원래대로', same(c,[1,2,3],keep), JSON.stringify(c.state.extra.filter(x=>x.day===2)[0]));
+    ok(t+' 뒤 되돌려도 지운 날 목록에 남지 않습니다', c.state.removed.indexOf(2028*10000+2*100+2)<0);
+  });
+  // 여러 날을 덮는 휴가 — 덮인 날 모두 돌아옵니다
+  const v=mk(V2,'2028-02-20T23:00:00'); v.state.settings.periodStart=1;
+  v.state.extra=base(v); const vk=v.state.extra.map(x=>JSON.stringify(x));
+  v.openPending('vacation'); v.pickDate(new Date(2028,1,1)); v.pickDate(new Date(2028,1,3)); v.confirmPending();
+  ok('휴가가 사흘을 덮습니다', [1,2,3].every(d=>v.state.extra.filter(x=>x.day===d)[0].type!=='shift'));
+  v.undoLast();
+  ok('되돌리면 사흘 모두 원래대로', same(v,[1,2,3],vk));
+
+  // 퇴근 → 9초 안에 조퇴 사유 저장 → 되돌리기: 사유만 되돌아가고 근무는 남습니다
+  const p=mk(V2,'2028-02-16T14:00:00'); p.state.settings.periodStart=1; p.state.extra=[];
+  p.state.session={ inIso:new Date('2028-02-16T09:00:00').toISOString() };
+  p.punch();
+  const punched=JSON.stringify(p.state.extra.filter(x=>x.day===16)[0]);
+  ok('짧은 날이라 사유 시트가 열립니다', p.state.reasonFor!=null);
+  p.pickReason ? p.pickReason('machine') : p.setState({ earlyPick:'machine', earlyFault:'employer' });
+  p.saveReason();
+  ok('사유가 붙었습니다', !!p.state.extra.filter(x=>x.day===16)[0].reason);
+  p.undoLast();
+  const after=p.state.extra.filter(x=>x.day===16)[0];
+  ok('되돌리면 근무는 남고 사유만 빠집니다', !!after && JSON.stringify(after)===punched, String(after && JSON.stringify(after).slice(0,120)));
+
+  // 미리 잡은 특근 날에 퇴근을 찍고 되돌리면, 지우는 대신 미리 잡은 그 날이 돌아옵니다
+  const h=mk(V2,'2028-02-16T22:10:00'); h.state.settings.periodStart=1;
+  const planned={y:2028,m:2,day:16,kind:'day',type:'shift',holiday:true,mon:false,planned:true,awaiting:true,inH:9,outH:21,c:h.calc(9,21,'day',true)};
+  h.state.extra=[planned]; const pk=JSON.stringify(planned);
+  h.state.session={ inIso:new Date('2028-02-16T09:00:00').toISOString() };
+  h.punch(); h.undoLast();
+  ok('퇴근을 되돌리면 미리 잡은 특근이 돌아옵니다', JSON.stringify(h.state.extra.filter(x=>x.day===16)[0])===pk);
+  // 다른 저장의 되돌리기가 떠 있는 동안 법정 휴일을 켜면, 그 되돌리기는 사라집니다 — 남아 있으면
+  // 켠 날을 덮어쓸 수 있었습니다. 표시는 다시 누르면 꺼지는 스위치입니다.
+  const t=mk(V2,'2028-02-20T23:00:00'); t.state.settings.periodStart=1;
+  const day17={y:2028,m:2,day:17,kind:'day',type:'shift',holiday:true,inH:9,outH:22,c:t.calc(9,22,'day',true)};
+  t.state.extra=[day17];
+  t.commitShift({y:2028,m:2,day:20,kind:'day',type:'shift',inH:9,outH:18,c:t.calc(9,18,'day',false)});
+  t.toggleLegalHol(day17);
+  ok('법정 휴일을 켜면 떠 있던 되돌리기가 비워집니다', t.state.undoKeys.length===0 && t.state.undoPrev===null);
+  ok('켠 표시와 20일 근무가 모두 남습니다', t.state.extra.filter(x=>x.day===17)[0].legalHol===true && t.state.extra.filter(x=>x.day===20).length===1);
 }
 
 Promise.all(later).then(()=>{
