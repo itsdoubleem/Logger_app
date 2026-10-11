@@ -4662,12 +4662,13 @@ console.log('\n== 표는 눌러서 달고 뗍니다 ==');
 
   ok('두 줄 다 표를 갖고 있습니다', rows().length === 2 && !!rows()[0].tag && !!rows()[1].tag);
   ok('손대기 전 저녁은 매일 빠집니다', rows()[1].otOnly === false);
-  ok('그래서 표가 매일이라고 읽힙니다', rows()[1].tag === c.T('break_every_day'), rows()[1].tag);
+  // 스위치가 된 뒤로(2026-10-11) 제목은 고정이고, 꺼짐/켜짐은 손잡이와 아래 한 줄이 말합니다
+  ok('그래서 스위치가 꺼져 있고 매 근무 빠진다고 읽힙니다', rows()[1].otTrack === 'var(--color-neutral-400)' && rows()[1].otKnobX === '0px' && rows()[1].tagNote === c.T('comes_off_every_shift'), rows()[1].tagNote);
   ok('그 날은 실근무 7.5시간', c.calc(9, 18, 'day', false).net === 7.5);
 
   rows()[1].toggleOt();
   ok('누르면 연장 시에만이 됩니다', rows()[1].otOnly === true);
-  ok('표가 바뀝니다', rows()[1].tag === c.T('only_if_you_work_late'), rows()[1].tag);
+  ok('스위치가 켜집니다', rows()[1].otTrack === 'var(--color-accent)' && rows()[1].otKnobX === '15px' && rows()[1].tagNote === c.T('comes_off_only_on_overtime_days'), rows()[1].tagNote);
   ok('저장된 줄에 명시적으로 적힙니다', c.st().breaksDay[1].ot === true);
   ok('그리고 그 날이 8시간이 됩니다', c.calc(9, 18, 'day', false).net === 8);
 
@@ -4781,16 +4782,11 @@ console.log('\n== 표 옆에 그 표가 무슨 뜻인지 적습니다 ==');
   const cnt = (h, t) => h.split(t).length - 1;
   ok('표가 서는 자리는 넷입니다', cnt(src, '{{ r.toggleOt }}') === 4, cnt(src, '{{ r.toggleOt }}'));
   ok('설명도 넷입니다', cnt(src, '{{ r.tagNote }}') === 4, cnt(src, '{{ r.tagNote }}'));
-  // 밑이 아니라 옆입니다 — 표를 닫는 자리 바로 뒤에 섭니다
-  ok('넷 다 표 바로 옆입니다',
-    cnt(src, '{{ r.tag }}</div><div style="flex:1;min-width:0;align-self:center;') === 4);
-  ok('설정 흐름 쪽 둘', cnt(src, 'font-size:9px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">{{ r.tag }}</div><div') === 2);
-  ok('설정 탭 쪽 둘', cnt(src, 'font-size:8.5px;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;cursor:pointer">{{ r.tag }}</div><div') === 2);
-  // 옆에 글이 서면 표가 눌려 찌그러집니다 — flex:none이 그것을 막습니다.
-  // 그리고 층의 알약 규칙(2b)이 읽는 두 조각은 그대로 남아 있어야 합니다.
-  ok('표는 줄어들지 않습니다', cnt(src, '{{ r.toggleOt }}" style="flex:none;min-height:30px;display:inline-flex;') === 4);
-  ok('알약 규칙이 읽는 두 조각은 그대로입니다',
-    cnt(src, 'min-height:30px;display:inline-flex') >= 4);
+  // 2026-10-11부터 표는 스위치입니다 — 설명은 제목 바로 밑에 섭니다
+  ok('넷 다 설명이 제목 바로 밑입니다',
+    cnt(src, '{{ r.tag }}</div><div style="padding-top:2px;font-size:9.5px;') === 4);
+  // 옆에 글이 서도 스위치는 찌그러지지 않습니다 — flex:none이 그것을 막습니다.
+  ok('스위치는 줄어들지 않습니다', cnt(src, '{{ r.toggleOt }}" role="switch" aria-checked="{{ r.otOnly }}" style="flex:none;min-height:44px;min-width:64px;') === 4);
 
   // 설정 탭의 긴 안내는 지우지 않았습니다 — 표를 어떤 휴게에 달아야 하는지는
   // 옆의 한 줄이 말할 수 있는 것이 아닙니다
@@ -6570,7 +6566,7 @@ console.log('\n== 근무조는 해와 달로도 말합니다 ==');
     (card.split('stroke="currentColor"').length - 1) === 2);
   // 알약은 일곱 개 그대로입니다(boot.js가 세는 그 수) — 새 알약을 만들지 않았습니다
   ok('새 알약을 만들지 않았습니다',
-    (srcS.match(/min-height:30px;display:inline-flex/g) || []).length === 7);
+    (srcS.match(/min-height:30px;display:inline-flex/g) || []).length === 3);
 }
 
 // ══ 설정: 열리는 것과 열리지 않는 것이 같은 흰 상자였습니다 ═════════════════
@@ -6898,10 +6894,10 @@ console.log('\n== 화면 한 장이 근로자의 화면 한 장 반이었습니�
 
   // 여기가 이번의 알맹이입니다 — 줄이다 보면 44를 넘겨 내려가기 쉽고, 그때
   // 화면은 그냥 조금 더 작아 보일 뿐 아무 오류도 나지 않습니다.
-  // 알약은 여기서 빠집니다 — 30px·inline-flex는 층의 pill 규칙이 따로 맡는
-  // 것이고(마흔째), 단추가 아니라 줄에 붙은 표입니다(휴게 줄의 연장 시 표).
+  // 휴게 줄의 연장 시 표는 2026-10-11에 스위치(누르는 자리 64×44)가 됐으므로
+  // 설정 흐름에는 30px 알약이 더 없습니다.
   const pills = (su.match(/min-height:30px;display:inline-flex/g) || []).length;
-  ok('알약은 둘뿐이고 단추가 아닙니다 (' + pills + '개)', pills === 2);
+  ok('설정 흐름에 알약이 없습니다 (' + pills + '개)', pills === 0);
   const mins = (su.match(/min-height:([\d.]+)px/g) || []).map(x => +x.slice(11, -2)).filter(h => h !== 30);
   const low = mins.filter(h => h < 44);
   ok('설정 흐름에 44px 밑인 누를 것이 없습니다 (' + mins.length + '개)', low.length === 0, low.join(','));
@@ -8905,9 +8901,33 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   // 근로자: 스위치 높이를 4분의 3으로. 31 → 23px, 손잡이가 동그랗게 남도록 폭도 같이 51 → 38px.
   ok('손잡이가 가는 거리 = 트랙 34 − 손잡이 19', src.includes('width:34px;height:19px;padding:2px') && src.includes('width:19px;height:19px;'));
   ok('층이 트랙과 손잡이를 둥글게 합니다 (정규화된 값으로)', ds.includes('[style*="width: 34px"][style*="height: 19px"] {') && ds.includes('[style*="width: 19px"][style*="height: 19px"] {'));
-  ok('34×19와 19×19는 스위치 말고는 없습니다', src.split('width:34px;height:19px').length-1===3 && src.split('height:19px').length-1===6 && src.split('width:19px').length-1===3);
+  ok('34×19와 19×19는 스위치 말고는 없습니다', src.split('width:34px;height:19px').length-1===7 && src.split('height:19px').length-1===14 && src.split('width:19px').length-1===7);
   const t=V2.STR['labour_standards_act_56_2_holiday_work'];
   ok('×2.0 설명이 사라진 글자를 가리키지 않습니다', /switch this off/.test(t.en) && /이 항목을 끄세요/.test(t.ko) && !/NOT PAID|미지급’으로|KHÔNG TRẢ|TIDAK DIBAYAR|「未支付」/.test(JSON.stringify(t)));
+}
+
+// ── 휴게 줄의 '연장 시'도 스위치입니다 (2026-10-11) ──
+// 근로자: 새로 깐 앱의 설정 흐름 2/4에서, 휴게 줄마다 '매일 EVERY DAY' ↔ '연장 시 ONLY IF LATE'로
+// 글자가 바뀌는 알약이 있었습니다. 회사 규칙을 스위치로 바꾼 것과 같은 문제 — 글자가 바뀌는 단추는
+// 지금 어느 쪽인지 말하지 않습니다. 같은 스위치로 바꿨습니다. 제목은 켜졌을 때의 뜻('연장 시')
+// 하나로 고정이고, 그 밑의 한 줄이 지금 상태(매 근무 / 잔업한 날만)를 말합니다.
+{
+  const src=require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tpl=src.split('class Component')[0];
+  ok('네 자리 다 스위치입니다 (설정 흐름 주·야, 설정 탭 주·야)', tpl.split('role="switch" aria-checked="{{ r.otOnly }}"').length-1===4);
+  ok('회사 규칙 스위치와 같은 트랙·손잡이', tpl.split('<div style="width:34px;height:19px;padding:2px;background:{{ r.otTrack }}"><div style="width:19px;height:19px;background:var(--color-card);transform:translateX({{ r.otKnobX }})">').length-1===4);
+  ok('글자가 바뀌는 알약은 남지 않았습니다', tpl.indexOf('r.tagBd')<0 && tpl.indexOf('{{ r.toggleOt }}" style=')<0);
+  const c=mk(V2);
+  c.setS({ shifts:'both', dayStart:'08:00', nightStart:'20:00',
+    breaksDay:[{from:'11:30',to:'12:30'},{from:'17:00',to:'17:30'}], breaksNight:[{from:'00:00',to:'01:00'}] });
+  let r=c.renderVals().dayBreakRows[0];
+  ok('제목은 상태와 상관없이 같습니다', r.tag===c.T('only_if_you_work_late'));
+  const was=r.otOnly; r.toggleOt(); r=c.renderVals().dayBreakRows[0];
+  ok('누르면 뒤집히고 제목은 그대로', r.otOnly===!was && r.tag===c.T('only_if_you_work_late') && r.otTrack===V2.switchTrack(!was) && r.otKnobX===V2.switchKnobX(!was));
+  // 야간 줄도 같은 빌더를 지나가지만, 다른 kind로 갈 수 있으니 따로 확인합니다
+  let n=c.renderVals().nightBreakRows[0];
+  n.toggleOt(); n=c.renderVals().nightBreakRows[0];
+  ok('야간 줄도 켜집니다', n.otOnly===true && n.otTrack==='var(--color-accent)' && c.st().breaksNight[0].ot===true);
 }
 
 Promise.all(later).then(()=>{
