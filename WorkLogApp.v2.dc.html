@@ -5440,7 +5440,9 @@ class Component extends DCLogic {
       extra: this.state.extra.filter(x => ks.indexOf(this.key(x)) === -1).concat(recs),
       removed: this.state.removed.filter(x => ks.indexOf(x) === -1),
       pending: null, pendingIso: null, pendingEndIso: null,
-      pendingEdit: false, editedKeys: wasEdit ? ks : [],
+      // 기록이 있던 날을 덮어썼으면 '수정됨' — '추가됨'이라고 하면 그 날에 기록이 둘 생긴
+      // 줄 압니다(리뷰 N2). 여러 날짜리는 언제나 'N일 기록 추가됨'입니다.
+      pendingEdit: false, editedKeys: wasEdit || undo.undoPrev.some(Boolean) ? ks : [],
       editPrev: null,
     }));
     clearTimeout(this.addT);

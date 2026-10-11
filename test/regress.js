@@ -9237,7 +9237,8 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   c.state.extra=[orig]; const keep=JSON.stringify(orig);
   c.openPending('work'); c.setState({ pendingIso:new Date(2028,1,17).toISOString(), pendingIn:'09:00', pendingOut:'18:00' }); c.confirmPending();
   ok('덮어 넣으면 새 시각', c.state.extra.filter(x=>x.day===17)[0].outH===18);
-  ok('그 저장은 고침으로 적히지 않습니다', c.state.editedKeys.length===0);
+  // 기록이 있던 날을 덮어썼으므로 안내는 '수정됨'입니다(리뷰 N2, 2026-10-12)
+  ok('그 저장은 수정으로 적힙니다', JSON.stringify(c.state.editedKeys)===JSON.stringify([c.key(orig)]));
   c.undoLast();
   const back=c.state.extra.filter(x=>x.day===17)[0];
   ok('되돌리면 원래 기록이 그대로 돌아옵니다', !!back && JSON.stringify(back)===keep, JSON.stringify(back));
@@ -9415,6 +9416,24 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('넣으면 가림이 풀립니다', c.state.removed.indexOf(k)<0);
   c.undoLast();
   ok('되돌리면 다시 가려집니다', JSON.stringify(c.state.removed)===JSON.stringify([k]), JSON.stringify(c.state.removed));
+}
+
+// ── 기록이 있던 날에 손으로 넣으면 '수정됨'입니다 (리뷰 N2·N3, 2026-10-12) ──
+// 덮어쓴 것을 '추가됨'이라고 부르면 근로자는 그 날에 기록이 두 개 생긴 줄 압니다.
+{
+  const c=mk(V2,'2028-02-20T23:00:00'); c.state.settings.periodStart=1;
+  c.state.extra=[{y:2028,m:2,day:17,kind:'day',type:'shift',inH:9,outH:15,c:c.calc(9,15,'day',false)}];
+  c.openPending('work'); c.setState({ pendingIso:new Date(2028,1,17).toISOString(), pendingIn:'09:00', pendingOut:'18:00' }); c.confirmPending();
+  ok('덮어쓴 손 입력은 수정됨', c.renderVals().undoMsg===c.T('updated',{p0:'02.17'}), c.renderVals().undoMsg);
+  c.openPending('work'); c.setState({ pendingIso:new Date(2028,1,18).toISOString(), pendingIn:'09:00', pendingOut:'18:00' }); c.confirmPending();
+  ok('빈 날의 손 입력은 추가됨', c.renderVals().undoMsg===c.T('added_to_your_log',{p0:'02.18'}), c.renderVals().undoMsg);
+  // 다른 날에 사유를 달고 되돌리면 그 사유만 빠집니다
+  const r19={y:2028,m:2,day:19,kind:'day',type:'shift',inH:9,outH:14,c:c.calc(9,14,'day',false)};
+  c.state.extra=c.state.extra.concat([r19]); const keep=JSON.stringify(r19);
+  c.openReason(r19); c.pickReason('machine'); c.saveReason();
+  ok('19일에 사유가 붙었습니다', !!c.state.extra.filter(x=>x.day===19)[0].reason);
+  c.undoLast();
+  ok('되돌리면 19일은 사유 없이 그대로, 18일은 남습니다', JSON.stringify(c.state.extra.filter(x=>x.day===19)[0])===keep && c.state.extra.filter(x=>x.day===18).length===1);
 }
 
 Promise.all(later).then(()=>{
