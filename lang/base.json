@@ -2911,6 +2911,10 @@
     "en": "You do not need to change these. The law sets them, and the app already has the current figures.",
     "ko": "고치지 않아도 됩니다. 법이 정하는 값이고, 앱이 지금 값을 이미 갖고 있습니다."
   },
+  "you_do_not_need_to_change_this_the_la": {
+    "en": "You do not need to change this. The law sets it, and the app already has the current figure.",
+    "ko": "고치지 않아도 됩니다. 법이 정하는 값이고, 앱이 지금 값을 이미 갖고 있습니다."
+  },
   "you_have_passed_1_year_this_is_owed_wh": {
     "ko": "✓ 계속근로 {p0}년 {p1}개월 — 제8조①이 정한 1년을 넘겼습니다. 퇴사할 때 받을 돈이고, 해마다 평균임금 한 달치쯤 늘어납니다. 다음 입사기념일까지 {p2}일.",
     "en": "✓ {p0} years {p1} months of service — past the 1-year mark §8① requires. This is owed when you leave and grows by roughly one more month’s average wage every year; {p2} days to your next anniversary."

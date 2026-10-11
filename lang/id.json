@@ -678,6 +678,7 @@
   "you_can_change_any_of_this_later_in_se": "Anda bisa mengubah semua ini nanti di Pengaturan. Sedang bekerja saat ini? Gunakan ‘Saya sudah masuk lebih awal hari ini’ di layar absen untuk menetapkan jam mulai Anda.",
   "you_confirmed_this_is_your_basic": "✓ Kamu sudah memastikan ini 기본금 kamu. Angkanya kebetulan sama dengan {p0} 최저임금 upah minimum {p1} × {p2} jam, yang paling umum. Ubah di sini kapan saja upahmu berubah.",
   "you_do_not_need_to_change_these_the_la": "Anda tidak perlu mengubah ini. Undang-undang yang menetapkannya, dan aplikasi sudah memuat angka yang berlaku.",
+  "you_do_not_need_to_change_this_the_la": "Anda tidak perlu mengubah ini. Undang-undang yang menetapkannya, dan aplikasi sudah memuat angka yang berlaku.",
   "you_have_passed_1_year_this_is_owed_wh": "✓ Masa kerja {p0} tahun {p1} bulan — sudah melewati batas 1 tahun yang disyaratkan §8①. Ini uang yang Anda terima saat berhenti, dan bertambah kira-kira satu bulan upah rata-rata setiap tahun. {p2} hari lagi ke ulang tahun masuk kerja berikutnya.",
   "your_contract_has_to_state_these_by_la": "Salin dari 근로계약서 Anda. 근로기준법 §17 mewajibkan kontrak mencantumkan jam kerja, waktu istirahat, dan hari libur — jika tidak ada, itu layak ditanyakan.",
   "your_hourly_rate_is_below_the_legal_mi": "⚠ Upah per jam Anda {p0} — di bawah 최저임금 upah minimum resmi {p1} sebesar {p2}. Periksa 기본금 dan 기준시간.",

@@ -678,6 +678,7 @@
   "you_can_change_any_of_this_later_in_se": "Bạn có thể đổi mọi thứ này sau trong phần Cài đặt. Đang ở chỗ làm ngay lúc này? Hãy dùng ‘Hôm nay tôi đã vào ca từ trước’ ở màn hình chấm công để đặt giờ bắt đầu.",
   "you_confirmed_this_is_your_basic": "✓ Bạn đã xác nhận đây là 기본금 của mình. Con số này trùng với {p0} 최저임금 lương tối thiểu {p1} × {p2} giờ — mức 기본금 phổ biến nhất. Khi lương thay đổi, hãy sửa lại ở đây.",
   "you_do_not_need_to_change_these_the_la": "Bạn không cần sửa những mục này. Luật quy định chúng, và ứng dụng đã có số hiện hành.",
+  "you_do_not_need_to_change_this_the_la": "Bạn không cần sửa mục này. Luật quy định nó, và ứng dụng đã có số hiện hành.",
   "you_have_passed_1_year_this_is_owed_wh": "✓ Thâm niên {p0} năm {p1} tháng — đã qua mốc 1 năm mà §8① quy định. Đây là khoản bạn được nhận khi nghỉ việc, mỗi năm tăng thêm khoảng một tháng lương bình quân. Còn {p2} ngày đến ngày kỷ niệm vào làm.",
   "your_contract_has_to_state_these_by_la": "Chép từ 근로계약서 của bạn. 근로기준법 §17 buộc hợp đồng phải ghi rõ giờ làm, giờ nghỉ và ngày nghỉ — nếu không có, đó là điều đáng hỏi.",
   "your_hourly_rate_is_below_the_legal_mi": "⚠ Lương giờ của bạn là {p0} — thấp hơn 최저임금 mức tối thiểu hợp pháp {p1} là {p2}. Hãy kiểm tra 기본금 và 기준시간.",

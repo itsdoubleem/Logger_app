@@ -9661,6 +9661,39 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('근무내역서의 퇴근 유예 줄은 0분도 적습니다', src.indexOf("{ k: this.T('clock_out_grace'), v: (+this.st().outGrace || 0) + this.T('min_before_the_hour') }")>0);
 }
 
+// ── 회사 규칙의 묶음은 저마다 흰 판입니다 (F9, 2026-10-12) ──
+// 개발자 본인이 물었습니다: '법이 정한 값'은 아래 전부를 말하는 것입니까? 아닙니다 — 1일 평균임금 하나뿐입니다.
+// 묶음 이름 밑의 구분선이 이름을 제 줄들에서 떼어 놓고, 앞 묶음의 긴 설명이 다음 이름에 곧장 붙어, 이름이 위의
+// 끝처럼 읽혔습니다. 이제 이름·설명·줄이 한 판에 들고 판 사이는 gap입니다. 그리고 하나뿐인 값 위의 설명은 단수입니다.
+{
+  const fs=require('fs');
+  const src=fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const css=fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
+  const a=src.indexOf('<sc-if value="{{ gRulesOpen }}"'), b=src.indexOf('</sc-if>', a);
+  const blk=src.slice(a,b);
+  const PANEL='<div style="padding:12px 14px 10px;background:var(--color-card)">';
+  ok('회사 규칙에 판이 다섯입니다', blk.split(PANEL).length-1===5, String(blk.split(PANEL).length-1));
+  ok('판 모양은 앱의 다른 어디에도 없습니다 — 층의 선택자가 판만 잡습니다', src.split('padding:12px 14px 10px').length-1===5);
+  // 판마다 첫 줄이 묶음 이름입니다 — 다섯 이름이 차례로
+  const order=['{{ L.secRound }}','{{ L.secByLaw }}','{{ L.secDoes }}','{{ L.secMult }}','{{ L.secBonus }}'];
+  const parts=blk.split(PANEL).slice(1);
+  ok('판마다 맨 위가 그 묶음의 이름', parts.length===5 && parts.every((p,i)=>{ const k=p.indexOf('{{ L.sec'); return k>=0 && p.slice(k).indexOf(order[i])===0 && p.slice(0,k).indexOf('<input')<0; }));
+  // 이름·설명 밑에 구분선이 없습니다 — 그것이 이름을 줄에서 떼어 놓았습니다
+  ['{{ L.byLawNoteOne }}','{{ L.doesNote }}'].forEach(n=>{
+    const i=blk.indexOf(n); const next=blk.slice(i, blk.indexOf('</div>', blk.indexOf('<div', i+n.length))+6);
+    ok(n+' 바로 밑 줄에 구분선이 없습니다', next.indexOf('border-top')<0, next.slice(-160));
+  });
+  ok('판 사이는 gap — 카드 안의 margin은 층이 가져갑니다', blk.indexOf('display:flex;flex-direction:column;gap:10px;padding:4px 14px 14px')>0);
+  ok('둥근 모서리는 층(2l)에 있습니다', /\[style\*="padding: 12px 14px 10px"\]\[style\*="background: var\(--color-card\)"\] \{\s*border-radius: var\(--radius-md\)/.test(css));
+  ok('소스에는 여전히 border-radius가 없습니다', src.split('class Component')[0].indexOf('border-radius')<0);
+  // 단수 설명 — 하나뿐인 묶음 둘은 단수, 여럿인 4대보험은 복수 그대로
+  ok('단수 설명은 두 곳', src.split('{{ L.byLawNoteOne }}').length-1===2);
+  ok('복수 설명은 4대보험 한 곳', src.split('{{ L.byLawNote }}').length-1===1);
+  ok('en 단수는 this', /change this\. The law sets it/.test(V2.STR['you_do_not_need_to_change_this_the_la'].en));
+  ['vi','zh','th','ne','km'].forEach(Lg=>ok(Lg+' 단수 문장이 복수 문장과 다릅니다',
+    V2.STR['you_do_not_need_to_change_this_the_la'][Lg]!==V2.STR['you_do_not_need_to_change_these_the_la'][Lg]));
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);
