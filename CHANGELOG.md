@@ -1,6 +1,6 @@
 # 근무기록 LOGGER — change log beyond V2.md
 
-Seventy-eight entries, newest first — seventy-one carry an ordinal (first … seventy-first),
+Seventy-nine entries, newest first — seventy-two carry an ordinal (first … seventy-second),
 the seven oldest predate the numbering. Each one is a bug found by **actually using the app on
 shift**, what changed, and — the part worth reading — *why it was that and not the
 obvious fix*. Most entries end with a **다음 사람에게** paragraph: the rule the bug
@@ -18,7 +18,8 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 
 ## Index
 
-- 2026-10-11 (latest, seventy-first) — 점심에 '연장 시' 스위치가 있을 까닭이 없었습니다
+- 2026-10-11 (latest, seventy-second) — 스위치가 빠진 줄이 점심이 아니라 10분 쉬는 시간일 수 있었습니다
+- 2026-10-11 (seventy-first) — 점심에 '연장 시' 스위치가 있을 까닭이 없었습니다
 - 2026-10-11 (seventieth) — 빈 휴게 줄의 스위치는 눌러도 꿈쩍하지 않았는데 저장은 바뀌었습니다
 - 2026-10-11 (sixty-ninth) — 휴게 줄의 '매일 ↔ 연장 시'도 글자가 바뀌는 단추였습니다
 - 2026-10-11 (sixty-eighth) — 켜졌는지 꺼졌는지 단추가 말하지 않았습니다
@@ -97,7 +98,33 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 - 2026-08-13 — the service worker was hiding every update
 - 2026-08-13 (earlier) — 조퇴 사유 became a popup with a dropdown
 
-### 2026-10-11 (latest, seventy-first) — 점심에 '연장 시' 스위치가 있을 까닭이 없었습니다
+### 2026-10-11 (latest, seventy-second) — 스위치가 빠진 줄이 점심이 아니라 10분 쉬는 시간일 수 있었습니다
+
+v1.2.10을 낸 뒤의 리뷰가 찾았습니다. 일흔한째는 '그 근무조의 첫 휴게'를 **시작 시각이 가장 이른
+줄**로 셌습니다. 10:00–10:10 쉬는 시간이 있는 공장에서는 그 10분이 스위치를 잃고 점심이 스위치를
+가졌습니다 — 없애려던 바로 그것입니다. 끝 시각을 아직 안 적은 줄도 잠깐 '첫 휴게'가 됐습니다.
+
+| | v1.2.10 | 이제 |
+|---|---|---|
+| 스위치가 없는 줄 | 시작이 가장 이른 줄 | **식사 휴게** — 두 시각이 다 있고 30분 이상(§54의 최소 단위)인 줄 가운데 시작이 가장 이른 것 |
+| 30분 미만의 쉬는 시간만 있을 때 | 첫 줄이 스위치를 잃음 | 모든 줄이 스위치를 가짐(기본 꺼짐) |
+| 식사 휴게의 스위치를 끈 뒤 | 손가락 밑에서 사라짐 | 남습니다 — 근로자가 한 번이라도 정한 값(`b.ot`)이 있으면 |
+| 스위치의 TalkBack 이름 | 줄마다 같은 '연장 시에만' | '연장 시에만 17:00–17:30' |
+
+끈 뒤에 사라지던 것은 '식사 휴게가 없습니다'에서 드러납니다: 교대에서 그것을 누르면 17:00 저녁
+(`ot:true`) 한 줄만 남아 식사 휴게 자리가 되고, 한 번 잘못 누르면 되돌릴 스위치가 없었습니다.
+손대지 않은 점심(`ot`를 적은 적이 없음)에는 여전히 스위치가 없습니다.
+
+같은 리뷰가 일흔한째의 한 문장도 바로잡았습니다. '점심을 켜면 평소 날마다 1시간'이 아니라, 잔업이
+없는 날(출퇴근 사이 8시간 이하)에만 1시간이 실근무로 남습니다 — 기본 8시간을 넘는 날에는 계산이 표가
+있어도 휴게를 빼기 때문입니다. 그 자리에서 고쳤고, 세 날(9–17 · 9–18 · 9–21)을 재는 테스트가
+그것을 붙잡습니다. `ds-tokens.css` 2j의 검은 단추 규칙도 `:not([role="switch"])`를 얻어 다시 선택자
+하나만큼 무겁고, 그것을 세는 테스트가 `:not(`도 셉니다.
+
+**다음 사람에게.** '첫 번째'로 무엇을 고를 때는 그 말이 가리키는 것이 무엇인지 물으세요. 여기서
+원한 것은 가장 이른 줄이 아니라 §54의 식사 휴게였고, 둘은 쉬는 시간 하나로 갈립니다.
+
+### 2026-10-11 (seventy-first) — 점심에 '연장 시' 스위치가 있을 까닭이 없었습니다
 
 스위치가 나온 날, 근로자가 설정 흐름 2/4를 보고 물었습니다: **점심은 법으로 줘야 하는 휴게인데 왜
 켜고 끄는 것이 있습니까? 잔업하는 날에만 있는 것은 저녁 휴게이고, 저녁 시간은 사람마다 다릅니다.**
@@ -107,7 +134,10 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 
 화면은 두 군데서 틀렸습니다. 모든 줄의 제목이 `연장 시 ONLY IF LATE`여서 점심 줄이 잔업 휴게처럼
 읽혔고(예순아홉째가 제목을 '켜졌을 때의 뜻'으로 고정한 탓입니다), 점심에도 스위치가 있었습니다.
-점심을 켜면 평소 날마다 1시간이 실근무로 더해져 근로감독관 앞에 낼 기록에 남습니다.
+점심을 켜면 잔업이 없는 날 — 출퇴근 사이가 8시간 이하인 날, 조퇴한 날 — 에는 점심 1시간이 빠지지
+않고 실근무로 기록됩니다(9시–17시가 7시간이 아니라 8시간). 잔업한 날에는 켜든 끄든 빠지므로 숫자가
+같아서, 틀린 기록이 짧은 날에만 조용히 남습니다. (처음에는 '평소 날마다 1시간'이라고 적었는데,
+리뷰가 잰 대로 고쳤습니다.)
 
 | | 전 | 후 |
 |---|---|---|

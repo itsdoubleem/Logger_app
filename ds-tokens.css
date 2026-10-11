@@ -181,8 +181,9 @@
 /* Three elements in the app are `min-height: 30px` + `inline-flex`: the three
    on the 출퇴근 card (요일·시각, 근무조, 특근 ×1.5). The four 휴게 '연장 시'
    tags used to be here too; since 2026-10-11 they are switches (2k). They
-   are all the same idea — one fact, coloured — so they take one shape. A pill, not a rounded box: it is what a
-   chip *is*, and it separates them from the buttons around them. */
+   are all the same idea — one fact, coloured — so they take one shape. A
+   pill, not a rounded box: it is what a chip *is*, and it separates them
+   from the buttons around them. */
 [style*="min-height: 30px"][style*="display: inline-flex"] { border-radius: var(--radius-pill); }
 
 /* ── 2c · buttons ───────────────────────────────────────────────────────── */
@@ -369,10 +370,11 @@
    black things on this screen lift instead: the two nav chips, and the picked
    급여기간 / 월급날 chips on 4/4, which fill black when chosen. One direction
    for light, the other for dark; both say "your finger landed here".
-   Five attribute selectors — the rule above is five too since it gained
-   `:not([role="switch"])`, so this one wins by coming after it. Keep it after. */
-[style*="z-index: 22"] [style*="cursor: pointer"][style*="min-height:"][style*="background: var(--color-text)"]:active,
-[style*="z-index: 30"] [style*="cursor: pointer"][style*="min-height:"][style*="background: var(--color-text)"]:active {
+   It carries the same `:not([role="switch"])` as the rule above plus one more
+   attribute, so it is one selector heavier and wins wherever it sits. It also
+   comes after, and a test holds both. */
+[style*="z-index: 22"] [style*="cursor: pointer"][style*="min-height:"][style*="background: var(--color-text)"]:not([role="switch"]):active,
+[style*="z-index: 30"] [style*="cursor: pointer"][style*="min-height:"][style*="background: var(--color-text)"]:not([role="switch"]):active {
   filter: brightness(1.9);
 }
 

@@ -239,7 +239,7 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
                 <sc-for list="{{ dayBreakRows }}" as="r" hint-placeholder-count="2">
                   <div style="padding:8px 0;border-bottom:1px solid var(--color-neutral-300)">
                     <div style="display:flex;align-items:center;gap:10px;padding:0 0 6px">
-                      <div style="flex:1;min-width:0"><sc-if value="{{ r.hasSwitch }}" hint-placeholder-val="{{ true }}"><div style="font-size:12.5px;font-weight:600">{{ r.tag }}</div></sc-if><div style="padding-top:2px;font-size:9.5px;line-height:1.3;color:var(--color-neutral-600);text-wrap:pretty">{{ r.tagNote }}</div></div><sc-if value="{{ r.hasSwitch }}" hint-placeholder-val="{{ true }}"><div onClick="{{ r.toggleOt }}" role="switch" aria-checked="{{ r.otOnly }}" aria-label="{{ r.tag }}" style="flex:none;min-height:44px;min-width:64px;display:flex;align-items:center;justify-content:flex-end;cursor:pointer"><div style="width:34px;height:19px;padding:2px;background:{{ r.otTrack }}"><div style="width:19px;height:19px;background:var(--color-card);transform:translateX({{ r.otKnobX }})"></div></div></div></sc-if>
+                      <div style="flex:1;min-width:0"><sc-if value="{{ r.hasSwitch }}" hint-placeholder-val="{{ true }}"><div style="font-size:12.5px;font-weight:600">{{ r.tag }}</div></sc-if><div style="padding-top:2px;font-size:9.5px;line-height:1.3;color:var(--color-neutral-600);text-wrap:pretty">{{ r.tagNote }}</div></div><sc-if value="{{ r.hasSwitch }}" hint-placeholder-val="{{ true }}"><div onClick="{{ r.toggleOt }}" role="switch" aria-checked="{{ r.otOnly }}" aria-label="{{ r.switchName }}" style="flex:none;min-height:44px;min-width:64px;display:flex;align-items:center;justify-content:flex-end;cursor:pointer"><div style="width:34px;height:19px;padding:2px;background:{{ r.otTrack }}"><div style="width:19px;height:19px;background:var(--color-card);transform:translateX({{ r.otKnobX }})"></div></div></div></sc-if>
                     </div>
                     <div style="display:flex;align-items:center;gap:6px">
                       <div onClick="{{ r.tapFrom }}" style="flex:1;min-width:0;min-height:48px;display:flex;align-items:center;justify-content:center;border:2px solid {{ r.fromBd }};background:var(--color-bg);cursor:pointer;font-family:var(--font-heading);font-weight:{{ r.wgt }};font-size:15px;color:{{ r.ink }};font-variant-numeric:tabular-nums">{{ r.from }}</div>
@@ -281,7 +281,7 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
                 <sc-for list="{{ nightBreakRows }}" as="r" hint-placeholder-count="1">
                   <div style="padding:8px 0;border-bottom:1px solid var(--color-neutral-300)">
                     <div style="display:flex;align-items:center;gap:10px;padding:0 0 6px">
-                      <div style="flex:1;min-width:0"><sc-if value="{{ r.hasSwitch }}" hint-placeholder-val="{{ true }}"><div style="font-size:12.5px;font-weight:600">{{ r.tag }}</div></sc-if><div style="padding-top:2px;font-size:9.5px;line-height:1.3;color:var(--color-neutral-600);text-wrap:pretty">{{ r.tagNote }}</div></div><sc-if value="{{ r.hasSwitch }}" hint-placeholder-val="{{ true }}"><div onClick="{{ r.toggleOt }}" role="switch" aria-checked="{{ r.otOnly }}" aria-label="{{ r.tag }}" style="flex:none;min-height:44px;min-width:64px;display:flex;align-items:center;justify-content:flex-end;cursor:pointer"><div style="width:34px;height:19px;padding:2px;background:{{ r.otTrack }}"><div style="width:19px;height:19px;background:var(--color-card);transform:translateX({{ r.otKnobX }})"></div></div></div></sc-if>
+                      <div style="flex:1;min-width:0"><sc-if value="{{ r.hasSwitch }}" hint-placeholder-val="{{ true }}"><div style="font-size:12.5px;font-weight:600">{{ r.tag }}</div></sc-if><div style="padding-top:2px;font-size:9.5px;line-height:1.3;color:var(--color-neutral-600);text-wrap:pretty">{{ r.tagNote }}</div></div><sc-if value="{{ r.hasSwitch }}" hint-placeholder-val="{{ true }}"><div onClick="{{ r.toggleOt }}" role="switch" aria-checked="{{ r.otOnly }}" aria-label="{{ r.switchName }}" style="flex:none;min-height:44px;min-width:64px;display:flex;align-items:center;justify-content:flex-end;cursor:pointer"><div style="width:34px;height:19px;padding:2px;background:{{ r.otTrack }}"><div style="width:19px;height:19px;background:var(--color-card);transform:translateX({{ r.otKnobX }})"></div></div></div></sc-if>
                     </div>
                     <div style="display:flex;align-items:center;gap:6px">
                       <div onClick="{{ r.tapFrom }}" style="flex:1;min-width:0;min-height:48px;display:flex;align-items:center;justify-content:center;border:2px solid {{ r.fromBd }};background:var(--color-bg);cursor:pointer;font-family:var(--font-heading);font-weight:{{ r.wgt }};font-size:15px;color:{{ r.ink }};font-variant-numeric:tabular-nums">{{ r.from }}</div>
@@ -1296,7 +1296,7 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
           <sc-for list="{{ dayBreakRows }}" as="r" hint-placeholder-count="2">
             <div style="padding:6px 0;border-bottom:1px solid var(--color-neutral-300)">
               <div style="display:flex;align-items:center;gap:10px;padding:0 0 5px">
-                <div style="flex:1;min-width:0"><sc-if value="{{ r.hasSwitch }}" hint-placeholder-val="{{ true }}"><div style="font-size:12.5px;font-weight:600">{{ r.tag }}</div></sc-if><div style="padding-top:2px;font-size:9.5px;line-height:1.3;color:var(--color-neutral-600);text-wrap:pretty">{{ r.tagNote }}</div></div><sc-if value="{{ r.hasSwitch }}" hint-placeholder-val="{{ true }}"><div onClick="{{ r.toggleOt }}" role="switch" aria-checked="{{ r.otOnly }}" aria-label="{{ r.tag }}" style="flex:none;min-height:44px;min-width:64px;display:flex;align-items:center;justify-content:flex-end;cursor:pointer"><div style="width:34px;height:19px;padding:2px;background:{{ r.otTrack }}"><div style="width:19px;height:19px;background:var(--color-card);transform:translateX({{ r.otKnobX }})"></div></div></div></sc-if>
+                <div style="flex:1;min-width:0"><sc-if value="{{ r.hasSwitch }}" hint-placeholder-val="{{ true }}"><div style="font-size:12.5px;font-weight:600">{{ r.tag }}</div></sc-if><div style="padding-top:2px;font-size:9.5px;line-height:1.3;color:var(--color-neutral-600);text-wrap:pretty">{{ r.tagNote }}</div></div><sc-if value="{{ r.hasSwitch }}" hint-placeholder-val="{{ true }}"><div onClick="{{ r.toggleOt }}" role="switch" aria-checked="{{ r.otOnly }}" aria-label="{{ r.switchName }}" style="flex:none;min-height:44px;min-width:64px;display:flex;align-items:center;justify-content:flex-end;cursor:pointer"><div style="width:34px;height:19px;padding:2px;background:{{ r.otTrack }}"><div style="width:19px;height:19px;background:var(--color-card);transform:translateX({{ r.otKnobX }})"></div></div></div></sc-if>
               </div>
               <div style="display:flex;align-items:center;gap:6px">
                 <input type="text" value="{{ r.from }}" onChange="{{ r.setFrom }}" placeholder="11:30" style="flex:1;min-width:0;box-sizing:border-box;min-height:44px;padding:0 8px;border:2px solid var(--color-neutral-300);background:var(--color-bg);font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-text)" />
@@ -1322,7 +1322,7 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
             <sc-for list="{{ nightBreakRows }}" as="r" hint-placeholder-count="1">
               <div style="padding:6px 0;border-bottom:1px solid var(--color-neutral-300)">
                 <div style="display:flex;align-items:center;gap:10px;padding:0 0 5px">
-                  <div style="flex:1;min-width:0"><sc-if value="{{ r.hasSwitch }}" hint-placeholder-val="{{ true }}"><div style="font-size:12.5px;font-weight:600">{{ r.tag }}</div></sc-if><div style="padding-top:2px;font-size:9.5px;line-height:1.3;color:var(--color-neutral-600);text-wrap:pretty">{{ r.tagNote }}</div></div><sc-if value="{{ r.hasSwitch }}" hint-placeholder-val="{{ true }}"><div onClick="{{ r.toggleOt }}" role="switch" aria-checked="{{ r.otOnly }}" aria-label="{{ r.tag }}" style="flex:none;min-height:44px;min-width:64px;display:flex;align-items:center;justify-content:flex-end;cursor:pointer"><div style="width:34px;height:19px;padding:2px;background:{{ r.otTrack }}"><div style="width:19px;height:19px;background:var(--color-card);transform:translateX({{ r.otKnobX }})"></div></div></div></sc-if>
+                  <div style="flex:1;min-width:0"><sc-if value="{{ r.hasSwitch }}" hint-placeholder-val="{{ true }}"><div style="font-size:12.5px;font-weight:600">{{ r.tag }}</div></sc-if><div style="padding-top:2px;font-size:9.5px;line-height:1.3;color:var(--color-neutral-600);text-wrap:pretty">{{ r.tagNote }}</div></div><sc-if value="{{ r.hasSwitch }}" hint-placeholder-val="{{ true }}"><div onClick="{{ r.toggleOt }}" role="switch" aria-checked="{{ r.otOnly }}" aria-label="{{ r.switchName }}" style="flex:none;min-height:44px;min-width:64px;display:flex;align-items:center;justify-content:flex-end;cursor:pointer"><div style="width:34px;height:19px;padding:2px;background:{{ r.otTrack }}"><div style="width:19px;height:19px;background:var(--color-card);transform:translateX({{ r.otKnobX }})"></div></div></div></sc-if>
                 </div>
                 <div style="display:flex;align-items:center;gap:6px">
                   <input type="text" value="{{ r.from }}" onChange="{{ r.setFrom }}" placeholder="00:00" style="flex:1;min-width:0;box-sizing:border-box;min-height:44px;padding:0 8px;border:2px solid var(--color-neutral-300);background:var(--color-bg);font-family:var(--font-heading);font-weight:800;font-size:13px;color:var(--color-text)" />
@@ -5066,14 +5066,19 @@ class Component extends DCLogic {
   breakRows(which, kind) {
     const seed = Component.DEFAULTS[which];
     const list = this.st()[which] || [];
-    // 시작 시각이 가장 이른 줄의 자리 — 야간은 야간 시작 기준으로 자정을 넘겨 셉니다.
-    // 시각이 없는 줄은 첫 휴게가 될 수 없습니다.
-    let first = -1, firstAt = Infinity;
+    // 식사 휴게의 자리 = 두 시각이 다 있고 30분 이상(§54의 최소 단위)인 줄 가운데
+    // 시작이 가장 이른 것. 야간은 야간 시작 기준으로 자정을 넘겨 셉니다. 10분 쉬는
+    // 시간이나 끝 시각이 빈 줄은 식사 휴게가 아닙니다 — 임금 계산도 빈 줄은 보지 않습니다.
+    // 시작이 같으면 목록에서 앞선 줄입니다.
+    let meal = -1, mealAt = Infinity;
     list.forEach((b, i) => {
       let at = this.parseHM(b.from);
-      if (at === null) return;
+      const to = this.parseHM(b.to);
+      if (at === null || to === null) return;
+      let len = to - at; if (len <= 0) len += 24;
+      if (len < 0.5 - 1e-9) return;
       if (kind === 'night' && at < this.schedStart('night')) at += 24;
-      if (at < firstAt) { firstAt = at; first = i; }
+      if (at < mealAt) { mealAt = at; meal = i; }
     });
     return list.map((b, i) => {
       const a = this.parseHM(b.from), z = this.parseHM(b.to);
@@ -5097,15 +5102,17 @@ class Component extends DCLogic {
       // 근로자가 정한 값(b.ot)은 시각이 비어 있어도 그대로 보입니다. 시각이 없다고
       // 꺼짐으로 그리면, 누를 때마다 저장은 바뀌는데 스위치는 꿈쩍하지 않습니다(리뷰 S1).
       const otOnly = b.ot !== undefined ? !!b.ot : (a2 !== null && this.isOtBreak(kind, [a2, null]));
-      // ── 그 근무조의 첫 휴게에는 스위치가 없습니다 (F7) ──
+      // ── 그 근무조의 식사 휴게에는 스위치가 없습니다 (F7) ──
       // 근로기준법 §54: 4시간에 30분, 8시간에 1시간의 휴게를 근로시간 도중에 주어야 합니다.
-      // 그 휴게(점심, 야간의 00:00)를 '연장 시'로 켜면 평소 날마다 1시간이 실근무로 더해져
-      // 기록에 남습니다. §54는 8시간을 넘는 근무에 휴게를 더 요구하지 않으므로, 잔업하는 날에만
+      // 그 휴게(점심, 야간의 00:00)를 '연장 시'로 켜면, 잔업이 없는 날(출퇴근 사이 8시간
+      // 이하 — 조퇴한 날, 9시–17시인 날)에는 점심 1시간이 빠지지 않고 실근무로 기록됩니다.
+      // 잔업한 날에는 어느 쪽이든 빠지므로 숫자가 같아 눈에 띄지 않습니다. §54는 8시간을 넘는 근무에 휴게를 더 요구하지 않으므로, 잔업하는 날에만
       // 먹는 저녁은 회사의 관행이고 그것만 스위치가 필요합니다(스물아홉째, 12시간 교대).
-      // 첫 휴게 = 그 근무조 안에서 시작 시각이 가장 이른 줄. 다만 이미 '연장 시'로 읽히는
-      // 첫 줄(저장된 ot:true, 또는 평소 하루가 끝난 뒤에 앉은 휴게)은 스위치를 남깁니다 —
-      // 근로자가 되돌릴 수 없는 상태를 숨기면 안 됩니다.
-      const hasSwitch = i !== first || otOnly;
+      // 식사 휴게는 위의 meal입니다. 다만 이미 '연장 시'로 읽히는 식사 휴게(평소 하루가
+      // 끝난 뒤에 앉은 휴게), 그리고 근로자가 한 번이라도 스위치로 정한 식사 휴게(b.ot가
+      // 저장됨)는 스위치를 남깁니다 — 끄는 순간 손가락 밑에서 사라지면 잘못 누른 한 번을
+      // 되돌릴 길이 없습니다(리뷰 N1).
+      const hasSwitch = i !== meal || otOnly || b.ot !== undefined;
       // ── 휴게 시각도 알람처럼 굴려서 고릅니다 ──
       // 한 번에 한 칸만 엽니다. 줄마다 드럼 넷을 늘 펴 두면 화면이 세 배로
       // 길어지고, 근로자는 고칠 것 하나를 찾으러 굴려 내려가야 합니다.
@@ -5127,6 +5134,8 @@ class Component extends DCLogic {
       const dT = openT ? drumFor('to') : { h: [], m: [] };
       return {
         from: b.from, to: b.to, mins, otOnly, hasSwitch,
+        // TalkBack이 읽는 스위치 이름 — 제목만으로는 줄마다 같아서 어느 휴게인지 모릅니다(리뷰 N2)
+        switchName: this.T('only_if_you_work_late') + (b.from && b.to ? ' ' + b.from + '–' + b.to : ''),
         openF, openT, openAny: openF || openT,
         tapFrom: () => this.openBreakDrum(eid + ':from'),
         tapTo: () => this.openBreakDrum(eid + ':to'),
