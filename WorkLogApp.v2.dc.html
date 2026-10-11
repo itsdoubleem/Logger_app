@@ -5366,6 +5366,19 @@ class Component extends DCLogic {
         wasLeave: this.leaveKind(before),
         inH, outH, c: this.calc(inH, outH, kind, wasHol),
       }];
+      // ── 고친 날은 시각만 바뀝니다 ──
+      // 고치기 → 저장은 기록을 새로 만들기 때문에, 그 날에 근로자가 달아 둔 것을 따로
+      // 옮겨야 합니다. 조퇴 사유(reason)는 근무내역서에 찍히는 증거이고, 손으로 켠 법정
+      // 휴일 표시(legalHol)는 앱의 표가 모르는 명절의 ×2.0입니다. 옮기지 않으면 둘 다
+      // 조용히 사라졌습니다(리뷰 S2, 2026-10-11). 고치기가 아닌 손 입력은 물려받지 않습니다.
+      if (wasEdit && before && before.type === 'shift') {
+        if (before.reason) recs[0].reason = before.reason;
+        if (before.legalHol) {
+          recs[0].legalHol = true;
+          recs[0].holiday = true;
+          recs[0].c = this.calc(inH, outH, kind, true);
+        }
+      }
     } else if (type === 'absent' || type === 'shutdown') {
       // 하루짜리 · 시간이 없는 날. 결근은 그 날 임금이 빠지고, 휴업은 70%만 나옵니다.
       const d = new Date(this.state.pendingIso);

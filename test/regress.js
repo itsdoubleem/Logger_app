@@ -9138,6 +9138,38 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('야간 03:00–03:00도 건너뜁니다', n.breaks('night').length===1 && n.calc(21,30,'night',false).net===8, String(n.calc(21,30,'night',false).net));
 }
 
+// ── 고친 날을 저장해도 조퇴 사유와 법정 휴일 표시가 남습니다 (리뷰 S2, 2026-10-11) ──
+// 고치기 → 저장은 기록을 새로 만들면서 그 날의 조퇴 사유(reason)와 손으로 켠 법정 휴일
+// 표시(legalHol)를 옮기지 않았습니다. 사유는 근무내역서에서 사라지고, 앱이 모르는 설날에
+// 켜 둔 표시가 꺼지면 8시간을 넘긴 시간의 ×2.0이 빠집니다 — 증거와 돈이 함께 줄어듭니다.
+{
+  const c=mk(V2,'2028-02-16T23:00:00');   // 표가 모르는 설날
+  c.state.settings.periodStart=1;
+  const rsn={ id:'machine', fault:'employer', ko:'기계 고장', note:'금형 파손' };
+  const rec={y:2028,m:2,day:16,kind:'day',type:'shift',holiday:true,inH:9,outH:22,c:c.calc(9,22,'day',true),reason:rsn};
+  c.state.extra=[rec];
+  c.toggleLegalHol(rec);
+  ok('표시를 켜면 ×2.0', c.holOverHours(c.state.extra[0])>0);
+  c.editDay(c.state.extra[0]);
+  c.setState({ pendingOut:'21:00' });
+  c.confirmPending();
+  const e=c.state.extra.filter(x=>x.day===16)[0];
+  ok('고친 시각이 들어갔습니다', e.outH===21, String(e.outH));
+  ok('조퇴 사유가 남습니다', !!e.reason && e.reason.id==='machine' && e.reason.note==='금형 파손', JSON.stringify(e.reason));
+  ok('법정 휴일 표시가 남습니다', e.legalHol===true && c.isTrueHoliday(e)===true);
+  ok('그래서 ×2.0도 남습니다', c.holOverHours(e)>0, 'holOver='+c.holOverHours(e));
+  ok('특근 표시도 그대로', e.holiday===true);
+
+  // 고치기가 아니라 비어 있는 날에 손으로 넣는 근무는 아무것도 물려받지 않습니다
+  const d=mk(V2,'2026-08-05T23:00:00');
+  d.state.extra=[];
+  d.openPending('work');
+  d.setState({ pendingIso:new Date(2026,7,4).toISOString(), pendingIn:'09:00', pendingOut:'18:00' });
+  d.confirmPending();
+  const n=d.state.extra.filter(x=>x.day===4)[0];
+  ok('새로 넣는 근무에는 사유도 표시도 없습니다', !!n && !n.reason && !n.legalHol, JSON.stringify(n));
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);
