@@ -9436,6 +9436,26 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('되돌리면 19일은 사유 없이 그대로, 18일은 남습니다', JSON.stringify(c.state.extra.filter(x=>x.day===19)[0])===keep && c.state.extra.filter(x=>x.day===18).length===1);
 }
 
+// ── 끝난 되돌리기는 아무것도 하지 않습니다 (리뷰 S1, 2026-10-12) ──
+// 9초가 지나 되돌리기가 닫혀도 '원래 가려져 있던 날'(undoRm)이 남아, 그 뒤에 되돌리기가 불리면 방금
+// 저장한 날을 다시 가렸습니다. 되돌릴 저장이 없으면 되돌리기는 아무것도 하지 않고, 닫을 때 모두 비웁니다.
+{
+  const c=mk(V2,'2028-02-20T23:00:00'); c.state.settings.periodStart=1;
+  const k=2028*10000+2*100+11;
+  c.state.extra=[]; c.state.removed=[k];
+  c.openPending('absent'); c.setState({ pendingIso:new Date(2028,1,11).toISOString() }); c.confirmPending();
+  c.setState({ undoKeys:[], editedKeys:[], undoPrev:null, undoRm:[] });   // 9초 타이머가 하는 일
+  c.undoLast();
+  ok('닫힌 되돌리기는 저장한 날을 건드리지 않습니다', c.state.extra.filter(x=>x.day===11).length===1 && c.state.removed.indexOf(k)<0, JSON.stringify(c.state.removed));
+  // 타이머가 undoRm을 비우지 않던 때를 흉내 냅니다 — 되돌릴 키가 없으면 아무것도 하지 않아야 합니다
+  c.setState({ undoRm:[k] });
+  c.undoLast();
+  ok('남은 undoRm이 있어도 되돌릴 키가 없으면 그대로', c.state.extra.filter(x=>x.day===11).length===1 && c.state.removed.indexOf(k)<0);
+  const src=require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  ok('9초 타이머가 모두 undoRm도 비웁니다', (src.match(/undoKeys: \[\], editedKeys: \[\], undoPrev: null \}\), 9000/g)||[]).length===0
+    && (src.match(/undoKeys: \[\], editedKeys: \[\], undoPrev: null, undoRm: \[\] \}\), 9000/g)||[]).length===5);
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);
