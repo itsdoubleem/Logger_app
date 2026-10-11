@@ -407,7 +407,10 @@
    of the group above it (2026-10-12, F9). Each group is now a white panel on
    the open card's tint, spaced by the column's `gap`, not margins — rule 1
    owns margin inside cards. `padding: 12px 14px 10px` with the card white
-   appears nowhere else in the source (asserted), so this catches only them. */
+   appears nowhere else in the source (asserted), so this catches only them.
+   Since F10 the same panel serves every 설정 dropdown that holds two or more
+   labelled groups — 근무조와 휴게, 내 급여 조건, 4대보험과 세금 — so a box
+   always means "one of several groups here"; one-group dropdowns stay flat. */
 [style*="padding: 12px 14px 10px"][style*="background: var(--color-card)"] {
   border-radius: var(--radius-md);
 }

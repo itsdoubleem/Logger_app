@@ -6700,7 +6700,10 @@ console.log('\n== 열리는 것과 열리지 않는 것 ==');
    ['gPeriodOpen', 'L.tierMore', 'padding:6px 0"']].forEach(([a, b, last]) => {
     const body = tplQ.slice(tplQ.indexOf('{{ ' + a + ' }}'), tplQ.indexOf('{{ ' + b + ' }}'));
     const hair = body.split('border-bottom:1px solid var(--color-neutral-300)').length - 1;
-    ok(a.replace('Open', '') + ' 본문에 칸을 가르는 머리카락 선이 하나입니다', hair === 1, 'got ' + hair);
+    // 내 급여 조건은 F10(2026-10-12)부터 묶음마다 흰 판이라, 기본금과 기준시간 사이는 선이 아니라 판 사이의
+    // 틈이 가릅니다 — 머리카락 선이 없습니다. 급여기간은 한 묶음이라 그대로 하나입니다.
+    const want = a === 'gPayOpen' ? 0 : 1;
+    ok(a.replace('Open', '') + ' 본문에 칸을 가르는 머리카락 선이 ' + want + '개입니다', hair === want, 'got ' + hair);
     // 마지막 칸의 style이 padding에서 끝납니다 = 밑줄이 없습니다
     ok(a.replace('Open', '') + ' 본문의 마지막 칸은 아무 줄도 긋지 않습니다',
       body.indexOf(last) >= 0);
@@ -9653,9 +9656,17 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   // 근무내역서에는 쓴 값이 찍힙니다 — 0분이어도 숨지 않습니다
   const src=require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
   // 설정의 안내는 '0으로 두세요'라고 했는데 이제 0이 시작값입니다 — 여덟 언어 모두 새 문장
+  // 언어마다 새 문장의 한 토막을 박습니다 — 옛 문장도 끝 120자 안에 '0'과 '21:00'이 있어서, 숫자만
+  // 보는 시험은 바뀌지 않았어도 통과했습니다(리뷰 S1). 옛 문장의 끝('0으로 두세요' 류)이 남아 있지 않은지도 봅니다.
+  const NEW={ ko:'새로 깐 앱은 0분입니다', en:'A new install starts at 0', vi:'Ứng dụng mới cài bắt đầu ở 0',
+    zh:'新安装的应用从0开始', th:'แอปที่ติดตั้งใหม่เริ่มที่ 0', id:'Aplikasi yang baru dipasang mulai dari 0',
+    ne:'नयाँ इन्स्टल गरिएको एप 0 बाट सुरु हुन्छ', km:'កម្មវិធីដែលទើបដំឡើងចាប់ផ្តើមពី 0' };
+  const OLD={ ko:'정확히 정시에만 인정되는 회사면 0으로 두세요', en:'Set it to 0 if your company only credits the exact hour',
+    vi:'Đặt 0 nếu công ty bạn chỉ tính đúng giờ tròn', zh:'如果你公司只认整点，请设为0', th:'ตั้งเป็น 0 ถ้าบริษัทของคุณนับเฉพาะเวลาเต็มชั่วโมงเท่านั้น',
+    id:'Setel 0 jika perusahaan Anda hanya mengakui jam bulat', ne:'तपाईंको कम्पनीले पूरा घण्टा मात्र गन्छ भने 0 राख्नुहोस्', km:'សូមកំណត់ 0 បើក្រុមហ៊ុនរបស់អ្នកគិតតែម៉ោងគត់' };
   ['ko','en','vi','zh','th','id','ne','km'].forEach(Lg=>{
     const t=V2.STR['clock_in_rounds_up_to_the_next_30_minu'][Lg];
-    ok(Lg+' 안내가 0이 시작값이라고 말합니다', /0/.test(t.slice(-120)) && t.indexOf('20:45')>0, t.slice(-90));
+    ok(Lg+' 안내가 0이 시작값이라고 말합니다', t.indexOf(NEW[Lg])>0 && t.indexOf(OLD[Lg])<0, t.slice(-90));
   });
   ok('ko 안내', V2.STR['clock_in_rounds_up_to_the_next_30_minu'].ko.indexOf('새로 깐 앱은 0분입니다')>0);
   ok('근무내역서의 퇴근 유예 줄은 0분도 적습니다', src.indexOf("{ k: this.T('clock_out_grace'), v: (+this.st().outGrace || 0) + this.T('min_before_the_hour') }")>0);
@@ -9673,7 +9684,9 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   const blk=src.slice(a,b);
   const PANEL='<div style="padding:12px 14px 10px;background:var(--color-card)">';
   ok('회사 규칙에 판이 다섯입니다', blk.split(PANEL).length-1===5, String(blk.split(PANEL).length-1));
-  ok('판 모양은 앱의 다른 어디에도 없습니다 — 층의 선택자가 판만 잡습니다', src.split('padding:12px 14px 10px').length-1===5);
+  // F10부터 묶음이 둘 이상인 접이식 넷이 같은 판을 씁니다: 회사 규칙 5 · 근무조와 휴게 4 · 내 급여 조건 2 · 4대보험 3
+  ok('판 모양은 그 판들 말고는 없습니다 — 층의 선택자가 판만 잡습니다', src.split('padding:12px 14px 10px').length-1===14
+    && src.split('padding:12px 14px 10px;background:var(--color-card)').length-1===14);
   // 판마다 첫 줄이 묶음 이름입니다 — 다섯 이름이 차례로
   const order=['{{ L.secRound }}','{{ L.secByLaw }}','{{ L.secDoes }}','{{ L.secMult }}','{{ L.secBonus }}'];
   const parts=blk.split(PANEL).slice(1);
@@ -9692,6 +9705,35 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('en 단수는 this', /change this\. The law sets it/.test(V2.STR['you_do_not_need_to_change_this_the_la'].en));
   ['vi','zh','th','ne','km'].forEach(Lg=>ok(Lg+' 단수 문장이 복수 문장과 다릅니다',
     V2.STR['you_do_not_need_to_change_this_the_la'][Lg]!==V2.STR['you_do_not_need_to_change_these_the_la'][Lg]));
+}
+
+// ── 묶음이 둘 이상인 접이식은 모두 판입니다 (F10, 2026-10-12) ──
+// 회사 규칙만 판이고 나머지 접이식은 평면이라 모양이 제각각이었습니다. 규칙: 이름 붙은 묶음이 둘 이상이면
+// 묶음마다 판, 하나 이하면 평면. 내 급여 조건과 4대보험에도 '법이 정한 값'이 있어 같은 오해가 날 수 있었고,
+// 근무조와 휴게의 주간·야간 휴게 목록은 곧장 이어져 있었습니다.
+{
+  const src=require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8').split('class Component')[0];
+  const PANEL='padding:12px 14px 10px;background:var(--color-card)';
+  const body=g=>{ const a=src.indexOf('<sc-if value="{{ '+g+' }}"'); let i=a+5,d=1; while(d){ const o=src.indexOf('<sc-if',i), c=src.indexOf('</sc-if>',i); if(o!==-1&&o<c){d++;i=o+6;} else {d--;i=c+8;} } return src.slice(a,i); };
+  const K='letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:var(--color-text)';
+  [['gShiftOpen',4],['gPayOpen',2],['gInsOpen',3],['gRulesOpen',5]].forEach(([g,n])=>{
+    const b=body(g);
+    ok(g+' — 판 '+n+'개', b.split(PANEL).length-1===n, String(b.split(PANEL).length-1));
+    ok(g+' — 이름 붙은 묶음도 '+n+'개', b.split(K).length-1===n, String(b.split(K).length-1));
+    ok(g+' — 판 사이는 gap', b.indexOf('display:flex;flex-direction:column;gap:10px;padding:4px 14px 14px')>0);
+    let bal=(b.match(/<div\b/g)||[]).length-(b.match(/<\/div>/g)||[]).length;
+    ok(g+' — div가 맞습니다', bal===0, String(bal));
+  });
+  // 묶음이 하나 이하인 접이식은 평면 그대로
+  ['gPeriodOpen','gMoneyOpen','gMeOpen','gLangOpen','gBackupOpen'].forEach(g=>ok(g+' — 판 없음', body(g).indexOf(PANEL)<0));
+  // 4대보험: 옛 테두리 상자는 판으로 바뀌었고, 직접 적는 표는 첫 판(내 명세서) 안, 법이 정한 값은 자기 판
+  const ins=body('gInsOpen');
+  ok('4대보험의 옛 테두리 상자가 남아 있지 않습니다', ins.indexOf('border:2px solid var(--color-divider);padding:13px 15px')<0);
+  ok('직접 적는 표가 법이 정한 값보다 앞입니다', ins.indexOf('{{ insManual }}')<ins.indexOf('{{ insAutoOn }}'));
+  // 내 급여 조건: 설명이 제 판 안으로 — 기본금 설명은 첫 판, 기준시간 설명은 둘째 판
+  const pay=body('gPayOpen').split(PANEL);
+  ok('기본금 설명은 내 명세서 판에', pay[1].indexOf('{{ basicDefaultNote }}')>0 && pay[1].indexOf('{{ L.secMine2 }}')>0);
+  ok('기준시간 설명은 법이 정한 값 판에', pay[2].indexOf('{{ L.noteDivisor }}')>0 && pay[2].indexOf('{{ L.byLawNoteOne }}')>0);
 }
 
 Promise.all(later).then(()=>{
