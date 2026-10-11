@@ -1260,7 +1260,9 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
         </div>
         <sc-if value="{{ gShiftOpen }}" hint-placeholder-val="{{ false }}">
           <div style="background:{{ gShiftBg }}">
-        <div style="padding:14px 18px 4px">
+        <!-- 묶음이 둘 이상인 접이식은 묶음마다 흰 판입니다 — 회사 규칙과 같은 판(F10, 2026-10-12; ds-tokens.css 2l) -->
+        <div style="display:flex;flex-direction:column;gap:10px;padding:4px 14px 14px">
+        <div style="padding:12px 14px 10px;background:var(--color-card)">
           <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:var(--color-text);padding-bottom:6px">{{ L.secContract }}</div>
           <div style="font-size:10.5px;line-height:1.45;color:var(--color-neutral-700);margin-top:7px;margin-bottom:4px;text-wrap:pretty">{{ L.contractNote }}</div>
           <div style="display:flex;gap:6px">
@@ -1272,8 +1274,9 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
             </sc-for>
           </div>
           <div style="font-size:10.5px;line-height:1.45;color:var(--color-neutral-700);margin-top:7px;text-wrap:pretty">{{ L.noteShifts }}</div>
-
-          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:var(--color-text);padding:14px 0 6px">{{ L.secStarts }}</div>
+        </div>
+        <div style="padding:12px 14px 10px;background:var(--color-card)">
+          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:var(--color-text);padding-bottom:6px">{{ L.secStarts }}</div>
           <div style="display:flex;gap:8px">
             <sc-if value="{{ showDay }}" hint-placeholder-val="{{ true }}">
               <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
@@ -1291,7 +1294,7 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
           <div style="font-size:10.5px;line-height:1.45;color:var(--color-neutral-700);margin-top:7px;text-wrap:pretty">{{ noteStartsNow }}</div>
         </div>
         <sc-if value="{{ showDay }}" hint-placeholder-val="{{ true }}">
-        <div style="padding:14px 18px 4px;border-top:2px solid var(--color-divider)">
+        <div style="padding:12px 14px 10px;background:var(--color-card)">
           <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:var(--color-text);padding:0 0 6px">{{ L.secDayBreaks }}</div>
           <sc-for list="{{ dayBreakRows }}" as="r" hint-placeholder-count="2">
             <div style="padding:6px 0;border-bottom:1px solid var(--color-neutral-300)">
@@ -1317,7 +1320,7 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
         </div>
         </sc-if>
         <sc-if value="{{ showNight }}" hint-placeholder-val="{{ true }}">
-          <div style="padding:14px 18px 4px;border-top:2px solid var(--color-divider)">
+          <div style="padding:12px 14px 10px;background:var(--color-card)">
             <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:var(--color-text);padding:0 0 6px">{{ L.secNightBreaks }}</div>
             <sc-for list="{{ nightBreakRows }}" as="r" hint-placeholder-count="1">
               <div style="padding:6px 0;border-bottom:1px solid var(--color-neutral-300)">
@@ -1342,6 +1345,7 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
             <div style="font-size:10.5px;line-height:1.45;color:var(--color-neutral-700);margin-top:7px;font-variant-numeric:tabular-nums">{{ nightBreakTotal }}</div>
           </div>
         </sc-if>
+        </div>
         <div style="padding:0 18px 14px">
           <div style="font-size:10.5px;line-height:1.45;color:var(--color-neutral-700);text-wrap:pretty">{{ L.breaksOtNote }}</div>
           <div style="font-size:10.5px;line-height:1.45;color:var(--color-neutral-700);margin-top:7px;text-wrap:pretty">{{ L.breaksUnpaidNote }}</div>
@@ -1358,23 +1362,26 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
         </div>
         <sc-if value="{{ gPayOpen }}" hint-placeholder-val="{{ false }}">
           <div style="background:{{ gPayBg }}">
-        <div style="padding:12px 18px 4px">
+        <!-- 묶음이 둘 이상인 접이식은 묶음마다 흰 판입니다 — 회사 규칙과 같은 판(F10, 2026-10-12; ds-tokens.css 2l) -->
+        <div style="display:flex;flex-direction:column;gap:10px;padding:4px 14px 14px">
+        <div style="padding:12px 14px 10px;background:var(--color-card)">
           <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:var(--color-text);padding-bottom:6px">{{ L.secMine2 }}</div>
-          <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--color-neutral-300)">
+          <div style="display:flex;align-items:center;gap:10px;padding:7px 0">
             <div style="flex:1;font-size:12.5px;font-weight:600">{{ L.lBasic }} <span style="font-weight:400;color:var(--color-neutral-600)">{{ L.lBasicSub }}</span></div>
             <input type="text" inputmode="decimal" enterkeyhint="done" onKeyDown="{{ keyBasic }}" value="{{ basicVal }}" onFocus="{{ focBasic }}" onBlur="{{ blurBasic }}" onChange="{{ setBasic }}" style="width:112px;min-height:44px;padding:0 8px;border:2px solid var(--color-neutral-300);background:var(--color-bg);font-family:var(--font-heading);font-weight:{{ wgtBasic }};font-size:13px;text-align:right;color:{{ inkBasic }}" />
           </div>
-          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:var(--color-text);padding:14px 0 6px">{{ L.secByLaw }}</div>
-          <div style="display:flex;align-items:center;gap:10px;padding:7px 0">
+          <div style="font-size:10.5px;line-height:1.5;color:var(--color-neutral-700);margin-top:4px;text-wrap:pretty">{{ basicDefaultNote }}</div>
+        </div>
+        <div style="padding:12px 14px 10px;background:var(--color-card)">
+          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:var(--color-text);padding-bottom:4px">{{ L.secByLaw }}</div>
+          <div style="font-size:10.5px;line-height:1.45;color:var(--color-neutral-700);text-wrap:pretty">{{ L.byLawNoteOne }}</div>
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0 0">
             <div style="flex:1;font-size:12.5px;font-weight:600">{{ L.lDivisor }} <span style="font-weight:400;color:var(--color-neutral-600)">{{ L.lDivisorSub }}</span></div>
             <input type="text" inputmode="decimal" enterkeyhint="done" onKeyDown="{{ keyDivisor }}" value="{{ divisorVal }}" onFocus="{{ focDivisor }}" onBlur="{{ blurDivisor }}" onChange="{{ setDivisor }}" style="width:112px;min-height:44px;padding:0 8px;border:2px solid var(--color-neutral-300);background:var(--color-bg);font-family:var(--font-heading);font-weight:{{ wgtDivisor }};font-size:13px;text-align:right;color:{{ inkDivisor }}" />
           </div>
+          <div style="font-size:10.5px;line-height:1.5;color:var(--color-neutral-700);margin-top:6px;text-wrap:pretty">{{ L.noteDivisor }}</div>
         </div>
-            <div style="padding:0 18px 14px">
-              <div style="font-size:10.5px;line-height:1.5;color:var(--color-neutral-700);margin-top:8px;text-wrap:pretty">{{ basicDefaultNote }}</div>
-              <div style="font-size:10.5px;line-height:1.5;color:var(--color-neutral-700);margin-top:6px;text-wrap:pretty">{{ L.noteDivisor }}</div>
-              <div style="font-size:10.5px;line-height:1.45;color:var(--color-neutral-700);margin-top:6px;text-wrap:pretty">{{ L.byLawNoteOne }}</div>
-            </div>
+        </div>
           </div>
         </sc-if>
         <div onClick="{{ gPeriodTap }}" style="display:flex;align-items:center;gap:10px;padding:13px 18px;min-height:44px;border-top:1px solid var(--color-neutral-300);cursor:pointer;background:{{ gPeriodBg }}">
@@ -1476,7 +1483,9 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
             <div style="padding:12px 18px 0">
               <div style="font-size:11px;line-height:1.5;font-weight:700;color:var(--color-accent-700);text-wrap:pretty">{{ insWhyOnNote }}</div>
             </div>
-        <div style="margin:14px 18px 0;border:2px solid var(--color-divider);padding:13px 15px">
+        <!-- 묶음이 둘 이상인 접이식은 묶음마다 흰 판입니다 — 회사 규칙과 같은 판(F10, 2026-10-12; ds-tokens.css 2l) -->
+        <div style="display:flex;flex-direction:column;gap:10px;padding:4px 14px 14px">
+        <div style="padding:12px 14px 10px;background:var(--color-card)">
           <div style="display:flex;gap:7px;margin-top:9px">
             <div onClick="{{ setInsAutoOn }}" style="flex:1;min-height:44px;display:flex;align-items:center;padding:0 12px;border:2px solid var(--color-text);background:{{ insAutoBg }};color:{{ insAutoInk }};font-family:var(--font-heading);font-weight:800;font-size:11.5px;cursor:pointer">{{ L.insAutoB }}</div>
             <div onClick="{{ setInsAutoOff }}" style="flex:1;min-height:44px;display:flex;align-items:center;padding:0 12px;border:2px solid var(--color-text);background:{{ insManBg }};color:{{ insManInk }};font-family:var(--font-heading);font-weight:800;font-size:11.5px;cursor:pointer">{{ L.insManB }}</div>
@@ -1492,24 +1501,6 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
             <input type="text" inputmode="decimal" enterkeyhint="done" onKeyDown="{{ keyBosuPen }}" value="{{ bosuPenVal }}" onFocus="{{ focBosuPen }}" onBlur="{{ blurBosuPen }}" onChange="{{ setBosuPen }}" style="width:112px;min-height:44px;padding:0 8px;border:2px solid var(--color-neutral-300);background:var(--color-bg);font-family:var(--font-heading);font-weight:800;font-size:13px;text-align:right;color:var(--color-text)" />
           </div>
           <div style="font-size:10.5px;line-height:1.45;color:var(--color-neutral-700);margin-top:7px;text-wrap:pretty">{{ bosuPenNote }}</div>
-
-          <sc-if value="{{ insAutoOn }}" hint-placeholder-val="{{ true }}">
-            <div>
-              <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:var(--color-text);padding:14px 0 6px">{{ L.secByLaw }}</div>
-              <div style="font-size:10.5px;line-height:1.45;color:var(--color-neutral-700);margin-top:7px;text-wrap:pretty">{{ L.byLawNote }}</div>
-              <sc-for list="{{ insSetRows }}" as="r" hint-placeholder-count="4">
-                <div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid var(--color-neutral-300)">
-                  <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px">
-                    <div style="font-size:12.5px;font-weight:600">{{ r.name }}</div>
-                    <div style="font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-neutral-600)">{{ r.rate }}</div>
-                  </div>
-                  <div style="flex:none;width:86px;text-align:right;font-family:var(--font-heading);font-weight:800;font-size:13px;font-variant-numeric:tabular-nums;color:{{ r.ink }}">{{ r.amt }}</div>
-                  <div onClick="{{ r.toggle }}" style="flex:none;min-width:52px;min-height:44px;display:flex;align-items:center;justify-content:center;border:2px solid var(--color-text);background:{{ r.bg }};color:{{ r.chipInk }};font-family:var(--font-heading);font-weight:800;font-size:10.5px;cursor:pointer">{{ r.lbl }}</div>
-                </div>
-              </sc-for>
-              <div style="font-size:10.5px;line-height:1.5;color:var(--color-neutral-700);margin-top:8px;text-wrap:pretty">{{ L.insNote }}</div>
-            </div>
-          </sc-if>
 
           <sc-if value="{{ insManual }}" hint-placeholder-val="{{ false }}">
           <div>
@@ -1536,7 +1527,26 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
           </div>
           </sc-if>
         </div>
-        <div style="margin:14px 18px 0;border:2px solid var(--color-divider);padding:13px 15px">
+
+          <sc-if value="{{ insAutoOn }}" hint-placeholder-val="{{ true }}">
+            <div style="padding:12px 14px 10px;background:var(--color-card)">
+              <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:var(--color-text);padding-bottom:4px">{{ L.secByLaw }}</div>
+              <div style="font-size:10.5px;line-height:1.45;color:var(--color-neutral-700);text-wrap:pretty">{{ L.byLawNote }}</div>
+              <sc-for list="{{ insSetRows }}" as="r" hint-placeholder-count="4">
+                <div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid var(--color-neutral-300)">
+                  <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px">
+                    <div style="font-size:12.5px;font-weight:600">{{ r.name }}</div>
+                    <div style="font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-neutral-600)">{{ r.rate }}</div>
+                  </div>
+                  <div style="flex:none;width:86px;text-align:right;font-family:var(--font-heading);font-weight:800;font-size:13px;font-variant-numeric:tabular-nums;color:{{ r.ink }}">{{ r.amt }}</div>
+                  <div onClick="{{ r.toggle }}" style="flex:none;min-width:52px;min-height:44px;display:flex;align-items:center;justify-content:center;border:2px solid var(--color-text);background:{{ r.bg }};color:{{ r.chipInk }};font-family:var(--font-heading);font-weight:800;font-size:10.5px;cursor:pointer">{{ r.lbl }}</div>
+                </div>
+              </sc-for>
+              <div style="font-size:10.5px;line-height:1.5;color:var(--color-neutral-700);margin-top:8px;text-wrap:pretty">{{ L.insNote }}</div>
+            </div>
+          </sc-if>
+
+        <div style="padding:12px 14px 10px;background:var(--color-card)">
           <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:var(--color-text)">{{ L.secTax }}</div>
           <div style="font-size:11px;line-height:1.5;color:var(--color-neutral-700);margin-top:6px;text-wrap:pretty">{{ L.taxExplain }}</div>
           <div style="display:flex;gap:7px;margin-top:10px">
@@ -1557,6 +1567,7 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
             <div style="flex:1;font-size:12px;font-weight:600">{{ L.lLastTax }} <span style="font-weight:400;color:var(--color-neutral-600)">{{ L.lLastTaxSub }}</span></div>
             <input type="text" inputmode="decimal" enterkeyhint="done" onKeyDown="{{ keyTaxManual }}" value="{{ taxManualVal }}" onFocus="{{ focTaxManual }}" onBlur="{{ blurTaxManual }}" onChange="{{ setTaxManual }}" style="width:112px;min-height:44px;padding:0 8px;border:2px solid var(--color-neutral-300);background:var(--color-bg);font-family:var(--font-heading);font-weight:800;font-size:13px;text-align:right;color:var(--color-text)" />
           </div>
+        </div>
         </div>
           </div>
         </sc-if>
