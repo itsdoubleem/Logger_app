@@ -404,15 +404,38 @@
 /* The groups in 회사 규칙 (출퇴근 처리, 법이 정한 값, 회사가 실제로 하는 것,
    배수, 상여) used to run one under another with a divider *below* each
    label, which cut the label off from its own rows; a label read as the end
-   of the group above it (2026-10-12, F9). Each group is now a white panel on
+   of the group above it (2026-10-12, F9). Each group is now a panel on
    the open card's tint, spaced by the column's `gap`, not margins — rule 1
-   owns margin inside cards. `padding: 12px 14px 10px` with the card white
+   owns margin inside cards. `padding: 12px 14px 10px` with the panel fill
    appears nowhere else in the source (asserted), so this catches only them.
    Since F10 the same panel serves every 설정 dropdown that holds two or more
    labelled groups — 근무조와 휴게, 내 급여 조건, 4대보험과 세금 — so a box
    always means "one of several groups here"; one-group dropdowns stay flat. */
-[style*="padding: 12px 14px 10px"][style*="background: var(--color-card)"] {
+[style*="padding: 12px 14px 10px"][style*="background: var(--color-accent-300)"] {
   border-radius: var(--radius-md);
+}
+/* F11 (2026-10-12): the worker chose red panels over white — `accent-300`
+   #f1b5ab on the open card's `accent-100` tint (`accent-50` vanished at
+   1.09:1). Everything that sits on that red was measured, and four inks fail:
+     · note ink `neutral-700` 4.3:1 and sub-label ink `neutral-600` 2.7:1
+       → `neutral-800` 6.6:1. Inputs are skipped: a dimmed number inside a
+       box sits on the box's own light ground, and its paleness *means*
+       "this is still the legal minimum" — darkening it would erase that.
+     · warning ink `accent-700` 4.1:1 → `text` 9.4:1. There is no darker red
+       in the palette; the line stays bold, which is what marks it.
+     · the OFF switch track `neutral-400` 1.02:1 — an off switch would be an
+       empty space → `neutral-700` 4.35:1. The ON track (accent, 2.39:1)
+       keeps its white knob and shadow, which is what is read.
+   Each `!important` overrules an inline `color`/`background` from the source. */
+[style*="padding: 12px 14px 10px"][style*="background: var(--color-accent-300)"] :not(input)[style*="color: var(--color-neutral-700)"],
+[style*="padding: 12px 14px 10px"][style*="background: var(--color-accent-300)"] :not(input)[style*="color: var(--color-neutral-600)"] {
+  color: var(--color-neutral-800) !important;
+}
+[style*="padding: 12px 14px 10px"][style*="background: var(--color-accent-300)"] [style*="color: var(--color-accent-700)"] {
+  color: var(--color-text) !important;
+}
+[style*="padding: 12px 14px 10px"][style*="background: var(--color-accent-300)"] [style*="width: 34px"][style*="height: 19px"][style*="background: var(--color-neutral-400)"] {
+  background: var(--color-neutral-700) !important;
 }
 
 /* ── 3 · the header bar ─────────────────────────────────────────────────── */
