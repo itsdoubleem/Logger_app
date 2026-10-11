@@ -4367,6 +4367,10 @@ class Component extends DCLogic {
     return (list || []).map(b => {
       let a = this.parseHM(b.from), z = this.parseHM(b.to);
       if (a === null || z === null) return null;
+      // 시작과 끝이 같은 줄은 24시간 휴게가 아니라 아직 적다 만 줄입니다. 그대로 두면
+      // 아래 z += 24가 하루 전체를 휴게로 만들어, 그 줄이 있는 동안 찍은 근무가 전부
+      // 실근무 0시간이 됩니다(리뷰 S1, 2026-10-11).
+      if (a === z) return null;
       if (kind === 'night') {
         // a break earlier in the clock than the night start belongs to the FOLLOWING day
         const ns = this.schedStart('night');
@@ -5074,8 +5078,8 @@ class Component extends DCLogic {
     list.forEach((b, i) => {
       let at = this.parseHM(b.from);
       const to = this.parseHM(b.to);
-      if (at === null || to === null) return;
-      let len = to - at; if (len <= 0) len += 24;
+      if (at === null || to === null || at === to) return;
+      let len = to - at; if (len < 0) len += 24;
       if (len < 0.5 - 1e-9) return;
       if (kind === 'night' && at < this.schedStart('night')) at += 24;
       if (at < mealAt) { mealAt = at; meal = i; }
@@ -5085,7 +5089,8 @@ class Component extends DCLogic {
       let mins = '';
       if (a === null || z === null) mins = '—';
       else {
-        let d = z - a; if (d <= 0) d += 24;
+        // 시작과 끝이 같으면 0분입니다 — breaks()도 그 줄을 빼므로 화면이 그것과 같아야 합니다
+        let d = z - a; if (d < 0) d += 24;
         mins = Math.round(d * 60) + this.T('m');
       }
       // an untouched seeded time stays quiet, so it reads as a suggestion
@@ -5106,7 +5111,8 @@ class Component extends DCLogic {
       // 근로기준법 §54: 4시간에 30분, 8시간에 1시간의 휴게를 근로시간 도중에 주어야 합니다.
       // 그 휴게(점심, 야간의 00:00)를 '연장 시'로 켜면, 잔업이 없는 날(출퇴근 사이 8시간
       // 이하 — 조퇴한 날, 9시–17시인 날)에는 점심 1시간이 빠지지 않고 실근무로 기록됩니다.
-      // 잔업한 날에는 어느 쪽이든 빠지므로 숫자가 같아 눈에 띄지 않습니다. §54는 8시간을 넘는 근무에 휴게를 더 요구하지 않으므로, 잔업하는 날에만
+      // 잔업한 날에는 어느 쪽이든 빠지므로 숫자가 같아 눈에 띄지 않습니다.
+      // §54는 8시간을 넘는 근무에 휴게를 더 요구하지 않으므로, 잔업하는 날에만
       // 먹는 저녁은 회사의 관행이고 그것만 스위치가 필요합니다(스물아홉째, 12시간 교대).
       // 식사 휴게는 위의 meal입니다. 다만 이미 '연장 시'로 읽히는 식사 휴게(평소 하루가
       // 끝난 뒤에 앉은 휴게), 그리고 근로자가 한 번이라도 스위치로 정한 식사 휴게(b.ot가
