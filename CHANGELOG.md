@@ -1,6 +1,6 @@
 # 근무기록 LOGGER — change log beyond V2.md
 
-Seventy-nine entries, newest first — seventy-two carry an ordinal (first … seventy-second),
+Eighty entries, newest first — seventy-three carry an ordinal (first … seventy-third),
 the seven oldest predate the numbering. Each one is a bug found by **actually using the app on
 shift**, what changed, and — the part worth reading — *why it was that and not the
 obvious fix*. Most entries end with a **다음 사람에게** paragraph: the rule the bug
@@ -18,7 +18,8 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 
 ## Index
 
-- 2026-10-11 (latest, seventy-second) — 스위치가 빠진 줄이 점심이 아니라 10분 쉬는 시간일 수 있었습니다
+- 2026-10-11 (latest, seventy-third) — 10:00–10:00 한 줄이 하루를 통째로 휴게로 만들었습니다
+- 2026-10-11 (seventy-second) — 스위치가 빠진 줄이 점심이 아니라 10분 쉬는 시간일 수 있었습니다
 - 2026-10-11 (seventy-first) — 점심에 '연장 시' 스위치가 있을 까닭이 없었습니다
 - 2026-10-11 (seventieth) — 빈 휴게 줄의 스위치는 눌러도 꿈쩍하지 않았는데 저장은 바뀌었습니다
 - 2026-10-11 (sixty-ninth) — 휴게 줄의 '매일 ↔ 연장 시'도 글자가 바뀌는 단추였습니다
@@ -98,7 +99,33 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 - 2026-08-13 — the service worker was hiding every update
 - 2026-08-13 (earlier) — 조퇴 사유 became a popup with a dropdown
 
-### 2026-10-11 (latest, seventy-second) — 스위치가 빠진 줄이 점심이 아니라 10분 쉬는 시간일 수 있었습니다
+### 2026-10-11 (latest, seventy-third) — 10:00–10:00 한 줄이 하루를 통째로 휴게로 만들었습니다
+
+v1.2.11의 리뷰가 찾았습니다. 휴게의 끝이 시작보다 이르거나 같으면 `breaks()`는 자정을 넘은 것으로
+보고 24시간을 더했습니다(`if (z <= a) z += 24`). 23:30–00:30에는 맞지만, **시작과 끝이 같은 줄은
+24시간 휴게**가 됩니다. 설정 탭의 휴게 칸은 글자 칸이라 `10:00–10:00`을 잘못 적기 쉽고, 그 줄이 있는
+동안 찍은 근무는 모두 실근무 0시간으로 저장됐습니다.
+
+| | 전 | 후 |
+|---|---|---|
+| 12:00–13:00 + 10:00–10:00, 9–18 근무 | 실근무 0시간 | 8시간 |
+| 야간 00:00–01:00 + 03:00–03:00, 21–06 근무 | 5시간 | 8시간 |
+| 그 줄의 분 표시 | 1440분 | 0분 |
+| 식사 휴게 고르기 | 그 줄이 24시간 식사 휴게 | 건너뜀 |
+
+시작과 끝이 같은 줄은 끝 시각이 빈 줄과 똑같이 건너뜁니다 — 임금 계산(`breaks()`), 식사 휴게 고르기,
+분 표시 세 곳 모두. 자정을 넘는 휴게(`z < a`)는 그대로 24시간을 더합니다.
+
+**이미 저장된 기록은 고치지 않습니다.** 기록은 찍을 때의 계산(`c`)을 함께 저장하므로, 그런 줄이
+있던 동안 찍은 근무는 0시간으로 남아 있습니다. 근무기록에서 그 날을 열어 고치기를 누르면 다시
+계산됩니다(`e.c = this.calc(...)`). 앱이 스스로 지난 기록을 다시 쓰지 않는 것은 열아홉째의 원칙 —
+지난 기록은 그 날 그대로입니다 — 과 같습니다.
+
+**다음 사람에게.** `+= 24`로 자정을 넘기는 자리마다 '시작과 끝이 같으면?'을 물으세요. 0과 24는
+같은 시각을 가리키고, 어느 쪽인지 정하지 않으면 24가 이깁니다. 그것은 오류를 내지 않고 하루를
+지웁니다.
+
+### 2026-10-11 (seventy-second) — 스위치가 빠진 줄이 점심이 아니라 10분 쉬는 시간일 수 있었습니다
 
 v1.2.10을 낸 뒤의 리뷰가 찾았습니다. 일흔한째는 '그 근무조의 첫 휴게'를 **시작 시각이 가장 이른
 줄**로 셌습니다. 10:00–10:10 쉬는 시간이 있는 공장에서는 그 10분이 스위치를 잃고 점심이 스위치를
