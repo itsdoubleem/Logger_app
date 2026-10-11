@@ -5526,7 +5526,7 @@ class Component extends DCLogic {
       c: { gross: 0, bk: 0, net: 0, reg: 0, ot: 0, night: 0, hol: 0, pay: 0 },
     };
     this.setState({
-      session: null, shortOut: false, undoKeys: [k],
+      session: null, shortOut: false, undoKeys: [k], undoPrev: null, editedKeys: [],
       extra: this.state.extra.filter(x => this.key(x) !== k).concat([e]),
       removed: this.state.removed.filter(x => x !== k),
       reasonFor: k, reasonFresh: true, rsnOpen: false,
@@ -5547,7 +5547,7 @@ class Component extends DCLogic {
       c: { gross: Math.max(0, outH - inH), bk: 0, net: 0, reg: 0, ot: 0, night: 0, hol: 0, pay: 0 },
     };
     this.setState({
-      session: null, shortOut: false, undoKeys: [k],
+      session: null, shortOut: false, undoKeys: [k], undoPrev: null, editedKeys: [],
       extra: this.state.extra.filter(x => this.key(x) !== k).concat([e]),
       removed: this.state.removed.filter(x => x !== k),
       // 이 길로 나온 날은 정의상 아주 짧은 날입니다 — 사유를 물어볼 자리가
@@ -5910,7 +5910,9 @@ class Component extends DCLogic {
       session: null,
       extra: this.state.extra.filter(x => this.key(x) !== k).concat([e]),
       removed: this.state.removed.filter(x => x !== k),
-      undoKeys: [k],
+      // 앞의 고침에서 남은 되돌리기를 비웁니다 — 그러지 않으면 9초 안의 퇴근을 되돌릴 때
+      // 퇴근 대신 앞의 고침이 되돌려졌습니다(리뷰 S3)
+      undoKeys: [k], undoPrev: null, editedKeys: [],
     });
     clearTimeout(this.addT);
     this.addT = setTimeout(() => this.setState({ undoKeys: [], editedKeys: [], undoPrev: null }), 9000);

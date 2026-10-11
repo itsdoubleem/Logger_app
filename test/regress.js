@@ -9249,6 +9249,24 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('빈 날에 넣은 것은 되돌리면 사라집니다', d.state.extra.filter(x=>x.day===18).length===0);
 }
 
+// ── 고친 직후의 퇴근을 되돌리면 퇴근이 되돌려집니다 (리뷰 S3, 2026-10-11) ──
+// 고치기를 저장하고 9초 안에 퇴근하면, 되돌리기가 퇴근 대신 앞의 고침을 되돌리고 퇴근은 남겼습니다.
+// 안내도 퇴근을 '고침'이라고 불렀습니다. 퇴근·강제 퇴근·돌려보내진 날은 앞의 되돌리기를 비웁니다.
+{
+  const c=mk(V2,'2028-02-20T23:00:00'); c.state.settings.periodStart=1;
+  c.state.extra=[{y:2028,m:2,day:16,kind:'day',type:'shift',inH:9,outH:22,c:c.calc(9,22,'day',false)}];
+  c.editDay(c.state.extra[0]); c.setState({ pendingOut:'21:00' }); c.confirmPending();
+  c.commitShift({y:2028,m:2,day:20,kind:'day',type:'shift',inH:9,outH:18,c:c.calc(9,18,'day',false)});
+  ok('퇴근은 고침으로 적히지 않습니다', c.state.editedKeys.length===0 && c.state.undoPrev===null);
+  c.undoLast();
+  ok('되돌리면 퇴근이 사라집니다', c.state.extra.filter(x=>x.day===20).length===0);
+  ok('앞의 고침은 그대로입니다', c.state.extra.filter(x=>x.day===16)[0].outH===21);
+  // 강제 퇴근과 돌려보내진 날도 앞의 되돌리기를 비웁니다
+  const src=require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const body=n=>{ const i=src.indexOf('\n  '+n+'() {'); return src.slice(i, src.indexOf('\n  }\n', i)); };
+  ['forceClockOut','sentHome'].forEach(n=>ok(n+'도 앞의 되돌리기를 비웁니다', /undoKeys: \[k\],[^}]*undoPrev: null/.test(body(n)) && /editedKeys: \[\]/.test(body(n))));
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);
