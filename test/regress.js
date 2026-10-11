@@ -6564,7 +6564,7 @@ console.log('\n== 근무조는 해와 달로도 말합니다 ==');
   // 색을 새로 고르지 않았습니다 — 알약 안에서는 알약의 글자색입니다
   ok('그림은 currentColor를 씁니다',
     (card.split('stroke="currentColor"').length - 1) === 2);
-  // 알약은 일곱 개 그대로입니다(boot.js가 세는 그 수) — 새 알약을 만들지 않았습니다
+  // 알약은 세 개 그대로입니다(boot.js가 세는 그 수) — 새 알약을 만들지 않았습니다
   ok('새 알약을 만들지 않았습니다',
     (srcS.match(/min-height:30px;display:inline-flex/g) || []).length === 3);
 }

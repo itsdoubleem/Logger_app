@@ -109,7 +109,8 @@ console.log('\n== 모양은 소스가 아니라 ds-tokens.css에 있습니다 ==
   ok('토큰 파일에 head를 자르는 태그 이름이 없습니다',
     !css.includes('<' + 'body') && !css.includes('<' + 'head'));
 
-  // 알약 일곱 개 — 근무기록의 배지 넷과 출퇴근 카드의 셋이 한 모양입니다.
+  // 알약 세 개 — 출퇴근 카드의 셋이 한 모양입니다. 휴게 줄의 '연장 시' 넷은
+  // 2026-10-11에 스위치가 되어 빠졌습니다.
   // 이 선택자가 놓치면 알약이 조용히 네모가 됩니다(실제로 한 번 그랬습니다).
   const chips = (src.match(/min-height:30px;display:inline-flex/g) || []).length;
   ok('알약이 세 개이고 층이 그 모양을 정합니다 (' + chips + '개)',

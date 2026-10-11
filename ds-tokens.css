@@ -180,8 +180,8 @@
 /* ── 2b · chips ─────────────────────────────────────────────────────────── */
 /* Three elements in the app are `min-height: 30px` + `inline-flex`: the three
    on the 출퇴근 card (요일·시각, 근무조, 특근 ×1.5). The four 휴게 '연장 시'
-   tags used to be here too; since 2026-10-11 they are switches (2k). They are all the same idea — one fact,
-   coloured — so they take one shape. A pill, not a rounded box: it is what a
+   tags used to be here too; since 2026-10-11 they are switches (2k). They
+   are all the same idea — one fact, coloured — so they take one shape. A pill, not a rounded box: it is what a
    chip *is*, and it separates them from the buttons around them. */
 [style*="min-height: 30px"][style*="display: inline-flex"] { border-radius: var(--radius-pill); }
 
