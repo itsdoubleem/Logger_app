@@ -5546,6 +5546,9 @@ class Component extends DCLogic {
       wasLeave: this.leaveKind(prev), mon: false, inH, outH,
       c: { gross: Math.max(0, outH - inH), bk: 0, net: 0, reg: 0, ot: 0, night: 0, hol: 0, pay: 0 },
     };
+    // 시간을 믿을 수 없어 계산은 비워 두지만(review), 날짜에 달린 법정 휴일 표시는 남깁니다 —
+    // 나중에 고치기로 시간을 바로잡을 때 ×2.0이 함께 돌아옵니다.
+    this.keepLegalHol(e, prev, false);
     this.setState({
       session: null, shortOut: false, undoKeys: [k], undoPrev: null, editedKeys: [],
       extra: this.state.extra.filter(x => this.key(x) !== k).concat([e]),
@@ -5884,6 +5887,9 @@ class Component extends DCLogic {
         y, m, day, kind, type: 'shift', holiday, wasLeave: this.leaveKind(prev),
         inH, outH, c: this.calc(inH, outH, kind, holiday),
       };
+      // 미리 법정 휴일로 켜 둔 특근 날이면 그 표시도 남깁니다 — 날짜의 것이니까요.
+      // 조퇴 사유는 옮기지 않습니다: 지금 찍은 근무의 사유는 아래 시트가 새로 묻습니다.
+      this.keepLegalHol(e, prev, true);
       // ── 퇴근은 먼저 기록하고, 사유는 그 다음에 묻습니다 ──
       // 처음에는 반대로 짰습니다: 사유를 받을 때까지 근무를 들고 있다가 한꺼번에
       // 저장하는 방식이었습니다. 그러면 시트가 열려 있는 동안 앱이 죽으면 —

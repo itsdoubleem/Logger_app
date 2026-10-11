@@ -9281,6 +9281,29 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('고치기로 연 날은 그대로입니다', JSON.stringify(c.state.extra.filter(x=>x.day===16)[0])===keep);
 }
 
+// ── 미리 법정 휴일로 켜 둔 특근 날에 지문을 찍어도 ×2.0이 남습니다 (리뷰, 2026-10-11) ──
+// 앱의 표가 모르는 설날을 특근으로 잡고 '법정 휴일'을 켜 둔 뒤 그 날 출퇴근을 찍으면, 퇴근이 기록을
+// 새로 만들면서 legalHol을 빠뜨려 8시간을 넘긴 시간의 ×2.0이 사라졌습니다. 강제 퇴근도 같았습니다.
+{
+  const c=mk(V2,'2028-02-16T22:10:00'); c.state.settings.periodStart=1;
+  const planned={y:2028,m:2,day:16,kind:'day',type:'shift',holiday:true,mon:false,planned:true,awaiting:true,inH:9,outH:21,c:c.calc(9,21,'day',true)};
+  c.state.extra=[planned];
+  c.toggleLegalHol(planned);
+  ok('켜 둔 표시', c.state.extra.filter(x=>x.day===16)[0].legalHol===true);
+  c.state.session={ inIso:new Date('2028-02-16T09:00:00').toISOString() };
+  c.punch();
+  const e=c.state.extra.filter(x=>x.day===16)[0];
+  ok('퇴근을 찍으면 실제 기록이 됩니다', !e.awaiting && !e.planned && c.state.session===null, JSON.stringify(e).slice(0,160));
+  ok('법정 휴일 표시가 남고 ×2.0이 붙습니다', e.legalHol===true && c.isTrueHoliday(e)===true && c.holOverHours(e)>0, JSON.stringify({lh:e.legalHol,ho:c.holOverHours(e)}));
+
+  const f=mk(V2,'2028-02-17T10:00:00'); f.state.settings.periodStart=1;
+  f.state.extra=[{y:2028,m:2,day:16,kind:'day',type:'shift',holiday:true,legalHol:true,mon:false,planned:true,awaiting:true,inH:9,outH:21,c:f.calc(9,21,'day',true)}];
+  f.state.session={ inIso:new Date('2028-02-16T09:00:00').toISOString() };
+  f.forceClockOut();
+  const g=f.state.extra.filter(x=>x.day===16)[0];
+  ok('강제 퇴근도 법정 휴일 표시를 남깁니다', g.legalHol===true && g.holiday===true && g.review===true, JSON.stringify(g).slice(0,160));
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);
