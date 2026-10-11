@@ -1,6 +1,6 @@
 # 근무기록 LOGGER — change log beyond V2.md
 
-Seventy-five entries, newest first — sixty-eight carry an ordinal (first … sixty-eighth),
+Seventy-six entries, newest first — sixty-nine carry an ordinal (first … sixty-ninth),
 the seven oldest predate the numbering. Each one is a bug found by **actually using the app on
 shift**, what changed, and — the part worth reading — *why it was that and not the
 obvious fix*. Most entries end with a **다음 사람에게** paragraph: the rule the bug
@@ -18,7 +18,8 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 
 ## Index
 
-- 2026-10-11 (latest, sixty-eighth) — 켜졌는지 꺼졌는지 단추가 말하지 않았습니다
+- 2026-10-11 (latest, sixty-ninth) — 휴게 줄의 '매일 ↔ 연장 시'도 글자가 바뀌는 단추였습니다
+- 2026-10-11 (sixty-eighth) — 켜졌는지 꺼졌는지 단추가 말하지 않았습니다
 - 2026-09-25 (sixty-seventh) — 기간 고르기가 카드 가장자리에 붙어 있었고, 연도 칩만 네모였습니다
 - 2026-09-25 (sixty-sixth) — 그만두는 날 받을 돈을 한 자리에서 셀 수 없었습니다
 - 2026-09-25 (sixty-fifth) — 잔여 9일이 얼마인지는 말하지 않았습니다
@@ -94,7 +95,29 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 - 2026-08-13 — the service worker was hiding every update
 - 2026-08-13 (earlier) — 조퇴 사유 became a popup with a dropdown
 
-### 2026-10-11 (latest, sixty-eighth) — 켜졌는지 꺼졌는지 단추가 말하지 않았습니다
+### 2026-10-11 (latest, sixty-ninth) — 휴게 줄의 '매일 ↔ 연장 시'도 글자가 바뀌는 단추였습니다
+
+회사 규칙을 스위치로 바꾼 날(예순여덟째), 근로자가 앱을 새로 깔고 설정 흐름 2/4 '무급 식사 휴게'를
+열었습니다. 휴게 줄마다 `매일 EVERY DAY ↔ 연장 시 ONLY IF LATE`로 글자가 바뀌는 알약이 있었고 —
+같은 문제입니다. 회색 테두리의 '매일'이 지금 상태인지, 누르면 그렇게 되는 것인지 읽히지 않습니다.
+같은 스위치로 바꿔 달라고 했습니다.
+
+| | 전 | 후 |
+|---|---|---|
+| 모양 | 30px 알약, 글자가 바뀜 | 회사 규칙과 같은 38×23 스위치 (`switchTrack` / `switchKnobX`, 층 2k) |
+| 제목 | 알약 안의 글자 | 줄 왼쪽 `연장 시 ONLY IF LATE` 고정 — 켜졌을 때의 뜻 |
+| 지금 상태 | 알약 옆 한 줄 | 제목 밑 한 줄 (매 근무 빠짐 / 잔업한 날만 빠짐) |
+| 누르는 자리 | 30px 높이 | 64×44 |
+
+표가 서는 네 자리(설정 흐름 주·야, 설정 탭 주·야)를 함께 바꿨습니다 — 같은 `breakRows()`에서
+나오는 같은 줄이고, 테스트가 이미 '한 곳만 고치면 다른 화면이 예전 모양으로 남는다'고 적어 두었습니다.
+30px 알약은 일곱에서 셋(출퇴근 카드)이 됐고, 그 수를 세던 `boot.js`와 `regress.js`를 같이 고쳤습니다.
+`break_every_day` 문자열은 화면에서 더 쓰이지 않지만 지우지 않았습니다.
+
+**다음 사람에게.** 같은 성격의 단추는 앱 전체에서 같은 모양이어야 합니다. 켜고 끄는 것을 새로 찾으면
+`aria-checked`를 grep해서 스위치가 몇 개인지 세고, 그 수를 테스트에 적으세요.
+
+### 2026-10-11 (sixty-eighth) — 켜졌는지 꺼졌는지 단추가 말하지 않았습니다
 
 근로자가 10.03과 10.10 두 토요일의 내역을 비교하다가 하나에만 ×2.0 차액(12,900원)이 붙은 것을
 봤습니다. 10.03은 개천절이라 공휴일로 휴일이었고, 10.10은 '토요일을 휴일로 지정'이 꺼져 있어서

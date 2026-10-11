@@ -112,8 +112,8 @@ console.log('\n== 모양은 소스가 아니라 ds-tokens.css에 있습니다 ==
   // 알약 일곱 개 — 근무기록의 배지 넷과 출퇴근 카드의 셋이 한 모양입니다.
   // 이 선택자가 놓치면 알약이 조용히 네모가 됩니다(실제로 한 번 그랬습니다).
   const chips = (src.match(/min-height:30px;display:inline-flex/g) || []).length;
-  ok('알약이 일곱 개이고 층이 그 모양을 정합니다 (' + chips + '개)',
-    chips === 7 && /\[style\*="min-height: 30px"\]\[style\*="display: inline-flex"\][^{]*\{[^}]*--radius-pill/.test(css));
+  ok('알약이 세 개이고 층이 그 모양을 정합니다 (' + chips + '개)',
+    chips === 3 && /\[style\*="min-height: 30px"\]\[style\*="display: inline-flex"\][^{]*\{[^}]*--radius-pill/.test(css));
 
   // ON SHIFT 앞의 점은 앱이 '지금 근무중'이라고 말하는 유일한 자리인데 9px
   // 네모라 옆의 문장부호와 같은 무게였습니다. 규칙 8이 그것을 켜진 등으로
