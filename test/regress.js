@@ -4786,7 +4786,7 @@ console.log('\n== 표 옆에 그 표가 무슨 뜻인지 적습니다 ==');
   ok('넷 다 설명이 제목 바로 밑입니다',
     cnt(src, '{{ r.tag }}</div><div style="padding-top:2px;font-size:9.5px;') === 4);
   // 옆에 글이 서도 스위치는 찌그러지지 않습니다 — flex:none이 그것을 막습니다.
-  ok('스위치는 줄어들지 않습니다', cnt(src, '{{ r.toggleOt }}" role="switch" aria-checked="{{ r.otOnly }}" style="flex:none;min-height:44px;min-width:64px;') === 4);
+  ok('스위치는 줄어들지 않습니다', cnt(src, '{{ r.toggleOt }}" role="switch" aria-checked="{{ r.otOnly }}" aria-label="{{ r.tag }}" style="flex:none;min-height:44px;min-width:64px;') === 4);
 
   // 설정 탭의 긴 안내는 지우지 않았습니다 — 표를 어떤 휴게에 달아야 하는지는
   // 옆의 한 줄이 말할 수 있는 것이 아닙니다
@@ -8948,6 +8948,19 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   // 꺼 둔 빈 줄에 오전 시각을 적으면 매일 빠지는 휴게입니다
   c.setS({ breaksDay:c.st().breaksDay.map((b,i)=>i===1?Object.assign({},b,{from:'10:00',to:'10:10'}):b) });
   ok('꺼 둔 채 시각을 적으면 매일 빠집니다', c.renderVals().dayBreakRows[1].otOnly===false && Math.abs(c.calc(9,18,'day',false).net-(9-70/60))<1e-9, String(c.calc(9,18,'day',false).net));
+}
+
+// ── 스위치는 이름을 가집니다 (리뷰 S2, 2026-10-11) ──
+// 예전 알약은 글자가 단추 안에 있어서 TalkBack이 그 글자를 읽었습니다. 스위치는 빈 상자 둘이라
+// '스위치, 꺼짐'만 읽힙니다. 일곱 스위치 모두 옆 줄 제목을 이름으로 답니다.
+{
+  const src=require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tpl=src.split('class Component')[0];
+  const sw=tpl.match(/<div [^>]*role="switch"[^>]*>/g)||[];
+  ok('스위치는 일곱입니다', sw.length===7, String(sw.length));
+  ok('일곱 다 이름이 있습니다', sw.every(t=>/aria-label="\{\{ [^}]+ \}\}"/.test(t)), sw.filter(t=>!/aria-label=/.test(t)).join('\n'));
+  ok('이름은 옆 줄 제목과 같은 값입니다', tpl.split('aria-label="{{ r.tag }}"').length-1===4
+    && ['lSatHol','lRestHol','lHolOver'].every(k=>tpl.includes('aria-label="{{ L.'+k+' }}"') && tpl.includes('>{{ L.'+k+' }}</div>')));
 }
 
 Promise.all(later).then(()=>{
