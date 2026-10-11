@@ -9571,6 +9571,12 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
     { name:'미리 잡은 평일 특근', recs:c=>[sh(c,2,16,{holiday:true,planned:true,awaiting:true})], a:[2,14], b:[2,18] },
     { name:'미리 잡은 일요일 특근', recs:c=>[sh(c,2,13,{holiday:true,planned:true,awaiting:true})], a:[2,11], b:[2,15] },
     { name:'두 달에 걸친 범위', recs:c=>[sh(c,2,24),sh(c,3,2)], a:[2,21], b:[3,6] },
+    // 리뷰 S1: 끝 칸에 일한 날·일요일이 앉는 경우 — 끝 칸은 선택 색이라 그음만 보입니다
+    { name:'시작 칸이 일한 날', recs:c=>[sh(c,2,16)], a:[2,16], b:[2,18] },
+    { name:'끝 칸이 일요일', recs:c=>[], a:[2,10], b:[2,13] },
+    // 리뷰 S3: 쉬는 토요일을 켜면 일하지 않은 토요일이 실제로 빠집니다 — 켜고 끈 두 경우의 차감이 달라야 합니다
+    { name:'일하지 않은 토요일 · 쉬는 토요일 끔', recs:c=>[], a:[2,10], b:[2,14], satOff:false, ded:4 },
+    { name:'일하지 않은 토요일 · 쉬는 토요일 켬', recs:c=>[], a:[2,10], b:[2,14], satOff:true, ded:3 },
   ];
   cases.forEach(t=>{
     ['annual','vacation'].forEach(kind=>{
@@ -9590,7 +9596,8 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
           const r=days.filter(z=>z.d.getTime()===dt.getTime())[0];
           if (!r) return;
           const edge=x.bg==='var(--color-accent)';
-          if (edge) { (r.deduct?calDed++:calOff++); return; }   // 끝 칸은 선택 색 — 판단은 rangeDays에 맡깁니다
+          // 끝 칸은 선택 색이라 바탕으로는 가릴 수 없고, 그음으로 말합니다(리뷰 S1)
+          if (edge) { (r.deduct?calDed++:calOff++); if ((x.strike==='line-through')===r.deduct) bad.push(m+'.'+x.dd+'(끝)'); return; }
           const off=x.bg==='var(--color-neutral-200)' && x.strike==='line-through';
           if (off) calOff++; else calDed++;
           if (off===r.deduct) bad.push(m+'.'+x.dd);
@@ -9599,11 +9606,17 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
       ok(t.name+' / '+kind+' — 달력이 rangeDays와 같습니다', bad.length===0 && calDed===ded, bad.join(',')+' ded='+ded+' cal='+calDed);
       // 미리보기의 차감 수 = rangeDays의 차감 수
       ok(t.name+' / '+kind+' — 미리보기 차감 = rangeDays', c.renderVals().rangeInfo.deduct===c.dayCount(ded));
+      if (t.ded!==undefined) ok(t.name+' / '+kind+' — 차감 '+t.ded+'일', ded===t.ded, String(ded));
       // 저장: 일한 날은 그대로, 나머지는 범위로 바뀝니다
       const worked=days.filter(x=>x.keep).map(x=>c.keyOf(x.d));
       const before=JSON.stringify(c.state.extra.filter(r=>worked.indexOf(c.key(r))>=0));
       if (!c.rangeAllKept()) c.confirmPending();
       ok(t.name+' / '+kind+' — 저장이 일한 날을 그대로 둡니다', JSON.stringify(c.state.extra.filter(r=>worked.indexOf(c.key(r))>=0))===before);
+      // 리뷰 S2: 저장이 쓴 기록을 셉니다 — 차감하는 날 수만큼 연차·휴가, 일하지 않은 제외일 수만큼 차감 없음
+      const rk=days.map(x=>c.keyOf(x.d));
+      const inR=c.state.extra.filter(r=>rk.indexOf(c.key(r))>=0);
+      ok(t.name+' / '+kind+' — 쓴 '+kind+' = 차감 수', inR.filter(r=>r.type===kind).length===ded, String(inR.filter(r=>r.type===kind).length));
+      ok(t.name+' / '+kind+' — 쓴 차감 없음 = 일하지 않은 제외일 수', inR.filter(r=>r.type==='redday').length===days.filter(x=>!x.deduct&&!x.keep).length);
     });
   });
 }
