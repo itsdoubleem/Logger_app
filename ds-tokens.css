@@ -372,6 +372,28 @@
   filter: brightness(1.9);
 }
 
+/* ── 2k · SETUP · an on/off setting is a switch ─────────────────────────── */
+/* The three yes/no rules in 회사 규칙 were a box whose *word* changed —
+   휴무일/휴일, 자동/직접, 미지급/지급 — and the worker could not tell from it
+   whether the setting was on: a word names a state, it does not say which
+   state is "on". They asked for the phone's own switch (2026-10-11). Grey
+   knob-left is off, red knob-right is on, and the row title is what "on" means.
+   The source draws two plain boxes — track 34×19 + 2px padding (38×23 on
+   screen, box-sizing is content-box; the worker asked for 3/4 of the first
+   51×31) and a 19×19 knob — and this rule makes them round. `min-width: 34px`
+   exists elsewhere (the stepper arrows) but never with `height: 19px`, so the
+   two clauses together catch only the switch. The knob moves by
+   an inline `transform`, which is safe here: it is not inside a scroll-snap. */
+[style*="width: 34px"][style*="height: 19px"] {
+  border-radius: var(--radius-pill);
+  transition: background-color .15s ease;
+}
+[style*="width: 19px"][style*="height: 19px"] {
+  border-radius: var(--radius-pill);
+  box-shadow: 0 1px 2px rgba(32, 30, 29, .28);
+  transition: transform .15s ease;
+}
+
 /* ── 3 · the header bar ─────────────────────────────────────────────────── */
 [style*="align-items: flex-end"][style*="padding: 8px 18px 10px"] {
   position: relative;
