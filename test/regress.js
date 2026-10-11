@@ -9362,6 +9362,28 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('켠 표시와 20일 근무가 모두 남습니다', t.state.extra.filter(x=>x.day===17)[0].legalHol===true && t.state.extra.filter(x=>x.day===20).length===1);
 }
 
+// ── 휴가를 길게 잡아도 그 안의 일한 일요일은 남습니다 (리뷰 S2, 2026-10-12) ──
+// 연차·휴가 범위는 일요일·공휴일·쉬는 토요일에 '차감 없음(redday)'을 적는데, 그 날에 이미 일한 특근이
+// 있어도 덮어썼습니다. 미리보기는 '1일 제외'라고만 했고, 특근 수당은 조용히 사라졌습니다. 일한 날은
+// 기록 그대로 둡니다 — 쉬는 날로 바꿀 까닭이 없습니다.
+{
+  const c=mk(V2,'2028-02-20T23:00:00'); c.state.settings.periodStart=1;
+  ok('2028-02-13은 일요일', new Date(2028,1,13).getDay()===0);
+  const sun={y:2028,m:2,day:13,kind:'day',type:'shift',holiday:true,mon:false,inH:9,outH:18,c:c.calc(9,18,'day',true)};
+  c.state.extra=[sun]; const keep=JSON.stringify(sun);
+  c.openPending('vacation'); c.pickDate(new Date(2028,1,11)); c.pickDate(new Date(2028,1,14)); c.confirmPending();
+  const g=d=>c.state.extra.filter(x=>x.y===2028&&x.m===2&&x.day===d)[0];
+  ok('일한 일요일은 그대로 남습니다', JSON.stringify(g(13))===keep, JSON.stringify(g(13)));
+  ok('평일은 휴가가 됩니다', g(11).type==='vacation' && g(14).type==='vacation');
+  ok('일하지 않은 쉬는 날은 전처럼 차감 없음', !!g(12) && (g(12).type==='redday' || g(12).type==='vacation'));
+  ok('되돌리기 목록에 일한 날이 들어가지 않습니다', c.state.undoKeys.indexOf(2028*10000+2*100+13)<0);
+  // 미리 잡아 두기만 한 특근(아직 안 찍음)은 일한 날이 아니므로 전처럼 휴가에 덮입니다
+  const d=mk(V2,'2028-02-20T23:00:00'); d.state.settings.periodStart=1;
+  d.state.extra=[{y:2028,m:2,day:13,kind:'day',type:'shift',holiday:true,mon:false,planned:true,awaiting:true,inH:9,outH:21,c:d.calc(9,21,'day',true)}];
+  d.openPending('vacation'); d.pickDate(new Date(2028,1,11)); d.pickDate(new Date(2028,1,14)); d.confirmPending();
+  ok('찍지 않은 특근은 휴가에 덮입니다', d.state.extra.filter(x=>x.day===13)[0].type==='redday');
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);

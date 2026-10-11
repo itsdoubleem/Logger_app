@@ -5408,7 +5408,12 @@ class Component extends DCLogic {
         mon: false, planned: true, awaiting: true, inH: 9, outH: 21, c: this.calc(9, 21, 'day', true),
       }];
     } else {
-      recs = this.rangeDays().map(x => x.deduct
+      // 쉬는 날(일요일·공휴일·쉬는 토요일)에 이미 일한 근무가 있으면 그 날은 건너뜁니다.
+      // 범위가 그 위에 '차감 없음'을 적어 특근 수당이 조용히 사라졌습니다(리뷰 S2,
+      // 2026-10-12). 미리 잡아 두기만 한 특근(planned/awaiting)은 일한 날이 아니므로 덮습니다.
+      const m = this.month();
+      const worked = d => m.some(r => this.key(r) === this.keyOf(d) && r.type === 'shift' && !r.planned && !r.awaiting);
+      recs = this.rangeDays().filter(x => x.deduct || !worked(x.d)).map(x => x.deduct
         ? {
           y: x.d.getFullYear(), m: x.d.getMonth() + 1, day: x.d.getDate(), kind: 'day', type, mon: false,
           planned: x.d > now, c: { gross: 0, bk: 0, net: 8, reg: 8, ot: 0, night: 0, hol: 0, pay: 0 },
