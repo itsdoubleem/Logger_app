@@ -400,7 +400,7 @@
   transition: transform .15s ease;
 }
 
-/* ── 2l · SETUP · 회사 규칙: each group is one white panel ──────────────── */
+/* ── 2l · SETUP · each group is one red-outlined panel ─────────────────── */
 /* The groups in 회사 규칙 (출퇴근 처리, 법이 정한 값, 회사가 실제로 하는 것,
    배수, 상여) used to run one under another with a divider *below* each
    label, which cut the label off from its own rows; a label read as the end

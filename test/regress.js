@@ -6700,7 +6700,7 @@ console.log('\n== 열리는 것과 열리지 않는 것 ==');
    ['gPeriodOpen', 'L.tierMore', 'padding:6px 0"']].forEach(([a, b, last]) => {
     const body = tplQ.slice(tplQ.indexOf('{{ ' + a + ' }}'), tplQ.indexOf('{{ ' + b + ' }}'));
     const hair = body.split('border-bottom:1px solid var(--color-neutral-300)').length - 1;
-    // 내 급여 조건은 F10(2026-10-12)부터 묶음마다 흰 판이라, 기본금과 기준시간 사이는 선이 아니라 판 사이의
+    // 내 급여 조건은 F10(2026-10-12)부터 묶음마다 판이라(F11부터 붉은 테두리), 기본금과 기준시간 사이는 선이 아니라 판 사이의
     // 틈이 가릅니다 — 머리카락 선이 없습니다. 급여기간은 한 묶음이라 그대로 하나입니다.
     const want = a === 'gPayOpen' ? 0 : 1;
     ok(a.replace('Open', '') + ' 본문에 칸을 가르는 머리카락 선이 ' + want + '개입니다', hair === want, 'got ' + hair);
@@ -9760,6 +9760,27 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('빨강은 2px 안쪽 테두리(그림자)입니다', i>=0 && body.indexOf('box-shadow: inset 0 0 0 2px var(--color-accent-300)')>0);
   ok('판 안의 색을 바꾸는 규칙이 없습니다', css.indexOf(PS+' :not(input)')<0 && css.indexOf(PS+' [style*="color:')<0 && css.indexOf(PS+' [style*="width: 34px"]')<0);
   ok('소스에는 여전히 box-shadow가 없습니다 — 층이 그것을 씁니다', tpl.indexOf('box-shadow')<0);
+}
+
+// ── 4대보험 직접 입력: 명세서와 다른 보험료는 빨강, 맞으면 흐림 — 판 위에서도 (리뷰 S1, 2026-10-12) ──
+// 붉게 채운 판(F11의 첫 판)은 이 두 색을 거의 같은 검정으로 만들어, 계산 ₩77,530에 명세서 ₩99,999인 줄이 맞는
+// 줄처럼 보였습니다. 테두리 판으로 바꾸며 화면으로만 확인했던 것을 숫자로 붙잡습니다: 행의 색 값, 그리고 판이나
+// 열린 묶음(accent-50)에 걸린 층의 규칙이 글자색을 건드리지 않는지.
+{
+  const c=mk(V2);
+  c.setS({ insAuto:false, deductions:[{name:'건강보험',amount:99999},{name:'국민연금',amount:0}] });
+  const calc=c.insCalc();
+  c.setS({ deductions:[{name:'건강보험',amount:99999},{name:'국민연금',amount:calc.pension}] });
+  const rows=c.renderVals().insRows;
+  const h=rows.filter(r=>r.calc===c.won(calc.health))[0], p=rows.filter(r=>r.calc===c.won(calc.pension))[0];
+  ok('명세서와 다른 건강보험은 빨강', !!h && h.ink==='var(--color-accent-700)' && h.now===c.won(99999), JSON.stringify(h));
+  ok('맞는 국민연금은 흐린 회색', !!p && p.ink==='var(--color-neutral-600)', JSON.stringify(p));
+  ok('명세서에 없는 장기요양도 빨강', rows.filter(r=>r.now===c.T('not_on_payslip')).every(r=>r.ink==='var(--color-accent-700)'));
+  // 층: 판이나 열린 묶음을 고르는 규칙 가운데 글자색을 정하는 것이 없어야 합니다
+  const css=require('fs').readFileSync(__dirname + '/../ds-tokens.css', 'utf8').replace(/\/\*[\s\S]*?\*\//g,'');
+  const blocks=css.split('}').map(b=>b.split('{')).filter(x=>x.length===2);
+  const hit=blocks.filter(([sel,decl])=>/background: var\(--color-accent-50\)/.test(sel) && /(^|[;\s])color\s*:/.test(decl));
+  ok('판·열린 묶음에 걸린 층 규칙은 글자색을 바꾸지 않습니다', hit.length===0, hit.map(x=>x[0].trim()).join(' | '));
 }
 
 Promise.all(later).then(()=>{
