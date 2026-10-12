@@ -4213,8 +4213,32 @@ console.log('\n== 보수월액은 명세서의 국민연금에서 되살립니�
 
   // ── 되살릴 수 없으면 지어내지 않습니다 ──
   ok('절사되지 않은 금액은 되살리지 않습니다', V2.bosuFromPension(163115) === null);
-  ok('천원 단위가 아닌 기준에서 나온 값도 되살리지 않습니다',
-    V2.pensionOn(2211640) === 105050 && V2.bosuFromPension(105050) === null);
+  // 2026-10-12 · 앱이 보여 준 국민연금을 그대로 옮겨 적었더니 '그런 보수월액은 없다'고
+  // 했습니다. 기준을 천원 단위로 자르지 않았기 때문입니다(여든넷째). 공단처럼 자릅니다.
+  ok('기준은 천원 미만을 버립니다',
+    V2.pensionOn(2211640) === 105020 && V2.pensionOn(2209523) === 104920,
+    V2.pensionOn(2211640) + ' / ' + V2.pensionOn(2209523));
+  ok('예전의 절사 전 금액은 되살아나지 않습니다', V2.bosuFromPension(104950) === null);
+  {
+    // 보수월액을 적지 않은 근로자: 앱이 보여 주는 국민연금을 그대로 칸에 옮겨 적습니다
+    const c = new V2({});
+    c.setS({ bosu: 0 });
+    const shown = c.insCalc().pension;
+    const base = c.insBase();
+    c.renderVals().focBosuPen();
+    c.renderVals().setBosuPen({ target: { value: String(shown) } });
+    c.renderVals().blurBosuPen();
+    ok('앱이 보여 준 국민연금을 옮겨 적으면 받아들입니다',
+      c.st().bosu === Math.floor(base / 1000) * 1000, shown + ' -> ' + c.st().bosu + ' (기준 ' + base + ')');
+    ok('그리고 국민연금은 한 푼도 달라지지 않습니다', c.insCalc().pension === shown);
+  }
+  // ── 하한·상한의 금액은 답이 하나가 아닙니다 ──
+  ok('하한의 금액은 하한입니다', V2.pensionEdge(19000) === 'floor' && V2.pensionOn(20) === 19000);
+  ok('상한의 금액은 상한입니다', V2.pensionEdge(V2.pensionOn(V2.PENSION_CAP)) === 'cap',
+    String(V2.pensionOn(V2.PENSION_CAP)));
+  ok('그 사이는 어느 쪽도 아닙니다', V2.pensionEdge(163110) === null);
+  ok('하한의 금액에서 보수월액을 지어내지 않습니다', V2.bosuFromPension(19000) === null);
+  ok('상한의 금액에서도 지어내지 않습니다', V2.bosuFromPension(V2.pensionOn(V2.PENSION_CAP)) === null);
   ok('0과 빈 값은 null입니다',
     V2.bosuFromPension(0) === null && V2.bosuFromPension('') === null && V2.bosuFromPension(null) === null);
   ok('상한을 넘는 금액은 되살리지 않습니다', V2.bosuFromPension(999999999) === null);
@@ -4222,9 +4246,9 @@ console.log('\n== 보수월액은 명세서의 국민연금에서 되살립니�
   // ── 한 바퀴 돌려도 제자리입니다 ──
   {
     let bad = null;
-    for (let b = 1000000; b <= 6370000; b += 1000)
+    for (let b = V2.PENSION_FLOOR + 1000; b < V2.PENSION_CAP; b += 1000)
       if (V2.bosuFromPension(V2.pensionOn(b)) !== b) { bad = b; break; }
-    ok('천원 단위 값은 전부 왕복합니다', bad === null, '깨진 값 ' + bad);
+    ok('상·하한 사이의 천원 단위 값은 전부 왕복합니다', bad === null, '깨진 값 ' + bad);
   }
 
   // ── 요율은 한 곳에만 적혀 있습니다 ──
@@ -4280,6 +4304,41 @@ console.log('\n== 보수월액은 명세서의 국민연금에서 되살립니�
     c.renderVals().setBosuPen({ target: { value: '' } });
     ok('치는 도중에는 나무라지 않습니다',
       c.renderVals().bosuPenNote !== V2.STR['no_standard_monthly_wage_produces_that']['ko']);
+  }
+
+  // ── 2026-10-12 · 보수월액 20을 쳐도 아무 말이 없었습니다 ──
+  // 근로자가 고친 것을 시험하느라 보수월액 칸에 20을 쳤습니다. 화면은 '보수월액 ₩20
+  // 기준으로 계산합니다'라고만 했고, 국민연금 칸 밑에는 '₩19,000이 나올 수 있는
+  // 보수월액은 ₩20 하나뿐'이라고 했습니다 — 400,000 이하는 모두 ₩19,000인데.
+  {
+    const S = (k, p) => V2.STR[k]['ko'].replace(/\{p0\}/g, p.p0).replace(/\{p1\}/g, p.p1);
+    const c = new V2({});
+    c.setS({ bosu: 20 });
+    const V = c.renderVals();
+    ok('하한보다 적은 보수월액은 하한으로 계산한다고 말합니다',
+      V.insBaseNote === S('bosu_below_pension_floor', { p0: c.won(20), p1: c.won(V2.PENSION_FLOOR) }), V.insBaseNote);
+    ok('국민연금 칸은 하나뿐이라고 말하지 않습니다',
+      V.bosuPenNote === S('pension_line_is_the_floor', { p0: c.won(19000), p1: c.won(V2.PENSION_FLOOR) }), V.bosuPenNote);
+    c.setS({ bosu: V2.PENSION_FLOOR });
+    ok('하한 그 자체도 하나가 아닙니다', c.renderVals().bosuPenNote.indexOf('19,000') >= 0 &&
+      c.renderVals().bosuPenNote === S('pension_line_is_the_floor', { p0: c.won(19000), p1: c.won(V2.PENSION_FLOOR) }));
+    ok('하한이면 평소 문장입니다', c.renderVals().insBaseNote.indexOf(V2.STR['bosu_below_pension_floor']['ko'].slice(0, 8)) < 0);
+    c.setS({ bosu: 9000000 });
+    const top = V2.pensionOn(9000000);
+    ok('상한 위도 하나가 아닙니다',
+      c.renderVals().bosuPenNote === S('pension_line_is_the_cap', { p0: c.won(top), p1: c.won(V2.PENSION_CAP) }));
+    c.setS({ bosu: 3434000 });
+    ok('그 사이는 예전 그대로 하나뿐입니다', c.renderVals().bosuPenNote.indexOf('3,434,000') >= 0);
+    // 19,000을 치면 400,000을 세우던 것
+    const d = new V2({});
+    d.setS({ bosu: 2500000 });
+    d.renderVals().focBosuPen();
+    d.renderVals().setBosuPen({ target: { value: '19000' } });
+    d.renderVals().blurBosuPen();
+    ok('하한의 금액을 쳐도 보수월액을 세우지 않습니다', d.st().bosu === 2500000, String(d.st().bosu));
+    ok('왜인지 말합니다 — 하한이라서', d.renderVals().bosuPenNote ===
+      S('pension_line_is_the_floor', { p0: d.won(19000), p1: d.won(V2.PENSION_FLOOR) }), d.renderVals().bosuPenNote);
+    ok('친 숫자는 칸에 남습니다', d.renderVals().bosuPenVal === '19000');
   }
 
   // ── 2026-10-12 · 쳤는데 칸이 비어 버립니다 ──
@@ -5980,6 +6039,12 @@ console.log('\n== 필요해지는 그 자리에서 묻습니다 ==');
     ok('상한 위는 국민연금 한 줄로 되살아나지 않으므로 칸이 섭니다', v() === true);
     c.setS({ bosu: 3434000 });
     ok('상한 아래로 내려오면 다시 사라집니다', v() === false);
+    // 2026-10-12 · 하한 아래도 상한 위와 같습니다 — ₩19,000은 400,000 이하 모두의 것입니다
+    c.setS({ bosu: 20 });
+    ok('하한 아래면 보수월액 칸이 섭니다', v() === true);
+    c.setS({ bosu: V2.PENSION_FLOOR });
+    ok('하한 그 자체도 칸이 섭니다', v() === true);
+    c.setS({ bosu: 3434000 });
     c.setState({ numEdit: { k: 'p:slipPen', v: '163115' } });
     ok('어떤 보수월액에서도 안 나오는 값을 치는 동안 칸이 섭니다',
       V2.bosuFromPension(163115) === null && v() === true);

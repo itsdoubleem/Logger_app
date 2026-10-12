@@ -1,6 +1,6 @@
 # 근무기록 LOGGER — change log beyond V2.md
 
-Ninety entries, newest first — eighty-three carry an ordinal (first … eighty-third),
+Ninety-one entries, newest first — eighty-four carry an ordinal (first … eighty-fourth),
 the seven oldest predate the numbering. Each one is a bug found by **actually using the app on
 shift**, what changed, and — the part worth reading — *why it was that and not the
 obvious fix*. Most entries end with a **다음 사람에게** paragraph: the rule the bug
@@ -18,7 +18,8 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 
 ## Index
 
-- 2026-10-12 (latest, eighty-third) — 국민연금을 쳤는데 칸이 비어 버렸습니다
+- 2026-10-12 (latest, eighty-fourth) — 보수월액 20을 쳐도, 앱이 보여 준 국민연금을 옮겨 적어도
+- 2026-10-12 (eighty-third) — 국민연금을 쳤는데 칸이 비어 버렸습니다
 - 2026-10-12 (eighty-second) — 흰 판이 아니라 붉은 테두리 판으로
 - 2026-10-12 (eighty-first) — 회사 규칙만 판이고 나머지 접이식은 평면이었습니다
 - 2026-10-12 (eightieth) — '법이 정한 값'이 아래 전부를 말하는 줄 알았습니다
@@ -109,7 +110,38 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 - 2026-08-13 — the service worker was hiding every update
 - 2026-08-13 (earlier) — 조퇴 사유 became a popup with a dropdown
 
-### 2026-10-12 (latest, eighty-third) — 국민연금을 쳤는데 칸이 비어 버렸습니다
+### 2026-10-12 (latest, eighty-fourth) — 보수월액 20을 쳐도, 앱이 보여 준 국민연금을 옮겨 적어도
+
+여든셋째를 폰에 깐 뒤, 근로자가 고쳐졌는지 보려고 보수월액 칸에 **20**을 쳤습니다. 화면에 세 가지가 남았습니다.
+
+| 화면이 한 말 | 실제 |
+|---|---|
+| 보수월액 칸 밑: "보수월액 ₩20 기준으로 계산합니다." | 국민연금은 ₩20이 아니라 하한 400,000으로 계산됩니다. 그 행에는 '하한 적용'이 있었지만 근로자가 친 칸 밑에는 아무 말이 없었습니다. |
+| 국민연금 칸 밑: "₩19,000이 나올 수 있는 보수월액은 ₩20 하나뿐" | 400,000 이하는 **모두** ₩19,000입니다. 상한 위도 마찬가지입니다. |
+| 국민연금 칸에 19,000을 치면 보수월액이 400,000이 됨 | 답이 하나가 아닌데 하나를 골랐습니다 — '추측하지 않는다'는 서른아홉째의 약속을 어겼습니다. |
+
+그리고 여든셋째의 열린 숙제: 보수월액을 적지 않은 근로자에게 앱은 기본금+고정수당 2,209,523원의 4.75%인 **₩104,950**을
+보여 주었는데, 그 숫자를 국민연금 칸에 그대로 옮겨 적으면 '그런 보수월액은 없다'고 했습니다. 앱이 기준을 천원 단위로
+자르지 않았기 때문입니다. 공단은 기준소득월액의 천원 미만을 버립니다(국민연금법 시행령).
+
+고친 것:
+
+- **`pensionOn()`이 기준의 천원 미만을 버립니다.** 2,209,523 → 2,209,000 → ₩104,920. 앱이 보여 주는 국민연금은 이제 언제나
+  칸에 옮겨 적을 수 있고, 적으면 그 기준이 보수월액이 되며 금액은 한 푼도 달라지지 않습니다. **돈이 움직입니다:** 보수월액을
+  적지 않은 근로자의 국민연금 추정치가 달마다 최대 ₩50 내려갑니다(지나간 기간도 다시 계산하면 같은 규칙입니다 — 4대보험
+  요율과 같이 기록에 찍히지 않는 값입니다, 열여섯째). 보수월액을 적은 근로자는 천원 단위라 그대로입니다.
+- **`pensionEdge()`가 하한·상한의 금액을 알아봅니다.** `bosuFromPension()`은 그 둘에 null을 돌려주고, 안내는 "가장 낮은/높은
+  국민연금입니다 — 이 한 줄로는 보수월액을 알 수 없습니다. 보수월액을 직접 적어 주세요"라고 말합니다(`penNote()`, 설정과 급여
+  탭이 같은 문장). 보수월액이 하한 이하이면 급여 탭의 보수월액 칸(`askDedBosu`)도 섭니다 — 상한 위와 같은 까닭입니다.
+- **하한보다 적은 보수월액은 받아들이되 그렇다고 말합니다**(`bosu_below_pension_floor`): 국민연금은 하한으로 계산하고, 잘못
+  친 숫자라면 이 칸에서 고치라고. 막지 않는 것은 단시간 근로자의 보수월액이 실제로 낮을 수 있고, 앱은 판단하지 않기
+  때문입니다.
+
+**다음 사람에게.** "하나뿐"이라는 말은 함수가 상·하한 *안에서* 참인 것을 경계 *밖에서도* 말하기 쉽습니다. 거꾸로 푸는
+계산을 쓸 때는 정의역의 양 끝에서 답이 몇 개인지 먼저 세세요. 그리고 앱이 화면에 보여 준 숫자는, 근로자가 그대로 옮겨
+적을 수 있는 숫자여야 합니다.
+
+### 2026-10-12 (eighty-third) — 국민연금을 쳤는데 칸이 비어 버렸습니다
 
 근로자가 말했습니다: 설정 › 4대보험과 세금의 '명세서의 국민연금' 칸에 숫자를 쳐도 저장되지 않고 칸이 비어 있다.
 

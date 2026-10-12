@@ -763,5 +763,8 @@
   "last_day_wage_held_fix": "Nếu có giá trị nào ở trên không phải của công ty cũ (bạn đã nhập giá trị của công ty mới trước khi nhập ngày này), thì trước khi kỳ này kết thúc: xóa ô này, sửa giá trị đó về của công ty cũ, rồi nhập lại ngày. Sau đó nhập lại giá trị của công ty mới.",
   "accrual_needs_next_day": "Đã đủ 1 năm, nhưng 15 ngày chỉ phát sinh nếu bạn vẫn còn làm việc vào ngày sau khi hoàn thành năm đó (대법원 2021다227100).",
   "held_avg_manual": "1일 평균임금 bạn đã nhập, {p0}, cũng được giữ cho kỳ này.",
-  "held_bonus": "상여 {p0} mỗi năm cũng được giữ cùng."
+  "held_bonus": "상여 {p0} mỗi năm cũng được giữ cùng.",
+  "bosu_below_pension_floor": "Tính trên 보수월액 bạn đã nhập, {p0}. Số này thấp hơn mức nền thấp nhất mà 국민연금 áp dụng, nên 국민연금 được tính trên {p1}. Nếu {p0} là gõ nhầm, hãy sửa ngay trong ô này.",
+  "pension_line_is_the_floor": "국민연금 {p0} là mức 국민연금 thấp nhất — mọi 보수월액 từ {p1} trở xuống đều ra số này, nên dòng này không cho app biết 보수월액 của bạn. Hãy nhập trực tiếp 보수월액.",
+  "pension_line_is_the_cap": "국민연금 {p0} là mức 국민연금 cao nhất — mọi 보수월액 từ {p1} trở lên đều ra số này, nên dòng này không cho app biết 보수월액 của bạn. Hãy nhập trực tiếp 보수월액."
 }
