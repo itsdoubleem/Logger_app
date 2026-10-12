@@ -4322,7 +4322,13 @@ console.log('\n== 보수월액은 명세서의 국민연금에서 되살립니�
     c.setS({ bosu: V2.PENSION_FLOOR });
     ok('하한 그 자체도 하나가 아닙니다', c.renderVals().bosuPenNote.indexOf('19,000') >= 0 &&
       c.renderVals().bosuPenNote === S('pension_line_is_the_floor', { p0: c.won(19000), p1: c.won(V2.PENSION_FLOOR) }));
-    ok('하한이면 평소 문장입니다', c.renderVals().insBaseNote.indexOf(V2.STR['bosu_below_pension_floor']['ko'].slice(0, 8)) < 0);
+    ok('하한이면 평소 문장입니다', c.renderVals().insBaseNote ===
+      V2.STR['calculated_on_the_standard_monthly_wag']['ko'].replace('{p0}', c.won(V2.PENSION_FLOOR)), c.renderVals().insBaseNote);
+    // 천원 단위가 아닌 보수월액(건강보험의 보수월액은 원 단위입니다)을 적었을 때
+    c.setS({ bosu: 2209523 });
+    ok('하나뿐인 것은 천원 단위 기준입니다',
+      c.renderVals().bosuPenNote === S('that_pension_line_comes_from_this_wage', { p0: c.won(104920), p1: c.won(2209000) }),
+      c.renderVals().bosuPenNote);
     c.setS({ bosu: 9000000 });
     const top = V2.pensionOn(9000000);
     ok('상한 위도 하나가 아닙니다',
@@ -6044,6 +6050,9 @@ console.log('\n== 필요해지는 그 자리에서 묻습니다 ==');
     ok('하한 아래면 보수월액 칸이 섭니다', v() === true);
     c.setS({ bosu: V2.PENSION_FLOOR });
     ok('하한 그 자체도 칸이 섭니다', v() === true);
+    c.setS({ bosu: 400500 });
+    ok('잘리면 하한인 400,500도 칸이 섭니다 — 안내가 그렇게 말하므로', v() === true &&
+      c.renderVals().slipPenNote.indexOf('19,000') >= 0, c.renderVals().slipPenNote);
     c.setS({ bosu: 3434000 });
     c.setState({ numEdit: { k: 'p:slipPen', v: '163115' } });
     ok('어떤 보수월액에서도 안 나오는 값을 치는 동안 칸이 섭니다',

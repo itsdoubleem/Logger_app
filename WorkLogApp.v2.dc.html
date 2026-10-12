@@ -4348,15 +4348,15 @@ class Component extends DCLogic {
   // 열려 있는 기간에는 이 갈래가 닿지 않습니다(wageFor가 wageNow를 먼저
   // 돌려줍니다). 지금 기간의 기준은 설정이고, 설정을 고치면 곧바로 따라와야
   // 하니까요 — 여기서 명세서를 앞세우면 설정의 그 칸이 죽은 단추가 됩니다.
+  //
+  // 명세서의 국민연금이 하한·상한의 금액이면 null입니다(여든넷째): 그 한 줄은
+  // 보수월액 하나를 가리키지 않으므로, 그 기간은 도장이나 설정의 값을 씁니다.
+  // 예전에는 19,000이 400,000을 세웠는데 그것은 지어낸 값이었습니다.
   slipBosu(P) {
     const p = this.slip(P).pension;
     if (p === undefined || p === null || String(p).trim() === '') return null;
     return Component.bosuFromPension(p);
   }
-  // 이 기준 한 벌이 말하는 보수월액. 도장에 없으면(이 변경 이전에 찍힌 도장,
-  // 또는 되살린/모르는 기간) 지금 설정값입니다 — employerFor()와 같은 규칙입니다.
-  // 국민연금 칸에 지금 들어 있는, 아직 받아들여지지 않은 숫자 — 치는 중이든
-  // 떠난 뒤든(numField의 numBad). 안내 문장과 askDedBosu가 같은 것을 봅니다.
   // 국민연금 칸 두 개의 저장: 되살아나면 그 보수월액을, 아니면 칸에 닿기 전의
   // 보수월액을 둡니다 — 치는 도중에 잠깐 맞았던 값이 남지 않도록(numField 참고).
   penCommit(key, v) {
@@ -4381,15 +4381,21 @@ class Component extends DCLogic {
     if (typed && C.numReady(typed) && !C.bosuFromPension(typed))
       return edge(typed) || this.T('no_standard_monthly_wage_produces_that');
     if (!b) return this.T('copy_the_national_pension_line_from_yo');
-    // 하한 아래나 상한 위의 보수월액이면 '하나뿐'이라고 말할 수 없습니다
+    // 하한 아래나 상한 위의 보수월액이면 '하나뿐'이라고 말할 수 없습니다.
+    // 그리고 '하나뿐'인 것은 천원 단위 기준입니다 — 2,209,523을 적었으면 2,209,000부터
+    // 2,209,999까지 모두 같은 국민연금이므로, 말하는 값은 잘린 2,209,000입니다.
     return edge(C.pensionOn(b))
-      || this.T('that_pension_line_comes_from_this_wage', { p0: this.won(C.pensionOn(b)), p1: this.won(b) });
+      || this.T('that_pension_line_comes_from_this_wage', { p0: this.won(C.pensionOn(b)), p1: this.won(Math.floor(b / 1000) * 1000) });
   }
+  // 국민연금 칸에 지금 들어 있는, 아직 받아들여지지 않은 숫자 — 치는 중이든
+  // 떠난 뒤든(numField의 numBad). 안내 문장과 askDedBosu가 같은 것을 봅니다.
   penTyped(key) {
     const e = this.state.numEdit, nb = this.state.numBad;
     if (e && e.k === key) return e.v;
     return nb && nb.k === key ? nb.v : null;
   }
+  // 이 기준 한 벌이 말하는 보수월액. 도장에 없으면(이 변경 이전에 찍힌 도장,
+  // 또는 되살린/모르는 기간) 지금 설정값입니다 — employerFor()와 같은 규칙입니다.
   insBosu(W) { return +(W && W.bosu !== undefined ? W.bosu : this.st().bosu) || 0; }
   insBase(W) { return this.insBosu(W) || this.taxableFixed(W); }
   insOnFor(k) { return !!this.st().insAuto && !!(this.st().insOn || {})[k]; }
@@ -7478,8 +7484,9 @@ class Component extends DCLogic {
         if (typing !== null && Component.numReady(typing) && !Component.bosuFromPension(typing))
           return true;
         const b = this.insBosu(W);
-        // 하한 아래도 상한 위와 같습니다 — 국민연금 한 줄로는 되살아나지 않습니다
-        return !b || b >= Component.PENSION_CAP || b <= Component.PENSION_FLOOR;
+        // 하한 아래도 상한 위와 같습니다 — 국민연금 한 줄로는 되살아나지 않습니다.
+        // 안내 문장(penNote)과 같은 판단을 써야 합니다: 400,500은 잘리면 하한입니다.
+        return !b || !!Component.pensionEdge(Component.pensionOn(b));
       })(),
       // ── 그 칸은 **보고 있는 기간**의 명세서를 묻습니다 ──
       // 카드가 '08.21 → 09.20의 명세서'라고 이름을 달고 서 있으므로, 거기 적는
