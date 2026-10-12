@@ -4307,6 +4307,17 @@ console.log('\n== 보수월액은 명세서의 국민연금에서 되살립니�
     ok('맞는 값은 받아들여 칸에 남습니다',
       c.st().bosu === 3434000 && c.renderVals().bosuPenVal === '163110');
     ok('그리고 경고는 사라집니다', c.renderVals().bosuPenNote !== NO);
+    // 한 자씩 들어오므로, 0을 하나 더 치면 여섯째 자에서 한 번 맞습니다(리뷰가 찾은 것)
+    const z = new V2({});
+    z.setS({ bosu: 2000000 });
+    z.renderVals().focBosuPen();
+    '1631100'.split('').reduce((acc, ch) => {
+      z.renderVals().setBosuPen({ target: { value: acc + ch } }); return acc + ch;
+    }, '');
+    z.renderVals().blurBosuPen();
+    ok("'1631100'으로 떠나면 칸은 안 된다고 말하고", z.renderVals().bosuPenVal === '1631100' &&
+      z.renderVals().bosuPenNote === NO);
+    ok('보수월액은 칸에 닿기 전의 값으로 돌아갑니다', z.st().bosu === 2000000, String(z.st().bosu));
     // 아무것도 치지 않고 떠나면 예전처럼 원래 값이 돌아옵니다
     c.renderVals().focBosuPen();
     c.renderVals().blurBosuPen();
@@ -6110,7 +6121,11 @@ console.log('\n== 공제총액 안에 있는 것을 밑에 또 물었습니다 =
   ok('그리고 그렇다고 말합니다',
     bad.renderVals().slipPenNote === V2.STR['no_standard_monthly_wage_produces_that'][bad.st().lang || 'ko'],
     bad.renderVals().slipPenNote.slice(0, 40));
-  // 급여 탭의 칸도 같은 자리였습니다(2026-10-12): 떠나는 순간 숫자도 말도 사라졌습니다
+  // 급여 탭의 칸도 같은 자리였습니다(2026-10-12): 떠나는 순간 숫자도 말도 사라졌습니다.
+  // 보수월액이 있어야 askDedBosu가 '없어서'가 아니라 '되살릴 수 없어서' 서는지 보입니다.
+  bad.setState({ numEdit: null, numBad: null });   // 위에서 치던 12345를 내려놓고
+  bad.setS({ bosu: 3434000 });
+  ok('보수월액이 있으면 그 칸은 먼저 접혀 있습니다', bad.renderVals().askDedBosu === false);
   bad.renderVals().focSlipPen();
   bad.renderVals().setSlipPen({ target: { value: '12345' } });
   bad.renderVals().blurSlipPen();
@@ -6119,6 +6134,11 @@ console.log('\n== 공제총액 안에 있는 것을 밑에 또 물었습니다 =
   ok('급여 탭에서도 떠난 뒤 왜 안 되는지 말합니다',
     bad.renderVals().slipPenNote === V2.STR['no_standard_monthly_wage_produces_that'][bad.st().lang || 'ko']);
   ok('보수월액 칸도 그대로 서 있습니다', bad.renderVals().askDedBosu === true);
+  ok('카드도 그대로 서 있습니다', bad.renderVals().askDed === true);
+  ok('보수월액은 칸에 닿기 전 그대로입니다', bad.st().bosu === 3434000, String(bad.st().bosu));
+  bad.renderVals().focBosu();
+  ok('다른 칸을 누르면 남긴 숫자가 물러납니다', bad.renderVals().slipPenVal === '163110',
+    String(bad.renderVals().slipPenVal));
 
   // ══ 답을 적는 동안 카드가 사라지지 않습니다 ══
   // 이 카드의 칸들은 앱이 계산하는 공제를 바꿉니다. 국민연금을 다 치는 순간
