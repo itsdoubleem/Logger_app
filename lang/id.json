@@ -763,5 +763,9 @@
   "last_day_wage_held_fix": "Jika ada nilai di atas yang bukan milik perusahaan sebelumnya (Anda mengisi nilai perusahaan baru sebelum mengisi hari ini), maka sebelum periode ini berakhir: kosongkan kotak ini, kembalikan nilai itu ke milik perusahaan sebelumnya, lalu isi lagi tanggalnya. Setelah itu, isi kembali nilai perusahaan baru.",
   "accrual_needs_next_day": "Satu tahun sudah genap, tetapi 15 hari itu baru timbul jika Anda masih bekerja pada hari setelah tahun itu selesai (대법원 2021다227100).",
   "held_avg_manual": "1일 평균임금 yang Anda isi, {p0}, juga ditahan untuk periode ini.",
-  "held_bonus": "상여 sebesar {p0} per tahun juga ikut ditahan."
+  "held_bonus": "상여 sebesar {p0} per tahun juga ikut ditahan.",
+  "bosu_below_pension_floor": "Dihitung dari 보수월액 yang Anda masukkan, {p0}. Angka itu di bawah dasar terendah yang dikenai 국민연금, jadi 국민연금 dihitung dari {p1}. Jika {p0} salah ketik, perbaiki di kotak ini.",
+  "pension_line_is_the_floor": "국민연금 {p0} adalah 국민연금 terendah — setiap 보수월액 sampai {p1} menghasilkan angka ini, jadi baris ini tidak bisa memberi tahu aplikasi 보수월액 Anda. Masukkan 보수월액 secara langsung.",
+  "pension_line_is_the_cap": "국민연금 {p0} adalah 국민연금 tertinggi — setiap 보수월액 mulai {p1} ke atas menghasilkan angka ini, jadi baris ini tidak bisa memberi tahu aplikasi 보수월액 Anda. Masukkan 보수월액 secara langsung.",
+  "pension_on_truncated_base": "국민연금 {p0} dihitung dari {p1}: 기준소득월액 membuang bagian di bawah 1.000원 dari 보수월액 {p2}. 건강보험 tetap memakai {p2}. Sebaiknya periksa di 4insure.or.kr apakah 공단 mencatat angka yang sama."
 }
