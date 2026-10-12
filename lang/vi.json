@@ -766,5 +766,6 @@
   "held_bonus": "상여 {p0} mỗi năm cũng được giữ cùng.",
   "bosu_below_pension_floor": "Tính trên 보수월액 bạn đã nhập, {p0}. Số này thấp hơn mức nền thấp nhất mà 국민연금 áp dụng, nên 국민연금 được tính trên {p1}. Nếu {p0} là gõ nhầm, hãy sửa ngay trong ô này.",
   "pension_line_is_the_floor": "국민연금 {p0} là mức 국민연금 thấp nhất — mọi 보수월액 từ {p1} trở xuống đều ra số này, nên dòng này không cho app biết 보수월액 của bạn. Hãy nhập trực tiếp 보수월액.",
-  "pension_line_is_the_cap": "국민연금 {p0} là mức 국민연금 cao nhất — mọi 보수월액 từ {p1} trở lên đều ra số này, nên dòng này không cho app biết 보수월액 của bạn. Hãy nhập trực tiếp 보수월액."
+  "pension_line_is_the_cap": "국민연금 {p0} là mức 국민연금 cao nhất — mọi 보수월액 từ {p1} trở lên đều ra số này, nên dòng này không cho app biết 보수월액 của bạn. Hãy nhập trực tiếp 보수월액.",
+  "pension_on_truncated_base": "국민연금 {p0} được tính trên {p1}: 기준소득월액 bỏ phần dưới 1.000원 của 보수월액 {p2}. 건강보험 vẫn dùng {p2}. Nên kiểm tra tại 4insure.or.kr xem 공단 có cùng số này không."
 }

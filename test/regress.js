@@ -4326,9 +4326,14 @@ console.log('\n== 보수월액은 명세서의 국민연금에서 되살립니�
       V2.STR['calculated_on_the_standard_monthly_wag']['ko'].replace('{p0}', c.won(V2.PENSION_FLOOR)), c.renderVals().insBaseNote);
     // 천원 단위가 아닌 보수월액(건강보험의 보수월액은 원 단위입니다)을 적었을 때
     c.setS({ bosu: 2209523 });
-    ok('하나뿐인 것은 천원 단위 기준입니다',
-      c.renderVals().bosuPenNote === S('that_pension_line_comes_from_this_wage', { p0: c.won(104920), p1: c.won(2209000) }),
-      c.renderVals().bosuPenNote);
+    // '₩2,209,000 하나뿐'도 틀립니다 — 적어 둔 2,209,523도 같은 ₩104,920을 냅니다(리뷰가 찾은 것)
+    const tr = V2.STR['pension_on_truncated_base']['ko']
+      .replace(/\{p0\}/g, c.won(104920)).replace(/\{p1\}/g, c.won(2209000)).replace(/\{p2\}/g, c.won(2209523));
+    ok('천원 단위가 아니면 하나뿐이라고 말하지 않고 잘린 기준을 말합니다',
+      c.renderVals().bosuPenNote === tr, c.renderVals().bosuPenNote);
+    c.setS({ bosu: 2209000 });
+    ok('천원 단위이면 예전처럼 하나뿐입니다',
+      c.renderVals().bosuPenNote === S('that_pension_line_comes_from_this_wage', { p0: c.won(104920), p1: c.won(2209000) }));
     c.setS({ bosu: 9000000 });
     const top = V2.pensionOn(9000000);
     ok('상한 위도 하나가 아닙니다',
