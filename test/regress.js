@@ -4282,6 +4282,46 @@ console.log('\n== 보수월액은 명세서의 국민연금에서 되살립니�
       c.renderVals().bosuPenNote !== V2.STR['no_standard_monthly_wage_produces_that']['ko']);
   }
 
+  // ── 2026-10-12 · 쳤는데 칸이 비어 버립니다 ──
+  // 근로자가 말한 것: 설정 › 4대보험과 세금의 국민연금 칸에 숫자를 쳐도 저장되지
+  // 않고 칸이 비어 있다. 폰에서 '1'을 치고 완료를 눌러 보니 그대로였습니다 —
+  // 치는 동안에는 '그런 국민연금을 내는 보수월액은 없다'고 말하다가, 칸을 떠나는
+  // 순간 숫자도 그 말도 함께 사라지고 처음 안내만 남았습니다. 계산은 맞았습니다.
+  // 틀린 것은 '왜 안 되는지'를 말하던 화면이 조용히 빈 칸으로 돌아간 것입니다.
+  {
+    const NO = V2.STR['no_standard_monthly_wage_produces_that']['ko'];
+    const c = new V2({});
+    c.renderVals().focBosuPen();
+    c.renderVals().setBosuPen({ target: { value: '163115' } });
+    c.renderVals().blurBosuPen();
+    ok('떠난 뒤에도 친 숫자가 칸에 남습니다', c.renderVals().bosuPenVal === '163115',
+      String(c.renderVals().bosuPenVal));
+    ok('떠난 뒤에도 왜 안 되는지 말합니다', c.renderVals().bosuPenNote === NO);
+    ok('그래도 보수월액은 건드리지 않습니다', !c.st().bosu, String(c.st().bosu));
+    ok('남긴 숫자는 저장되지 않습니다', c.save.toString().indexOf('numBad') < 0);
+    // 다시 누르면 평소처럼 비고, 맞는 값을 치면 받아들입니다
+    c.renderVals().focBosuPen();
+    ok('다시 누르면 칸이 빕니다', c.renderVals().bosuPenVal === '');
+    c.renderVals().setBosuPen({ target: { value: '163110' } });
+    c.renderVals().blurBosuPen();
+    ok('맞는 값은 받아들여 칸에 남습니다',
+      c.st().bosu === 3434000 && c.renderVals().bosuPenVal === '163110');
+    ok('그리고 경고는 사라집니다', c.renderVals().bosuPenNote !== NO);
+    // 아무것도 치지 않고 떠나면 예전처럼 원래 값이 돌아옵니다
+    c.renderVals().focBosuPen();
+    c.renderVals().blurBosuPen();
+    ok('그냥 떠나면 원래 값이 돌아옵니다', c.renderVals().bosuPenVal === '163110');
+    // 다른 숫자 칸을 누르면 남겨 둔 숫자는 물러납니다
+    const d = new V2({});
+    d.renderVals().focBosuPen();
+    d.renderVals().setBosuPen({ target: { value: '1' } });
+    d.renderVals().blurBosuPen();
+    ok("'1' 하나도 칸에 남습니다", d.renderVals().bosuPenVal === '1');
+    d.renderVals().focBosu();
+    ok('다른 숫자 칸을 누르면 물러납니다',
+      d.renderVals().bosuPenVal === '' && d.renderVals().bosuPenNote !== NO);
+  }
+
   // ── 여덟 개 언어 ──
   ['ko','en','vi','zh','th','id','ne','km'].forEach(L => {
     ['national_pension_on_your_payslip','copy_the_national_pension_line_from_yo',
@@ -6070,6 +6110,15 @@ console.log('\n== 공제총액 안에 있는 것을 밑에 또 물었습니다 =
   ok('그리고 그렇다고 말합니다',
     bad.renderVals().slipPenNote === V2.STR['no_standard_monthly_wage_produces_that'][bad.st().lang || 'ko'],
     bad.renderVals().slipPenNote.slice(0, 40));
+  // 급여 탭의 칸도 같은 자리였습니다(2026-10-12): 떠나는 순간 숫자도 말도 사라졌습니다
+  bad.renderVals().focSlipPen();
+  bad.renderVals().setSlipPen({ target: { value: '12345' } });
+  bad.renderVals().blurSlipPen();
+  ok('급여 탭에서도 떠난 뒤 친 숫자가 남습니다', bad.renderVals().slipPenVal === '12345',
+    String(bad.renderVals().slipPenVal));
+  ok('급여 탭에서도 떠난 뒤 왜 안 되는지 말합니다',
+    bad.renderVals().slipPenNote === V2.STR['no_standard_monthly_wage_produces_that'][bad.st().lang || 'ko']);
+  ok('보수월액 칸도 그대로 서 있습니다', bad.renderVals().askDedBosu === true);
 
   // ══ 답을 적는 동안 카드가 사라지지 않습니다 ══
   // 이 카드의 칸들은 앱이 계산하는 공제를 바꿉니다. 국민연금을 다 치는 순간

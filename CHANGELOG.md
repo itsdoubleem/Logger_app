@@ -1,6 +1,6 @@
 # 근무기록 LOGGER — change log beyond V2.md
 
-Eighty-nine entries, newest first — eighty-two carry an ordinal (first … eighty-second),
+Ninety entries, newest first — eighty-three carry an ordinal (first … eighty-third),
 the seven oldest predate the numbering. Each one is a bug found by **actually using the app on
 shift**, what changed, and — the part worth reading — *why it was that and not the
 obvious fix*. Most entries end with a **다음 사람에게** paragraph: the rule the bug
@@ -18,7 +18,8 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 
 ## Index
 
-- 2026-10-12 (latest, eighty-second) — 흰 판이 아니라 붉은 테두리 판으로
+- 2026-10-12 (latest, eighty-third) — 국민연금을 쳤는데 칸이 비어 버렸습니다
+- 2026-10-12 (eighty-second) — 흰 판이 아니라 붉은 테두리 판으로
 - 2026-10-12 (eighty-first) — 회사 규칙만 판이고 나머지 접이식은 평면이었습니다
 - 2026-10-12 (eightieth) — '법이 정한 값'이 아래 전부를 말하는 줄 알았습니다
 - 2026-10-12 (seventy-ninth) — 새로 깐 앱이 회사의 호의를 가정하고 있었습니다
@@ -108,7 +109,31 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 - 2026-08-13 — the service worker was hiding every update
 - 2026-08-13 (earlier) — 조퇴 사유 became a popup with a dropdown
 
-### 2026-10-12 (latest, eighty-second) — 흰 판이 아니라 붉은 테두리 판으로
+### 2026-10-12 (latest, eighty-third) — 국민연금을 쳤는데 칸이 비어 버렸습니다
+
+근로자가 말했습니다: 설정 › 4대보험과 세금의 '명세서의 국민연금' 칸에 숫자를 쳐도 저장되지 않고 칸이 비어 있다.
+
+폰에서 그대로 해 보았습니다. '1'을 치자 칸 밑의 문장이 "그런 국민연금을 내는 보수월액은 없습니다"로 바뀌었고, 완료를
+누르자 **숫자도 그 문장도 함께 사라지고** 처음 안내 — "명세서의 국민연금 줄을 적으세요" — 만 남았습니다. 계산은
+맞았습니다. 그 칸은 국민연금을 저장하지 않고, 그 한 줄에서 보수월액을 되살려(서른아홉째) bosu 하나만 저장합니다.
+기준소득월액은 천원 단위이고 보험료는 10원 미만 절사라, 대부분의 숫자는 어떤 보수월액에서도 나오지 않습니다 — 그런
+숫자는 받아들이지 않는 것이 맞습니다. 틀린 것은 **왜 안 되는지 말하던 화면이, 칸을 떠나는 순간 빈 칸으로 조용히
+돌아간 것**입니다. 근로자 눈에 남는 것은 '쳤는데 저장이 안 된다'뿐입니다.
+
+함정이 하나 더 있습니다. 보수월액을 적지 않은 근로자에게 앱이 보여 주는 국민연금(기본금+고정수당 2,209,523원의
+4.75% = ₩104,950)은 천원 단위가 아닌 기준에서 나온 것이라, **앱이 보여 준 그 숫자를 그대로 옮겨 적어도** 칸은
+받아들이지 않습니다.
+
+이제 `numField()`가 넷째 인자 `bad`를 받습니다. 친 숫자가 다 친 숫자인데 `bad`이면, 칸을 떠난 뒤에도 그 숫자를
+`state.numBad`에 남겨 칸에 그대로 보이고, 안내 문장도 경고를 그대로 말합니다(`penTyped()`가 치는 중과 떠난 뒤를
+함께 봅니다). `numBad`는 `save()`의 목록에 없어 저장되지 않고, 다음에 아무 숫자 칸이나 누르면 물러납니다. 기간을
+옮겨도 물러납니다. 급여 탭 명세서 카드의 국민연금 칸(`p:slipPen`)이 같은 자리여서 함께 고쳤고, 거기서는 그 숫자가
+남아 있는 동안 보수월액 칸(`askDedBosu`)도 서 있습니다 — 그 칸이 서는 까닭이 바로 '되살릴 수 없다'이기 때문입니다.
+
+**다음 사람에게.** 받아들이지 않는 입력은 *받아들이지 않았다는 것이 보이는 채로* 남아야 합니다. 거절을 치는 동안에만
+말하고 떠날 때 지우면, 그것은 거절이 아니라 사라짐이고 — 이 앱에서 가장 흔한 실패, 소리 없는 실패입니다.
+
+### 2026-10-12 (eighty-second) — 흰 판이 아니라 붉은 테두리 판으로
 
 근로자가 흰 판이 싫다고 했습니다. 세 가지를 실제 화면에 그려 견주었습니다 — 가장 옅은 분홍(`accent-50`), 붉은
 테두리, 붉게 채운 판(`accent-300` #f1b5ab). 가장 옅은 분홍은 사라졌습니다 — 알고 보니 열린 묶음의 바탕이 바로
