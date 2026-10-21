@@ -3233,7 +3233,7 @@ class Component extends DCLogic {
     const pd = x => x === 'logs' || x === 'pay';
     if (pd(t) && !pd(this.state.tab) && this.payBack() === 0) {
       const n = this.openBack();
-      if (n) Object.assign(o, { payBack: n, openDay: null });
+      if (n) Object.assign(o, this.periodMove(n));
     }
     this.setState(o);
   }
@@ -4772,7 +4772,8 @@ class Component extends DCLogic {
   // 늘 같은 기간을 말해야 합니다 — 근무기록은 7월인데 급여는 8월이면 근로자는
   // 어느 쪽을 믿어야 할지 알 수 없습니다.
   //
-  // 저장하지 않습니다. 앱을 다시 열면 언제나 이번 기간입니다 — 출근을 찍으러
+  // 저장하지 않습니다. 앱을 다시 열면 이번 기간입니다 — 다만 저장된 탭이 근무기록·
+  // 급여이고 이번 기간이 아직 비어 있으면 openBack()이 고른 기간입니다 — 출근을 찍으러
   // 여는 사람이 지난 달을 보고 있으면 그것대로 위험하고, 문서를 만들 때 기본값이
   // '지금'이 아니면 그것대로 위험합니다.
   payBackMax() { return this.periodBackMax(); }
@@ -4790,12 +4791,16 @@ class Component extends DCLogic {
     // 글자가 그대로 앉아 있고, 거기서 한 자만 더 치면 **다른 기간의 명세서에**
     // 커밋됩니다. 폰에서는 화살표를 누르는 순간 blur가 나므로 보이지 않지만,
     // 보이지 않는다는 것이 안전하다는 뜻은 아닙니다.
-    const o = { payBack: Math.min(Math.max(0, n | 0), this.payBackMax()), openDay: null, docMsg: '', numEdit: null, numBad: null };
+    const o = this.periodMove(n);
     if (closeJump) o.jumpOpen = false;
     this.setState(o);
     this.scrollTabTop();
   }
   stepPay(d) { this.goPeriod(this.payBack() + d); }
+  // 기간을 옮길 때 함께 지우는 것들 — goPeriod와 goTab(openBack)이 같이 씁니다
+  periodMove(n) {
+    return { payBack: Math.min(Math.max(0, n | 0), this.payBackMax()), openDay: null, docMsg: '', numEdit: null, numBad: null };
+  }
 
   // ══ 지난 기록 · 연도로 건너뜁니다 ══
   // 예전에는 근무기록 맨 아래에 '다른 급여기간'이라는 목록이 있었습니다. 이번
@@ -4936,6 +4941,15 @@ class Component extends DCLogic {
   // 줍니다. 이번 기간에 첫 근무가 생기는 순간부터는 예전처럼 이번 기간입니다.
   // 열려 있는 근무도 기록으로 칩니다 — 21일 밤에 출근한 사람은 이번 기간을
   // 봐야 하고, 20일 밤에 출근해 아직 근무중인 사람은 지난 기간을 봐야 합니다.
+  // (그 근무 말고는 기록이 하나도 없는 기간에는 닿지 못합니다 — payBackMax()가
+  // 기록으로만 끝을 정하므로, 그때는 그 앞의 기록 있는 기간이나 이번 기간입니다.)
+  //
+  // 미리 넣어 둔 줄은 세지 않습니다. 다음 주 연차나 토요일 특근을 미리 적어 둔
+  // 사람은 새 기간이 '비어 있지' 않아서, 이 아침에 예전과 똑같이 그 한 줄과
+  // 0.0h를 봤습니다. 오늘이나 그 전 날짜의 줄만 칩니다. 지문을 기다리는 특근
+  // (awaiting)은 날짜가 지나도 일한 날이 아니라 뺍니다. 날짜가 지난 연차는
+  // planned가 남아 있어도 칩니다 — planned는 적을 때의 표시라, 미리 적어 둔
+  // 연차는 그 날이 지나도 planned입니다.
   //
   // 부르는 곳은 두 군데뿐입니다: 다른 탭에서 근무기록·급여로 들어올 때(goTab)와
   // 저장된 탭이 그 둘 중 하나인 채로 앱이 열릴 때. 근무기록과 급여 사이를 오갈
@@ -4944,10 +4958,11 @@ class Component extends DCLogic {
   // 오늘의 기간입니다.
   openBack() {
     const inD = this.state.session ? new Date(this.state.session.inIso) : null;
+    const k0 = this.keyOf(this.now());
     const max = this.payBackMax();
     for (let n = 0; n <= max; n++) {
       const P = this.periodBack(n);
-      if (this.periodRecords(P).length) return n;
+      if (this.periodRecords(P).some(r => !r.awaiting && this.key(r) <= k0)) return n;
       if (inD && this.inPeriod({ y: inD.getFullYear(), m: inD.getMonth() + 1, day: inD.getDate() }, P)) return n;
     }
     return 0;

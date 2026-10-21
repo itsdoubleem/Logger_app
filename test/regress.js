@@ -2774,6 +2774,33 @@ console.log('\n== 급여기간 첫날 아침, 근무기록은 방금 끝낸 근�
   ok('근무기록 탭으로 열리면 기록이 있는 기간', L.payBack()>0 && L.renderVals().logRows.length===1,
     'back='+L.payBack()+' rows='+L.renderVals().logRows.length);
   ok('출퇴근 탭으로 열리면 아무것도 바꾸지 않습니다', open('punch').payBack()===0);
+
+  // 미리 넣어 둔 줄은 이번 기간을 '채우지' 않습니다(리뷰 S1). 다음 주 연차를 적어 둔
+  // 사람이 이 아침에 예전과 똑같이 그 한 줄과 0.0h를 봤습니다.
+  const lv=mkR('2026-10-21T08:51:00');
+  lv.state.extra.push({y:2026,m:10,day:27,type:'annual',planned:true,kind:'day',mon:false,
+    c:{gross:0,bk:0,net:8,reg:8,ot:0,night:0,hol:0,pay:0}});
+  lv.goTab('logs');
+  ok('미리 적어 둔 다음 주 연차가 있어도 지난 기간으로 열립니다', lv.payBack()===1, 'back='+lv.payBack());
+  const ot=mkR('2026-10-21T08:51:00');
+  ot.state.extra.push({y:2026,m:10,day:25,kind:'day',type:'shift',holiday:true,planned:true,awaiting:true,
+    inH:9,outH:21,c:ot.calc(9,21,'day',true)});
+  ot.goTab('logs');
+  ok('미리 잡아 둔 특근이 있어도 지난 기간으로 열립니다', ot.payBack()===1, 'back='+ot.payBack());
+  // 미리 적어 둔 연차라도 그 날이 오늘이면 일어난 일입니다 — planned는 적을 때의 표시입니다
+  const td=mkR('2026-10-21T08:51:00');
+  td.state.extra.push({y:2026,m:10,day:21,type:'annual',planned:true,kind:'day',mon:false,
+    c:{gross:0,bk:0,net:8,reg:8,ot:0,night:0,hol:0,pay:0}});
+  td.goTab('logs');
+  ok('오늘 날짜의 연차가 있으면 이번 기간', td.payBack()===0, 'back='+td.payBack());
+
+  // 기간을 옮기면 반쯤 친 숫자는 따라가지 않습니다(리뷰 S2) — goPeriod와 같은 정리
+  const nb=mkR('2026-10-21T08:51:00');
+  nb.setState({numBad:{k:'p:slipPen',v:'12345'}, numEdit:{k:'p:slipPen'}, docMsg:'x'});
+  nb.goTab('pay');
+  ok('탭을 열며 기간을 옮기면 칸의 글자와 안내도 지웁니다',
+    nb.payBack()===1 && nb.state.numBad===null && nb.state.numEdit===null && nb.state.docMsg==='',
+    JSON.stringify({b:nb.payBack(),nb:nb.state.numBad,ne:nb.state.numEdit,d:nb.state.docMsg}));
 }
 
 console.log('\n== 명세서 대조는 기간마다 따로 남습니다 ==');
