@@ -2850,6 +2850,7 @@ class Component extends DCLogic {
     }
     this.base = p.demoIso ? new Date(p.demoIso) : new Date();
     this.t0 = Date.now();
+    if (this.state.tab === 'logs' || this.state.tab === 'pay') this.state.payBack = this.openBack();
   }
   componentDidMount() {
     this.iv = setInterval(() => this.setState({ tick: this.state.tick + 1 }), 1000);
@@ -3227,7 +3228,14 @@ class Component extends DCLogic {
   }
   goTab(t) {
     if (this.state.tab !== t) this.scrollTabTop();
-    this.setState({ tab: t });
+    const o = { tab: t };
+    // 지난 기간을 펼쳐 둔 채 나갔다 왔으면 그 자리 그대로입니다(openBack 주석)
+    const pd = x => x === 'logs' || x === 'pay';
+    if (pd(t) && !pd(this.state.tab) && this.payBack() === 0) {
+      const n = this.openBack();
+      if (n) Object.assign(o, { payBack: n, openDay: null });
+    }
+    this.setState(o);
   }
 
   // ══ 숫자 칸 · 누르면 비고, 안 고치면 원래 값으로 돌아옵니다 ══
@@ -4915,6 +4923,33 @@ class Component extends DCLogic {
     if (this.periodRecords(this.viewPeriod()).length) return 0;
     const max = this.payBackMax();
     for (let n = 1; n <= max; n++) if (this.periodRecords(this.periodBack(n)).length) return n;
+    return 0;
+  }
+  // ══ 근무기록과 급여를 열 때 보여 줄 급여기간 ══
+  // 같은 아침이 두 번 왔습니다. 20일 20:40 출근 · 21일 08:50 퇴근, 21일이 급여기간
+  // 첫날. 2026-08-21(열두째)에 ‹ 스테퍼와 '기록은 그대로 있습니다' 안내를 넣었는데,
+  // 2026-10-21에 같은 근무를 마치고 근무기록을 연 사람이 또 '기록이 없다'고
+  // 읽었습니다 — 0.0h 네 칸이 안내 한 줄보다 먼저 눈에 들어옵니다. 근무는 지난
+  // 기간 맨 위에 그대로 있었습니다.
+  //
+  // 그래서 이번 기간이 아직 비어 있으면, 기록이 있는 가장 가까운 기간을 열어
+  // 줍니다. 이번 기간에 첫 근무가 생기는 순간부터는 예전처럼 이번 기간입니다.
+  // 열려 있는 근무도 기록으로 칩니다 — 21일 밤에 출근한 사람은 이번 기간을
+  // 봐야 하고, 20일 밤에 출근해 아직 근무중인 사람은 지난 기간을 봐야 합니다.
+  //
+  // 부르는 곳은 두 군데뿐입니다: 다른 탭에서 근무기록·급여로 들어올 때(goTab)와
+  // 저장된 탭이 그 둘 중 하나인 채로 앱이 열릴 때. 근무기록과 급여 사이를 오갈
+  // 때는 부르지 않습니다 — '이번 기간으로 돌아가기'를 누른 사람을 탭 하나 넘길
+  // 때마다 지난 달로 되돌리면 앱이 손가락과 다투는 것입니다. 머리말 칩은 그대로
+  // 오늘의 기간입니다.
+  openBack() {
+    const inD = this.state.session ? new Date(this.state.session.inIso) : null;
+    const max = this.payBackMax();
+    for (let n = 0; n <= max; n++) {
+      const P = this.periodBack(n);
+      if (this.periodRecords(P).length) return n;
+      if (inD && this.inPeriod({ y: inD.getFullYear(), m: inD.getMonth() + 1, day: inD.getDate() }, P)) return n;
+    }
     return 0;
   }
   totals(mode, P) {

@@ -2677,6 +2677,105 @@ console.log('\n== 지난 기간이 비어 있어도 처음 쓰는 사람처럼 �
   ok('스테퍼가 이미 0일이라고 말합니다', /0/.test(c.renderVals().payPeriodSub), c.renderVals().payPeriodSub);
 }
 
+console.log('\n== 급여기간 첫날 아침, 근무기록은 방금 끝낸 근무가 있는 기간으로 열립니다 ==');
+// 2026-10-21의 보고입니다. 열두째 항목(2026-08-21)과 똑같은 근무 — 20일 20:40
+// 출근, 21일 08:50 퇴근, 21일이 급여기간 첫날. 그때 ‹ 스테퍼와 '기록은 그대로
+// 있습니다' 안내를 넣었는데, 근무기록을 연 사람이 또 '그 날 기록이 없다'고
+// 읽었습니다. 0.0h 네 칸이 안내 한 줄보다 먼저 보입니다. 근무는 ‹ 한 번 뒤
+// 09.21 → 10.20 맨 위에 그대로 있었습니다.
+//
+// 이제 이번 기간이 비어 있으면 근무기록과 급여는 기록이 있는 가장 가까운
+// 기간으로 열립니다. 이번 기간에 첫 근무가 생기면 예전처럼 이번 기간입니다.
+{
+  const night=(c,m,d)=>({y:2026,m,day:d,kind:'night',type:'shift',
+    inH:20+40/60,outH:32+50/60,c:c.calc(20+40/60,32+50/60,'night',false)});
+  const mkR=(iso)=>{
+    const c=mk(V2,iso);
+    c.setS({ periodStart:21, payday:25, shifts:'both' });
+    for(let d=21; d<=30; d++) c.state.extra.push(night(c,9,d));
+    for(let d=1; d<=20; d++) c.state.extra.push(night(c,10,d));
+    return c;
+  };
+
+  const c=mkR('2026-10-21T08:51:00');
+  ok('출퇴근 탭에 있을 때는 아무것도 바꾸지 않습니다', c.payBack()===0);
+  c.goTab('logs');
+  const V=c.renderVals();
+  ok('근무기록은 지난 기간으로 열립니다', V.payPeriodLabel==='09.21 → 10.20', V.payPeriodLabel);
+  ok('맨 위 줄이 방금 끝낸 10.20 야간 근무입니다', V.logRows[0] && V.logRows[0].date==='10.20',
+    V.logRows.length?V.logRows[0].date:'none');
+  ok('합계가 0.0h가 아닙니다', V.totalCells[0].value!=='0.0h', V.totalCells[0].value);
+  ok('지난 기간이라는 것이 보입니다 — 이번 기간으로 돌아가는 단추', V.payViewingPast===true);
+  ok('머리말 칩은 여전히 오늘의 기간', V.monthChip==='10.21 → 11.20', V.monthChip);
+
+  // 근무기록과 급여는 하나의 스테퍼를 씁니다
+  c.goTab('pay');
+  ok('급여 탭도 같은 기간', c.renderVals().periodLabel.indexOf('09.21 → 10.20')>=0, c.renderVals().periodLabel);
+
+  // '이번 기간으로 돌아가기'를 누른 사람을 탭 하나 넘길 때마다 되돌리지 않습니다
+  c.goPeriod(0);
+  c.goTab('logs');
+  ok('근무기록 ↔ 급여 사이에서는 고른 기간 그대로', c.payBack()===0, 'back='+c.payBack());
+  // 다른 탭에 다녀오면 다시 '여는' 것이라 규칙을 다시 씁니다
+  c.goTab('punch'); c.goTab('logs');
+  ok('출퇴근에 다녀오면 다시 지난 기간으로 열립니다', c.payBack()===1, 'back='+c.payBack());
+
+  // 펼쳐 둔 더 오래된 기간은 그대로 둡니다 — 예전과 같습니다
+  const o=mkR('2026-10-21T08:51:00');
+  o.state.extra.push(night(o,7,25));
+  o.goTab('logs'); o.goPeriod(3); o.goTab('punch'); o.goTab('logs');
+  ok('일부러 고른 오래된 기간은 그대로', o.payBack()===3, 'back='+o.payBack());
+
+  // 이번 기간에 첫 근무가 생기면 예전처럼 이번 기간입니다
+  const f=mkR('2026-10-22T09:00:00');
+  f.state.extra.push(night(f,10,21));
+  f.goTab('logs');
+  ok('이번 기간에 근무가 있으면 이번 기간', f.payBack()===0 && f.renderVals().payPeriodLabel==='10.21 → 11.20',
+    f.renderVals().payPeriodLabel);
+
+  // 열려 있는 근무도 기록으로 칩니다
+  const s1=mkR('2026-10-21T23:00:00');
+  s1.state.session={inIso:new Date('2026-10-21T20:40:00').toISOString()};
+  s1.goTab('logs');
+  ok('21일 밤에 출근해 근무중이면 이번 기간', s1.payBack()===0, 'back='+s1.payBack());
+  const s2=mk(V2,'2026-10-21T08:00:00');
+  s2.setS({ periodStart:21, payday:25, shifts:'both' });
+  s2.state.extra.push(night(s2,10,19));
+  s2.state.session={inIso:new Date('2026-10-20T20:40:00').toISOString()};
+  s2.goTab('logs');
+  ok('20일 밤에 출근해 아직 근무중이면 그 근무가 있는 지난 기간', s2.payBack()===1, 'back='+s2.payBack());
+
+  // 처음 쓰는 사람에게는 돌아갈 기간이 없습니다
+  const z=mk(V2,'2026-10-21T08:51:00');
+  z.setS({ periodStart:21, payday:25 });
+  z.goTab('logs');
+  ok('기록이 하나도 없으면 이번 기간', z.payBack()===0 && z.renderVals().emptyLog===true);
+
+  // 한 달을 통째로 쉬었으면 빈 기간이 아니라 기록이 있는 기간
+  const g=mk(V2,'2026-10-21T08:51:00');
+  g.setS({ periodStart:21, payday:25 });
+  g.state.extra.push(night(g,8,10));
+  g.goTab('pay');
+  ok('비어 있는 바로 앞 기간을 건너뜁니다', g.renderVals().periodLabel.indexOf('07.21 → 08.20')>=0, g.renderVals().periodLabel);
+
+  // 저장된 탭이 근무기록인 채로 앱이 열릴 때도 같습니다. 생성자는 진짜 시계를
+  // 쓰므로 기록을 오늘에서 70일 앞에 둡니다 — 이번 기간은 언제나 비어 있습니다.
+  const t=new Date(Date.now()-70*86400000);
+  const rec={y:t.getFullYear(),m:t.getMonth()+1,day:t.getDate(),kind:'day',type:'shift',inH:9,outH:18};
+  const open=(tab)=>{
+    const store={'worklog.v2':JSON.stringify({v:2,settings:{periodStart:21,payday:25},extra:[rec],removed:[],tab})};
+    const gi=global.window.localStorage.getItem;
+    global.window.localStorage.getItem=k=>store[k]||null;
+    const x=new V2({});
+    global.window.localStorage.getItem=gi;
+    return x;
+  };
+  const L=open('logs');
+  ok('근무기록 탭으로 열리면 기록이 있는 기간', L.payBack()>0 && L.renderVals().logRows.length===1,
+    'back='+L.payBack()+' rows='+L.renderVals().logRows.length);
+  ok('출퇴근 탭으로 열리면 아무것도 바꾸지 않습니다', open('punch').payBack()===0);
+}
+
 console.log('\n== 명세서 대조는 기간마다 따로 남습니다 ==');
 // slips는 예전부터 기간 시작일로 키를 잡아 저장하고 있었습니다. 없던 것은
 // '지난 기간의 그 표를 여는 방법'이었습니다.
