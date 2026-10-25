@@ -7198,8 +7198,11 @@ console.log('\n== 화면 한 장이 근로자의 화면 한 장 반이었습니�
   // 끝은 설정 흐름이 닫히는 자리입니다 — 머리말까지 재면 EN ▾ 칩(30px)이
   // 딸려 들어와, 이 흐름을 잰다고 생각하면서 다른 화면을 재게 됩니다(스물일곱째)
   const su = tpl.slice(tpl.indexOf('{{ suOn }}'),
-    tpl.indexOf('display:flex;align-items:flex-end;justify-content:space-between;padding:8px 18px 10px'));
+    tpl.indexOf('<!-- 머리말.'));
 
+  // 끝 표지는 머리말의 주석입니다 — 머리말 스타일 문자열로 찾던 때, 그 줄에 gap 하나를
+  // 더하자 끝을 못 찾아 다른 화면까지 재었습니다(2026-10-26)
+  ok('머리말 표지가 한 자리에 있습니다', tpl.split('<!-- 머리말.').length === 2);
   ok('굴림판의 칸이 바닥 아래로 내려가지 않았습니다', V2.DRUM_ITEM >= 44, String(V2.DRUM_ITEM));
   // 통은 세 칸입니다 — 가운데와 위아래 이웃. 통이 칸의 세 배가 아니면 띠가
   // 가운데에 서지 않고, 그것은 오류를 내지 않습니다(마흔째).
@@ -7480,7 +7483,7 @@ console.log('\n== 다음 단추가 눌린 티를 내지 않았습니다 ==');
   const src = require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
   const tpl = src.split('class Component')[0];
   const su = tpl.slice(tpl.indexOf('{{ suOn }}'),
-    tpl.indexOf('display:flex;align-items:flex-end;justify-content:space-between;padding:8px 18px 10px'));
+    tpl.indexOf('<!-- 머리말.'));
 
   // ── 진행 막대는 위, 누를 것은 아래 ──────────────────────────────────
   const iProg = su.indexOf('{{ suProg }}');
@@ -7580,7 +7583,7 @@ console.log('\n== 갓 깐 앱의 첫 두 화면이 상태 표시줄 밑에 깔�
   // 44px은 이 앱에서 누를 것의 바닥입니다(마흔한째). 줄인 것은 글자 둘레의
   // 여백뿐이고, 글자 크기는 한 픽셀도 건드리지 않았습니다.
   const su = tpl.slice(tpl.indexOf('{{ suOn }}'),
-    tpl.indexOf('display:flex;align-items:flex-end;justify-content:space-between;padding:8px 18px 10px'));
+    tpl.indexOf('<!-- 머리말.'));
   // 여백은 그 뒤로 한 번 더 줄어 0이 됐습니다 — 아래 쉰두째를 보십시오.
   ok('두 칩의 여백이 좁아졌습니다',
     (su.split('padding:0;background:var(--color-text)').length - 1) === 2);
@@ -7608,7 +7611,7 @@ console.log('\n== 칩은 바닥에 닿았고, 바닥의 줄은 머리카락이 �
   const src = require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
   const tpl = src.split('class Component')[0];
   const su = tpl.slice(tpl.indexOf('{{ suOn }}'),
-    tpl.indexOf('display:flex;align-items:flex-end;justify-content:space-between;padding:8px 18px 10px'));
+    tpl.indexOf('<!-- 머리말.'));
 
   ok('두 칩에 글자 둘레의 여백이 없습니다',
     (su.split('padding:0;background:var(--color-text)').length - 1) === 2);
@@ -8516,6 +8519,20 @@ console.log('\n== 주머니 속에서 눌린 출근이 다음 날 아침 근무 
   u.setState({ session: null });                       // 다른 길(귀가·강제 퇴근)로 근무가 닫힘
   u.lastTap = null; tap(u);
   ok('새 출근에는 지난 카드가 따라오지 않습니다', !!u.state.session && u.state.oddOut === false && u.state.oddAt == null);
+}
+
+console.log('\n== 320px 폰에서 이름이 두 줄로 쪼개지고 급여기간 칩이 잘렸습니다 ==');
+// 2026-10-26 리뷰. 머리말의 이름(근무기록 L◷GGER)과 언어 칩과 급여기간 칩이 320px에 한 줄로
+// 들어가지 않아, 줄어들 수 있었던 이름이 'L◷ / GGER'로 쪼개졌고 칩은 오른쪽 끝에서 잘렸습니다.
+// 이름은 쪼개지지 않고, 칩 둘은 자리가 모자랄 때만 위아래로 섭니다.
+{
+  const src = require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tpl = src.split('class Component')[0];
+  const head = tpl.slice(tpl.indexOf('<!-- 머리말.'), tpl.indexOf('{{ monthChip }}') + 20);
+  ok('이름은 줄어들지도 쪼개지지도 않습니다',
+    /flex-direction:column;gap:2px;flex:none/.test(head) && /aria-label="근무기록 LOGGER" style="white-space:nowrap/.test(head));
+  ok('칩 둘은 자리가 모자라면 위아래로 섭니다', /justify-content:flex-end;flex-wrap:wrap;gap:6px 8px;min-width:0/.test(head));
+  ok('급여기간 칩도 쪼개지지 않습니다', /white-space:nowrap;font-size:10px;letter-spacing:0\.12em;padding:6px 11px/.test(head));
 }
 
 console.log('\n== 한국어로 둔 폰에서도 근무 중 안내는 영어였습니다 ==');
