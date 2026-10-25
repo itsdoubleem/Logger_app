@@ -8472,6 +8472,9 @@ console.log('\n== 주머니 속에서 눌린 출근이 다음 날 아침 근무 
   const card = tpl.slice(tpl.indexOf('{{ oddOut }}'), tpl.indexOf('{{ L.oddOutClose }}') + 30);
   ok('카드가 화면에 있습니다', card.indexOf('{{ L.oddOutTitle }}') > 0 && card.indexOf('{{ oddOutMsg }}') > 0);
   // 카드는 STOP을 누른 손가락 바로 아래에 뜹니다 — 근무 카드들 아래면 폰에서는 화면 밖입니다
+  // 리뷰 2회차 N5: '너무 이른 퇴근' 카드도 같은 자리 — 근무 카드들 아래면 폰 화면 밖이었습니다
+  ok('너무 이른 퇴근 카드도 패드 바로 아래입니다',
+    tpl.indexOf('{{ padBig }}') < tpl.indexOf('{{ shortOut }}') && tpl.indexOf('{{ shortOut }}') < tpl.indexOf('{{ dayTypeBtns }}'));
   ok('카드는 패드 바로 아래, 근무 카드들보다 위에 있습니다',
     tpl.indexOf('{{ padBig }}') < tpl.indexOf('{{ oddOut }}') && tpl.indexOf('{{ oddOut }}') < tpl.indexOf('{{ dayTypeBtns }}'));
   ok('세 길이 모두 단추입니다', ['confirmOddOut', 'redoClockIn', 'dismissOdd'].every(h => card.indexOf('onClick="{{ ' + h + ' }}"') > 0));

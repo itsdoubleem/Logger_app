@@ -537,6 +537,22 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
           </div>
         </div>
 
+        <!-- '너무 이른 퇴근' 카드도 패드 바로 아래입니다. 근무 카드들 아래에 있을 때는
+             폰 화면 밖이라, STOP을 누른 사람에게는 아무 일도 일어나지 않은 것으로
+             보였습니다(리뷰 2회차 N5). 두 카드는 함께 뜨지 않습니다(punch()). -->
+        <sc-if value="{{ shortOut }}" hint-placeholder-val="{{ false }}">
+          <div style="border-bottom:2px solid var(--color-divider);background:var(--color-accent-100);padding:13px 18px 15px">
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:15px">{{ L.tooSoon }}</div>
+            <div style="font-size:11.5px;line-height:1.5;color:var(--color-neutral-700);margin-top:6px;text-wrap:pretty">{{ shortOutMsg }}</div>
+            <div style="display:flex;flex-direction:column;gap:7px;margin-top:12px">
+              <div onClick="{{ dismissShort }}" style="min-height:44px;display:flex;align-items:center;padding:0 14px;background:var(--color-accent);color:var(--color-bg);font-family:var(--font-heading);font-weight:800;font-size:12.5px;cursor:pointer" style-hover="background:var(--color-accent-600)">{{ L.stay }}</div>
+              <div onClick="{{ sentHome }}" style="min-height:44px;display:flex;align-items:center;padding:0 14px;border:2px solid var(--color-accent);color:var(--color-accent-700);font-family:var(--font-heading);font-weight:800;font-size:12.5px;cursor:pointer" style-hover="background:var(--color-accent-100)">{{ L.sent }}</div>
+              <div onClick="{{ cancelClockIn }}" style="min-height:44px;display:flex;align-items:center;padding:0 14px;border:2px solid var(--color-text);font-family:var(--font-heading);font-weight:800;font-size:12.5px;cursor:pointer" style-hover="background:var(--color-neutral-300)">{{ L.undoIn }}</div>
+              <div onClick="{{ forceClockOut }}" style="min-height:44px;display:flex;align-items:center;padding:0 14px;border:2px solid var(--color-neutral-300);font-size:12px;color:var(--color-neutral-700);cursor:pointer" style-hover="background:var(--color-neutral-300)">{{ L.force }}</div>
+            </div>
+          </div>
+        </sc-if>
+
         <!-- 이상한 근무를 묻는 카드는 패드 바로 아래입니다 — STOP을 누른 손가락이 있는
              자리. 근무 카드들 아래에 두었더니 폰에서는 화면 밖이라, 누른 사람에게는 아무
              일도 일어나지 않은 것으로 보였습니다(여든여섯째). -->
@@ -584,18 +600,6 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
           </sc-for>
         </div>
 
-        <sc-if value="{{ shortOut }}" hint-placeholder-val="{{ false }}">
-          <div style="border-bottom:2px solid var(--color-divider);background:var(--color-accent-100);padding:13px 18px 15px">
-            <div style="font-family:var(--font-heading);font-weight:800;font-size:15px">{{ L.tooSoon }}</div>
-            <div style="font-size:11.5px;line-height:1.5;color:var(--color-neutral-700);margin-top:6px;text-wrap:pretty">{{ shortOutMsg }}</div>
-            <div style="display:flex;flex-direction:column;gap:7px;margin-top:12px">
-              <div onClick="{{ dismissShort }}" style="min-height:44px;display:flex;align-items:center;padding:0 14px;background:var(--color-accent);color:var(--color-bg);font-family:var(--font-heading);font-weight:800;font-size:12.5px;cursor:pointer" style-hover="background:var(--color-accent-600)">{{ L.stay }}</div>
-              <div onClick="{{ sentHome }}" style="min-height:44px;display:flex;align-items:center;padding:0 14px;border:2px solid var(--color-accent);color:var(--color-accent-700);font-family:var(--font-heading);font-weight:800;font-size:12.5px;cursor:pointer" style-hover="background:var(--color-accent-100)">{{ L.sent }}</div>
-              <div onClick="{{ cancelClockIn }}" style="min-height:44px;display:flex;align-items:center;padding:0 14px;border:2px solid var(--color-text);font-family:var(--font-heading);font-weight:800;font-size:12.5px;cursor:pointer" style-hover="background:var(--color-neutral-300)">{{ L.undoIn }}</div>
-              <div onClick="{{ forceClockOut }}" style="min-height:44px;display:flex;align-items:center;padding:0 14px;border:2px solid var(--color-neutral-300);font-size:12px;color:var(--color-neutral-700);cursor:pointer" style-hover="background:var(--color-neutral-300)">{{ L.force }}</div>
-            </div>
-          </div>
-        </sc-if>
 
         <sc-if value="{{ pending }}" hint-placeholder-val="{{ false }}">
           <div style="border-bottom:2px solid var(--color-divider);background:var(--color-accent-100);padding:13px 18px 15px">
