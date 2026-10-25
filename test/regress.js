@@ -4009,6 +4009,10 @@ console.log('\n== 이름 한가운데의 O는 앱의 시계입니다 ==');
   ok('아이콘 선 굵기도 원본과 같습니다',
     /stroke-width="3\.6"/.test(logo) && /^STROKE = 3\.6$/m.test(py));
   ok('아이콘에 지문은 남아 있지 않습니다', py.indexOf('M12 10a2 2 0 0 0-2 2') < 0);
+  // 리뷰: 적응형 아이콘의 투명 바탕이 '투명한 검정'이라 가장자리 픽셀이 검게 섞여
+  // 획마다 어두운 테가 졌습니다. 바탕은 '투명한 초록'이어야 합니다.
+  ok('적응형 아이콘의 바탕은 투명한 초록입니다', /Image\.new\("RGBA", \(size, size\), GREEN \+ \(0,\)\)/.test(py) && !/\(0, 0, 0, 0\)\), clock, folder/.test(py));
+  ok('안전 원 검사는 쓰기 전에, 모든 해상도에서', /r = reach_foreground\(img\)[\s\S]{0,200}raise SystemExit[\s\S]{0,200}img\.save\(path/.test(py));
   ok('선 굵기도 원본과 같습니다 — Archivo 800 옆에서 버티는 4.6',
     /stroke-width="4\.6"/.test(marks[0] || '') && /stroke-width="4\.6"/.test(art));
   // 세 자리의 크기·정렬이 한 벌입니다

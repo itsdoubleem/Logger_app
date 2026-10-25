@@ -269,8 +269,15 @@ def lay(size, clock, folder, box, span):
 
 
 def lay_foreground(size, clock, folder, box, span):
-    """A `size` px adaptive foreground: the mark alone, over transparency."""
-    return place(Image.new("RGBA", (size, size), (0, 0, 0, 0)), clock, folder, box, span)
+    """A `size` px adaptive foreground: the mark alone, over transparency.
+
+    The transparent canvas is transparent *green*, not transparent black. Paste
+    blends every channel through the mask, so on (0, 0, 0, 0) each antialiased
+    edge pixel came out green-darkened-toward-black and the stroke wore a thin
+    dark rim on the white disc (review, 2026-10-26). With the colour already
+    green, only the alpha ramps and the edge stays the mark's own colour.
+    """
+    return place(Image.new("RGBA", (size, size), GREEN + (0,)), clock, folder, box, span)
 
 
 def reach(path):
@@ -292,10 +299,10 @@ def reach(path):
     return 2 * far / n
 
 
-def reach_foreground(path):
+def reach_foreground(img):
     """How far the foreground's ink gets from the centre, as a fraction of the
     72dp viewport's diameter — the number the 66dp safe circle is judged by."""
-    img = Image.open(path).convert("RGBA")
+    img = img.convert("RGBA")
     px, n = img.load(), img.width
     c = (n - 1) / 2
     far = 0.0
@@ -320,9 +327,14 @@ def main():
         written(path)
 
     def emit_foreground(path, size):
-        lay_foreground(size, clock, folder, box, ADAPTIVE_SPAN * ADAPTIVE_VIEWPORT).save(
-            path, "PNG", optimize=True
-        )
+        # measured before it is written, at every density: a run that would leave
+        # the 66dp safe circle stops without touching the tree
+        img = lay_foreground(size, clock, folder, box, ADAPTIVE_SPAN * ADAPTIVE_VIEWPORT)
+        r = reach_foreground(img)
+        if r > ADAPTIVE_SAFE:
+            raise SystemExit(f"make_icons: {os.path.basename(os.path.dirname(path))} adaptive mark "
+                             f"reaches {r:.3f} > {ADAPTIVE_SAFE:.3f} — lower ADAPTIVE_SPAN")
+        img.save(path, "PNG", optimize=True)
         written(path)
 
     for name, size in [
@@ -356,10 +368,8 @@ def main():
 
     xxx = os.path.join(res, "mipmap-xxxhdpi", "ic_launcher_foreground.png")
     if os.path.exists(xxx):
-        r = reach_foreground(xxx)
+        r = reach_foreground(Image.open(xxx))
         print(f"{'adaptive ink reach':52}{r:>7.2f}  of the 72dp viewport (safe circle {ADAPTIVE_SAFE:.2f})")
-        if r > ADAPTIVE_SAFE:
-            raise SystemExit("make_icons: the adaptive mark leaves the 66dp safe circle — lower ADAPTIVE_SPAN")
 
     # The adaptive background is the disc, which at this point is one flat
     # colour, so it is written as a colour resource rather than five more
