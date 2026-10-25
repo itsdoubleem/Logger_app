@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ko" translate="no">
+<head>
+<meta charset="utf-8">
+<meta name="google" content="notranslate">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clock Folder Mark</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f3f2f2; --card: #ffffff; --ink: #201e1d; --muted: #6b6766;
+    --hair: #e0dddd; --accent: #ec3013; --green: #127e38;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'Archivo', system-ui, sans-serif; }
+  main { max-width: 960px; margin: 0 auto; padding: 24px 16px 60px; }
+  h1 { font-size: 22px; font-weight: 800; margin: 0 0 4px; }
+  .lede { font-size: 13px; color: var(--muted); margin: 0 0 22px; line-height: 1.5; max-width: 640px; }
+  .card { background: var(--card); border-radius: 16px; box-shadow: 0 1px 2px rgba(32,30,29,.06), 0 6px 18px rgba(32,30,29,.06); padding: 18px; margin-bottom: 16px; }
+  h2 { font-size: 16px; font-weight: 800; margin: 0 0 4px; }
+  .why { font-size: 12px; color: var(--muted); line-height: 1.5; margin: 0 0 14px; max-width: 640px; }
+  .row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 18px; }
+  .row figure { margin: 0; text-align: center; font-size: 10px; color: var(--muted); }
+  .row img, .home img { display: block; margin: 0 auto 5px; }
+  .home { background: linear-gradient(160deg, #3a4a5c, #1d2630); border-radius: 14px; padding: 16px; display: flex; gap: 16px; }
+  .home figure { color: #fff; }
+  .wm { font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
+  .wm img { width: 1.05em; height: 1.05em; vertical-align: -0.13em; margin: 0 0.03em; color: var(--green); }
+  .pads { display: flex; gap: 10px; max-width: 420px; }
+  .pad { flex: 1; background: var(--bg); border-radius: 14px; padding: 14px 8px 12px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+  .tile { width: 96px; height: 96px; border-radius: 26px; background: var(--bg); box-shadow: inset 0 0 0 1px var(--hair), 0 1px 2px rgba(32,30,29,.06), 0 6px 18px rgba(32,30,29,.06); display: flex; align-items: center; justify-content: center; }
+  .pad .ko { font-weight: 800; font-size: 26px; line-height: 1; }
+  .pad .en { font-weight: 800; font-size: 13px; letter-spacing: .12em; }
+  .pad .c { font-weight: 800; font-size: 26px; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<main>
+  <h1>시계 + 폴더 · Clock and folder</h1>
+  <p class="lede">The fingerprint’s replacement: a clock (the hours the app counts) with a folder (the record it keeps), drawn fresh in the app green <code>#127E38</code>. Contrast: 5.2 : 1 on white, 4.6 : 1 on the app grey.</p>
+
+  <section class="card">
+    <h2>Logo icon</h2>
+    <p class="why">The green mark on its own, transparent background — <code>logo/logo-mark.svg</code> plus PNGs at 1024, 512, 192, 180 and 48. Shown here on white, on the app grey and on a dark screen.</p>
+    <div class="row">
+      <figure><img src="logo/logo-mark-1024.png" width="160" height="160" alt="">160</figure>
+      <figure style="background:var(--bg);border-radius:12px;padding:8px"><img src="logo/logo-mark-1024.png" width="96" height="96" alt="">96 · app grey</figure>
+      <figure><img src="logo/logo-mark-1024.png" width="48" height="48" alt="">48</figure>
+      <figure style="background:#1d2630;color:#fff;border-radius:12px;padding:8px"><img src="logo/logo-mark-1024.png" width="96" height="96" alt="">96 · dark</figure>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Wordmark</h2>
+    <p class="why">The “O” in LOGGER is the approved icon’s clock without the folder — same ticks, same hands. Its lines are drawn a little heavier so they hold up beside Archivo’s extra-bold letters. File: <code>logo/clock-mark.svg</code>.</p>
+    <div class="wm" style="font-size:26px">근무기록 L<img src="logo/clock-mark.svg" alt="O">GGER</div>
+    <div style="height:6px"></div>
+    <div class="wm" style="font-size:16px">근무기록 L<img src="logo/clock-mark.svg" alt="O">GGER</div>
+  </section>
+
+  <section class="card">
+    <h2>Punch pad</h2>
+    <p class="why">One tap, no fingerprint. 출근 / 퇴근 sits above the button — the word on the paper the company hands the worker — and START / STOP sits below it.</p>
+    <div class="pads">
+      <div class="pad">
+        <div class="ko" style="color:var(--green)">출근</div>
+        <div class="tile"><svg width="52" height="52" viewBox="0 0 24 24"><path d="M8.5 5.5v13l10.5-6.5z" fill="#127e38" stroke="#127e38" stroke-width="2" stroke-linejoin="round"/></svg></div>
+        <div class="en" style="color:var(--green)">START</div>
+        <div class="c">--:--</div>
+      </div>
+      <div class="pad">
+        <div class="ko" style="color:var(--accent)">퇴근</div>
+        <div class="tile"><svg width="52" height="52" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" fill="#ec3013"/></svg></div>
+        <div class="en" style="color:var(--accent)">STOP</div>
+        <div class="c">3:42</div>
+      </div>
+    </div>
+  </section>
+</main>
+</body>
+</html>
