@@ -2,7 +2,7 @@
 
 > **This file describes v1.** For v2 — the version that ships now — substitute
 > `python3 build.py v2` and `dist-v2/` everywhere below, and `./build_apk.sh v2`
-> for the APK. Everything else on this page (hosting, HTTPS, WebAuthn, TWA,
+> for the APK. Everything else on this page (hosting, HTTPS, TWA,
 > assetlinks) is identical: both variants are one self-contained `index.html`
 > with the same `applicationId`, so a v2 install upgrades a v1 one in place and
 > the worker's records survive. See [`V2.md`](V2.md) for what changed.
@@ -31,17 +31,19 @@ Icons are regenerated with `python3 pwa/make_icons.py`. That script also writes
 the Android launcher bitmaps into `android/app/src/main/res/mipmap-*`, the
 adaptive icon's background colour, and the iOS `AppIcon.appiconset/icon-1024.png`.
 
-The mark is the **green fingerprint** — the punch pad's own nine-path glyph, in
-the same `oklch(0.52 0.14 149)`, on the white disc. Nothing is rasterised from a
-source file: the nine `d` strings live in `make_icons.py`, copied verbatim from
-`WorkLogApp.v2.dc.html`, and are flattened and stroked at whatever size is being
-emitted. So every icon is drawn at its own resolution, and every size is the same
-drawing — there is no longer a large mark and a small one.
+The mark is the **clock and folder** — a clock (the hours) with a folder (the
+record), green `oklch(0.52 0.14 149)` on the white disc. It replaced the green
+fingerprint on 2026-10-26, when punching became a plain START / STOP tap
+(`CHANGELOG.md`, eighty-sixth entry). The master drawing is
+`docs/design/logo/logo-mark.svg`. Nothing is rasterised from it: its shapes live
+in `make_icons.py` as `d` strings (the two circles rewritten as arcs) and are
+flattened and stroked at whatever size is being emitted, so every icon is drawn
+at its own resolution and every size is the same drawing.
 
-Keep those `d` strings byte-identical to the pad's. The fingerprint is the app's
-identity and its copies are meant to be one drawing. `pwa/icon-source.png` is the
-old 근무기록 · LOGGER wordmark; nothing reads it any more, and it is kept only
-because that wordmark is still the logo *inside* the app.
+Keep those strings in step with the master — `test/regress.js` compares them.
+The O in the in-app wordmark is the same clock without the folder
+(`docs/design/logo/clock-mark.svg`). `pwa/icon-source.png` is the old
+근무기록 · LOGGER wordmark bitmap; nothing reads it any more.
 
 > The PWA head tags live in `PWA_HEAD` inside `build.py`, not in the app
 > source. The build takes its outer template from the compiled bundle.
@@ -64,8 +66,8 @@ Any of these work equally well, all free, all https:
 
 Requirements the host must meet — all four do:
 
-- **https.** WebAuthn and service workers both refuse to run without it. This is
-  the one reason the fingerprint punch cannot work from a `file://` copy.
+- **https.** Service workers refuse to run without it, and `localStorage` on a
+  `file://` copy is unreliable.
 - **`sw.js` served from the site root** (or the same folder as `index.html`), so
   its scope covers the app. Don't move it into a subfolder.
 - No caching header longer than a few minutes on `index.html`. The service
@@ -74,13 +76,9 @@ Requirements the host must meet — all four do:
 
 ### Keep the domain stable
 
-Two things are bound to the origin and do **not** follow the app to a new URL:
-
-- the worker's records — `localStorage` is per-origin;
-- the registered fingerprint credential — WebAuthn binds it to the domain.
-
-Moving hosts means every user re-registers their fingerprint on first punch
-(one tap, harmless) and **loses their logged shifts unless they export first**.
+The worker's records live in `localStorage`, which is per-origin and does **not**
+follow the app to a new URL. Moving hosts means every user **loses their logged
+shifts unless they export first**.
 So: pick the domain before handing the link around, and if you ever do move,
 tell people to hit 설정 → 백업 → 파일로 내보내기 *before* they open the new URL,
 then 파일에서 불러오기 once they are there.
@@ -101,10 +99,6 @@ then 파일에서 불러오기 once they are there.
   **덮어쓰기**. A file that is not a Work Log backup is refused by name and
   changes nothing.
 - Nothing is uploaded at any point. There is no account and no sync.
-
-The fingerprint credential is deliberately **not** in the file: WebAuthn keys
-cannot leave the device they were made on. Restoring onto a new phone brings
-back every record, and the first punch there registers that phone's own finger.
 
 ### Why the APK needs extra code for this
 
@@ -151,13 +145,11 @@ your hand before deciding anything about hosting. Differences that matter:
 - The page is served by `WebViewAssetLoader` from
   `https://appassets.androidplatform.net`, not `file://`, so it is a real
   secure origin — localStorage persists and the service worker registers.
-- Android WebView has no WebAuthn platform authenticator, so the punch pad
-  would fall back to press-and-hold. `BioShim` supplies one: the app's own
-  `navigator.credentials` calls are answered by Android's `BiometricPrompt`.
-  The app source is unmodified and does not know it is in an APK. The
-  guarantee is the same — the phone verified its holder, locally, and nothing
-  left the device — but the mechanism is Android's, not WebAuthn's. Nothing is
-  signed either way, because there is no server; that is the app's design.
+- `BioShim` answers `navigator.credentials` with Android's `BiometricPrompt`,
+  which is how the fingerprint punch worked in the APK. **Since 2026-10-26 the
+  app never calls it** — punching is one tap — so it is installed but dormant.
+  Removing it (and `androidx.biometric` with it) is a separate cleanup; the app
+  source does not depend on it either way.
 - The APK holds **no INTERNET permission**, and cloud backup and device
   transfer are both switched off in the manifest. The 백업 export is the only
   way data leaves the phone, and the worker picks where it goes.
@@ -279,15 +271,14 @@ Turning R8 on would cut a lot of that.
 
 It is off anyway, because everything Java does here is reached **by name**:
 WebView looks up `@JavascriptInterface` methods from a string, and
-`BioShim`/`FileShim` call `window.WorkLogNative.<name>`. If R8 renames one of
-them the punch pad falls back to press-and-hold and the worker just experiences
-"the fingerprint stopped working". There are no tests over the Java — the 1296
-assertions are all on the web app — so nothing would catch it.
+`FileShim` calls `window.WorkLogNative.<name>`. If R8 renames one of them,
+백업 내보내기 silently stops reaching the disk. There are no tests over the
+Java — the assertions are all on the web app — so nothing would catch it.
 
 `android/app/proguard-rules.pro` already holds the keep rules. To turn it on,
 set `minifyEnabled true` (and optionally `shrinkResources true`) in the release
-buildType, then **verify on a real phone by hand**: fingerprint punch in and
-out, 백업 내보내기, and 백업 불러오기.
+buildType, then **verify on a real phone by hand**: punch in and out,
+백업 내보내기, and 백업 불러오기.
 
 ### Before the first upload
 
@@ -301,12 +292,9 @@ out, 백업 내보내기, and 백업 불러오기.
 ## Wrapping the URL into an APK
 
 Use a **Trusted Web Activity** (TWA), not a WebView wrapper. A TWA runs the page
-in the user's real Chrome, so the fingerprint prompt, the service worker and
-localStorage all behave exactly as they do in the browser — and the APK shares
+in the user's real Chrome, so the service worker and localStorage behave
+exactly as they do in the browser — and the APK shares
 storage with the site, so anyone who used the web version keeps their records.
-A plain WebView (`android.webkit.WebView`, most "site to app" generators) does
-not reliably expose the platform authenticator, and the punch pad would silently
-fall back to press-and-hold.
 
 ### Option A — PWABuilder, no local toolchain
 
@@ -366,10 +354,10 @@ platforms and separate listings and share nothing but the name.
 
 ### Why there is an HTTP server inside an offline app
 
-`WorkLogApp.v2.dc.html:5373` gives up on the fingerprint the moment
-`window.isSecureContext` is false, and every record the worker owns lives in
-localStorage, which is keyed by origin. A WKWebView can load the page three
-ways and only one satisfies both:
+Every record the worker owns lives in localStorage, which is keyed by origin, and
+the service worker needs a secure context. (Until 2026-10-26 the fingerprint
+punch needed one too.) A WKWebView can load the page three ways and only one
+satisfies both:
 
 | | secure context | localStorage |
 |---|---|---|
@@ -397,7 +385,9 @@ modified for the app and does not know it is inside one. WKWebView answers
 `postMessage` with a real Promise (`WKScriptMessageHandlerWithReply`), so the
 whole pending-map-and-`settle()` half of the Android shim is simply absent.
 
-- **지문.** Backed by `LAContext`, not WebAuthn. Unlike the Android shim this
+- **지문 — dormant since 2026-10-26.** Punching is one tap and the app no longer
+  calls `navigator.credentials`, so this bridge is installed but never reached.
+  What follows is how it worked. Backed by `LAContext`, not WebAuthn. Unlike the Android shim this
   one does *not* stand aside for an existing `window.PublicKeyCredential`:
   WKWebView does expose the WebAuthn interface, but WebKit resolves a passkey's
   relying party through the app's Associated Domains entitlement and no domain
@@ -432,26 +422,8 @@ xcrun simctl spawn booted log stream --style compact \
   --predicate 'eventMessage CONTAINS "[worklog]"'
 ```
 
-Face ID is off in a fresh simulator, so `isUVPAA` is `success(0)` and the pad
-correctly drops to press-and-hold. Turn it on with Features ▸ Face ID ▸
-Enrolled, and answer a prompt with Features ▸ Face ID ▸ Matching Face. The
-`notifyutil` recipes that used to trigger those do not work on Xcode 26; the
-menu items do, and are reachable from a script:
-
-```sh
-osascript -e 'tell application "System Events" to tell process "Simulator" \
-  to click menu item "Matching Face" of menu 1 of menu item "Face ID" of menu 1 \
-  of menu bar item "Features" of menu bar 1'
-```
-
-**A punch that fails the instant it is asked, with no sheet drawn, is almost
-always focus and not code.** iOS refuses to evaluate biometrics for an app that
-is not frontmost, and the refusal arrives as a plain failure — indistinguishable
-from a worker who declined. It is only reachable from a harness driving a
-window that does not have focus (a finger on the punch pad means the app is
-active by definition), and it cost a round of blaming `Bridge.swift` for it.
-Same shape as the headless-Chrome focus note in `CLAUDE.md`, and it lies the
-same way: it looks exactly like a broken feature. Activate the Simulator first.
+The `isUVPAA` line comes from the dormant fingerprint bridge (above) and no
+longer affects the pad: punching is one tap whether or not Face ID is enrolled.
 
 ### Onto a real iPhone
 

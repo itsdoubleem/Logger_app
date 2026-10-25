@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="13 13 72 72" width="1024" height="1024">
+  <!-- 근무기록 LOGGER mark: clock (the hours) + folder (the record). Transparent;
+       the mask cuts the clock ring where the folder overlaps it. -->
+  <defs>
+    <mask id="cut" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
+      <rect width="100" height="100" fill="#fff"/>
+      <path d="M51 51.5h33v31H51z" fill="#000"/>
+    </mask>
+  </defs>
+  <g fill="none" stroke="#127e38" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round">
+    <g mask="url(#cut)">
+      <circle cx="44" cy="44" r="27"/>
+      <path d="M44 21.5v4M21.5 44h4M62.5 44h4M44 62.5v4"/>
+      <path d="M44 44 30.5 31M44 44 55 33"/>
+      <circle cx="44" cy="44" r="1.3"/>
+    </g>
+    <path d="M55 77V57.5a3 3 0 0 1 3-3h7.5l3 3.5h9.5a3 3 0 0 1 3 3V77a3 3 0 0 1-3 3H58a3 3 0 0 1-3-3Z"/>
+    <path d="M55 64.5h26M61 71.5h13"/>
+  </g>
+</svg>

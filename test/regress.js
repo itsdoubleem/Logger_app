@@ -2992,14 +2992,15 @@ console.log('\n== 기록이 뒤에 있으면 처음 쓰는 사람에게 하는 �
   ok('기록이 남아 있다고 말합니다', V.L.emptyBody.indexOf('그대로 있습니다')>=0, V.L.emptyBody);
   ok('어느 기간인지 이름으로 짚습니다', V.L.emptyBody.indexOf('07.21 → 08.20')>=0, V.L.emptyBody);
   ok('스테퍼의 ‹ 를 짚습니다', V.L.emptyBody.indexOf('‹')>=0, V.L.emptyBody);
-  ok('지문 안내는 사라집니다', V.L.emptyBody.indexOf('지문으로 출근')<0, V.L.emptyBody);
+  ok('출근 안내는 사라집니다', V.L.emptyBody.indexOf('출근 START를 누르')<0, V.L.emptyBody);
 
   // 정말 처음 쓰는 사람에게는 예전 그대로여야 합니다 — 그 사람에게는
   // 돌아갈 기간이 없고, 필요한 것은 출근하는 법입니다
   const fresh=mk(V2,'2026-08-21T09:00:00'); fresh.setS({ periodStart:21, payday:25 });
   const F=fresh.renderVals();
   ok('처음 쓰는 사람에게는 예전 그대로', F.L.emptyTitle==='기록이 없습니다', F.L.emptyTitle);
-  ok('출근하는 법을 알려 줍니다', F.L.emptyBody.indexOf('지문으로 출근')>=0, F.L.emptyBody);
+  // (2026-10-26) 지문이 빠진 뒤로 출근하는 법은 '출근 START를 누르거나'입니다
+  ok('출근하는 법을 알려 줍니다', F.L.emptyBody.indexOf('출근 START를 누르')>=0, F.L.emptyBody);
   ok('돌아갈 기간이 없습니다', fresh.emptyLogBack()===0);
 
   // 바로 앞 기간도 비어 있으면 그 앞을 짚습니다 — 한 달을 통째로 쉰 사람에게
@@ -3949,10 +3950,15 @@ console.log('\n== 이 칸에 적는 것은 사람이 아니라 회사 이름입�
   c.setS({ lang:'ko' });
 }
 
-console.log('\n== 이름 한가운데의 O는 출퇴근 패드의 지문입니다 ==');
+console.log('\n== 이름 한가운데의 O는 앱의 시계입니다 ==');
 // 근로자가 물어서 만든 것입니다: 앱 이름의 O 자리에 출퇴근 화면의 초록 지문을
 // 넣어 주십시오. 이름이 나오는 자리는 셋입니다 — 머리말, 소개 화면, 설정 › 정보.
 // 셋이 서로 다르게 생기면 그것은 로고가 아니라 사고입니다.
+//
+// 2026-10-26: 지문으로 찍지 않게 되면서 O도 지문에서 시계로 바뀌었습니다 —
+// 앱 아이콘(시계 + 폴더)에서 폴더를 뺀 그 시계입니다. 14–16px에서는 폴더가
+// 뭉개지기 때문입니다. 원본은 docs/design/logo/clock-mark.svg이고, 셋 모두
+// 그 그림과 같아야 합니다.
 {
   const fs = require('fs');
   const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
@@ -3976,7 +3982,35 @@ console.log('\n== 이름 한가운데의 O는 출퇴근 패드의 지문입니�
   // 그림은 글자가 아니므로, 이름은 aria-label이 말해 줍니다
   ok('세 자리 모두 읽을 수 있는 이름이 붙어 있습니다',
     count(/aria-label="근무기록 LOGGER/g)===3);
-  ok('그림 자체는 읽히지 않습니다', count(/<svg viewBox="0 0 24 24"[^>]*aria-hidden="true"/g)>=3);
+  ok('그림 자체는 읽히지 않습니다', count(/<svg viewBox="15 15 58 58"[^>]*aria-hidden="true"/g)===3);
+  ok('이름 안에 지문은 남아 있지 않습니다', tpl.indexOf('M12 10a2 2 0 0 0-2 2') < 0);
+  // 셋이 같은 그림이고, 그 그림이 승인된 시계 원본과 같은 선을 긋습니다
+  const marks = tpl.match(/<svg viewBox="15 15 58 58"[\s\S]*?<\/svg>/g) || [];
+  ok('세 시계가 한 그림입니다', marks.length === 3 && marks.every(m => m === marks[0]));
+  const art = fs.readFileSync(__dirname + '/../docs/design/logo/clock-mark.svg', 'utf8');
+  const shapes = x => (x.match(/<(?:circle|path) [^>]*?\/?>/g) || [])
+    .map(e => e.replace(/\s*\/?>$/, '').replace(/\s+/g, ' '));
+  ok('그 그림은 docs/design의 시계 원본입니다',
+    marks.length > 0 && JSON.stringify(shapes(marks[0])) === JSON.stringify(shapes(art)),
+    JSON.stringify(shapes(marks[0] || '')) + ' vs ' + JSON.stringify(shapes(art)));
+  // 앱 아이콘(pwa/make_icons.py)도 같은 원본에서 나옵니다 — 시계 + 폴더.
+  // 파이썬은 path만 읽어서 원을 호 두 개로 다시 썼으니, 선과 폴더는 글자 그대로,
+  // 원은 중심과 반지름으로, 마스크는 지우는 사각형으로 견줍니다.
+  const py = fs.readFileSync(__dirname + '/../pwa/make_icons.py', 'utf8');
+  const logo = fs.readFileSync(__dirname + '/../docs/design/logo/logo-mark.svg', 'utf8');
+  const ds = [...logo.matchAll(/<path d="([^"]+)"/g)].map(m => m[1]);
+  ok('아이콘 그림의 선과 폴더가 원본과 글자 그대로 같습니다',
+    ds.length === 5 && ds.filter(d => d !== 'M51 51.5h33v31H51z').every(d => py.indexOf('"' + d + '"') >= 0), ds.join(' | '));
+  ok('아이콘의 링과 축은 원본의 원입니다',
+    /<circle cx="44" cy="44" r="27"\/>/.test(logo) && py.indexOf('"M17 44a27 27 0 1 0 54 0a27 27 0 1 0-54 0"') >= 0
+    && /<circle cx="44" cy="44" r="1.3"\/>/.test(logo) && py.indexOf('"M42.7 44a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0-2.6 0"') >= 0);
+  ok('폴더 자리에서 링을 끊는 사각형이 원본의 마스크와 같습니다',
+    logo.indexOf('<path d="M51 51.5h33v31H51z" fill="#000"/>') >= 0 && py.indexOf('CUT = (51, 51.5, 84, 82.5)') >= 0);
+  ok('아이콘 선 굵기도 원본과 같습니다',
+    /stroke-width="3\.6"/.test(logo) && /^STROKE = 3\.6$/m.test(py));
+  ok('아이콘에 지문은 남아 있지 않습니다', py.indexOf('M12 10a2 2 0 0 0-2 2') < 0);
+  ok('선 굵기도 원본과 같습니다 — Archivo 800 옆에서 버티는 4.6',
+    /stroke-width="4\.6"/.test(marks[0] || '') && /stroke-width="4\.6"/.test(art));
   // 세 자리의 크기·정렬이 한 벌입니다
   ok('크기와 정렬이 셋 다 같습니다',
     count(/width:1\.05em;height:1\.05em;vertical-align:-0\.13em/g)===3);
@@ -3986,7 +4020,7 @@ console.log('\n== 이름 한가운데의 O는 출퇴근 패드의 지문입니�
   // 있지도 않은 이력을 주장하는 것입니다.
   const about = tpl.slice(tpl.indexOf('{{ L.secAbout }}'), tpl.indexOf('{{ L.aboutMadeBy }}'));
   // 태그를 걷어내고 글자만 봅니다 — path 데이터에도 'v2'(세로선 명령)가 들어 있어서,
-  // 날것 그대로 찾으면 지문 그림이 판 번호로 잡힙니다. 한 번 그렇게 걸렸습니다.
+  // 날것 그대로 찾으면 그림이 판 번호로 잡힙니다(지문 시절에 한 번 그렇게 걸렸습니다).
   const aboutText = about.replace(/<[^>]*>/g, '');
   ok('정보에는 판 번호가 없습니다', !/v\d/i.test(aboutText), aboutText.trim());
   ok('정보의 읽는 이름도 판 번호가 없습니다',
@@ -3999,7 +4033,7 @@ console.log('\n== 이름 한가운데의 O는 출퇴근 패드의 지문입니�
   const c = decSetup('2026-12-20T09:00:00');
   const doc = c.evidenceHtml(c.period(c.now()));
   ok('문서는 여전히 글자로 근무기록 LOGGER라고 씁니다', doc.indexOf('근무기록 LOGGER')>=0);
-  ok('문서에 지문 그림은 없습니다', doc.indexOf('<svg')<0);
+  ok('문서에 로고 그림은 없습니다', doc.indexOf('<svg')<0);
 }
 
 console.log('\n== 시계가 1초마다 도는데 기록 전부를 예순 번 다시 셌습니다 ==');
@@ -8084,32 +8118,289 @@ console.log('\n== 카드를 쓸면 화면이 굳었고, 짚으면 출근이 찍�
   const fs = require('fs');
   const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
   const tpl = src.slice(0, src.indexOf('</x-dc>')).replace(/<!--[\s\S]*?-->/g, '');
-  const pad = tpl.match(/<div style="position:relative;overflow:hidden;[^"]*padding:20px 18px 22px;[^"]*"[^>]*>/);
-  ok('지문 카드가 그대로 있습니다', !!pad);
+  // (2026-10-26) 지문과 길게 누르기가 빠지고 패드가 3분의 2로 줄었습니다 —
+  // 상자는 64px, 카드 여백은 13px 12px 15px. 이 항목의 교훈은 그대로입니다.
+  const pad = tpl.match(/<div style="position:relative;overflow:hidden;[^"]*padding:13px 12px 15px;[^"]*"[^>]*>/);
+  ok('출퇴근 카드가 그대로 있습니다', !!pad);
   const padTag = pad ? pad[0] : '';
   ok('카드는 더 이상 손잡이가 아닙니다',
     padTag.indexOf('onClick') < 0 && padTag.indexOf('onPointerDown') < 0, padTag);
   ok('카드가 스크롤을 먹지 않습니다', padTag.indexOf('touch-action') < 0, padTag);
 
-  const box = tpl.match(/<div [^>]*width:96px;height:96px;[^>]*>/);
-  ok('지문 상자가 그대로 있습니다', !!box);
+  const box = tpl.match(/<div [^>]*width:64px;height:64px;[^>]*>/);
+  ok('출퇴근 상자가 그대로 있습니다', !!box);
   const boxTag = box ? box[0] : '';
-  ok('찍는 것은 지문 상자입니다',
-    /onPointerDown="\{\{ holdStart \}\}"/.test(boxTag)
-    && /onPointerUp="\{\{ holdEnd \}\}"/.test(boxTag)
-    && /onPointerLeave="\{\{ holdEnd \}\}"/.test(boxTag)
-    && /onClick="\{\{ padTap \}\}"/.test(boxTag), boxTag);
-  ok('지문 상자 위에서는 길게 누르기를 스크롤러가 가로채지 못합니다',
-    boxTag.indexOf('touch-action:none') >= 0, boxTag);
-  ok('지문 상자가 손가락에게 단추라고 말합니다',
+  ok('찍는 것은 출퇴근 상자입니다', /onClick="\{\{ padTap \}\}"/.test(boxTag), boxTag);
+  // 길게 누르기가 없으니 스크롤러를 막을 까닭도 없습니다. manipulation은 두 번
+  // 톡 쳐서 확대하는 것만 끕니다 — 누름이 300ms 늦게 오지 않게.
+  ok('상자 위에서도 화면은 스크롤됩니다',
+    boxTag.indexOf('touch-action:none') < 0 && boxTag.indexOf('touch-action:manipulation') >= 0, boxTag);
+  ok('출퇴근 상자가 손가락에게 단추라고 말합니다',
     boxTag.indexOf('cursor:pointer') >= 0, boxTag);
-  // 층 규칙 5는 96px 두 값으로만 상자를 잡습니다 — 크기는 그대로여야 합니다.
+  // 층 규칙 5는 64px 두 값으로만 상자를 잡습니다 — 크기를 바꾸면 세 곳을 같이.
   const ds = fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
-  ok('지문 상자는 여전히 층 규칙 5가 잡는 96px입니다',
-    ds.indexOf('[style*="width: 96px"][style*="height: 96px"]') >= 0
-    && /width:96px;height:96px/.test(boxTag));
+  ok('출퇴근 상자는 층 규칙 5가 잡는 64px입니다',
+    ds.indexOf('[style*="width: 64px"][style*="height: 64px"]') >= 0
+    && /width:64px;height:64px/.test(boxTag));
   // 손잡이는 하나뿐이어야 합니다 — 카드 안에 또 다른 padTap이 생기면 안 됩니다.
   ok('padTap은 화면에 한 자리뿐입니다', (tpl.match(/\{\{ padTap \}\}/g) || []).length === 1);
+}
+
+console.log('\n== 지문은 필요 없었습니다 — 한 번 누르면 출근, 한 번 누르면 퇴근 ==');
+// 2026-10-26. 근로자가 말했습니다: 이 앱이 하는 일은 일한 시간을 세는 것이지
+// 본인을 확인하는 것이 아니다. 지문은 그 일에 아무것도 더하지 않았고, 아이폰에서는
+// 걸림돌이었습니다 — WKWebView는 WebAuthn을 쓸 수 없어서 LAContext 다리와
+// 127.0.0.1 서버까지 세워야 했습니다. 그래서 지문(WebAuthn)과 길게 누르기를 다
+// 걷어 내고 패드를 START / STOP 단추 하나로 바꿨습니다. 출근이면 초록 ▶, 근무 중이면
+// 빨강 ■. 위에는 종이에 적힌 말 출근/퇴근, 아래에는 START/STOP.
+//
+// 길게 누르기가 막던 것은 주머니 속 실수였습니다. 그 일부는 원래 있던 두 장치가
+// 받습니다: 30분 안의 두 번째 누름은 퇴근이 되지 않고 출근 취소를 내밀며(shortOut),
+// 1.5초 안에 다시 닿은 손가락은 같은 누름으로 봅니다. 못 보고 지나간 주머니 속
+// START는 퇴근할 때 묻습니다 — 아래 '주머니 속에서 눌린 출근' 항목.
+//
+// 다음 사람에게: 단추를 '안전하게' 하려고 확인 창이나 길게 누르기를 다시 붙이지
+// 마십시오. 하루 두 번 누르는 단추에 붙인 마찰은 매일 두 번 내는 세금입니다.
+// 실수는 누른 다음에 받아 주는 것이 맞고, 못 받는 자리는 퇴근할 때 묻는 쪽입니다.
+{
+  const fs = require('fs');
+  const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const code = src.split('\n').filter(l => l.indexOf('"en":') < 0).join('\n');
+  ok('지문을 부르는 코드가 남아 있지 않습니다',
+    !/navigator\.credentials|PublicKeyCredential|bioPunch|bioDetect|startHold|holdStart/.test(code));
+  const tpl = src.slice(0, src.indexOf('</x-dc>')).replace(/<!--[\s\S]*?-->/g, '');
+  const padTpl = tpl.slice(tpl.indexOf('{{ padStamp }}'), tpl.indexOf('{{ padBig }}'));
+  ok('패드에 지문 그림이 없습니다', padTpl.length > 0 && padTpl.indexOf('M12 10a2 2 0 0 0-2 2') < 0);
+
+  const c = mk(V2, '2026-10-26T08:50:00');
+  let R = c.renderVals();
+  ok('출근 전: 위에는 출근', R.padStamp === '출근', R.padStamp);
+  ok('출근 전: 아래에는 START', R.padTitle === 'START', R.padTitle);
+  ok('출근 전: ▶가 보이고 ■는 숨습니다', R.padOff === true && R.padLive === false);
+  ok('출근 쪽 글자는 앱의 초록입니다', R.padStampInk === R.padIconInk && /^oklch/.test(R.padIconInk), R.padStampInk);
+  ok('패드에 지문 안내 문장이 없습니다', !('padSub' in R));
+
+  R.padTap();
+  ok('한 번 누르면 출근입니다', !!c.state.session, JSON.stringify(c.state.session));
+  const inIso = c.state.session && c.state.session.inIso;
+  R = c.renderVals(); R.padTap();
+  ok('곧바로 한 번 더 닿은 손가락은 같은 누름입니다 — 출근 그대로, 경고 카드도 없습니다',
+    c.state.session && c.state.session.inIso === inIso && !c.state.shortOut);
+  R = c.renderVals();
+  ok('근무 중: 위에는 퇴근, 아래에는 STOP', R.padStamp === '퇴근' && R.padTitle === 'STOP');
+  ok('근무 중: ■가 보이고 ▶는 숨습니다', R.padLive === true && R.padOff === false);
+  ok('퇴근 쪽 글자는 앱의 빨강입니다', R.padStampInk === 'var(--color-accent)', R.padStampInk);
+
+  // 2초 뒤의 두 번째 누름은 진짜 누름입니다 — 다만 30분이 안 됐으니 퇴근이 되지 않고
+  // 출근을 취소할 길을 내밉니다. 주머니 속 실수를 받는 것은 이쪽입니다.
+  c.lastTap = performance.now() - 2000; R.padTap();
+  ok('30분 안의 두 번째 누름은 퇴근이 아니라 확인 카드입니다',
+    !!c.state.session && c.state.shortOut === true && c.state.extra.length === 0);
+  c.cancelClockIn();
+  ok('그 카드에서 출근을 취소할 수 있습니다', !c.state.session);
+  // 같은 누름인지는 폰 시계가 아니라 흐른 시간으로 잽니다(리뷰 S2) — 폰 시계가
+  // 뒤로 맞춰져도 손가락이 삼켜지지 않게.
+  const tapSrc = src.slice(src.indexOf('  padTap = () => {'), src.indexOf('  padTap = () => {') + 200);
+  // performance.now()는 앱을 연 순간 0에서 시작합니다. 첫 누름을 0과 견주면 앱을
+  // 열자마자 누른 출근이 삼켜집니다 — 아침에 폰을 꺼내 바로 누르는 바로 그 손가락입니다.
+  {
+    const realNow = performance.now;
+    performance.now = () => 100;
+    try {
+      const e = mk(V2, '2026-10-26T08:50:00');
+      e.renderVals().padTap();
+      ok('앱을 연 지 0.1초에 누른 출근도 찍힙니다', !!e.state.session);
+    } finally { performance.now = realNow; }
+  }
+  ok('반복 누름은 performance.now()로 잽니다', /performance\.now\(\)/.test(tapSrc) && !/Date\.now\(\)/.test(tapSrc), tapSrc);
+
+  // 제대로 된 하루: 08:50 출근 → 18:05 퇴근, 한 번씩 눌러서.
+  const d = mk(V2, '2026-10-26T18:05:00');
+  d.state.session = { inIso: new Date('2026-10-26T08:50:00').toISOString() };
+  d.renderVals().padTap();
+  ok('한 번 누르면 퇴근이고 근무가 기록됩니다', !d.state.session && d.state.extra.length === 1,
+    'records=' + d.state.extra.length);
+
+  // 화면의 말도 지문을 잊었습니다. 여덟 언어 어디에도 '지문'이 남으면, 그 언어로
+  // 읽는 근로자는 없는 지문 센서를 찾아 폰을 뒤집어 봅니다.
+  const L = { base: require('../lang/base.json') };
+  ['vi', 'zh', 'th', 'id', 'km', 'ne'].forEach(k => { L[k] = require('../lang/' + k + '.json'); });
+  const FP = { ko: /지문/, en: /fingerprint/i, vi: /vân tay/i, zh: /指纹/, th: /ลายนิ้วมือ/,
+    id: /sidik jari/i, km: /ស្នាមម្រាមដៃ/, ne: /औंठा|औँठा|फिंगरप्रिन्ट/ };
+  const left = [];
+  Object.entries(L.base).forEach(([k, v]) => { ['ko', 'en'].forEach(x => { if (FP[x].test(v[x] || '')) left.push(x + ':' + k); }); });
+  ['vi', 'zh', 'th', 'id', 'km', 'ne'].forEach(x =>
+    Object.entries(L[x]).forEach(([k, v]) => { if (FP[x].test(v)) left.push(x + ':' + k); }));
+  ok('여덟 언어 어디에도 지문이라는 말이 없습니다', left.length === 0, left.join(' '));
+  ok('출근하는 법은 출근 START를 누르는 것입니다',
+    c.T('tour1_body').indexOf('출근 START') >= 0 && c.T('tour1_body').indexOf('퇴근 STOP') >= 0, c.T('tour1_body'));
+
+  // 크기는 예전의 3분의 2 — 글자는 숫자로 고정해 둡니다(docs/design/DESIGN.md).
+  const pad = tpl.slice(tpl.indexOf('{{ padStamp }}') - 300, tpl.indexOf('{{ padBig }}') + 20);
+  ok('출근/퇴근은 17px', /font-size:17px;[^"]*">\{\{ padStamp \}\}/.test(pad));
+  ok('START/STOP은 11px', /font-size:11px;[^"]*">\{\{ padTitle \}\}/.test(pad));
+  ok('시각은 20px', /font-size:20px;[^"]*">\{\{ padBig \}\}/.test(pad));
+  ok('▶와 ■는 35px', (pad.match(/<svg width="35" height="35"/g) || []).length === 2);
+}
+
+console.log('\n== 주머니 속에서 눌린 출근이 다음 날 아침 근무 한 칸이 됐습니다 ==');
+// 2026-10-26, 같은 날의 리뷰(S1). 한 번 누르면 찍히게 바꾸자, 길게 누르기가 막던
+// 실수 하나가 그대로 지나가게 됐습니다. 저녁 20:00에 주머니 속에서 START가 눌리고,
+// 근로자는 화면의 근무중을 못 본 채 다음 날 07:50에 출근하며 평소처럼 단추를
+// 누릅니다. 그 누름은 출근이 아니라 퇴근이 되어 20:00 → 07:50, 11.8시간짜리 야간
+// 근무를 남겼습니다 — 주말이었다면 특근, ×1.5. 근무내역서에 그대로 실립니다.
+//
+// 누르기 전의 마찰은 되돌리지 않기로 했습니다. 묻는 자리는 퇴근입니다: 근무가
+// 14시간을 넘거나, 출근이 근무조 시작에서 4시간 넘게 떨어져 있으면 저장하기 전에
+// 카드가 묻습니다 — 맞다 / 잘못 눌린 출근이니 지우고 지금 출근 / 아직 아니다.
+//
+// 다음 사람에게: 이 카드는 이상한 모양만 묻습니다. 야간조의 20:00 → 07:50은 진짜
+// 근무와 모양이 같아 가려낼 수 없습니다. 기준을 넓혀 그것까지 잡으려 하면 매일
+// 아침 진짜 근무가 카드를 만나고, 그러면 아무도 카드를 읽지 않습니다.
+{
+  const fs = require('fs');
+  const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tap = c => c.renderVals().padTap();
+  const at = (iso) => { const c = mk(V2, iso); c.lastTap = null; return c; };
+
+  // 주간만(기본값, 09:00 시작) — 20:00 출근은 시작에서 11시간 떨어져 있습니다
+  const c = at('2026-10-27T07:50:00');
+  c.state.session = { inIso: new Date('2026-10-26T20:00:00').toISOString() };
+  tap(c);
+  ok('다음 날 아침의 누름은 곧바로 퇴근이 되지 않습니다', !!c.state.session && c.state.extra.length === 0,
+    'records=' + c.state.extra.length);
+  let R = c.renderVals();
+  ok('카드가 묻습니다', R.oddOut === true);
+  ok('언제부터 출근으로 되어 있는지 날짜까지 말합니다', R.oddOutMsg.indexOf('10.26 20:00') >= 0, R.oddOutMsg);
+  // 카드의 시간은 출근부터 흐른 시간입니다 — 저장될 근무 시간은 반올림과 휴게를 거쳐
+  // 다르므로, '그만큼으로 기록된다'고 약속하지 않습니다(리뷰 2회차 N2).
+  ok('출근부터 몇 시간이 지났는지 말합니다', R.oddOutMsg.indexOf('11.8시간이 지났습니다') >= 0, R.oddOutMsg);
+  ok('왜 묻는지 말합니다 — 근무조 시작에서 떨어진 출근', R.oddOutMsg.indexOf('09:00') >= 0 && R.oddOutMsg.indexOf('6시간') >= 0, R.oddOutMsg);
+  ok('14시간은 넘지 않았으니 그 말은 하지 않습니다', R.oddOutMsg.indexOf('14시간') < 0, R.oddOutMsg);
+
+  // 카드가 떠 있는 동안 또 누르면 — 여전히 묻기만 합니다
+  c.lastTap = null; tap(c);
+  ok('카드가 떠 있는 동안 또 눌러도 기록되지 않습니다', c.state.extra.length === 0 && c.renderVals().oddOut === true);
+
+  // ① 잘못 눌린 출근 — 지우고 지금 출근
+  R.redoClockIn();
+  ok('잘못 눌린 출근은 지워지고 지금이 출근이 됩니다',
+    c.state.extra.length === 0 && !!c.state.session
+    && Math.abs(new Date(c.state.session.inIso) - new Date('2026-10-27T07:50:00')) < 5000,
+    c.state.session && c.state.session.inIso);
+  ok('카드는 닫힙니다', c.renderVals().oddOut === false);
+
+  // ② 아직 아니다 — 닫기
+  const d = at('2026-10-27T07:50:00');
+  d.state.session = { inIso: new Date('2026-10-26T20:00:00').toISOString() };
+  tap(d); d.renderVals().dismissOdd();
+  ok('닫으면 근무는 그대로 이어지고 기록도 없습니다',
+    d.state.extra.length === 0 && d.state.session.inIso === new Date('2026-10-26T20:00:00').toISOString()
+    && d.renderVals().oddOut === false);
+
+  // ③ 맞다 — 평소대로 퇴근
+  const e = at('2026-10-27T07:50:00');
+  e.state.session = { inIso: new Date('2026-10-26T20:00:00').toISOString() };
+  tap(e); e.renderVals().confirmOddOut();
+  ok('맞다고 하면 평소대로 퇴근이 기록됩니다', !e.state.session && e.state.extra.length === 1,
+    'records=' + e.state.extra.length);
+  ok('확인은 깃발로 남지 않습니다', !('oddOk' in e) && e.state.oddAt == null);
+
+  // 리뷰 2회차 S1: 확인이 깃발(this.oddOk)이던 때, 14시간이 넘어 열린 카드를 24시간이
+  // 지난 뒤에 '맞습니다'로 누르면 staleOut 출구로 빠지며 깃발이 남았고, 그 다음 주머니
+  // 속 출근은 묻지도 않고 저장됐습니다. 이제 확인은 STOP을 누른 순간과 함께 인자로만
+  // 가고, 그 순간은 카드를 연 때라 24시간을 넘지 않습니다.
+  const q = at('2026-10-27T08:00:00');
+  q.state.session = { inIso: new Date('2026-10-26T08:30:00').toISOString() };   // 23.5시간
+  tap(q);
+  ok('23.5시간짜리는 카드를 엽니다', q.renderVals().oddOut === true);
+  q.base = new Date(q.base.getTime() + 2 * 3600000);                               // 두 시간 뒤에야 누름
+  q.renderVals().confirmOddOut();
+  ok('늦게 눌러도 STOP을 누른 순간으로 기록됩니다 — 24시간 카드로 빠지지 않습니다',
+    !q.state.session && q.state.extra.length === 1 && !q.state.staleOut);
+  q.state.session = { inIso: new Date('2026-10-27T20:00:00').toISOString() };
+  q.base = new Date('2026-10-28T07:50:00'); q.t0 = Date.now(); q.lastTap = null;
+  tap(q);
+  ok('그 다음 주머니 속 출근은 다시 묻습니다', q.renderVals().oddOut === true && q.state.extra.length === 1);
+
+  // 리뷰 2회차 S4: '맞습니다'는 퇴근 시각을 옮기지 않습니다. 18:29에 STOP, 카드를
+  // 읽고 18:31에 '맞습니다' — 기록은 18:29입니다(유예 0분이면 18:30이 아니라 18:00).
+  const r = at('2026-10-26T18:29:00');
+  r.state.session = { inIso: new Date('2026-10-26T02:00:00').toISOString() };
+  tap(r);
+  r.base = new Date(r.base.getTime() + 2 * 60000);
+  r.renderVals().confirmOddOut();
+  const rec = r.state.extra[0] || {};
+  ok('기록된 퇴근은 STOP을 누른 18:29입니다', Math.abs(rec.outH - (18 + 29 / 60)) < 1 / 120, String(rec.outH));
+
+  // 14시간이 넘는 근무 — 07:00 출근(시작에서 2시간)인데 22:00까지
+  const f = at('2026-10-26T22:00:00');
+  f.state.session = { inIso: new Date('2026-10-26T07:00:00').toISOString() };
+  tap(f);
+  const F = f.renderVals();
+  ok('14시간이 넘으면 묻습니다', F.oddOut === true && f.state.extra.length === 0);
+  ok('그때는 14시간을 넘었다고 말합니다', F.oddOutMsg.indexOf('14시간') >= 0 && F.oddOutMsg.indexOf('떨어져') < 0, F.oddOutMsg);
+
+  // 묻지 말아야 할 날들 — 여기서 카드가 뜨면 아무도 카드를 읽지 않게 됩니다
+  const plain = (inIso, nowIso, setup) => {
+    const g = at(nowIso); if (setup) g.setS(setup);
+    g.state.session = { inIso: new Date(inIso).toISOString() };
+    tap(g); return !g.state.session && g.state.extra.length === 1 && !g.renderVals().oddOut;
+  };
+  ok('08:40 → 18:10 평범한 주간은 묻지 않습니다', plain('2026-10-26T08:40:00', '2026-10-26T18:10:00'));
+  ok('05:30 일찍 온 날(시작 3.5시간 전)도 묻지 않습니다', plain('2026-10-26T05:30:00', '2026-10-26T17:00:00'));
+  ok('13:00 오후 반차 출근(4시간)도 묻지 않습니다', plain('2026-10-26T13:00:00', '2026-10-26T18:00:00'));
+  // 리뷰 2회차 S2: 4시간 기준일 때는 13:01부터, 08:00 시작이면 13:00부터 걸렸습니다
+  ok('13:30 오후 반차도 묻지 않습니다', plain('2026-10-26T13:30:00', '2026-10-26T18:00:00'));
+  ok('08:00 시작인 회사의 13:00 → 17:30 반차도 묻지 않습니다',
+    plain('2026-10-26T13:00:00', '2026-10-26T17:30:00', { dayStart: '08:00' }));
+  // 리뷰 2회차 S3: 야간만 일하는 사람의 쉬는 날 낮 특근은 진짜 근무입니다
+  ok('야간만 — 토요일 08:00 → 17:00 낮 특근은 묻지 않습니다',
+    plain('2026-10-24T08:00:00', '2026-10-24T17:00:00', { shifts: 'night' }));
+  {
+    const w = at('2026-10-27T17:00:00'); w.setS({ shifts: 'night' });
+    w.state.session = { inIso: new Date('2026-10-27T08:00:00').toISOString() };
+    tap(w);
+    ok('야간만 — 평일 08:00 출근은 여전히 묻습니다', w.renderVals().oddOut === true && w.state.extra.length === 0);
+  }
+  ok('07:00 → 20:50 잔업 많은 날(13.8시간)도 묻지 않습니다', plain('2026-10-26T07:00:00', '2026-10-26T20:50:00'));
+  ok('교대 근무의 20:40 → 08:50 야간은 묻지 않습니다',
+    plain('2026-10-26T20:40:00', '2026-10-27T08:50:00', { shifts: 'both' }));
+
+  // 화면: 카드는 하나, 세 길은 모두 이어져 있습니다
+  const tpl = src.slice(0, src.indexOf('</x-dc>'));
+  const card = tpl.slice(tpl.indexOf('{{ oddOut }}'), tpl.indexOf('{{ L.oddOutClose }}') + 30);
+  ok('카드가 화면에 있습니다', card.indexOf('{{ L.oddOutTitle }}') > 0 && card.indexOf('{{ oddOutMsg }}') > 0);
+  // 카드는 STOP을 누른 손가락 바로 아래에 뜹니다 — 근무 카드들 아래면 폰에서는 화면 밖입니다
+  ok('카드는 패드 바로 아래, 근무 카드들보다 위에 있습니다',
+    tpl.indexOf('{{ padBig }}') < tpl.indexOf('{{ oddOut }}') && tpl.indexOf('{{ oddOut }}') < tpl.indexOf('{{ dayTypeBtns }}'));
+  ok('세 길이 모두 단추입니다', ['confirmOddOut', 'redoClockIn', 'dismissOdd'].every(h => card.indexOf('onClick="{{ ' + h + ' }}"') > 0));
+  // 근무가 다른 길로 끝났으면 남은 카드는 보이지 않습니다
+  const h = at('2026-10-27T07:50:00');
+  h.state.session = { inIso: new Date('2026-10-26T20:00:00').toISOString() };
+  tap(h); h.cancelClockIn();
+  ok('근무가 없어지면 카드도 없습니다', h.renderVals().oddOut === false);
+  // 리뷰 2회차 N1·N3: 24시간 카드와 이 카드가 함께 뜨지 않고, '지우고 지금 출근'은
+  // 24시간 카드도 닫습니다
+  const t = at('2026-10-27T07:50:00');
+  t.state.session = { inIso: new Date('2026-10-26T20:00:00').toISOString() };
+  tap(t); t.base = new Date('2026-10-27T21:00:00'); t.t0 = Date.now(); t.lastTap = null; tap(t);
+  ok('24시간이 넘으면 이 카드는 닫히고 24시간 카드만 남습니다', t.state.staleOut === true && t.renderVals().oddOut === false);
+  t.redoClockIn();
+  ok('지우고 지금 출근하면 24시간 카드도 닫힙니다', t.state.staleOut === false && !!t.state.session);
+
+  // 리뷰 3회차 S1: 20:00 주머니 출근 → 20:05 누름(너무 이른 퇴근 카드) → 다음 날 07:50
+  // 누름(이 카드)에서 '귀가'를 고르면 근무는 닫혔는데 이 카드의 상태가 남아, 다음
+  // 출근에 빈 카드가 떴습니다. 두 카드는 함께 뜨지 않고, 새 출근은 카드를 데려오지 않습니다.
+  const u = at('2026-10-26T20:05:00');
+  u.state.session = { inIso: new Date('2026-10-26T20:00:00').toISOString() };
+  tap(u);
+  ok('20:05의 누름은 너무 이른 퇴근 카드입니다', u.state.shortOut === true);
+  u.base = new Date('2026-10-27T07:50:00'); u.t0 = Date.now(); u.lastTap = null; tap(u);
+  ok('다음 날 아침에는 이 카드만 뜹니다', u.renderVals().oddOut === true && u.state.shortOut === false);
+  u.setState({ session: null });                       // 다른 길(귀가·강제 퇴근)로 근무가 닫힘
+  u.lastTap = null; tap(u);
+  ok('새 출근에는 지난 카드가 따라오지 않습니다', !!u.state.session && u.state.oddOut === false && u.state.oddAt == null);
 }
 
 console.log('\n== 백업을 언제 했는지 아무도 몰랐습니다 ==');

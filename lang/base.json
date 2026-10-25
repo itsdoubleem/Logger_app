@@ -89,11 +89,11 @@
   },
   "actual_punch": {
     "en": "Actual punch",
-    "ko": "실제 지문"
+    "ko": "실제 찍은 시각"
   },
   "add_a_shift_you_already_worked_without": {
-    "en": "Add a shift you already worked, without a fingerprint. The shift type is detected from the clock-in time.",
-    "ko": "지문 없이 지난 근무를 직접 넣습니다. 근무조는 출근 시간으로 자동 판별됩니다."
+    "en": "Add a shift you already worked without punching it. The shift type is detected from the clock-in time.",
+    "ko": "출퇴근 단추로 찍지 않은 지난 근무를 직접 넣습니다. 근무조는 출근 시간으로 자동 판별됩니다."
   },
   "add_allowance": {
     "en": "+ ADD ALLOWANCE",
@@ -229,7 +229,7 @@
   },
   "awaiting_punch": {
     "en": " · awaiting punch",
-    "ko": " · 지문 대기"
+    "ko": " · 출퇴근 대기"
   },
   "back_to_this_pay_period": {
     "en": "Back to this pay period",
@@ -424,8 +424,8 @@
     "ko": "출근"
   },
   "clocked_in_shift_paid_from_h_so_far_cl": {
-    "en": "Clocked in {p0}{p1} · {p2} shift · paid from {p3} · {p4}h so far. Clock out with your fingerprint as usual.",
-    "ko": "{p0}{p1} 출근 · {p2} 근무조 · 인정 {p3}부터 · 지금까지 {p4}시간. 퇴근은 평소대로 지문으로 찍으세요."
+    "en": "Clocked in {p0}{p1} · {p2} shift · paid from {p3} · {p4}h so far. Clock out with 퇴근 STOP as usual.",
+    "ko": "{p0}{p1} 출근 · {p2} 근무조 · 인정 {p3}부터 · 지금까지 {p4}시간. 퇴근은 평소대로 퇴근 STOP을 누르세요."
   },
   "close_b": {
     "en": "CLOSE",
@@ -879,21 +879,9 @@
     "en": "EXTENDED · {p0} weeks",
     "ko": "연장 · {p0}주"
   },
-  "fingerprint_check_unavailable_press_an": {
-    "en": "Fingerprint check unavailable — press and hold instead",
-    "ko": "지문 확인을 쓸 수 없습니다 — 길게 눌러 기록하세요"
-  },
-  "fingerprint_not_verified_tap_to_try_ag": {
-    "en": "Fingerprint not verified — tap to try again",
-    "ko": "지문이 확인되지 않았습니다 — 다시 누르세요"
-  },
   "first_day_at_this_company": {
     "en": "YYYY-MM-DD",
     "ko": "YYYY-MM-DD"
-  },
-  "first_run_registers_your_fingerprint_t": {
-    "en": "First run registers your fingerprint — tap to start",
-    "ko": "처음 한 번만 지문을 등록합니다 — 눌러서 시작하세요"
   },
   "first_time_setup": {
     "en": "FIRST-TIME SETUP",
@@ -1110,14 +1098,6 @@
   "hol_sub": {
     "en": "substitute holiday",
     "ko": "대체공휴일"
-  },
-  "hold_to_clock_in": {
-    "en": "HOLD TO CLOCK IN",
-    "ko": "출근 · 길게 누르기"
-  },
-  "hold_to_clock_out": {
-    "en": "HOLD TO CLOCK OUT",
-    "ko": "퇴근 · 길게 누르기"
   },
   "holiday": {
     "en": "Holiday ",
@@ -1356,8 +1336,8 @@
     "ko": "연차 차감"
   },
   "leave_it_empty_if_you_are_not_at_work_": {
-    "en": "Leave it empty if you are not at work right now — punch in with your fingerprint later.",
-    "ko": "비워 두면 지금은 근무중이 아닙니다. 나중에 지문으로 출근하세요."
+    "en": "Leave it empty if you are not at work right now — tap 출근 START later.",
+    "ko": "비워 두면 지금은 근무중이 아닙니다. 나중에 출근 START를 누르세요."
   },
   "leave_sent_home_no_boxes": {
     "en": "Leave · sent home, no boxes",
@@ -1457,7 +1437,7 @@
   },
   "marks_the_day_as_holiday_work_you_stil": {
     "en": "Marks the day as holiday work — you still punch in and out. Assumed 09:00 → 21:00 · {p0}. Your real punch replaces the assumed times.",
-    "ko": "그 날을 특근으로 표시합니다 — 지문은 그대로 찍어야 합니다. 예상 09:00 → 21:00 · {p0}. 실제 지문 시간이 예상 시간을 대체합니다."
+    "ko": "그 날을 특근으로 표시합니다 — 출퇴근은 그대로 찍어야 합니다. 예상 09:00 → 21:00 · {p0}. 실제로 찍은 시간이 예상 시간을 대체합니다."
   },
   "may_qualify_for_70_shutdown_allowance": {
     "en": "may qualify for 70% shutdown allowance",
@@ -1476,8 +1456,8 @@
     "ko": "정시 직전 몇 분까지 인정"
   },
   "missed_the_fingerprint_at_the_start_en": {
-    "en": "Missed the fingerprint at the start? Enter the time you actually began and the shift runs from there. Clock out with your fingerprint as usual.",
-    "ko": "지문을 찍지 못했더라도 오늘 실제로 출근한 시각을 넣으면 그때부터 근무중이 됩니다. 퇴근은 평소대로 지문으로 찍으세요."
+    "en": "Forgot to tap 출근 START? Enter the time you actually began and the shift runs from there. Clock out with 퇴근 STOP as usual.",
+    "ko": "출근을 찍지 못했더라도 오늘 실제로 출근한 시각을 넣으면 그때부터 근무중이 됩니다. 퇴근은 평소대로 퇴근 STOP을 누르세요."
   },
   "month_names": {
     "en": "January|February|March|April|May|June|July|August|September|October|November|December",
@@ -1883,14 +1863,6 @@
     "en": "planned ",
     "ko": "예정 "
   },
-  "press_and_hold_your_fingerprint": {
-    "en": "Press and hold your fingerprint",
-    "ko": "지문을 길게 누르세요"
-  },
-  "press_and_hold_your_fingerprint_2": {
-    "en": "Press and hold your fingerprint",
-    "ko": "지문을 길게 누르세요"
-  },
   "proj_note_plain": {
     "en": "Includes planned days: {hol} holiday work{holDates}. Leave and vacation you log will be counted here too.",
     "ko": "예정 포함 · 특근 {hol}{holDates}. 연차·휴가를 넣으면 여기에 함께 계산됩니다."
@@ -1932,16 +1904,16 @@
     "ko": "공휴일"
   },
   "punch_in_with_your_fingerprint_on_the_": {
-    "en": "Punch in with your fingerprint on the 출퇴근 screen, or use the 근무 button to add shifts you already worked.",
-    "ko": "출퇴근 화면에서 지문으로 출근하거나, 근무 버튼으로 이미 일한 날을 직접 넣으세요."
+    "en": "Tap 출근 START on the 출퇴근 screen, or use the 근무 button to add shifts you already worked.",
+    "ko": "출퇴근 화면에서 출근 START를 누르거나, 근무 버튼으로 이미 일한 날을 직접 넣으세요."
   },
   "punch_on_a_saturday_a_sunday_a_public_": {
     "en": "Punch on a Saturday, a Sunday, a public holiday or a day you booked as 휴가 vacation and the app logs it as 특근 by itself — you never need the 특근 card. It is a day you were not due in and were called for, so every hour pays ×1.5, the first 8 included. 연차 annual leave is not included: that is a weekday you took off yourself, so working it is just an ordinary shift. Switch this off if your company marks 특근 by hand — days you marked with the 특근 card stay marked either way.",
-    "ko": "토요일·일요일·공휴일, 그리고 휴가로 잡아 둔 날에 지문을 찍으면 앱이 그 날을 자동으로 특근으로 기록합니다 — 특근 카드를 따로 누르지 않아도 됩니다. 원래 나오지 않는 날에 불려 나온 근무이므로 8시간 이내를 포함한 전 시간이 ×1.5로 계산됩니다. 연차는 포함되지 않습니다: 평일에 본인이 쓴 휴가라 그 날 일하면 평일 근무로 돌아갈 뿐입니다. 특근을 언제나 직접 표시하는 회사라면 꺼 두세요 — 꺼도 특근 카드로 표시한 날은 그대로 남습니다."
+    "ko": "토요일·일요일·공휴일, 그리고 휴가로 잡아 둔 날에 출근을 찍으면 앱이 그 날을 자동으로 특근으로 기록합니다 — 특근 카드를 따로 누르지 않아도 됩니다. 원래 나오지 않는 날에 불려 나온 근무이므로 8시간 이내를 포함한 전 시간이 ×1.5로 계산됩니다. 연차는 포함되지 않습니다: 평일에 본인이 쓴 휴가라 그 날 일하면 평일 근무로 돌아갈 뿐입니다. 특근을 언제나 직접 표시하는 회사라면 꺼 두세요 — 꺼도 특근 카드로 표시한 날은 그대로 남습니다."
   },
   "punched": {
     "en": "punched {p0}",
-    "ko": "지문 {p0}"
+    "ko": "찍은 시각 {p0}"
   },
   "punching_at_logged_as_a_shift_the_near": {
     "en": "Punching at {p0} → logged as a {p1} shift, the nearer of your two scheduled starts ({p2}). ",
@@ -2463,10 +2435,6 @@
     "en": "SETUP",
     "ko": "SETUP"
   },
-  "tap_and_verify_with_your_fingerprint": {
-    "en": "Tap and verify with your fingerprint",
-    "ko": "눌러서 지문으로 확인하세요"
-  },
   "tap_once_for_a_single_day_again_for_a_": {
     "en": "Tap once for a single day, again for a range. Holidays and Sundays are not deducted.",
     "ko": "첫 탭은 하루, 다시 탭하면 기간. 공휴일과 일요일은 차감되지 않습니다."
@@ -2577,7 +2545,7 @@
   },
   "today_is_holiday_work_a_rest_day_you_w": {
     "en": " Today is 특근 holiday work ({p0}) — a rest day you were called in on, so every hour pays ×1.5 instead of regular+OT. Just punch as normal; you do not need the 특근 card.",
-    "ko": " 오늘은 특근입니다 ({p0}) — 원래 쉬는 날이라 근무시간 전부가 ×1.5로 계산됩니다. 특근 카드를 따로 누를 필요 없이 평소대로 지문만 찍으세요."
+    "ko": " 오늘은 특근입니다 ({p0}) — 원래 쉬는 날이라 근무시간 전부가 ×1.5로 계산됩니다. 특근 카드를 따로 누를 필요 없이 평소대로 출퇴근만 찍으세요."
   },
   "today_is_marked_annual_leave_no_punch_": {
     "en": " Today is marked 연차 annual leave — no punch needed. Punching anyway replaces the leave with a worked shift.",
@@ -2591,17 +2559,45 @@
     "en": "TOO SOON TO CLOCK OUT",
     "ko": "확인 필요 · 너무 이른 퇴근"
   },
+  "odd_out_title": {
+    "en": "CHECK THIS SHIFT",
+    "ko": "확인 필요 · 이 근무가 맞습니까?"
+  },
+  "odd_out_msg": {
+    "en": "You are clocked in since {at} — {h}h since then.",
+    "ko": "{at}에 출근한 것으로 되어 있습니다 — 출근부터 {h}시간이 지났습니다."
+  },
+  "odd_out_long": {
+    "en": " That is over {n} hours.",
+    "ko": " {n}시간이 넘는 근무입니다."
+  },
+  "odd_out_far": {
+    "en": " The clock-in is more than {n} hours away from your shift start ({start}).",
+    "ko": " 출근 시각이 근무조 시작({start})에서 {n}시간 넘게 떨어져 있습니다."
+  },
+  "odd_out_hint": {
+    "en": " If that clock-in was a mis-tap, you can delete it and clock in now.",
+    "ko": " 출근이 실수로 눌린 것이었다면 지우고 지금 출근할 수 있습니다."
+  },
+  "odd_out_keep": {
+    "en": "YES — RECORD CLOCK-OUT",
+    "ko": "맞습니다 — 퇴근 기록 · RECORD CLOCK-OUT"
+  },
+  "odd_out_redo": {
+    "en": "MIS-TAP — DELETE IT, CLOCK IN NOW",
+    "ko": "잘못 눌린 출근 — 지우고 지금 출근 · CLOCK IN NOW"
+  },
+  "odd_out_close": {
+    "en": "Close — not clocking out yet",
+    "ko": "닫기 — 아직 퇴근하지 않습니다"
+  },
   "total_deductions": {
     "en": "TOTAL DEDUCTIONS",
     "ko": "공제액 TOTAL"
   },
-  "touch_the_fingerprint_sensor": {
-    "en": "Touch the fingerprint sensor",
-    "ko": "지문 센서에 손가락을 대세요"
-  },
   "tour1_body": {
-    "en": "Press the pad with your fingerprint when you arrive and when you leave. The app works out on its own whether it was a day or a night shift, and takes your breaks off. Nothing to set up first.",
-    "ko": "출근할 때와 퇴근할 때 지문으로 찍기만 하면 됩니다. 주간조인지 야간조인지는 앱이 스스로 구분하고, 휴게시간도 알아서 뺍니다. 미리 설정할 것은 없습니다."
+    "en": "Tap 출근 START when you arrive and 퇴근 STOP when you leave. The app works out on its own whether it was a day or a night shift, and takes your breaks off. Nothing to set up first.",
+    "ko": "출근할 때 출근 START, 퇴근할 때 퇴근 STOP을 한 번 누르면 됩니다. 주간조인지 야간조인지는 앱이 스스로 구분하고, 휴게시간도 알아서 뺍니다. 미리 설정할 것은 없습니다."
   },
   "tour1_en": {
     "en": "PUNCH IN, PUNCH OUT",
@@ -2778,14 +2774,6 @@
   "variable_allowances_only": {
     "en": "variable allowances only",
     "ko": "변동수당만"
-  },
-  "verify_to_clock_in": {
-    "en": "VERIFY TO CLOCK IN",
-    "ko": "출근 · 지문 확인"
-  },
-  "verify_to_clock_out": {
-    "en": "VERIFY TO CLOCK OUT",
-    "ko": "퇴근 · 지문 확인"
   },
   "viewing_pay_period": {
     "en": "PAY PERIOD SHOWN · 급여기간",
@@ -3084,8 +3072,8 @@
     "ko": "뒤로"
   },
   "clock_out_is_punched_not_set": {
-    "en": "You do not set a clock-out time — the moment you press your fingerprint is your 퇴근. The time above is where 8 hours are reached with breaks taken off; anything you work past it pays 잔업 overtime ×1.5.",
-    "ko": "퇴근 시각은 설정하지 않습니다 — 지문으로 찍는 그 시각이 퇴근입니다. 위 시각은 휴게를 빼고 8시간이 차는 자리이고, 그보다 더 일한 시간에는 잔업 ×1.5가 붙습니다."
+    "en": "You do not set a clock-out time — the moment you tap 퇴근 STOP is your 퇴근. The time above is where 8 hours are reached with breaks taken off; anything you work past it pays 잔업 overtime ×1.5.",
+    "ko": "퇴근 시각은 설정하지 않습니다 — 퇴근 STOP을 누르는 그 시각이 퇴근입니다. 위 시각은 휴게를 빼고 8시간이 차는 자리이고, 그보다 더 일한 시간에는 잔업 ×1.5가 붙습니다."
   },
   "month_end_word": {
     "en": "month end",
