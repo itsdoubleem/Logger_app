@@ -23,10 +23,10 @@ body { -webkit-tap-highlight-color: transparent; }
 input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
 
 /* ── 넓은 화면에서는 폰 너비를 지킵니다 ──────────────────────────────────
-   이 앱은 폰 앱입니다. 한 손으로 들고, 출퇴근 상자는 64px이고, 글자 크기도
+   이 앱은 폰 앱입니다. 한 손으로 들고, 출퇴근 단추는 카드 너비이고, 글자 크기도
    팔 길이에서 읽는 것을 기준으로 정해져 있습니다. 그런데 브라우저에서 열면
    같은 배치가 데스크톱 창 너비만큼 늘어납니다 — 언어 단추 여덟 개가 1미터
-   짜리 띠가 되고, 64px 출퇴근 상자는 허허벌판 한가운데 점이 됩니다. 줄 길이도
+   짜리 띠가 되고, 출퇴근 단추는 1미터짜리 막대가 됩니다. 줄 길이도
    읽기 한계를 훨씬 넘깁니다.
 
    그래서 폰보다 넓은 화면에서만 앱을 폰 너비로 묶고 가운데에 둡니다.
@@ -494,39 +494,39 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
           </sc-if>
         </div>
 
-        <!-- 찍는 것은 가운데 상자 하나뿐입니다. 카드 전체가 단추였을 때 두 가지가
-             동시에 틀렸습니다 — 목록을 넘기려고 카드를 쓸면 touch-action:none이
-             스크롤을 먹어 화면이 굳었고, 시각이나 글자를 짚은 손가락이 그대로
-             출근을 찍었습니다. 그래서 손잡이는 상자 하나로 내렸고, 카드는 그냥
-             카드입니다.
-             2026-10-26부터는 지문도 길게 누르기도 없습니다 — 한 번 누르면 찍힙니다.
-             근로자가 원한 것은 일한 시간이지 본인 확인이 아니었고, 아이폰에서는
-             지문이 오히려 걸림돌이었습니다. 실수로 누른 것은 일부만 받습니다:
-             30분 안의 두 번째 누름은 퇴근이 되지 않고(shortOut) 출근을 취소할
-             길을 내밉니다. 못 보고 지나간 주머니 속 START는 퇴근할 때 아래의
-             oddOut 카드가 묻습니다(CHANGELOG 여든여섯째). 위에 출근/퇴근, 아래에 START/STOP —
-             종이에 적힌 말이 먼저입니다. 크기는 예전 패드의 3분의 2입니다
-             (상자 96→64px, docs/design/DESIGN.md). -->
-        <div style="position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:13px 12px 15px;border-bottom:2px solid var(--color-divider);user-select:none">
-          <div style="position:relative;flex:none;display:flex;flex-direction:column;gap:4px;align-items:center">
-          <div style="font-family:var(--font-heading);font-weight:800;font-size:17px;line-height:1;letter-spacing:-0.01em;color:{{ padStampInk }}">{{ padStamp }}</div>
-          <div onClick="{{ padTap }}" style="position:relative;width:64px;height:64px;border:2px solid {{ padInk }};display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:manipulation">
+        <!-- 출퇴근 패드 — 넓은 단추 (2026-10-26, 여든일곱째).
+             가운데에 64px 상자 하나를 세웠더니 카드의 양옆이 비어 보였습니다. 이제
+             윗줄 왼쪽에 출근/퇴근(근무 중이면 그 옆에 근무중 등), 오른쪽에 시각,
+             그 아래에 카드 너비의 단추 하나 — ▶ START 또는 ■ STOP.
+             찍는 것은 여전히 단추 하나뿐입니다. 카드 전체가 단추였을 때 두 가지가
+             동시에 틀렸습니다(2026-09-14, 예순셋째) — 카드를 쓸면 touch-action:none이
+             스크롤을 먹었고, 시각이나 글자를 짚은 손가락이 출근을 찍었습니다. 그래서
+             단추는 글자와 시각을 덮지 않고, touch-action은 manipulation이라 단추
+             위에서도 화면이 스크롤됩니다.
+             지문도 길게 누르기도 없습니다 — 한 번 누르면 찍힙니다(여든여섯째). 단추가
+             넓어진 만큼 주머니 속 누름도 쉬워졌고, 그것은 퇴근할 때 아래의 oddOut
+             카드가 묻습니다. 모양(둥근 모서리·바탕·그림자·눌림)은 ds-tokens.css
+             규칙 5가 height 60px + touch-action manipulation으로 잡습니다. -->
+        <div style="position:relative;overflow:hidden;display:flex;flex-direction:column;gap:12px;padding:16px 18px 18px;border-bottom:2px solid var(--color-divider);user-select:none">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0">
+            <div style="display:flex;align-items:center;gap:12px;min-width:0">
+              <div style="font-family:var(--font-heading);font-weight:800;font-size:17px;line-height:1;letter-spacing:-0.01em;color:{{ padStampInk }}">{{ padStamp }}</div>
+              <sc-if value="{{ padLive }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;align-items:center;gap:7px;font-family:var(--font-heading);font-weight:800;font-size:13px;letter-spacing:0.08em;color:{{ padIconInk }}">
+                  <div style="width:9px;height:9px;flex:none;background:{{ padIconInk }}"></div>{{ padLiveMsg }}
+                </div>
+              </sc-if>
+            </div>
+            <div style="flex:none;font-variant-numeric:tabular-nums;font-family:var(--font-heading);font-weight:800;font-size:24px;line-height:1;letter-spacing:-0.02em;color:{{ padInk }}">{{ padBig }}</div>
+          </div>
+          <div onClick="{{ padTap }}" style="position:relative;height:60px;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;touch-action:manipulation">
             <sc-if value="{{ padOff }}" hint-placeholder-val="{{ true }}">
-              <svg width="35" height="35" viewBox="0 0 24 24"><path d="M8.5 5.5v13l10.5-6.5z" fill="{{ padIconInk }}" stroke="{{ padIconInk }}" stroke-width="2" stroke-linejoin="round"></path></svg>
+              <svg width="26" height="26" viewBox="0 0 24 24"><path d="M8.5 5.5v13l10.5-6.5z" fill="{{ padIconInk }}" stroke="{{ padIconInk }}" stroke-width="2" stroke-linejoin="round"></path></svg>
             </sc-if>
             <sc-if value="{{ padLive }}" hint-placeholder-val="{{ false }}">
-              <svg width="35" height="35" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" fill="var(--color-accent)"></rect></svg>
+              <svg width="26" height="26" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" fill="var(--color-accent)"></rect></svg>
             </sc-if>
-          </div>
-          </div>
-          <div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0">
-            <div style="font-family:var(--font-heading);font-weight:800;font-size:11px;line-height:1.1;letter-spacing:0.12em;color:{{ padStampInk }}">{{ padTitle }}</div>
-            <div style="font-variant-numeric:tabular-nums;font-family:var(--font-heading);font-weight:800;font-size:20px;line-height:1.05;letter-spacing:-0.02em;color:{{ padInk }}">{{ padBig }}</div>
-            <sc-if value="{{ padLive }}" hint-placeholder-val="{{ true }}">
-              <div style="display:flex;align-items:center;gap:7px;margin-top:2px;font-family:var(--font-heading);font-weight:800;font-size:13px;letter-spacing:0.08em;color:{{ padIconInk }}">
-                <div style="width:9px;height:9px;flex:none;background:{{ padIconInk }}"></div>{{ padLiveMsg }}
-              </div>
-            </sc-if>
+            <div style="font-family:var(--font-heading);font-weight:800;font-size:15px;line-height:1;letter-spacing:0.14em;color:{{ padStampInk }}">{{ padTitle }}</div>
           </div>
         </div>
 

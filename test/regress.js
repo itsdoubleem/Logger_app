@@ -8118,30 +8118,32 @@ console.log('\n== 카드를 쓸면 화면이 굳었고, 짚으면 출근이 찍�
   const fs = require('fs');
   const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
   const tpl = src.slice(0, src.indexOf('</x-dc>')).replace(/<!--[\s\S]*?-->/g, '');
-  // (2026-10-26) 지문과 길게 누르기가 빠지고 패드가 3분의 2로 줄었습니다 —
-  // 상자는 64px, 카드 여백은 13px 12px 15px. 이 항목의 교훈은 그대로입니다.
-  const pad = tpl.match(/<div style="position:relative;overflow:hidden;[^"]*padding:13px 12px 15px;[^"]*"[^>]*>/);
+  // (2026-10-26) 지문과 길게 누르기가 빠졌고, 같은 날 가운데 상자가 카드 너비의
+  // 단추가 되었습니다(여든일곱째) — 카드 여백은 16px 18px 18px. 교훈은 그대로입니다:
+  // 찍는 것은 단추 하나이고, 카드와 글자와 시각은 손잡이가 아닙니다.
+  const pad = tpl.match(/<div style="position:relative;overflow:hidden;[^"]*padding:16px 18px 18px;[^"]*"[^>]*>/);
   ok('출퇴근 카드가 그대로 있습니다', !!pad);
   const padTag = pad ? pad[0] : '';
   ok('카드는 더 이상 손잡이가 아닙니다',
     padTag.indexOf('onClick') < 0 && padTag.indexOf('onPointerDown') < 0, padTag);
   ok('카드가 스크롤을 먹지 않습니다', padTag.indexOf('touch-action') < 0, padTag);
 
-  const box = tpl.match(/<div [^>]*width:64px;height:64px;[^>]*>/);
-  ok('출퇴근 상자가 그대로 있습니다', !!box);
+  const box = tpl.match(/<div [^>]*height:60px;[^>]*touch-action:manipulation[^>]*>/);
+  ok('출퇴근 단추가 그대로 있습니다', !!box);
   const boxTag = box ? box[0] : '';
-  ok('찍는 것은 출퇴근 상자입니다', /onClick="\{\{ padTap \}\}"/.test(boxTag), boxTag);
+  ok('찍는 것은 출퇴근 단추입니다', /onClick="\{\{ padTap \}\}"/.test(boxTag), boxTag);
   // 길게 누르기가 없으니 스크롤러를 막을 까닭도 없습니다. manipulation은 두 번
   // 톡 쳐서 확대하는 것만 끕니다 — 누름이 300ms 늦게 오지 않게.
-  ok('상자 위에서도 화면은 스크롤됩니다',
+  ok('단추 위에서도 화면은 스크롤됩니다',
     boxTag.indexOf('touch-action:none') < 0 && boxTag.indexOf('touch-action:manipulation') >= 0, boxTag);
-  ok('출퇴근 상자가 손가락에게 단추라고 말합니다',
+  ok('출퇴근 단추가 손가락에게 단추라고 말합니다',
     boxTag.indexOf('cursor:pointer') >= 0, boxTag);
-  // 층 규칙 5는 64px 두 값으로만 상자를 잡습니다 — 크기를 바꾸면 세 곳을 같이.
+  // 층 규칙 5는 height 60px + touch-action manipulation 두 값으로만 단추를 잡습니다 —
+  // 높이를 바꾸면 세 곳(소스·ds-tokens.css·여기)을 같이.
   const ds = fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
-  ok('출퇴근 상자는 층 규칙 5가 잡는 64px입니다',
-    ds.indexOf('[style*="width: 64px"][style*="height: 64px"]') >= 0
-    && /width:64px;height:64px/.test(boxTag));
+  ok('출퇴근 단추는 층 규칙 5가 잡는 60px입니다',
+    ds.indexOf('[style*="height: 60px"][style*="touch-action: manipulation"]') >= 0
+    && /height:60px;/.test(boxTag));
   // 손잡이는 하나뿐이어야 합니다 — 카드 안에 또 다른 padTap이 생기면 안 됩니다.
   ok('padTap은 화면에 한 자리뿐입니다', (tpl.match(/\{\{ padTap \}\}/g) || []).length === 1);
 }
@@ -8238,9 +8240,50 @@ console.log('\n== 지문은 필요 없었습니다 — 한 번 누르면 출근,
   // 크기는 예전의 3분의 2 — 글자는 숫자로 고정해 둡니다(docs/design/DESIGN.md).
   const pad = tpl.slice(tpl.indexOf('{{ padStamp }}') - 300, tpl.indexOf('{{ padBig }}') + 20);
   ok('출근/퇴근은 17px', /font-size:17px;[^"]*">\{\{ padStamp \}\}/.test(pad));
-  ok('START/STOP은 11px', /font-size:11px;[^"]*">\{\{ padTitle \}\}/.test(pad));
-  ok('시각은 20px', /font-size:20px;[^"]*">\{\{ padBig \}\}/.test(pad));
-  ok('▶와 ■는 35px', (pad.match(/<svg width="35" height="35"/g) || []).length === 2);
+  // (같은 날 넓은 단추로 바뀌며: START/STOP은 단추 안 15px, 시각은 윗줄 오른쪽 24px,
+  // ▶·■는 26px — 여든일곱째)
+  const padAll = tpl.slice(tpl.indexOf('{{ padStamp }}') - 300, tpl.indexOf('{{ padTitle }}') + 20);
+  ok('START/STOP은 15px', /font-size:15px;[^"]*">\{\{ padTitle \}\}/.test(padAll));
+  ok('시각은 24px', /font-size:24px;[^"]*">\{\{ padBig \}\}/.test(padAll));
+  ok('▶와 ■는 26px', (padAll.match(/<svg width="26" height="26"/g) || []).length === 2);
+}
+
+console.log('\n== 출퇴근 카드의 양옆이 비어 있었습니다 — 넓은 단추로 ==');
+// 2026-10-26, 같은 날 폰에 깔아 본 뒤. 패드를 3분의 2로 줄였는데도 근로자가 말했습니다:
+// 카드가 너무 크고, 양옆의 빈 자리가 거슬린다. 가운데 세운 64px 상자 하나가 카드
+// 너비의 6분의 1이었습니다. 세 안(나란히 · 넓은 단추 · 날짜 카드에 합치기)을 실제
+// 화면으로 띄워 보였고, 근로자는 넓은 단추를 골랐습니다: 윗줄 왼쪽에 출근/퇴근
+// (근무 중이면 그 옆에 근무중), 오른쪽에 시각, 아래에 카드 너비의 ▶ START / ■ STOP.
+// 잰 높이는 출근 전 162 → 130px.
+//
+// 다음 사람에게: 단추가 넓어졌다고 손잡이가 넓어진 것은 아닙니다. 단추는 글자도
+// 시각도 덮지 않고(예순셋째), 그 위에서도 화면은 스크롤됩니다. 넓어진 만큼 쉬워진
+// 주머니 속 누름은 퇴근할 때 묻는 카드(여든여섯째)가 받습니다.
+{
+  const fs = require('fs');
+  const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tpl = src.slice(0, src.indexOf('</x-dc>')).replace(/<!--[\s\S]*?-->/g, '');
+  const i0 = tpl.indexOf('padding:16px 18px 18px'), i1 = tpl.indexOf('{{ padTitle }}');
+  const pad = tpl.slice(i0, i1 + 40);
+  const bar = (pad.match(/<div onClick="\{\{ padTap \}\}"[^>]*>/) || [''])[0];
+  const head = pad.slice(0, pad.indexOf(bar));
+  ok('윗줄에 출근/퇴근과 시각이 양끝으로 갈라섭니다',
+    head.indexOf('{{ padStamp }}') >= 0 && head.indexOf('{{ padBig }}') > head.indexOf('{{ padStamp }}')
+    && /justify-content:space-between/.test(head));
+  ok('근무중 표시는 윗줄, 출근/퇴근 옆입니다', head.indexOf('{{ padLiveMsg }}') > head.indexOf('{{ padStamp }}'));
+  ok('단추는 카드 너비입니다 — 폭을 정하지 않고 늘어납니다',
+    !!bar && !/width:/.test(bar) && /height:60px/.test(bar));
+  ok('단추는 글자와 시각을 덮지 않습니다', head.indexOf('padTap') < 0 && (tpl.match(/\{\{ padTap \}\}/g) || []).length === 1);
+  ok('단추 안에 ▶/■와 START/STOP이 함께 있습니다',
+    pad.slice(pad.indexOf(bar)).indexOf('{{ padTitle }}') > 0 && (pad.slice(pad.indexOf(bar)).match(/<svg width="26"/g) || []).length === 2);
+  ok('단추에 min-height가 없습니다 — 규칙 2c가 모서리를 가로채지 않게', !/min-height/.test(bar));
+  ok('단추에 테두리가 없습니다 — 규칙 2가 모서리를 가로채지 않게', !/border:/.test(bar));
+  ok('소스에는 여전히 border-radius가 없습니다', !/border-radius/.test(tpl));
+  const ds = fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
+  const r5 = ds.slice(ds.indexOf("── 5 · the punch pad's START / STOP button"), ds.indexOf('── 6 · the tab bar'));
+  ok('규칙 5가 단추의 모서리를 둥글게 합니다', /border-radius: 18px/.test(r5));
+  ok('눌린 단추는 그 자리에서 답합니다', /:active\s*\{[^}]*brightness/.test(r5));
+  ok('예전 64px 상자 규칙은 남아 있지 않습니다', ds.indexOf('[style*="width: 64px"][style*="height: 64px"]') < 0);
 }
 
 console.log('\n== 주머니 속에서 눌린 출근이 다음 날 아침 근무 한 칸이 됐습니다 ==');

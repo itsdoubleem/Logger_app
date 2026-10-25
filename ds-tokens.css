@@ -469,21 +469,28 @@
 #tabScroll > div > div[style*="grid-template-columns: 1fr 1fr 1fr;"] > div[style*="background: var(--color-accent-100)"] {
   background: var(--color-accent-100) !important;
 }
-/* ── 5 · the punch pad's START / STOP tile ──────────────────────────────── */
-/* A rounded tile instead of a hard square. Caught by its two sizes, so the
-   number lives in three places — the source's width/height, this selector and
-   test/regress.js. It was 96px with a 26px corner under the fingerprint; the
-   one-tap pad is two-thirds of that, 64px with a 17px corner
-   (docs/design/DESIGN.md). Change all three together or the tile goes square. */
-[style*="width: 64px"][style*="height: 64px"] {
-  border-radius: 17px;
+/* ── 5 · the punch pad's START / STOP button ────────────────────────────── */
+/* A full-width bar under the 출근/퇴근 line (2026-10-26, eighty-seventh entry).
+   It was a 64px tile centred in the card, which left the card's two sides
+   empty. Caught by two values only it carries — `height: 60px` and
+   `touch-action: manipulation` — so the number lives in three places: the
+   source, this selector and test/regress.js. Change all three together or the
+   bar goes flat and square, silently.
+   No `min-height`, on purpose: rule 2c rounds anything tappable with one and
+   would hand the bar --radius-md instead of this. No border either, for rule 2.
+   The pressed state is here because this is the button the worker presses
+   twice a day: the old hold drew a red fill that said "it landed", and a tap
+   with no answer gets pressed again. The odd-shift and 1.5 s guards catch the
+   second press, but the screen should say it first. */
+[style*="height: 60px"][style*="touch-action: manipulation"] {
+  border-radius: 18px;
   background: var(--color-bg);
-  /* the hard 2px square ring goes; the pad already says clocked-in three
-     more times — the 출근/퇴근 stamp, the title and the big clock all take
-     padInk — so the ring was the one place the state could be dropped
-     without losing the signal. */
-  border-color: transparent !important;
   box-shadow: inset 0 0 0 1px var(--color-neutral-300), var(--shadow-card);
+  transition: filter .12s ease, background-color .12s ease;
+}
+[style*="height: 60px"][style*="touch-action: manipulation"]:active {
+  filter: brightness(.92);
+  background-color: var(--color-neutral-200);
 }
 
 /* ── 6 · the tab bar ────────────────────────────────────────────────────── */
