@@ -2564,8 +2564,8 @@
     "ko": "확인 필요 · 이 근무가 맞습니까?"
   },
   "odd_out_msg": {
-    "en": "You are clocked in since {at} — clocking out now records a {h}h shift.",
-    "ko": "{at}에 출근한 것으로 되어 있습니다 — 지금 퇴근하면 {h}시간 근무로 기록됩니다."
+    "en": "You are clocked in since {at} — {h}h since then.",
+    "ko": "{at}에 출근한 것으로 되어 있습니다 — 출근부터 {h}시간이 지났습니다."
   },
   "odd_out_long": {
     "en": " That is over {n} hours.",

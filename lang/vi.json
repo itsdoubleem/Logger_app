@@ -591,7 +591,7 @@
   "too_short_likely_a_mis_tap": "Quá ngắn — có thể bấm nhầm",
   "too_soon_to_clock_out": "RA CA QUÁ SỚM",
   "odd_out_title": "KIỂM TRA CA NÀY",
-  "odd_out_msg": "Bạn đang vào ca từ {at} — ra ca bây giờ sẽ ghi một ca {h} giờ.",
+  "odd_out_msg": "Bạn đang vào ca từ {at} — đã {h} giờ kể từ lúc đó.",
   "odd_out_long": " Ca này dài hơn {n} giờ.",
   "odd_out_far": " Giờ vào ca cách giờ bắt đầu ca ({start}) hơn {n} giờ.",
   "odd_out_hint": " Nếu lần vào ca đó là bấm nhầm, bạn có thể xoá nó và vào ca ngay bây giờ.",
