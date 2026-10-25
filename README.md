@@ -96,7 +96,7 @@ signature against. `CHANGELOG.md` (eighty-sixth entry) has the reasoning.
 
 Some accidental taps are handled after the fact: a second tap within 1.5 s is the same tap,
 and a second tap within 30 minutes of clocking in does not clock out — it offers to cancel the
-clock-in. At clock-out, a shift over 14 hours or one whose clock-in is more than 4 hours
+clock-in. At clock-out, a shift over 14 hours or one whose clock-in is more than 6 hours
 from the shift start opens a card before anything is saved: record it, delete the stray
 clock-in and clock in now, or close. A night-shift-shaped stray (20:00 → 07:50 for a night
 worker) looks like a real shift and is not caught, and a stray STOP after 30 minutes records
