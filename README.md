@@ -89,8 +89,9 @@ Every interactive target is >= 44px. Do not round corners, do not center button 
 
 ### 1. The punch pad — one tap, no fingerprint
 The pad was a WebAuthn fingerprint prompt (with press-and-hold as the fallback) until
-2026-10-26. It is now a single START / STOP button: green ▶ with 출근 above it when the
-worker is off shift, red ■ with 퇴근 above it while on shift. The app counts hours; it does
+2026-10-26. It is now a single full-width START / STOP bar: 출근 and the time on the line
+above it and a green ▶ START when the worker is off shift; 퇴근, the 근무중 lamp and a red
+■ STOP while on shift. The app counts hours; it does
 not need to verify who pressed, and with no server there was never anything to check a
 signature against. `CHANGELOG.md` (eighty-sixth entry) has the reasoning.
 

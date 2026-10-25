@@ -1,6 +1,6 @@
 # 근무기록 LOGGER — change log beyond V2.md
 
-Ninety-three entries, newest first — eighty-six carry an ordinal (first … eighty-sixth),
+Ninety-four entries, newest first — eighty-seven carry an ordinal (first … eighty-seventh),
 the seven oldest predate the numbering. Each one is a bug found by **actually using the app on
 shift**, what changed, and — the part worth reading — *why it was that and not the
 obvious fix*. Most entries end with a **다음 사람에게** paragraph: the rule the bug
@@ -18,7 +18,8 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 
 ## Index
 
-- 2026-10-26 (latest, eighty-sixth) — 지문은 필요 없었습니다: 한 번 누르면 출근, 한 번 누르면 퇴근
+- 2026-10-26 (latest, eighty-seventh) — 출퇴근 카드의 양옆이 비어 있었습니다: 카드 너비의 단추로
+- 2026-10-26 (eighty-sixth) — 지문은 필요 없었습니다: 한 번 누르면 출근, 한 번 누르면 퇴근
 - 2026-10-21 (eighty-fifth) — 같은 아침이 두 번 왔습니다: 근무기록은 이제 방금 끝낸 근무가 있는 기간으로 열립니다
 - 2026-10-12 (eighty-fourth) — 보수월액 20을 쳐도, 앱이 보여 준 국민연금을 옮겨 적어도
 - 2026-10-12 (eighty-third) — 국민연금을 쳤는데 칸이 비어 버렸습니다
@@ -112,7 +113,51 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 - 2026-08-13 — the service worker was hiding every update
 - 2026-08-13 (earlier) — 조퇴 사유 became a popup with a dropdown
 
-### 2026-10-26 (latest, eighty-sixth) — 지문은 필요 없었습니다: 한 번 누르면 출근, 한 번 누르면 퇴근
+### 2026-10-26 (latest, eighty-seventh) — 출퇴근 카드의 양옆이 비어 있었습니다: 카드 너비의 단추로
+
+**여든여섯째 항목을 폰에 깐 지 한 시간 만에 온 말입니다: 출퇴근 카드가 너무 크고,
+양옆의 빈 자리가 거슬린다.** 패드를 3분의 2로 줄였는데도 그랬습니다. 줄인 것은 높이였고,
+가운데 세운 64px 상자는 카드 너비(368px)의 6분의 1이라 그 좌우 150px씩이 비어 있었습니다.
+크기를 더 줄이는 것은 답이 아니었습니다 — 비어 있는 것은 높이가 아니라 너비였습니다.
+
+세 안을 실제 앱으로 띄워 보였습니다(`docs/design/proposals-punch.png`): **A** 출근/▶/START
+를 왼쪽에 그대로 쌓고 시각을 오른쪽에 크게, **B** 넓은 단추, **C** A의 줄을 날짜 카드에
+합치기. 근로자는 B를 골랐습니다.
+
+#### 바뀐 것
+
+- **윗줄**: 왼쪽에 출근/퇴근(17px) — 근무 중이면 그 옆에 근무중 등 — 오른쪽에 시각(24px).
+- **아랫줄**: 카드 너비의 단추 하나(높이 60px), 그 안에 ▶ START 또는 ■ STOP(26px 그림,
+  15px 글자). 출근 쪽은 초록, 퇴근 쪽은 빨강 — 그대로입니다.
+- 카드 높이 168 → 132px(출근 전, 잰 값). 지문 시절에는 242px이었습니다.
+- **모양은 `ds-tokens.css` 규칙 5**가 `height: 60px` + `touch-action: manipulation`으로
+  잡습니다: 18px 모서리, 바닥 회색, 안쪽 테두리, 카드 그림자. 소스에는 여전히
+  `border-radius`가 하나도 없습니다. 단추에 `min-height`도 테두리도 두지 않은 것은
+  규칙 2c와 2가 모서리를 가로채지 않게 하려는 것입니다.
+- **눌린 단추가 답합니다**(`:active` — 첫 리뷰의 S3). 길게 누르기 시절에는 차오르는
+  빨강이 '닿았다'고 말했는데, 한 번 누르기로 바꾼 뒤로는 아무것도 말하지 않았습니다.
+  답이 없는 단추는 한 번 더 눌립니다.
+- 가장 긴 줄(인도네시아어 특근 날의 `퇴근 · SEDANG KERJA · 특근 · 13h 59m`, 크메르어)도
+  한 줄에 들어가고 가로 스크롤이 없습니다 — 384px 폭에서 잰 값.
+
+#### 바꾸지 않은 것
+
+- **찍는 것은 단추 하나뿐입니다.** 단추는 넓어졌지만 글자도 시각도 덮지 않고, 그 위에서도
+  화면은 스크롤됩니다 — 카드 전체가 단추였던 예순셋째 항목의 두 사고는 그대로 막혀 있습니다.
+- 넓어진 만큼 쉬워진 주머니 속 누름은 여든여섯째 항목의 퇴근 카드(`oddShift`)가 받습니다.
+- 근무중 등의 크기(규칙 8), 출근/퇴근 문구, 이상한 근무 카드의 자리(패드 바로 아래).
+
+11 new assertions (3588 total) under 출퇴근 카드의 양옆이 비어 있었습니다 — 윗줄이 양끝으로
+갈라서는지, 단추가 폭을 정하지 않고 카드 너비로 늘어나는지, 단추가 글자와 시각을 덮지
+않는지, 규칙 2·2c가 모서리를 가로채지 않는지, 눌린 상태가 있는지. 예전 상자의 숫자를 잡던
+assertion 아홉은 단추의 숫자로 바꿨습니다.
+
+**다음 사람에게.** '너무 크다'는 말을 들으면 무엇이 큰지부터 재십시오. 여기서 큰 것은
+카드의 높이가 아니라 비어 있는 너비였고, 그래서 줄이는 대신 채웠습니다. 그리고 안을
+말로 설명하지 말고 실제 화면으로 띄워 보이십시오 — 근로자는 셋을 나란히 보고 1분 만에
+골랐습니다.
+
+### 2026-10-26 (eighty-sixth) — 지문은 필요 없었습니다: 한 번 누르면 출근, 한 번 누르면 퇴근
 
 **이 앱이 하는 일은 일한 시간을 세는 것이지 본인을 확인하는 것이 아니다 — 근로자가
 그렇게 말했습니다.** 지문은 출퇴근을 '일부러 한 일'로 만들려고 들어왔습니다

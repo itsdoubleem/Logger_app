@@ -42,29 +42,35 @@ flow), all the same drawing.
 
 ## The punch pad
 
-One tap, no fingerprint, no press-and-hold.
+One tap, no fingerprint, no press-and-hold. A full-width bar since the
+eighty-seventh entry (2026-10-26):
 
 ```
-      출근            퇴근          ← 17px, Archivo 800, green / red
-     ┌────┐          ┌────┐
-     │ ▶  │          │ ■  │         ← 64px tile, 17px corners, 35px glyph
-     └────┘          └────┘
-     START           STOP          ← 11px, 0.12em tracking, green / red
-     05:29          3h 42m         ← 20px
-                    ● 근무중
+ 출근                       06:24      ← 출근/퇴근 17px · time 24px, Archivo 800
+┌──────────────────────────────────┐
+│            ▶  START              │   ← 60px bar, card width, 18px corners
+└──────────────────────────────────┘     26px glyph · START/STOP 15px, 0.14em
+
+ 퇴근  ● 근무중              3h 42m      (on shift: red 퇴근 · ■ STOP)
 ```
 
-- **출근 / 퇴근 above, START / STOP below.** The Korean word is the one on the
-  paper the company hands the worker; START / STOP is the same in every
-  language.
-- **Two-thirds of the old pad**: tile 96 → 64px, glyph 52 → 35px, stamp 26 →
-  17px, time 30 → 20px, padding to match. START / STOP is 11px rather than a
-  strict 9px, which is too small to read on a factory floor. Measured: the
-  card went 242 → 168px off shift, 264 → 190px on shift.
-- The tile is still well above the 44px tap-target floor, and it is the only
-  thing that punches — the rest of the card is just a card.
+- **The Korean word leads, top left.** 출근 / 퇴근 is the word on the paper the
+  company hands the worker; START / STOP inside the bar is the same in every
+  language. On shift, the 근무중 lamp sits beside 퇴근.
+- **The time is top right**, so the card has no empty sides. The worker chose
+  this from three rendered proposals (`proposals-punch.png`: side by side,
+  wide button, merged into the date card). Measured: the card is 132px, down
+  from 168px with the centred tile and 242px with the fingerprint.
+- **Only the bar punches.** It covers neither the words nor the time, and the
+  screen still scrolls over it (`touch-action: manipulation`).
+- **Shape lives in `ds-tokens.css` rule 5**, caught by `height: 60px` +
+  `touch-action: manipulation`: 18px corners, the ground grey, an inset ring
+  and the card shadow, plus a pressed state (`:active` darkens it). The bar
+  has no `min-height` and no border, so rules 2 and 2c leave it alone.
 - The 근무중 lamp keeps its size: the shape layer catches it by its exact
   width and height (`ds-tokens.css` rule 8).
+- `mockup-punch-tile.png` is the earlier centred-tile design, kept for the
+  record.
 
 ## Do / don't
 
@@ -83,4 +89,4 @@ One tap, no fingerprint, no press-and-hold.
 The two screenshots the user supplied (a clock-and-folder app icon on a dark
 tile, and the START / STOP mockup) were temporary captures and were not kept.
 The first set the concept and composition only; the mark was drawn fresh, not
-traced. `preview.html` and `mockup-punch.png` are the approved previews.
+traced. `mockup-punch.png` is the approved punch pad (the wide bar); `preview.html` and `mockup-punch-tile.png` show the earlier centred tile.
