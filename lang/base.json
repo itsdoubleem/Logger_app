@@ -2711,6 +2711,22 @@
     "en": "Unpaid break {p0}. ",
     "ko": "무급 휴게 {p0}. "
   },
+  "live_on_break": {
+    "en": "On break now — unpaid break {p0}–{p1}; the timer keeps running but these minutes are not paid.",
+    "ko": "지금 휴게시간 — 무급 휴게 {p0}–{p1}. 시계는 계속 가지만 이 시간은 지급되지 않습니다."
+  },
+  "live_logged_in": {
+    "en": "Logged in at {p0}. ",
+    "ko": "{p0}에 출근. "
+  },
+  "live_next_break": {
+    "en": "Next unpaid break {p0}–{p1}.",
+    "ko": "다음 무급 휴게 {p0}–{p1}."
+  },
+  "live_breaks_done": {
+    "en": "All breaks for this shift are done — everything from here is paid.",
+    "ko": "이번 근무의 휴게는 모두 끝났습니다 — 지금부터는 전부 유급입니다."
+  },
   "unpaid_break_2": {
     "en": "Unpaid break",
     "ko": "휴게 (무급)"

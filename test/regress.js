@@ -8503,6 +8503,24 @@ console.log('\n== 주머니 속에서 눌린 출근이 다음 날 아침 근무 
   ok('새 출근에는 지난 카드가 따라오지 않습니다', !!u.state.session && u.state.oddOut === false && u.state.oddAt == null);
 }
 
+console.log('\n== 한국어로 둔 폰에서도 근무 중 안내는 영어였습니다 ==');
+// 2026-10-26 리뷰(S4). 출근하고 나면 날짜 카드에 'Logged in at 02:41. Next unpaid break
+// 11:30–12:30.'이 떴습니다 — 언어를 한국어로 두어도. 그 문장 하나만 코드에 영어로
+// 박혀 있었습니다. 이제 네 문장이 여덟 언어로 있습니다.
+{
+  const at = (lang, inIso, nowIso) => { const c = mk(V2, nowIso); c.setS({ lang }); c.state.session = { inIso: new Date(inIso).toISOString() }; return c.renderVals().detectReason; };
+  const ko = at('ko', '2026-10-26T08:50:00', '2026-10-26T10:00:00');
+  ok('한국어: 출근 시각과 다음 휴게', /08:50에 출근/.test(ko) && /다음 무급 휴게 11:30–12:30/.test(ko) && !/Logged|unpaid/.test(ko), ko);
+  const koBreak = at('ko', '2026-10-26T08:50:00', '2026-10-26T12:00:00');
+  ok('한국어: 휴게 중', /지금 휴게시간/.test(koBreak) && /11:30–12:30/.test(koBreak) && !/unpaid/.test(koBreak), koBreak);
+  const koDone = at('ko', '2026-10-26T08:50:00', '2026-10-26T19:00:00');
+  ok('한국어: 휴게가 다 끝난 뒤', /휴게는 모두 끝났습니다/.test(koDone), koDone);
+  const en = at('en', '2026-10-26T08:50:00', '2026-10-26T10:00:00');
+  ok('영어는 예전 그대로 읽힙니다', /^Logged in at 08:50\. Next unpaid break 11:30–12:30\./.test(en), en);
+  const vi = at('vi', '2026-10-26T08:50:00', '2026-10-26T10:00:00');
+  ok('베트남어도 자기 말로', /Vào ca lúc 08:50/.test(vi) && !/Logged/.test(vi), vi);
+}
+
 console.log('\n== 백업을 언제 했는지 아무도 몰랐습니다 ==');
 // 기록은 이 폰의 localStorage 하나에만 있습니다. 환영 화면이 한 번 '가끔 파일로
 // 저장해 두세요'라고 말하고 나면, 그 뒤로는 아무것도 마지막 백업이 언제였는지
