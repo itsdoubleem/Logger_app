@@ -8388,6 +8388,19 @@ console.log('\n== 주머니 속에서 눌린 출근이 다음 날 아침 근무 
   ok('24시간이 넘으면 이 카드는 닫히고 24시간 카드만 남습니다', t.state.staleOut === true && t.renderVals().oddOut === false);
   t.redoClockIn();
   ok('지우고 지금 출근하면 24시간 카드도 닫힙니다', t.state.staleOut === false && !!t.state.session);
+
+  // 리뷰 3회차 S1: 20:00 주머니 출근 → 20:05 누름(너무 이른 퇴근 카드) → 다음 날 07:50
+  // 누름(이 카드)에서 '귀가'를 고르면 근무는 닫혔는데 이 카드의 상태가 남아, 다음
+  // 출근에 빈 카드가 떴습니다. 두 카드는 함께 뜨지 않고, 새 출근은 카드를 데려오지 않습니다.
+  const u = at('2026-10-26T20:05:00');
+  u.state.session = { inIso: new Date('2026-10-26T20:00:00').toISOString() };
+  tap(u);
+  ok('20:05의 누름은 너무 이른 퇴근 카드입니다', u.state.shortOut === true);
+  u.base = new Date('2026-10-27T07:50:00'); u.t0 = Date.now(); u.lastTap = null; tap(u);
+  ok('다음 날 아침에는 이 카드만 뜹니다', u.renderVals().oddOut === true && u.state.shortOut === false);
+  u.setState({ session: null });                       // 다른 길(귀가·강제 퇴근)로 근무가 닫힘
+  u.lastTap = null; tap(u);
+  ok('새 출근에는 지난 카드가 따라오지 않습니다', !!u.state.session && u.state.oddOut === false && u.state.oddAt == null);
 }
 
 console.log('\n== 백업을 언제 했는지 아무도 몰랐습니다 ==');

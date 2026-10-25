@@ -6022,7 +6022,8 @@ class Component extends DCLogic {
     const odd = opts && opts.odd;
     const n = odd ? odd.at : this.now();
     if (!this.state.session) {
-      this.setState({ session: { inIso: n.toISOString() } });
+      // 새 근무에는 지난 근무의 카드가 따라오지 않습니다(리뷰 3회차 S1)
+      this.setState({ session: { inIso: n.toISOString() }, oddOut: false, oddAt: null, shortOut: false });
     } else {
       const L = this.sessionHours(n);
       const inD = L.inD, inH = L.inH, outH = L.outH;
@@ -6039,9 +6040,9 @@ class Component extends DCLogic {
       // 묻지 않습니다. 근로자가 못 보고 다음 날 아침 평소처럼 누르면, 그 누름이
       // 있지도 않던 근무 한 칸을 남깁니다(20:00 → 07:50 야간, 주말이면 특근).
       // 누르기 전의 마찰은 되돌리지 않기로 했으니, 묻는 자리는 퇴근입니다:
-      // 14시간이 넘거나, 출근이 근무조 시작에서 4시간 넘게 떨어져 있으면 저장하기
+      // 14시간이 넘거나, 출근이 근무조 시작에서 6시간 넘게 떨어져 있으면 저장하기
       // 전에 카드로 확인합니다. 맞다고 하면 STOP을 누른 그 순간으로 평소대로 기록됩니다.
-      if (!odd && this.oddShift(L)) { this.setState({ oddOut: true, oddAt: n.toISOString() }); return; }
+      if (!odd && this.oddShift(L)) { this.setState({ oddOut: true, oddAt: n.toISOString(), shortOut: false }); return; }
       const y = inD.getFullYear(), m = inD.getMonth() + 1, day = inD.getDate(), k = this.keyOf(inD);
       // a 특근 mark already on this day survives the punch — the punch just
       // replaces the assumed times with the real ones. And a day that was never
