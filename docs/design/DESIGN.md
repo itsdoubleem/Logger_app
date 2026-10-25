@@ -57,10 +57,10 @@ eighty-seventh entry (2026-10-26):
 - **The Korean word leads, top left.** 출근 / 퇴근 is the word on the paper the
   company hands the worker; START / STOP inside the bar is the same in every
   language. On shift, the 근무중 lamp sits beside 퇴근.
-- **40px side margins** for the whole card — the top line and the bar share
+- **48px side margins** for the whole card — the top line and the bar share
   them, so 출근, the bar and the time line up. At 18px the bar ran to the
-  card's edges and read as too wide; 32px was still a little wide (bar
-  332 → 304 → 288px at 384px).
+  card's edges and read as too wide; the worker narrowed it on the phone
+  through 32 and 40px to 48px (bar 332 → 304 → 288 → 272px at 384px).
 - **The time is top right**, so the card has no empty sides. The worker chose
   this from three rendered proposals (`proposals-punch.png`: side by side,
   wide button, merged into the date card). Measured: the card is 132px, down

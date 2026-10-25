@@ -8121,7 +8121,7 @@ console.log('\n== 카드를 쓸면 화면이 굳었고, 짚으면 출근이 찍�
   // (2026-10-26) 지문과 길게 누르기가 빠졌고, 같은 날 가운데 상자가 카드 너비의
   // 단추가 되었습니다(여든일곱째) — 카드 여백은 16px 18px 18px. 교훈은 그대로입니다:
   // 찍는 것은 단추 하나이고, 카드와 글자와 시각은 손잡이가 아닙니다.
-  const pad = tpl.match(/<div style="position:relative;overflow:hidden;[^"]*padding:16px 40px 18px;[^"]*"[^>]*>/);
+  const pad = tpl.match(/<div style="position:relative;overflow:hidden;[^"]*padding:16px 48px 18px;[^"]*"[^>]*>/);
   ok('출퇴근 카드가 그대로 있습니다', !!pad);
   const padTag = pad ? pad[0] : '';
   ok('카드는 더 이상 손잡이가 아닙니다',
@@ -8263,7 +8263,7 @@ console.log('\n== 출퇴근 카드의 양옆이 비어 있었습니다 — 넓�
   const fs = require('fs');
   const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
   const tpl = src.slice(0, src.indexOf('</x-dc>')).replace(/<!--[\s\S]*?-->/g, '');
-  const i0 = tpl.indexOf('padding:16px 40px 18px'), i1 = tpl.indexOf('{{ padTitle }}');
+  const i0 = tpl.indexOf('padding:16px 48px 18px'), i1 = tpl.indexOf('{{ padTitle }}');
   const pad = tpl.slice(i0, i1 + 40);
   const bar = (pad.match(/<div onClick="\{\{ padTap \}\}"[^>]*>/) || [''])[0];
   const head = pad.slice(0, pad.indexOf(bar));
@@ -8271,9 +8271,9 @@ console.log('\n== 출퇴근 카드의 양옆이 비어 있었습니다 — 넓�
     head.indexOf('{{ padStamp }}') >= 0 && head.indexOf('{{ padBig }}') > head.indexOf('{{ padStamp }}')
     && /justify-content:space-between/.test(head));
   ok('근무중 표시는 윗줄, 출근/퇴근 옆입니다', head.indexOf('{{ padLiveMsg }}') > head.indexOf('{{ padStamp }}'));
-  // 같은 날 다시: 단추가 카드 끝까지 닿아 너무 넓다 — 양옆 여백을 18 → 32 → 40px로. 글자와
+  // 같은 날 다시: 단추가 카드 끝까지 닿아 너무 넓다 — 양옆 여백을 18 → 32 → 40 → 48px로. 글자와
   // 시각은 단추와 같은 여백 안에 있어야 합니다(한 줄로 서 있게).
-  ok('카드의 양옆 여백은 40px — 단추와 윗줄이 같은 여백 안에 섭니다', /padding:16px 40px 18px/.test(pad.slice(0, 80)) || /padding:16px 40px 18px/.test(tpl.slice(i0 - 10, i0 + 30)));
+  ok('카드의 양옆 여백은 48px — 단추와 윗줄이 같은 여백 안에 섭니다', /padding:16px 48px 18px/.test(pad.slice(0, 80)) || /padding:16px 48px 18px/.test(tpl.slice(i0 - 10, i0 + 30)));
   ok('단추는 카드 너비입니다 — 폭을 정하지 않고 늘어납니다',
     !!bar && !/width:/.test(bar) && /height:60px/.test(bar));
   ok('단추는 글자와 시각을 덮지 않습니다', head.indexOf('padTap') < 0 && (tpl.match(/\{\{ padTap \}\}/g) || []).length === 1);
