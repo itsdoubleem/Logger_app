@@ -469,12 +469,14 @@
 #tabScroll > div > div[style*="grid-template-columns: 1fr 1fr 1fr;"] > div[style*="background: var(--color-accent-100)"] {
   background: var(--color-accent-100) !important;
 }
-/* ── 5 · the punch pad's fingerprint tile ───────────────────────────────── */
-/* The green mark itself is untouched — it is the identity. Only the box it
-   sits in changes: a rounded tile instead of a hard square. The 2px ring
-   stays, because its colour is how the pad says clocked-in / clocked-out. */
-[style*="width: 96px"][style*="height: 96px"] {
-  border-radius: 26px;
+/* ── 5 · the punch pad's START / STOP tile ──────────────────────────────── */
+/* A rounded tile instead of a hard square. Caught by its two sizes, so the
+   number lives in three places — the source's width/height, this selector and
+   test/regress.js. It was 96px with a 26px corner under the fingerprint; the
+   one-tap pad is two-thirds of that, 64px with a 17px corner
+   (docs/design/DESIGN.md). Change all three together or the tile goes square. */
+[style*="width: 64px"][style*="height: 64px"] {
+  border-radius: 17px;
   background: var(--color-bg);
   /* the hard 2px square ring goes; the pad already says clocked-in three
      more times — the 출근/퇴근 stamp, the title and the big clock all take

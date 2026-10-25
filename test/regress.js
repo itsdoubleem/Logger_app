@@ -8084,32 +8084,99 @@ console.log('\n== 카드를 쓸면 화면이 굳었고, 짚으면 출근이 찍�
   const fs = require('fs');
   const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
   const tpl = src.slice(0, src.indexOf('</x-dc>')).replace(/<!--[\s\S]*?-->/g, '');
-  const pad = tpl.match(/<div style="position:relative;overflow:hidden;[^"]*padding:20px 18px 22px;[^"]*"[^>]*>/);
-  ok('지문 카드가 그대로 있습니다', !!pad);
+  // (2026-10-26) 지문과 길게 누르기가 빠지고 패드가 3분의 2로 줄었습니다 —
+  // 상자는 64px, 카드 여백은 13px 12px 15px. 이 항목의 교훈은 그대로입니다.
+  const pad = tpl.match(/<div style="position:relative;overflow:hidden;[^"]*padding:13px 12px 15px;[^"]*"[^>]*>/);
+  ok('출퇴근 카드가 그대로 있습니다', !!pad);
   const padTag = pad ? pad[0] : '';
   ok('카드는 더 이상 손잡이가 아닙니다',
     padTag.indexOf('onClick') < 0 && padTag.indexOf('onPointerDown') < 0, padTag);
   ok('카드가 스크롤을 먹지 않습니다', padTag.indexOf('touch-action') < 0, padTag);
 
-  const box = tpl.match(/<div [^>]*width:96px;height:96px;[^>]*>/);
-  ok('지문 상자가 그대로 있습니다', !!box);
+  const box = tpl.match(/<div [^>]*width:64px;height:64px;[^>]*>/);
+  ok('출퇴근 상자가 그대로 있습니다', !!box);
   const boxTag = box ? box[0] : '';
-  ok('찍는 것은 지문 상자입니다',
-    /onPointerDown="\{\{ holdStart \}\}"/.test(boxTag)
-    && /onPointerUp="\{\{ holdEnd \}\}"/.test(boxTag)
-    && /onPointerLeave="\{\{ holdEnd \}\}"/.test(boxTag)
-    && /onClick="\{\{ padTap \}\}"/.test(boxTag), boxTag);
-  ok('지문 상자 위에서는 길게 누르기를 스크롤러가 가로채지 못합니다',
-    boxTag.indexOf('touch-action:none') >= 0, boxTag);
-  ok('지문 상자가 손가락에게 단추라고 말합니다',
+  ok('찍는 것은 출퇴근 상자입니다', /onClick="\{\{ padTap \}\}"/.test(boxTag), boxTag);
+  // 길게 누르기가 없으니 스크롤러를 막을 까닭도 없습니다. manipulation은 두 번
+  // 톡 쳐서 확대하는 것만 끕니다 — 누름이 300ms 늦게 오지 않게.
+  ok('상자 위에서도 화면은 스크롤됩니다',
+    boxTag.indexOf('touch-action:none') < 0 && boxTag.indexOf('touch-action:manipulation') >= 0, boxTag);
+  ok('출퇴근 상자가 손가락에게 단추라고 말합니다',
     boxTag.indexOf('cursor:pointer') >= 0, boxTag);
-  // 층 규칙 5는 96px 두 값으로만 상자를 잡습니다 — 크기는 그대로여야 합니다.
+  // 층 규칙 5는 64px 두 값으로만 상자를 잡습니다 — 크기를 바꾸면 세 곳을 같이.
   const ds = fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
-  ok('지문 상자는 여전히 층 규칙 5가 잡는 96px입니다',
-    ds.indexOf('[style*="width: 96px"][style*="height: 96px"]') >= 0
-    && /width:96px;height:96px/.test(boxTag));
+  ok('출퇴근 상자는 층 규칙 5가 잡는 64px입니다',
+    ds.indexOf('[style*="width: 64px"][style*="height: 64px"]') >= 0
+    && /width:64px;height:64px/.test(boxTag));
   // 손잡이는 하나뿐이어야 합니다 — 카드 안에 또 다른 padTap이 생기면 안 됩니다.
   ok('padTap은 화면에 한 자리뿐입니다', (tpl.match(/\{\{ padTap \}\}/g) || []).length === 1);
+}
+
+console.log('\n== 지문은 필요 없었습니다 — 한 번 누르면 출근, 한 번 누르면 퇴근 ==');
+// 2026-10-26. 근로자가 말했습니다: 이 앱이 하는 일은 일한 시간을 세는 것이지
+// 본인을 확인하는 것이 아니다. 지문은 그 일에 아무것도 더하지 않았고, 아이폰에서는
+// 걸림돌이었습니다 — WKWebView는 WebAuthn을 쓸 수 없어서 LAContext 다리와
+// 127.0.0.1 서버까지 세워야 했습니다. 그래서 지문(WebAuthn)과 길게 누르기를 다
+// 걷어 내고 패드를 START / STOP 단추 하나로 바꿨습니다. 출근이면 초록 ▶, 근무 중이면
+// 빨강 ■. 위에는 종이에 적힌 말 출근/퇴근, 아래에는 START/STOP.
+//
+// 길게 누르기가 막던 것은 주머니 속 실수였습니다. 그것은 원래 있던 두 장치가
+// 받습니다: 30분 안의 두 번째 누름은 퇴근이 되지 않고 출근 취소를 내밀며(shortOut),
+// 1.5초 안에 다시 닿은 손가락은 같은 누름으로 봅니다.
+//
+// 다음 사람에게: 단추를 '안전하게' 하려고 확인 창이나 길게 누르기를 다시 붙이지
+// 마십시오. 하루 두 번 누르는 단추에 붙인 마찰은 매일 두 번 내는 세금입니다.
+// 실수는 누른 다음에 받아 주는 것이 맞습니다.
+{
+  const fs = require('fs');
+  const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const code = src.split('\n').filter(l => l.indexOf('"en":') < 0).join('\n');
+  ok('지문을 부르는 코드가 남아 있지 않습니다',
+    !/navigator\.credentials|PublicKeyCredential|bioPunch|bioDetect|startHold|holdStart/.test(code));
+  const tpl = src.slice(0, src.indexOf('</x-dc>')).replace(/<!--[\s\S]*?-->/g, '');
+  const padTpl = tpl.slice(tpl.indexOf('{{ padStamp }}'), tpl.indexOf('{{ padBig }}'));
+  ok('패드에 지문 그림이 없습니다', padTpl.length > 0 && padTpl.indexOf('M12 10a2 2 0 0 0-2 2') < 0);
+
+  const c = mk(V2, '2026-10-26T08:50:00');
+  let R = c.renderVals();
+  ok('출근 전: 위에는 출근', R.padStamp === '출근', R.padStamp);
+  ok('출근 전: 아래에는 START', R.padTitle === 'START', R.padTitle);
+  ok('출근 전: ▶가 보이고 ■는 숨습니다', R.padOff === true && R.padLive === false);
+  ok('출근 쪽 글자는 앱의 초록입니다', R.padStampInk === R.padIconInk && /^oklch/.test(R.padIconInk), R.padStampInk);
+  ok('패드에 지문 안내 문장이 없습니다', !('padSub' in R));
+
+  c.lastTap = 0; R.padTap();
+  ok('한 번 누르면 출근입니다', !!c.state.session, JSON.stringify(c.state.session));
+  const inIso = c.state.session && c.state.session.inIso;
+  R = c.renderVals(); R.padTap();
+  ok('곧바로 한 번 더 닿은 손가락은 같은 누름입니다 — 출근 그대로, 경고 카드도 없습니다',
+    c.state.session && c.state.session.inIso === inIso && !c.state.shortOut);
+  R = c.renderVals();
+  ok('근무 중: 위에는 퇴근, 아래에는 STOP', R.padStamp === '퇴근' && R.padTitle === 'STOP');
+  ok('근무 중: ■가 보이고 ▶는 숨습니다', R.padLive === true && R.padOff === false);
+  ok('퇴근 쪽 글자는 앱의 빨강입니다', R.padStampInk === 'var(--color-accent)', R.padStampInk);
+
+  // 2초 뒤의 두 번째 누름은 진짜 누름입니다 — 다만 30분이 안 됐으니 퇴근이 되지 않고
+  // 출근을 취소할 길을 내밉니다. 주머니 속 실수를 받는 것은 이쪽입니다.
+  c.lastTap = Date.now() - 2000; R.padTap();
+  ok('30분 안의 두 번째 누름은 퇴근이 아니라 확인 카드입니다',
+    !!c.state.session && c.state.shortOut === true && c.state.extra.length === 0);
+  c.cancelClockIn();
+  ok('그 카드에서 출근을 취소할 수 있습니다', !c.state.session);
+
+  // 제대로 된 하루: 08:50 출근 → 18:05 퇴근, 한 번씩 눌러서.
+  const d = mk(V2, '2026-10-26T18:05:00');
+  d.state.session = { inIso: new Date('2026-10-26T08:50:00').toISOString() };
+  d.lastTap = 0; d.renderVals().padTap();
+  ok('한 번 누르면 퇴근이고 근무가 기록됩니다', !d.state.session && d.state.extra.length === 1,
+    'records=' + d.state.extra.length);
+
+  // 크기는 예전의 3분의 2 — 글자는 숫자로 고정해 둡니다(docs/design/DESIGN.md).
+  const pad = tpl.slice(tpl.indexOf('{{ padStamp }}') - 300, tpl.indexOf('{{ padBig }}') + 20);
+  ok('출근/퇴근은 17px', /font-size:17px;[^"]*">\{\{ padStamp \}\}/.test(pad));
+  ok('START/STOP은 11px', /font-size:11px;[^"]*">\{\{ padTitle \}\}/.test(pad));
+  ok('시각은 20px', /font-size:20px;[^"]*">\{\{ padBig \}\}/.test(pad));
+  ok('▶와 ■는 35px', (pad.match(/<svg width="35" height="35"/g) || []).length === 2);
 }
 
 console.log('\n== 백업을 언제 했는지 아무도 몰랐습니다 ==');

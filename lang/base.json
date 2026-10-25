@@ -879,21 +879,9 @@
     "en": "EXTENDED · {p0} weeks",
     "ko": "연장 · {p0}주"
   },
-  "fingerprint_check_unavailable_press_an": {
-    "en": "Fingerprint check unavailable — press and hold instead",
-    "ko": "지문 확인을 쓸 수 없습니다 — 길게 눌러 기록하세요"
-  },
-  "fingerprint_not_verified_tap_to_try_ag": {
-    "en": "Fingerprint not verified — tap to try again",
-    "ko": "지문이 확인되지 않았습니다 — 다시 누르세요"
-  },
   "first_day_at_this_company": {
     "en": "YYYY-MM-DD",
     "ko": "YYYY-MM-DD"
-  },
-  "first_run_registers_your_fingerprint_t": {
-    "en": "First run registers your fingerprint — tap to start",
-    "ko": "처음 한 번만 지문을 등록합니다 — 눌러서 시작하세요"
   },
   "first_time_setup": {
     "en": "FIRST-TIME SETUP",
@@ -1110,14 +1098,6 @@
   "hol_sub": {
     "en": "substitute holiday",
     "ko": "대체공휴일"
-  },
-  "hold_to_clock_in": {
-    "en": "HOLD TO CLOCK IN",
-    "ko": "출근 · 길게 누르기"
-  },
-  "hold_to_clock_out": {
-    "en": "HOLD TO CLOCK OUT",
-    "ko": "퇴근 · 길게 누르기"
   },
   "holiday": {
     "en": "Holiday ",
@@ -1883,14 +1863,6 @@
     "en": "planned ",
     "ko": "예정 "
   },
-  "press_and_hold_your_fingerprint": {
-    "en": "Press and hold your fingerprint",
-    "ko": "지문을 길게 누르세요"
-  },
-  "press_and_hold_your_fingerprint_2": {
-    "en": "Press and hold your fingerprint",
-    "ko": "지문을 길게 누르세요"
-  },
   "proj_note_plain": {
     "en": "Includes planned days: {hol} holiday work{holDates}. Leave and vacation you log will be counted here too.",
     "ko": "예정 포함 · 특근 {hol}{holDates}. 연차·휴가를 넣으면 여기에 함께 계산됩니다."
@@ -2463,10 +2435,6 @@
     "en": "SETUP",
     "ko": "SETUP"
   },
-  "tap_and_verify_with_your_fingerprint": {
-    "en": "Tap and verify with your fingerprint",
-    "ko": "눌러서 지문으로 확인하세요"
-  },
   "tap_once_for_a_single_day_again_for_a_": {
     "en": "Tap once for a single day, again for a range. Holidays and Sundays are not deducted.",
     "ko": "첫 탭은 하루, 다시 탭하면 기간. 공휴일과 일요일은 차감되지 않습니다."
@@ -2594,10 +2562,6 @@
   "total_deductions": {
     "en": "TOTAL DEDUCTIONS",
     "ko": "공제액 TOTAL"
-  },
-  "touch_the_fingerprint_sensor": {
-    "en": "Touch the fingerprint sensor",
-    "ko": "지문 센서에 손가락을 대세요"
   },
   "tour1_body": {
     "en": "Press the pad with your fingerprint when you arrive and when you leave. The app works out on its own whether it was a day or a night shift, and takes your breaks off. Nothing to set up first.",
@@ -2778,14 +2742,6 @@
   "variable_allowances_only": {
     "en": "variable allowances only",
     "ko": "변동수당만"
-  },
-  "verify_to_clock_in": {
-    "en": "VERIFY TO CLOCK IN",
-    "ko": "출근 · 지문 확인"
-  },
-  "verify_to_clock_out": {
-    "en": "VERIFY TO CLOCK OUT",
-    "ko": "퇴근 · 지문 확인"
   },
   "viewing_pay_period": {
     "en": "PAY PERIOD SHOWN · 급여기간",
