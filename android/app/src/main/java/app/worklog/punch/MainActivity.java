@@ -17,8 +17,6 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.biometric.BiometricManager;
-import androidx.biometric.BiometricPrompt;
 import androidx.fragment.app.FragmentActivity;
 import androidx.webkit.WebViewAssetLoader;
 import androidx.webkit.WebViewClientCompat;
@@ -30,8 +28,6 @@ import androidx.webkit.ServiceWorkerControllerCompat;
 import java.io.OutputStream;
 import java.util.Collections;
 import java.util.Set;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 /**
  * The whole app, offline, inside the APK.
@@ -41,13 +37,10 @@ import java.util.concurrent.Executors;
  * persists, the service worker registers, and the page behaves exactly as it
  * does on a web host. Loading the same file from file:// would strip all of it.
  *
- * Android WebView does not expose a WebAuthn platform authenticator, so the
- * punch pad would otherwise fall back to press-and-hold here. BioBridge below
- * supplies one: navigator.credentials is backed by Android's BiometricPrompt.
- * The guarantee is the same one the web build makes — the person holding the
- * phone was verified locally, on the phone, with nothing sent anywhere — but
- * the mechanism is Android's, not WebAuthn's. There is no signature to check
- * either way: there is no server.
+ * Until 2026-10-26 a BioBridge here answered navigator.credentials with
+ * Android's BiometricPrompt, because the punch pad asked for a fingerprint.
+ * Punching is one tap now (CHANGELOG, eighty-sixth entry), so the fingerprint
+ * bridge, its shim, the USE_BIOMETRIC permission and androidx.biometric are gone.
  *
  * A WebView also has no file picker and no downloads unless the host supplies
  * them, which is what onShowFileChooser (백업 불러오기) and the save bridge
@@ -63,7 +56,6 @@ public class MainActivity extends FragmentActivity {
     private static final String START = ORIGIN + "/assets/www/index.html";
 
     private WebView web;
-    private final Executor executor = Executors.newSingleThreadExecutor();
 
     // 불러오기 · the page's <input type="file"> waiting on a picked document
     private ValueCallback<Uri[]> fileCallback;
@@ -187,15 +179,12 @@ public class MainActivity extends FragmentActivity {
             });
         }
 
-        web.addJavascriptInterface(new BioBridge(), "WorkLogNative");
+        web.addJavascriptInterface(new NativeBridge(), "WorkLogNative");
 
-        // must run before the page's own scripts, or the app has already decided
-        // there is no authenticator by the time we install one
+        // must run before the page's own scripts, or the page has already
+        // decided there is no share sheet by the time we install one
         if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
             Set<String> origins = Collections.singleton(ORIGIN);
-            WebViewCompat.addDocumentStartJavaScript(web, BioShim.SOURCE, origins);
-            // separate from the fingerprint shim on purpose: a phone with no
-            // enrolled fingerprint still has to be able to back its records up
             WebViewCompat.addDocumentStartJavaScript(web, FileShim.SOURCE, origins);
         }
 
@@ -217,18 +206,11 @@ public class MainActivity extends FragmentActivity {
         else moveTaskToBack(true);
     }
 
-    /** Resolves a JS promise back on the WebView thread. */
-    private void settle(final String id, final boolean ok, final String err) {
-        final String js = "window.__worklogBio && window.__worklogBio.settle("
-                + BioShim.quote(id) + "," + ok + "," + BioShim.quote(err) + ")";
-        runOnUiThread(() -> web.evaluateJavascript(js, null));
-    }
-
-    /** The same, for the backup save. An empty id is the fallback path: nobody is waiting. */
+    /** Resolves the backup save's JS promise on the WebView thread. An empty id is the fallback path: nobody is waiting. */
     private void settleSave(final String id, final boolean ok, final String err) {
         if (id == null || id.isEmpty()) return;
         final String js = "window.__worklogFiles && window.__worklogFiles.settle("
-                + BioShim.quote(id) + "," + ok + "," + BioShim.quote(err) + ")";
+                + FileShim.quote(id) + "," + ok + "," + FileShim.quote(err) + ")";
         runOnUiThread(() -> web.evaluateJavascript(js, null));
     }
 
@@ -267,14 +249,7 @@ public class MainActivity extends FragmentActivity {
         }
     }
 
-    private class BioBridge {
-
-        @JavascriptInterface
-        public boolean available() {
-            int r = BiometricManager.from(MainActivity.this)
-                    .canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG);
-            return r == BiometricManager.BIOMETRIC_SUCCESS;
-        }
+    private class NativeBridge {
 
         /**
          * 백업 파일 저장 · the page hands over the finished backup as a data:
@@ -306,41 +281,6 @@ public class MainActivity extends FragmentActivity {
                     pendingBytes = null;
                     settleSave(id, false, "NotAllowedError");
                 }
-            });
-        }
-
-        @JavascriptInterface
-        public void authenticate(final String id, final String title, final String subtitle) {
-            runOnUiThread(() -> {
-                BiometricPrompt.PromptInfo info = new BiometricPrompt.PromptInfo.Builder()
-                        .setTitle(title)
-                        .setSubtitle(subtitle)
-                        .setNegativeButtonText("취소")
-                        .setConfirmationRequired(false)
-                        .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
-                        .build();
-
-                BiometricPrompt prompt = new BiometricPrompt(MainActivity.this, executor,
-                        new BiometricPrompt.AuthenticationCallback() {
-                            @Override
-                            public void onAuthenticationSucceeded(@NonNull BiometricPrompt.AuthenticationResult r) {
-                                settle(id, true, "");
-                            }
-
-                            @Override
-                            public void onAuthenticationError(int code, @NonNull CharSequence msg) {
-                                // cancelled, or no finger enrolled — the page treats
-                                // NotAllowedError as "nothing happened, try again"
-                                settle(id, false, "NotAllowedError");
-                            }
-
-                            @Override
-                            public void onAuthenticationFailed() {
-                                // a finger that did not match: the prompt stays up for
-                                // another try, so do not settle here
-                            }
-                        });
-                prompt.authenticate(info);
             });
         }
     }

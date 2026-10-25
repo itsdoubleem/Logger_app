@@ -6,19 +6,15 @@
 # ── 지문 · 파일 다리 · the JavaScript bridge ────────────────────────────
 # WebView resolves @JavascriptInterface methods by NAME, at runtime, from a
 # string. R8 cannot see those call sites, so without this it will rename or
-# strip them and the punch pad silently falls back to press-and-hold.
+# strip them and 백업 내보내기 silently stops reaching the disk.
 -keepclasseswithmembers class * {
     @android.webkit.JavascriptInterface <methods>;
 }
--keep class app.worklog.punch.MainActivity$BioBridge { *; }
+-keep class app.worklog.punch.MainActivity$NativeBridge { *; }
 
-# BioShim.SOURCE / FileShim.SOURCE are JavaScript held in static String fields
-# and injected with addDocumentStartJavaScript. The strings must survive.
--keep class app.worklog.punch.BioShim { *; }
+# FileShim.SOURCE is JavaScript held in a static String field and injected
+# with addDocumentStartJavaScript. The string must survive.
 -keep class app.worklog.punch.FileShim { *; }
-
-# androidx.biometric inflates fragments reflectively.
--keep class androidx.biometric.** { *; }
 
 # WebView callbacks invoked from native.
 -keepclassmembers class * extends android.webkit.WebChromeClient {

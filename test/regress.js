@@ -8175,6 +8175,17 @@ console.log('\n== 지문은 필요 없었습니다 — 한 번 누르면 출근,
   const fs = require('fs');
   const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
   const code = src.split('\n').filter(l => l.indexOf('"en":') < 0).join('\n');
+  // 지문 시절의 등록 id는 앱이 뜰 때 한 번 지웁니다
+  const mount = src.slice(src.indexOf('  componentDidMount() {'), src.indexOf('  componentDidMount() {') + 600);
+  ok('남은 지문 등록 id를 지웁니다', /removeItem\('worklog\.bio\.v1'\)/.test(mount));
+  {
+    const store = { 'worklog.bio.v1': '{"v":1,"id":"x"}', other: '1' };
+    const prev = global.window;
+    global.window = { localStorage: { removeItem: k => { delete store[k]; }, getItem: k => store[k] || null, setItem: (k, v) => { store[k] = v; } } };
+    try { const c0 = mk(V2, '2026-10-26T08:00:00'); c0.componentDidMount(); c0.componentWillUnmount && clearInterval(c0.iv); }
+    finally { global.window = prev; }
+    ok('앱이 뜨면 worklog.bio.v1은 없고 다른 것은 그대로입니다', !('worklog.bio.v1' in store) && store.other === '1');
+  }
   ok('지문을 부르는 코드가 남아 있지 않습니다',
     !/navigator\.credentials|PublicKeyCredential|bioPunch|bioDetect|startHold|holdStart/.test(code));
   const tpl = src.slice(0, src.indexOf('</x-dc>')).replace(/<!--[\s\S]*?-->/g, '');

@@ -3,13 +3,13 @@ import Network
 
 /// The page's origin, and the reason there is a server in an offline app at all.
 ///
-/// WorkLogApp.v2.dc.html gives up on the fingerprint the moment
-/// `window.isSecureContext` is false, and it keeps every record the worker owns
-/// in localStorage, which is keyed by origin. A WKWebView can load the page
-/// three ways and only one of them satisfies both:
+/// WorkLogApp.v2.dc.html keeps every record the worker owns in localStorage,
+/// which is keyed by origin, and its service worker needs a secure context.
+/// (Until 2026-10-26 the fingerprint punch needed one too.) A WKWebView can
+/// load the page three ways and only one of them satisfies both:
 ///
 ///   file://              — not a secure context in WebKit; localStorage is
-///                          unreliable and the punch pad drops to press-and-hold.
+///                          unreliable and the service worker does not register.
 ///   a custom scheme      — WKURLSchemeHandler cannot register a scheme as
 ///                          trustworthy, so isSecureContext is false again.
 ///   http://127.0.0.1     — loopback is "potentially trustworthy" by spec, so
