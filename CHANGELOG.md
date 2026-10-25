@@ -1,6 +1,6 @@
 # 근무기록 LOGGER — change log beyond V2.md
 
-Ninety-two entries, newest first — eighty-five carry an ordinal (first … eighty-fifth),
+Ninety-three entries, newest first — eighty-six carry an ordinal (first … eighty-sixth),
 the seven oldest predate the numbering. Each one is a bug found by **actually using the app on
 shift**, what changed, and — the part worth reading — *why it was that and not the
 obvious fix*. Most entries end with a **다음 사람에게** paragraph: the rule the bug
@@ -18,7 +18,8 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 
 ## Index
 
-- 2026-10-21 (latest, eighty-fifth) — 같은 아침이 두 번 왔습니다: 근무기록은 이제 방금 끝낸 근무가 있는 기간으로 열립니다
+- 2026-10-26 (latest, eighty-sixth) — 지문은 필요 없었습니다: 한 번 누르면 출근, 한 번 누르면 퇴근
+- 2026-10-21 (eighty-fifth) — 같은 아침이 두 번 왔습니다: 근무기록은 이제 방금 끝낸 근무가 있는 기간으로 열립니다
 - 2026-10-12 (eighty-fourth) — 보수월액 20을 쳐도, 앱이 보여 준 국민연금을 옮겨 적어도
 - 2026-10-12 (eighty-third) — 국민연금을 쳤는데 칸이 비어 버렸습니다
 - 2026-10-12 (eighty-second) — 흰 판이 아니라 붉은 테두리 판으로
@@ -111,7 +112,69 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 - 2026-08-13 — the service worker was hiding every update
 - 2026-08-13 (earlier) — 조퇴 사유 became a popup with a dropdown
 
-### 2026-10-21 (latest, eighty-fifth) — 같은 아침이 두 번 왔습니다: 근무기록은 이제 방금 끝낸 근무가 있는 기간으로 열립니다
+### 2026-10-26 (latest, eighty-sixth) — 지문은 필요 없었습니다: 한 번 누르면 출근, 한 번 누르면 퇴근
+
+**이 앱이 하는 일은 일한 시간을 세는 것이지 본인을 확인하는 것이 아니다 — 근로자가
+그렇게 말했습니다.** 지문은 출퇴근을 '일부러 한 일'로 만들려고 들어왔습니다
+(WebAuthn, 안드로이드는 `BioShim`, 아이폰은 `LAContext` 다리). 그런데 서버가 없는
+앱이라 그 서명을 확인할 곳이 없었고, 지문이 증명하는 것은 '이 폰을 든 사람이
+눌렀다'뿐이었습니다. 근무내역서가 증거가 되는 것은 시각과 계산이 맞아서이지 지문
+때문이 아닙니다. 그리고 아이폰에서는 지문이 오히려 걸림돌이었습니다 — WKWebView에서
+지문을 쓰려고 127.0.0.1 서버를 세우고 `LAContext`를 따로 이어야 했습니다.
+
+#### 바뀐 것
+
+- **출퇴근 패드는 단추 하나입니다.** 출근 전에는 초록 ▶, 근무 중에는 빨강 ■.
+  위에는 종이에 적힌 말 **출근 / 퇴근**(17px), 아래에는 **START / STOP**(11px) —
+  어느 언어로 보든 같습니다. 한 번 누르면 찍힙니다. 길게 누르기도, 지문 확인도
+  없습니다.
+- **패드는 예전의 3분의 2입니다.** 'VERIFY TO CLOCK IN'과 '지문을 길게 누르세요'
+  두 줄이 빠지자 카드가 텅 비어 커 보였습니다. 상자 96 → 64px(모서리 26 → 17),
+  ▶·■ 35px, 출근/퇴근 26 → 17px, 시각 30 → 20px. 잰 값으로 카드가 242 → 168px
+  (출근 전), 264 → 190px(근무 중). START/STOP은 정확히 3분의 2면 9px라 공장
+  바닥에서 읽히지 않아 11px로 두었습니다. 근무중 등은 크기를 그대로 두었습니다 —
+  층 규칙 8이 그 점을 너비와 높이로 잡고 있습니다(예순째).
+- **로고가 지문에서 시계로 바뀌었습니다.** 앱 아이콘은 시계 + 폴더(일한 시간과
+  그 기록), 근무기록 L◷GGER의 O는 그 시계에서 폴더를 뺀 것입니다 — 14–16px에서는
+  폴더가 뭉개집니다. 원본은 `docs/design/logo/`, 이유는 `docs/design/DESIGN.md`.
+  `pwa/make_icons.py`가 같은 원본으로 안드로이드·아이폰·PWA 아이콘을 다시 그립니다.
+- **화면의 말에서 지문이 빠졌습니다**, 여덟 언어 모두. 안내 문장은 이제 근로자가
+  실제로 누르는 단추 이름 — 출근 START, 퇴근 STOP — 을 부릅니다. 근무 중 내역의
+  `지문 01:46`은 `찍은 시각 01:46`이 되었습니다. 지문에만 쓰이던 키 열한 개는
+  지웠습니다. 크메르어·네팔어 문장 둘에 섞여 있던 그 문자의 숫자 8도 ASCII로
+  바꿨습니다.
+
+#### 바꾸지 않은 것 — 실수로 누른 것은 누른 다음에 받습니다
+
+길게 누르기가 막던 것은 주머니 속 실수였습니다. 그 일은 원래 있던 장치가 합니다:
+
+- **30분 안의 두 번째 누름은 퇴근이 되지 않습니다**(`shortOut`) — 출근을 취소할
+  길을 내밉니다(`cancelClockIn`). 그대로입니다.
+- **1.5초 안에 다시 닿은 손가락은 같은 누름입니다**(`padTap`). 새로 넣은 것은 이
+  한 줄뿐입니다 — 두 번 톡 친 것이 출근 직후 '너무 짧은 근무' 카드를 띄우면 안 되니까요.
+- 손잡이는 여전히 가운데 상자 하나입니다(2026-09-14). 길게 누르기가 없으니
+  `touch-action:none`은 `manipulation`이 되었습니다 — 상자 위에서도 화면이 스크롤됩니다.
+- **안드로이드 `BioShim`과 아이폰 `LAContext` 다리는 그대로 두었습니다.** 앱이 더
+  이상 `navigator.credentials`를 부르지 않으니 둘 다 잠들어 있을 뿐입니다. 걷어 내는
+  것은 따로 할 일입니다(androidx.biometric도 함께 빠집니다). 아이폰의
+  `127.0.0.1:8787`은 걷어 내면 안 됩니다 — 이제는 지문이 아니라 localStorage의
+  origin 때문에 있습니다. 포트가 바뀌면 기록이 사라집니다.
+- 이미 저장된 `worklog.bio.v1`(지문 등록 id)은 지우지 않았습니다. 개인 정보가 아니고,
+  읽는 코드도 없습니다.
+
+30 new assertions (3539 total) under 지문은 필요 없었습니다 and 이름 한가운데의 O는
+앱의 시계입니다: 한 번 누르면 출근·퇴근이 되는지, 곧바로 다시 닿은 손가락은 같은
+누름인지, 30분 안의 누름은 여전히 확인 카드인지, 지문을 부르는 코드가 남지 않았는지,
+여덟 언어 어디에도 지문이라는 말이 없는지, 세 시계와 앱 아이콘이 `docs/design`의
+원본과 같은 선을 긋는지.
+
+**다음 사람에게.** 단추를 '안전하게' 하려고 확인 창이나 길게 누르기를 다시 붙이지
+마십시오. 하루 두 번 누르는 단추에 붙인 마찰은 매일 두 번 내는 세금이고, 이 앱에서
+그 마찰이 막던 실수는 이미 누른 **다음에** 받아 주고 있습니다. 그리고 무엇인가를
+'증명'하는 장치를 붙이기 전에, 그 증명을 누가 확인하는지 물으십시오 — 확인할 사람이
+없는 증명은 근로자의 손가락만 붙잡습니다.
+
+### 2026-10-21 (eighty-fifth) — 같은 아침이 두 번 왔습니다: 근무기록은 이제 방금 끝낸 근무가 있는 기간으로 열립니다
 
 **10월 20일 20:40에 출근해 21일 08:50에 퇴근했는데, 근무기록에 그 날이 없다는
 보고였습니다.** 21일이 급여기간 첫날입니다. 열두째 항목(2026-08-21)과 시각까지

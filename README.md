@@ -31,9 +31,9 @@ worker, generalised for any visa/company). It records clock-in / clock-out, deci
 night shift automatically, applies Korean overtime and night-premium law, and predicts the
 月 payslip. It is fully functional today — settings and records persist in localStorage.
 
-**Goal of this handoff: get it onto an Android phone as an installable app whose punch pad
-uses the real fingerprint sensor.** Not a redesign. The UI and the wage engine are done and
-should be preserved exactly.
+It ships as an Android APK and an iPhone app, both wrapping the same offline web build.
+Punching is **one tap**: 출근 START to clock in, 퇴근 STOP to clock out. The wage engine is
+done and should be preserved exactly.
 
 ## What this is *not*
 
@@ -87,34 +87,26 @@ Every interactive target is >= 44px. Do not round corners, do not center button 
 
 ## The two jobs, in priority order
 
-### 1. Real biometric punch (the actual ask)
-Today the pad is press-and-hold — a stand-in. It must become a real fingerprint prompt.
+### 1. The punch pad — one tap, no fingerprint
+The pad was a WebAuthn fingerprint prompt (with press-and-hold as the fallback) until
+2026-10-26. It is now a single START / STOP button: green ▶ with 출근 above it when the
+worker is off shift, red ■ with 퇴근 above it while on shift. The app counts hours; it does
+not need to verify who pressed, and with no server there was never anything to check a
+signature against. `CHANGELOG.md` (eighty-sixth entry) has the reasoning.
 
-**Recommended: keep it a web app, add WebAuthn.**
-WebAuthn's platform authenticator triggers the phone's real fingerprint sensor. It needs a
-**secure context (https)** — it will not work from a `file://` URL, which is the only
-reason the prototype doesn't have it already.
+Accidental taps are handled after the fact, not by friction before it: a second tap within
+1.5 s is the same tap, and a second tap within 30 minutes of clocking in does not clock out —
+it offers to cancel the clock-in. **Do not add a hold or a confirmation step back.**
 
-- On first run, register a platform credential:
-  `navigator.credentials.create({ publicKey: { ..., authenticatorSelection:
-  { authenticatorAttachment: 'platform', userVerification: 'required' } } })`
-  Store the credential id in localStorage.
-- On each punch, verify:
-  `navigator.credentials.get({ publicKey: { challenge, allowCredentials: [{ id, type:'public-key' }],
-  userVerification: 'required' } })`
-  Resolve => record the punch. Reject => do nothing.
-- There is **no server and no account** — this is local device verification only, used as a
-  deliberate confirmation gesture (and to stop a pocket-tap logging a shift). Do not add a
-  backend, do not upload anything. That is a hard product requirement: workers are sharing
-  this with each other and their pay data must never leave their phone.
-- Feature-detect. If WebAuthn or a platform authenticator is unavailable, fall back to the
-  existing press-and-hold. Never leave the user unable to punch.
+There is **no server and no account**. Do not add a backend, do not upload anything. That is
+a hard product requirement: workers are sharing this with each other and their pay data must
+never leave their phone.
 
 **If a signed APK is genuinely required** (e.g. to hand round on a USB stick, or to publish):
 wrap the hosted PWA rather than rewriting. Bubblewrap or PWABuilder produce a TWA APK from a
 https URL in minutes. Only reach for Capacitor if you need something the web can't do; if you
-do use Capacitor, `@capacitor/preferences` replaces localStorage and a biometric plugin
-replaces WebAuthn — the rest of the app is unchanged.
+do use Capacitor, `@capacitor/preferences` replaces localStorage — the rest of the app is
+unchanged.
 
 **Do not port this to Kotlin/Compose or React Native unless the user asks.** It would mean
 re-deriving the wage engine below, which is where all the risk lives.
