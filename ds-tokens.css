@@ -486,11 +486,11 @@
   border-radius: 18px;
   background: var(--color-bg);
   box-shadow: inset 0 0 0 1px var(--color-neutral-300), var(--shadow-card);
-  transition: filter .12s ease, background-color .12s ease;
+  transition: background-color .12s ease;
 }
+/* only the plate darkens — a filter would dim the ▶ START ink with it */
 [style*="height: 60px"][style*="touch-action: manipulation"]:active {
-  filter: brightness(.92);
-  background-color: var(--color-neutral-200);
+  background-color: var(--color-neutral-300);
 }
 
 /* ── 6 · the tab bar ────────────────────────────────────────────────────── */

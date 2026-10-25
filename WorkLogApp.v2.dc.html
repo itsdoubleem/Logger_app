@@ -510,9 +510,9 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
         <div style="position:relative;overflow:hidden;display:flex;flex-direction:column;gap:12px;padding:16px 18px 18px;border-bottom:2px solid var(--color-divider);user-select:none">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0">
             <div style="display:flex;align-items:center;gap:12px;min-width:0">
-              <div style="font-family:var(--font-heading);font-weight:800;font-size:17px;line-height:1;letter-spacing:-0.01em;color:{{ padStampInk }}">{{ padStamp }}</div>
+              <div style="flex:none;white-space:nowrap;font-family:var(--font-heading);font-weight:800;font-size:17px;line-height:1;letter-spacing:-0.01em;color:{{ padStampInk }}">{{ padStamp }}</div>
               <sc-if value="{{ padLive }}" hint-placeholder-val="{{ true }}">
-                <div style="display:flex;align-items:center;gap:7px;font-family:var(--font-heading);font-weight:800;font-size:13px;letter-spacing:0.08em;color:{{ padIconInk }}">
+                <div style="display:flex;align-items:center;gap:7px;min-width:0;font-family:var(--font-heading);font-weight:800;font-size:13px;letter-spacing:0.08em;color:{{ padIconInk }}">
                   <div style="width:9px;height:9px;flex:none;background:{{ padIconInk }}"></div>{{ padLiveMsg }}
                 </div>
               </sc-if>

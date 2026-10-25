@@ -65,7 +65,7 @@ eighty-seventh entry (2026-10-26):
   screen still scrolls over it (`touch-action: manipulation`).
 - **Shape lives in `ds-tokens.css` rule 5**, caught by `height: 60px` +
   `touch-action: manipulation`: 18px corners, the ground grey, an inset ring
-  and the card shadow, plus a pressed state (`:active` darkens it). The bar
+  and the card shadow, plus a pressed state (`:active` darkens the plate, not the ink). The bar
   has no `min-height` and no border, so rules 2 and 2c leave it alone.
 - The 근무중 lamp keeps its size: the shape layer catches it by its exact
   width and height (`ds-tokens.css` rule 8).

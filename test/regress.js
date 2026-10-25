@@ -8254,7 +8254,7 @@ console.log('\n== 출퇴근 카드의 양옆이 비어 있었습니다 — 넓�
 // 너비의 6분의 1이었습니다. 세 안(나란히 · 넓은 단추 · 날짜 카드에 합치기)을 실제
 // 화면으로 띄워 보였고, 근로자는 넓은 단추를 골랐습니다: 윗줄 왼쪽에 출근/퇴근
 // (근무 중이면 그 옆에 근무중), 오른쪽에 시각, 아래에 카드 너비의 ▶ START / ■ STOP.
-// 잰 높이는 출근 전 162 → 130px.
+// 잰 높이는 출근 전 168 → 132px(384px 폭).
 //
 // 다음 사람에게: 단추가 넓어졌다고 손잡이가 넓어진 것은 아닙니다. 단추는 글자도
 // 시각도 덮지 않고(예순셋째), 그 위에서도 화면은 스크롤됩니다. 넓어진 만큼 쉬워진
@@ -8282,7 +8282,20 @@ console.log('\n== 출퇴근 카드의 양옆이 비어 있었습니다 — 넓�
   const ds = fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
   const r5 = ds.slice(ds.indexOf("── 5 · the punch pad's START / STOP button"), ds.indexOf('── 6 · the tab bar'));
   ok('규칙 5가 단추의 모서리를 둥글게 합니다', /border-radius: 18px/.test(r5));
-  ok('눌린 단추는 그 자리에서 답합니다', /:active\s*\{[^}]*brightness/.test(r5));
+  ok('눌린 단추는 그 자리에서 답합니다', /:active\s*\{[^}]*background-color/.test(r5));
+  // 리뷰 S2: 규칙 5의 두 글자는 단추 하나에만 있어야 합니다. [style*="height: 60px"]는
+  // min-height: 60px과 line-height: 60px에도 걸리고, touch-action: manipulation은 다음
+  // 사람이 빨리 눌리는 단추에 그대로 옮겨 붙일 첫 값입니다 — 둘 다 붙은 요소는 조용히
+  // 이 단추의 모서리·바탕·눌림을 받습니다.
+  const full = src.slice(0, src.indexOf('</x-dc>'));
+  ok('height: 60px은 소스에 단추 한 자리뿐입니다', (full.match(/height:\s*60px/g) || []).length === 1);
+  ok('touch-action: manipulation도 단추 한 자리뿐입니다', (full.match(/touch-action:\s*manipulation/g) || []).length === 1);
+  // 리뷰 S1: 좁은 폰(320–360px)에서 근무중 문구가 길면 '퇴근'이 퇴 / 근으로 쪼개졌습니다.
+  // 한글은 아무 음절 사이에서나 줄이 바뀝니다 — 도장은 줄어들지 않고, 줄지는 쪽은 등입니다.
+  const stampTag = (head.match(/<div style="[^"]*">\{\{ padStamp \}\}/) || [''])[0];
+  ok('출근/퇴근은 줄어들지도 쪼개지지도 않습니다', /flex:none/.test(stampTag) && /white-space:nowrap/.test(stampTag), stampTag);
+  const timeTag = (head.match(/<div style="[^"]*">\{\{ padBig \}\}/) || [''])[0];
+  ok('시각도 줄어들지 않습니다', /flex:none/.test(timeTag), timeTag);
   ok('예전 64px 상자 규칙은 남아 있지 않습니다', ds.indexOf('[style*="width: 64px"][style*="height: 64px"]') < 0);
 }
 
