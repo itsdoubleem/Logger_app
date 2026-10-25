@@ -18,7 +18,7 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 
 ## Index
 
-- 2026-10-26 (latest, eighty-seventh) — 출퇴근 카드의 양옆이 비어 있었습니다: 카드 너비의 단추로
+- 2026-10-26 (latest, eighty-seventh) — 출퇴근 카드의 양옆이 비어 있었습니다: 카드 너비의 단추와 가운데 시계로
 - 2026-10-26 (eighty-sixth) — 지문은 필요 없었습니다: 한 번 누르면 출근, 한 번 누르면 퇴근
 - 2026-10-21 (eighty-fifth) — 같은 아침이 두 번 왔습니다: 근무기록은 이제 방금 끝낸 근무가 있는 기간으로 열립니다
 - 2026-10-12 (eighty-fourth) — 보수월액 20을 쳐도, 앱이 보여 준 국민연금을 옮겨 적어도
@@ -113,7 +113,7 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 - 2026-08-13 — the service worker was hiding every update
 - 2026-08-13 (earlier) — 조퇴 사유 became a popup with a dropdown
 
-### 2026-10-26 (latest, eighty-seventh) — 출퇴근 카드의 양옆이 비어 있었습니다: 카드 너비의 단추로
+### 2026-10-26 (latest, eighty-seventh) — 출퇴근 카드의 양옆이 비어 있었습니다: 카드 너비의 단추와 가운데 시계로
 
 **여든여섯째 항목을 폰에 깐 지 한 시간 만에 온 말입니다: 출퇴근 카드가 너무 크고,
 양옆의 빈 자리가 거슬린다.** 패드를 3분의 2로 줄였는데도 그랬습니다. 줄인 것은 높이였고,
@@ -150,6 +150,21 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 - 눌린 상태는 판만 어두워집니다(`background-color`) — `filter`였으면 ▶ START 글자도
   함께 흐려졌습니다(리뷰 N2).
 
+- **그 다음, 윗줄.** 단추를 좁히고 나니 '왼쪽 출근, 오른쪽 시각'이 거슬린다는 말이
+  왔습니다 — 17px 초록 글자와 24px 검은 숫자가 양끝에 떨어져, 크기도 색도 굵기도 다른 둘이
+  서로 상관없는 것처럼 읽혔고, 가운데 놓인 단추와도 줄이 맞지 않았습니다. 다시 세 안을
+  띄웠고(`docs/design/proposals-punch-head.png`: 가운데 시계 · 이름표 위 숫자 · 알약과 시계
+  한 줄), 근로자는 가운데 시계를 골랐습니다. 이제 알약 · 시계 · 단추가 한 가운데 줄에 섭니다:
+  - **출근/퇴근은 알약입니다**(14px). 출근은 새 토큰 `--color-mark-100`(`#ebf5ee`, 앱 초록의
+    옅은 색) 위의 초록 — 4.63:1. 퇴근은 `--color-accent-100` 위의 `--color-accent-700` —
+    5.42:1. 그냥 accent였으면 3.18:1이라 14px 글자로는 모자랐습니다. 모양은 `ds-tokens.css`
+    규칙 5b가 `padding: 6px 14px` + `white-space: nowrap`으로 잡고, 근무중 등은 알약 옆에
+    섰다가 좁은 폰에서는 그 아래 줄로 내려갑니다.
+  - **시계가 주인공입니다** — 가운데, 크게. 크기는 `clamp(32px, 11.5vw, 44px)`: 384px 폰에서
+    44px, 320px에서 37px. 가장 긴 `1d 13h 59m`도 320px 카드 안(199 / 208px)에 들어갑니다.
+  - 카드 높이는 132 → 188px. 높이를 내주고 균형을 샀습니다 — 처음 불만이었던 것은 높이가
+    아니라 비어 있는 양옆이었고, 그것은 단추가 채웠습니다.
+
 #### 바꾸지 않은 것
 
 - **찍는 것은 단추 하나뿐입니다.** 단추는 넓어졌지만 글자도 시각도 덮지 않고, 그 위에서도
@@ -157,7 +172,7 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 - 넓어진 만큼 쉬워진 주머니 속 누름은 여든여섯째 항목의 퇴근 카드(`oddShift`)가 받습니다.
 - 근무중 등의 크기(규칙 8), 출근/퇴근 문구, 이상한 근무 카드의 자리(패드 바로 아래).
 
-16 new assertions (3593 total) under 출퇴근 카드의 양옆이 비어 있었습니다 — 출근/퇴근과 시각이 좁은 폰에서도 줄어들지 않는지, 규칙 5의 두 값이 소스에 단추 한 자리뿐인지(리뷰 S2), 윗줄이 양끝으로
+23 new assertions (3600 total) under 출퇴근 카드의 양옆이 비어 있었습니다 — 출근/퇴근과 시각이 좁은 폰에서도 줄어들지 않는지, 규칙 5의 두 값이 소스에 단추 한 자리뿐인지(리뷰 S2), 윗줄이 양끝으로
 갈라서는지, 단추가 폭을 정하지 않고 카드 너비로 늘어나는지, 단추가 글자와 시각을 덮지
 않는지, 규칙 2·2c가 모서리를 가로채지 않는지, 눌린 상태가 있는지. 예전 상자의 숫자를 잡던
 assertion 아홉은 단추의 숫자로 바꿨습니다.
