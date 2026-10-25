@@ -72,8 +72,10 @@ One tap, no fingerprint, no press-and-hold.
   launcher icon. A test reads them.
 - **Don't** put the mark on a dark ground, restyle it, or add a second green.
 - **Don't** bring back a hold or a confirmation step to stop pocket taps.
-  The pad is already guarded: a second tap within 30 minutes is refused and
-  offers to cancel the clock-in.
+  Part of that is already caught after the fact — a repeat within 1.5 s is the
+  same tap, and a second tap within 30 minutes offers to cancel the clock-in.
+  A stray START noticed only at the next tap is not caught yet; the guard for
+  it belongs at clock-out (CHANGELOG, eighty-sixth entry).
 
 ## References
 

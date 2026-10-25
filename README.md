@@ -94,9 +94,12 @@ worker is off shift, red ■ with 퇴근 above it while on shift. The app counts
 not need to verify who pressed, and with no server there was never anything to check a
 signature against. `CHANGELOG.md` (eighty-sixth entry) has the reasoning.
 
-Accidental taps are handled after the fact, not by friction before it: a second tap within
-1.5 s is the same tap, and a second tap within 30 minutes of clocking in does not clock out —
-it offers to cancel the clock-in. **Do not add a hold or a confirmation step back.**
+Some accidental taps are handled after the fact: a second tap within 1.5 s is the same tap,
+and a second tap within 30 minutes of clocking in does not clock out — it offers to cancel the
+clock-in. **Not yet covered:** a stray START that goes unnoticed becomes a real shift at the
+worker's next tap (30 minutes to 24 hours later), and a stray STOP after 30 minutes records a
+wrong clock-out (undoable for 9 s, then only by editing the day). The planned guard is a check
+at clock-out, not a hold or a confirmation step before the punch.
 
 There is **no server and no account**. Do not add a backend, do not upload anything. That is
 a hard product requirement: workers are sharing this with each other and their pay data must
