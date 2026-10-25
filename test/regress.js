@@ -8243,6 +8243,103 @@ console.log('\n== 지문은 필요 없었습니다 — 한 번 누르면 출근,
   ok('▶와 ■는 35px', (pad.match(/<svg width="35" height="35"/g) || []).length === 2);
 }
 
+console.log('\n== 주머니 속에서 눌린 출근이 다음 날 아침 근무 한 칸이 됐습니다 ==');
+// 2026-10-26, 같은 날의 리뷰(S1). 한 번 누르면 찍히게 바꾸자, 길게 누르기가 막던
+// 실수 하나가 그대로 지나가게 됐습니다. 저녁 20:00에 주머니 속에서 START가 눌리고,
+// 근로자는 화면의 근무중을 못 본 채 다음 날 07:50에 출근하며 평소처럼 단추를
+// 누릅니다. 그 누름은 출근이 아니라 퇴근이 되어 20:00 → 07:50, 11.8시간짜리 야간
+// 근무를 남겼습니다 — 주말이었다면 특근, ×1.5. 근무내역서에 그대로 실립니다.
+//
+// 누르기 전의 마찰은 되돌리지 않기로 했습니다. 묻는 자리는 퇴근입니다: 근무가
+// 14시간을 넘거나, 출근이 근무조 시작에서 4시간 넘게 떨어져 있으면 저장하기 전에
+// 카드가 묻습니다 — 맞다 / 잘못 눌린 출근이니 지우고 지금 출근 / 아직 아니다.
+//
+// 다음 사람에게: 이 카드는 이상한 모양만 묻습니다. 야간조의 20:00 → 07:50은 진짜
+// 근무와 모양이 같아 가려낼 수 없습니다. 기준을 넓혀 그것까지 잡으려 하면 매일
+// 아침 진짜 근무가 카드를 만나고, 그러면 아무도 카드를 읽지 않습니다.
+{
+  const fs = require('fs');
+  const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tap = c => c.renderVals().padTap();
+  const at = (iso) => { const c = mk(V2, iso); c.lastTap = null; return c; };
+
+  // 주간만(기본값, 09:00 시작) — 20:00 출근은 시작에서 11시간 떨어져 있습니다
+  const c = at('2026-10-27T07:50:00');
+  c.state.session = { inIso: new Date('2026-10-26T20:00:00').toISOString() };
+  tap(c);
+  ok('다음 날 아침의 누름은 곧바로 퇴근이 되지 않습니다', !!c.state.session && c.state.extra.length === 0,
+    'records=' + c.state.extra.length);
+  let R = c.renderVals();
+  ok('카드가 묻습니다', R.oddOut === true);
+  ok('언제부터 출근으로 되어 있는지 날짜까지 말합니다', R.oddOutMsg.indexOf('10.26 20:00') >= 0, R.oddOutMsg);
+  ok('지금 퇴근하면 몇 시간으로 남는지 말합니다', R.oddOutMsg.indexOf('11.8시간') >= 0, R.oddOutMsg);
+  ok('왜 묻는지 말합니다 — 근무조 시작에서 떨어진 출근', R.oddOutMsg.indexOf('09:00') >= 0 && R.oddOutMsg.indexOf('4시간') >= 0, R.oddOutMsg);
+  ok('14시간은 넘지 않았으니 그 말은 하지 않습니다', R.oddOutMsg.indexOf('14시간') < 0, R.oddOutMsg);
+
+  // 카드가 떠 있는 동안 또 누르면 — 여전히 묻기만 합니다
+  c.lastTap = null; tap(c);
+  ok('카드가 떠 있는 동안 또 눌러도 기록되지 않습니다', c.state.extra.length === 0 && c.renderVals().oddOut === true);
+
+  // ① 잘못 눌린 출근 — 지우고 지금 출근
+  R.redoClockIn();
+  ok('잘못 눌린 출근은 지워지고 지금이 출근이 됩니다',
+    c.state.extra.length === 0 && !!c.state.session
+    && Math.abs(new Date(c.state.session.inIso) - new Date('2026-10-27T07:50:00')) < 5000,
+    c.state.session && c.state.session.inIso);
+  ok('카드는 닫힙니다', c.renderVals().oddOut === false);
+
+  // ② 아직 아니다 — 닫기
+  const d = at('2026-10-27T07:50:00');
+  d.state.session = { inIso: new Date('2026-10-26T20:00:00').toISOString() };
+  tap(d); d.renderVals().dismissOdd();
+  ok('닫으면 근무는 그대로 이어지고 기록도 없습니다',
+    d.state.extra.length === 0 && d.state.session.inIso === new Date('2026-10-26T20:00:00').toISOString()
+    && d.renderVals().oddOut === false);
+
+  // ③ 맞다 — 평소대로 퇴근
+  const e = at('2026-10-27T07:50:00');
+  e.state.session = { inIso: new Date('2026-10-26T20:00:00').toISOString() };
+  tap(e); e.renderVals().confirmOddOut();
+  ok('맞다고 하면 평소대로 퇴근이 기록됩니다', !e.state.session && e.state.extra.length === 1,
+    'records=' + e.state.extra.length);
+  ok('그 확인은 한 번뿐입니다 — 다음 근무는 다시 묻습니다', !e.oddOk);
+
+  // 14시간이 넘는 근무 — 07:00 출근(시작에서 2시간)인데 22:00까지
+  const f = at('2026-10-26T22:00:00');
+  f.state.session = { inIso: new Date('2026-10-26T07:00:00').toISOString() };
+  tap(f);
+  const F = f.renderVals();
+  ok('14시간이 넘으면 묻습니다', F.oddOut === true && f.state.extra.length === 0);
+  ok('그때는 14시간을 넘었다고 말합니다', F.oddOutMsg.indexOf('14시간') >= 0 && F.oddOutMsg.indexOf('떨어져') < 0, F.oddOutMsg);
+
+  // 묻지 말아야 할 날들 — 여기서 카드가 뜨면 아무도 카드를 읽지 않게 됩니다
+  const plain = (inIso, nowIso, setup) => {
+    const g = at(nowIso); if (setup) g.setS(setup);
+    g.state.session = { inIso: new Date(inIso).toISOString() };
+    tap(g); return !g.state.session && g.state.extra.length === 1 && !g.renderVals().oddOut;
+  };
+  ok('08:40 → 18:10 평범한 주간은 묻지 않습니다', plain('2026-10-26T08:40:00', '2026-10-26T18:10:00'));
+  ok('05:30 일찍 온 날(시작 3.5시간 전)도 묻지 않습니다', plain('2026-10-26T05:30:00', '2026-10-26T17:00:00'));
+  ok('13:00 오후 반차 출근(4시간)도 묻지 않습니다', plain('2026-10-26T13:00:00', '2026-10-26T18:00:00'));
+  ok('07:00 → 20:50 잔업 많은 날(13.8시간)도 묻지 않습니다', plain('2026-10-26T07:00:00', '2026-10-26T20:50:00'));
+  ok('교대 근무의 20:40 → 08:50 야간은 묻지 않습니다',
+    plain('2026-10-26T20:40:00', '2026-10-27T08:50:00', { shifts: 'both' }));
+
+  // 화면: 카드는 하나, 세 길은 모두 이어져 있습니다
+  const tpl = src.slice(0, src.indexOf('</x-dc>'));
+  const card = tpl.slice(tpl.indexOf('{{ oddOut }}'), tpl.indexOf('{{ L.oddOutClose }}') + 30);
+  ok('카드가 화면에 있습니다', card.indexOf('{{ L.oddOutTitle }}') > 0 && card.indexOf('{{ oddOutMsg }}') > 0);
+  // 카드는 STOP을 누른 손가락 바로 아래에 뜹니다 — 근무 카드들 아래면 폰에서는 화면 밖입니다
+  ok('카드는 패드 바로 아래, 근무 카드들보다 위에 있습니다',
+    tpl.indexOf('{{ padBig }}') < tpl.indexOf('{{ oddOut }}') && tpl.indexOf('{{ oddOut }}') < tpl.indexOf('{{ dayTypeBtns }}'));
+  ok('세 길이 모두 단추입니다', ['confirmOddOut', 'redoClockIn', 'dismissOdd'].every(h => card.indexOf('onClick="{{ ' + h + ' }}"') > 0));
+  // 근무가 다른 길로 끝났으면 남은 카드는 보이지 않습니다
+  const h = at('2026-10-27T07:50:00');
+  h.state.session = { inIso: new Date('2026-10-26T20:00:00').toISOString() };
+  tap(h); h.cancelClockIn();
+  ok('근무가 없어지면 카드도 없습니다', h.renderVals().oddOut === false);
+}
+
 console.log('\n== 백업을 언제 했는지 아무도 몰랐습니다 ==');
 // 기록은 이 폰의 localStorage 하나에만 있습니다. 환영 화면이 한 번 '가끔 파일로
 // 저장해 두세요'라고 말하고 나면, 그 뒤로는 아무것도 마지막 백업이 언제였는지

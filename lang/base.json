@@ -2559,6 +2559,38 @@
     "en": "TOO SOON TO CLOCK OUT",
     "ko": "확인 필요 · 너무 이른 퇴근"
   },
+  "odd_out_title": {
+    "en": "CHECK THIS SHIFT",
+    "ko": "확인 필요 · 이 근무가 맞습니까?"
+  },
+  "odd_out_msg": {
+    "en": "You are clocked in since {at} — clocking out now records a {h}h shift.",
+    "ko": "{at}에 출근한 것으로 되어 있습니다 — 지금 퇴근하면 {h}시간 근무로 기록됩니다."
+  },
+  "odd_out_long": {
+    "en": " That is over {n} hours.",
+    "ko": " {n}시간이 넘는 근무입니다."
+  },
+  "odd_out_far": {
+    "en": " The clock-in is more than {n} hours away from your shift start ({start}).",
+    "ko": " 출근 시각이 근무조 시작({start})에서 {n}시간 넘게 떨어져 있습니다."
+  },
+  "odd_out_hint": {
+    "en": " If that clock-in was a mis-tap, you can delete it and clock in now.",
+    "ko": " 출근이 실수로 눌린 것이었다면 지우고 지금 출근할 수 있습니다."
+  },
+  "odd_out_keep": {
+    "en": "YES — RECORD CLOCK-OUT",
+    "ko": "맞습니다 — 퇴근 기록 · RECORD CLOCK-OUT"
+  },
+  "odd_out_redo": {
+    "en": "MIS-TAP — DELETE IT, CLOCK IN NOW",
+    "ko": "잘못 눌린 출근 — 지우고 지금 출근 · CLOCK IN NOW"
+  },
+  "odd_out_close": {
+    "en": "Close — not clocking out yet",
+    "ko": "닫기 — 아직 퇴근하지 않습니다"
+  },
   "total_deductions": {
     "en": "TOTAL DEDUCTIONS",
     "ko": "공제액 TOTAL"
