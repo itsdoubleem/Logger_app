@@ -2992,14 +2992,15 @@ console.log('\n== 기록이 뒤에 있으면 처음 쓰는 사람에게 하는 �
   ok('기록이 남아 있다고 말합니다', V.L.emptyBody.indexOf('그대로 있습니다')>=0, V.L.emptyBody);
   ok('어느 기간인지 이름으로 짚습니다', V.L.emptyBody.indexOf('07.21 → 08.20')>=0, V.L.emptyBody);
   ok('스테퍼의 ‹ 를 짚습니다', V.L.emptyBody.indexOf('‹')>=0, V.L.emptyBody);
-  ok('지문 안내는 사라집니다', V.L.emptyBody.indexOf('지문으로 출근')<0, V.L.emptyBody);
+  ok('출근 안내는 사라집니다', V.L.emptyBody.indexOf('출근 START를 누르')<0, V.L.emptyBody);
 
   // 정말 처음 쓰는 사람에게는 예전 그대로여야 합니다 — 그 사람에게는
   // 돌아갈 기간이 없고, 필요한 것은 출근하는 법입니다
   const fresh=mk(V2,'2026-08-21T09:00:00'); fresh.setS({ periodStart:21, payday:25 });
   const F=fresh.renderVals();
   ok('처음 쓰는 사람에게는 예전 그대로', F.L.emptyTitle==='기록이 없습니다', F.L.emptyTitle);
-  ok('출근하는 법을 알려 줍니다', F.L.emptyBody.indexOf('지문으로 출근')>=0, F.L.emptyBody);
+  // (2026-10-26) 지문이 빠진 뒤로 출근하는 법은 '출근 START를 누르거나'입니다
+  ok('출근하는 법을 알려 줍니다', F.L.emptyBody.indexOf('출근 START를 누르')>=0, F.L.emptyBody);
   ok('돌아갈 기간이 없습니다', fresh.emptyLogBack()===0);
 
   // 바로 앞 기간도 비어 있으면 그 앞을 짚습니다 — 한 달을 통째로 쉰 사람에게
@@ -8203,6 +8204,20 @@ console.log('\n== 지문은 필요 없었습니다 — 한 번 누르면 출근,
   d.lastTap = 0; d.renderVals().padTap();
   ok('한 번 누르면 퇴근이고 근무가 기록됩니다', !d.state.session && d.state.extra.length === 1,
     'records=' + d.state.extra.length);
+
+  // 화면의 말도 지문을 잊었습니다. 여덟 언어 어디에도 '지문'이 남으면, 그 언어로
+  // 읽는 근로자는 없는 지문 센서를 찾아 폰을 뒤집어 봅니다.
+  const L = { base: require('../lang/base.json') };
+  ['vi', 'zh', 'th', 'id', 'km', 'ne'].forEach(k => { L[k] = require('../lang/' + k + '.json'); });
+  const FP = { ko: /지문/, en: /fingerprint/i, vi: /vân tay/i, zh: /指纹/, th: /ลายนิ้วมือ/,
+    id: /sidik jari/i, km: /ស្នាមម្រាមដៃ/, ne: /औंठा|औँठा|फिंगरप्रिन्ट/ };
+  const left = [];
+  Object.entries(L.base).forEach(([k, v]) => { ['ko', 'en'].forEach(x => { if (FP[x].test(v[x] || '')) left.push(x + ':' + k); }); });
+  ['vi', 'zh', 'th', 'id', 'km', 'ne'].forEach(x =>
+    Object.entries(L[x]).forEach(([k, v]) => { if (FP[x].test(v)) left.push(x + ':' + k); }));
+  ok('여덟 언어 어디에도 지문이라는 말이 없습니다', left.length === 0, left.join(' '));
+  ok('출근하는 법은 출근 START를 누르는 것입니다',
+    c.T('tour1_body').indexOf('출근 START') >= 0 && c.T('tour1_body').indexOf('퇴근 STOP') >= 0, c.T('tour1_body'));
 
   // 크기는 예전의 3분의 2 — 글자는 숫자로 고정해 둡니다(docs/design/DESIGN.md).
   const pad = tpl.slice(tpl.indexOf('{{ padStamp }}') - 300, tpl.indexOf('{{ padBig }}') + 20);
