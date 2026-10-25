@@ -8239,12 +8239,13 @@ console.log('\n== 지문은 필요 없었습니다 — 한 번 누르면 출근,
 
   // 크기는 예전의 3분의 2 — 글자는 숫자로 고정해 둡니다(docs/design/DESIGN.md).
   const pad = tpl.slice(tpl.indexOf('{{ padStamp }}') - 300, tpl.indexOf('{{ padBig }}') + 20);
-  ok('출근/퇴근은 17px', /font-size:17px;[^"]*">\{\{ padStamp \}\}/.test(pad));
+  // (같은 날 가운데 시계로 바뀌며 출근/퇴근은 14px 알약 — 여든일곱째)
+  ok('출근/퇴근은 14px 알약', /font-size:14px;[^"]*">\{\{ padStamp \}\}/.test(pad));
   // (같은 날 넓은 단추로 바뀌며: START/STOP은 단추 안 15px, 시각은 윗줄 오른쪽 24px,
   // ▶·■는 26px — 여든일곱째)
   const padAll = tpl.slice(tpl.indexOf('{{ padStamp }}') - 300, tpl.indexOf('{{ padTitle }}') + 20);
   ok('START/STOP은 15px', /font-size:15px;[^"]*">\{\{ padTitle \}\}/.test(padAll));
-  ok('시각은 24px', /font-size:24px;[^"]*">\{\{ padBig \}\}/.test(padAll));
+  ok('시각은 폭에 따라 32–44px', /font-size:clamp\(32px, 11\.5vw, 44px\);[^"]*">\{\{ padBig \}\}/.test(padAll));
   ok('▶와 ■는 26px', (padAll.match(/<svg width="26" height="26"/g) || []).length === 2);
 }
 
@@ -8267,10 +8268,35 @@ console.log('\n== 출퇴근 카드의 양옆이 비어 있었습니다 — 넓�
   const pad = tpl.slice(i0, i1 + 40);
   const bar = (pad.match(/<div onClick="\{\{ padTap \}\}"[^>]*>/) || [''])[0];
   const head = pad.slice(0, pad.indexOf(bar));
-  ok('윗줄에 출근/퇴근과 시각이 양끝으로 갈라섭니다',
+  // 같은 날 세 번째: '왼쪽 출근, 오른쪽 시각'은 크기도 색도 다른 둘이 양끝에 떨어져
+  // 서로 상관없어 보였습니다. 이제 알약 · 시계 · 단추가 한 가운데 줄에 섭니다.
+  ok('알약과 시계와 단추가 한 가운데 줄에 섭니다',
     head.indexOf('{{ padStamp }}') >= 0 && head.indexOf('{{ padBig }}') > head.indexOf('{{ padStamp }}')
-    && /justify-content:space-between/.test(head));
-  ok('근무중 표시는 윗줄, 출근/퇴근 옆입니다', head.indexOf('{{ padLiveMsg }}') > head.indexOf('{{ padStamp }}'));
+    && /flex-direction:column;align-items:center/.test(head) && !/justify-content:space-between/.test(head));
+  ok('근무중 표시는 알약 옆입니다', head.indexOf('{{ padLiveMsg }}') > head.indexOf('{{ padStamp }}')
+    && head.indexOf('{{ padLiveMsg }}') < head.indexOf('{{ padBig }}'));
+  const dsx = fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
+  const chipTag = (head.match(/<div style="[^"]*">\{\{ padStamp \}\}/) || [''])[0];
+  ok('알약은 정해진 바탕과 글자 색을 씁니다', /background:\{\{ padChipBg \}\}/.test(chipTag) && /color:\{\{ padChipInk \}\}/.test(chipTag), chipTag);
+  ok('알약의 모양은 규칙 5b가 줍니다 — 소스에는 border-radius가 없습니다',
+    dsx.indexOf('[style*="padding: 6px 14px"][style*="white-space: nowrap"]') >= 0 && !/border-radius/.test(chipTag));
+  ok('규칙 5b의 두 값은 알약 한 자리뿐입니다',
+    (src.slice(0, src.indexOf('</x-dc>')).match(/padding:6px 14px[^"]*white-space:nowrap|white-space:nowrap[^"]*padding:6px 14px/g) || []).length === 1);
+  // 알약 글자는 바탕 위에서 4.5:1을 넘어야 합니다 — 빨강 알약은 accent가 아니라 accent-700
+  {
+    const lum = h => { const c = [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16) / 255)
+      .map(v => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
+    const cr = (a, b) => { const x = [lum(a), lum(b)].sort((p, q) => p - q); return (x[1] + 0.05) / (x[0] + 0.05); };
+    const tok = n => ((dsx.match(new RegExp('--' + n + ':\\s*#([0-9a-fA-F]{6})')) || [])[1] || '');
+    ok('초록 알약: #127e38 on --color-mark-100 ≥ 4.5', cr('127e38', tok('color-mark-100')) >= 4.5, tok('color-mark-100'));
+    ok('빨강 알약: accent-700 on accent-100 ≥ 4.5', cr(tok('color-accent-700'), tok('color-accent-100')) >= 4.5);
+    const c0 = mk(V2, '2026-10-26T08:50:00');
+    let R0 = c0.renderVals();
+    ok('출근 전 알약은 옅은 초록 바탕', R0.padChipBg === 'var(--color-mark-100)' && /^oklch/.test(R0.padChipInk));
+    c0.state.session = { inIso: new Date('2026-10-26T06:00:00').toISOString() };
+    R0 = c0.renderVals();
+    ok('근무 중 알약은 옅은 빨강 바탕에 accent-700', R0.padChipBg === 'var(--color-accent-100)' && R0.padChipInk === 'var(--color-accent-700)');
+  }
   // 같은 날 다시: 단추가 카드 끝까지 닿아 너무 넓다 — 양옆 여백을 18 → 32 → 40 → 48px로. 글자와
   // 시각은 단추와 같은 여백 안에 있어야 합니다(한 줄로 서 있게).
   ok('카드의 양옆 여백은 48px — 단추와 윗줄이 같은 여백 안에 섭니다', /padding:16px 48px 18px/.test(pad.slice(0, 80)) || /padding:16px 48px 18px/.test(tpl.slice(i0 - 10, i0 + 30)));
@@ -8298,7 +8324,7 @@ console.log('\n== 출퇴근 카드의 양옆이 비어 있었습니다 — 넓�
   const stampTag = (head.match(/<div style="[^"]*">\{\{ padStamp \}\}/) || [''])[0];
   ok('출근/퇴근은 줄어들지도 쪼개지지도 않습니다', /flex:none/.test(stampTag) && /white-space:nowrap/.test(stampTag), stampTag);
   const timeTag = (head.match(/<div style="[^"]*">\{\{ padBig \}\}/) || [''])[0];
-  ok('시각도 줄어들지 않습니다', /flex:none/.test(timeTag), timeTag);
+  ok('시각은 한 줄이고 카드를 넘지 않습니다', /white-space:nowrap/.test(timeTag) && /max-width:100%/.test(timeTag), timeTag);
   ok('예전 64px 상자 규칙은 남아 있지 않습니다', ds.indexOf('[style*="width: 64px"][style*="height: 64px"]') < 0);
 }
 
