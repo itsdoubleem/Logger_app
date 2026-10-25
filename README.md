@@ -96,10 +96,12 @@ signature against. `CHANGELOG.md` (eighty-sixth entry) has the reasoning.
 
 Some accidental taps are handled after the fact: a second tap within 1.5 s is the same tap,
 and a second tap within 30 minutes of clocking in does not clock out — it offers to cancel the
-clock-in. **Not yet covered:** a stray START that goes unnoticed becomes a real shift at the
-worker's next tap (30 minutes to 24 hours later), and a stray STOP after 30 minutes records a
-wrong clock-out (undoable for 9 s, then only by editing the day). The planned guard is a check
-at clock-out, not a hold or a confirmation step before the punch.
+clock-in. At clock-out, a shift over 14 hours or one whose clock-in is more than 4 hours
+from the shift start opens a card before anything is saved: record it, delete the stray
+clock-in and clock in now, or close. A night-shift-shaped stray (20:00 → 07:50 for a night
+worker) looks like a real shift and is not caught, and a stray STOP after 30 minutes records
+a wrong clock-out (undoable for 9 s, then by editing the day). **Do not add a hold or a
+confirmation step before the punch.**
 
 There is **no server and no account**. Do not add a backend, do not upload anything. That is
 a hard product requirement: workers are sharing this with each other and their pay data must

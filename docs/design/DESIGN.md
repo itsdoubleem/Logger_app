@@ -74,8 +74,9 @@ One tap, no fingerprint, no press-and-hold.
 - **Don't** bring back a hold or a confirmation step to stop pocket taps.
   Part of that is already caught after the fact — a repeat within 1.5 s is the
   same tap, and a second tap within 30 minutes offers to cancel the clock-in.
-  A stray START noticed only at the next tap is not caught yet; the guard for
-  it belongs at clock-out (CHANGELOG, eighty-sixth entry).
+  A stray START noticed only at the next tap is asked about at clock-out: a
+  shift over 14 h, or a clock-in more than 4 h from the shift start, opens a
+  card directly under the pad (CHANGELOG, eighty-sixth entry).
 
 ## References
 
