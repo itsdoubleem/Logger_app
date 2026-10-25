@@ -3949,10 +3949,15 @@ console.log('\n== 이 칸에 적는 것은 사람이 아니라 회사 이름입�
   c.setS({ lang:'ko' });
 }
 
-console.log('\n== 이름 한가운데의 O는 출퇴근 패드의 지문입니다 ==');
+console.log('\n== 이름 한가운데의 O는 앱의 시계입니다 ==');
 // 근로자가 물어서 만든 것입니다: 앱 이름의 O 자리에 출퇴근 화면의 초록 지문을
 // 넣어 주십시오. 이름이 나오는 자리는 셋입니다 — 머리말, 소개 화면, 설정 › 정보.
 // 셋이 서로 다르게 생기면 그것은 로고가 아니라 사고입니다.
+//
+// 2026-10-26: 지문으로 찍지 않게 되면서 O도 지문에서 시계로 바뀌었습니다 —
+// 앱 아이콘(시계 + 폴더)에서 폴더를 뺀 그 시계입니다. 14–16px에서는 폴더가
+// 뭉개지기 때문입니다. 원본은 docs/design/logo/clock-mark.svg이고, 셋 모두
+// 그 그림과 같아야 합니다.
 {
   const fs = require('fs');
   const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
@@ -3976,7 +3981,35 @@ console.log('\n== 이름 한가운데의 O는 출퇴근 패드의 지문입니�
   // 그림은 글자가 아니므로, 이름은 aria-label이 말해 줍니다
   ok('세 자리 모두 읽을 수 있는 이름이 붙어 있습니다',
     count(/aria-label="근무기록 LOGGER/g)===3);
-  ok('그림 자체는 읽히지 않습니다', count(/<svg viewBox="0 0 24 24"[^>]*aria-hidden="true"/g)>=3);
+  ok('그림 자체는 읽히지 않습니다', count(/<svg viewBox="15 15 58 58"[^>]*aria-hidden="true"/g)===3);
+  ok('이름 안에 지문은 남아 있지 않습니다', tpl.indexOf('M12 10a2 2 0 0 0-2 2') < 0);
+  // 셋이 같은 그림이고, 그 그림이 승인된 시계 원본과 같은 선을 긋습니다
+  const marks = tpl.match(/<svg viewBox="15 15 58 58"[\s\S]*?<\/svg>/g) || [];
+  ok('세 시계가 한 그림입니다', marks.length === 3 && marks.every(m => m === marks[0]));
+  const art = fs.readFileSync(__dirname + '/../docs/design/logo/clock-mark.svg', 'utf8');
+  const shapes = x => (x.match(/<(?:circle|path) [^>]*?\/?>/g) || [])
+    .map(e => e.replace(/\s*\/?>$/, '').replace(/\s+/g, ' '));
+  ok('그 그림은 docs/design의 시계 원본입니다',
+    marks.length > 0 && JSON.stringify(shapes(marks[0])) === JSON.stringify(shapes(art)),
+    JSON.stringify(shapes(marks[0] || '')) + ' vs ' + JSON.stringify(shapes(art)));
+  // 앱 아이콘(pwa/make_icons.py)도 같은 원본에서 나옵니다 — 시계 + 폴더.
+  // 파이썬은 path만 읽어서 원을 호 두 개로 다시 썼으니, 선과 폴더는 글자 그대로,
+  // 원은 중심과 반지름으로, 마스크는 지우는 사각형으로 견줍니다.
+  const py = fs.readFileSync(__dirname + '/../pwa/make_icons.py', 'utf8');
+  const logo = fs.readFileSync(__dirname + '/../docs/design/logo/logo-mark.svg', 'utf8');
+  const ds = [...logo.matchAll(/<path d="([^"]+)"/g)].map(m => m[1]);
+  ok('아이콘 그림의 선과 폴더가 원본과 글자 그대로 같습니다',
+    ds.length === 5 && ds.filter(d => d !== 'M51 51.5h33v31H51z').every(d => py.indexOf('"' + d + '"') >= 0), ds.join(' | '));
+  ok('아이콘의 링과 축은 원본의 원입니다',
+    /<circle cx="44" cy="44" r="27"\/>/.test(logo) && py.indexOf('"M17 44a27 27 0 1 0 54 0a27 27 0 1 0-54 0"') >= 0
+    && /<circle cx="44" cy="44" r="1.3"\/>/.test(logo) && py.indexOf('"M42.7 44a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0-2.6 0"') >= 0);
+  ok('폴더 자리에서 링을 끊는 사각형이 원본의 마스크와 같습니다',
+    logo.indexOf('<path d="M51 51.5h33v31H51z" fill="#000"/>') >= 0 && py.indexOf('CUT = (51, 51.5, 84, 82.5)') >= 0);
+  ok('아이콘 선 굵기도 원본과 같습니다',
+    /stroke-width="3\.6"/.test(logo) && /^STROKE = 3\.6$/m.test(py));
+  ok('아이콘에 지문은 남아 있지 않습니다', py.indexOf('M12 10a2 2 0 0 0-2 2') < 0);
+  ok('선 굵기도 원본과 같습니다 — Archivo 800 옆에서 버티는 4.6',
+    /stroke-width="4\.6"/.test(marks[0] || '') && /stroke-width="4\.6"/.test(art));
   // 세 자리의 크기·정렬이 한 벌입니다
   ok('크기와 정렬이 셋 다 같습니다',
     count(/width:1\.05em;height:1\.05em;vertical-align:-0\.13em/g)===3);
@@ -3986,7 +4019,7 @@ console.log('\n== 이름 한가운데의 O는 출퇴근 패드의 지문입니�
   // 있지도 않은 이력을 주장하는 것입니다.
   const about = tpl.slice(tpl.indexOf('{{ L.secAbout }}'), tpl.indexOf('{{ L.aboutMadeBy }}'));
   // 태그를 걷어내고 글자만 봅니다 — path 데이터에도 'v2'(세로선 명령)가 들어 있어서,
-  // 날것 그대로 찾으면 지문 그림이 판 번호로 잡힙니다. 한 번 그렇게 걸렸습니다.
+  // 날것 그대로 찾으면 그림이 판 번호로 잡힙니다(지문 시절에 한 번 그렇게 걸렸습니다).
   const aboutText = about.replace(/<[^>]*>/g, '');
   ok('정보에는 판 번호가 없습니다', !/v\d/i.test(aboutText), aboutText.trim());
   ok('정보의 읽는 이름도 판 번호가 없습니다',
@@ -3999,7 +4032,7 @@ console.log('\n== 이름 한가운데의 O는 출퇴근 패드의 지문입니�
   const c = decSetup('2026-12-20T09:00:00');
   const doc = c.evidenceHtml(c.period(c.now()));
   ok('문서는 여전히 글자로 근무기록 LOGGER라고 씁니다', doc.indexOf('근무기록 LOGGER')>=0);
-  ok('문서에 지문 그림은 없습니다', doc.indexOf('<svg')<0);
+  ok('문서에 로고 그림은 없습니다', doc.indexOf('<svg')<0);
 }
 
 console.log('\n== 시계가 1초마다 도는데 기록 전부를 예순 번 다시 셌습니다 ==');

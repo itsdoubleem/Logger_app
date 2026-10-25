@@ -1,26 +1,29 @@
 #!/usr/bin/env python3
 """Render the app's mark to PNG launcher icons.
 
-The mark is the **green fingerprint** — the same nine-path glyph the punch pad
-draws, in the same `oklch(0.52 0.14 149)`. It is what the app is: press a finger
-twice a day. It used to be the 근무기록 · LOGGER wordmark lifted out of
-`icon-source.png`, which read fine at 512px and turned to grey mush at 48; a
-glyph has no such floor, so there is no longer a large mark and a small one.
+The mark is the **clock and folder** — a clock (the hours the app counts) with
+a folder (the record it keeps) overlapping its lower right, in the app green
+`oklch(0.52 0.14 149)`. It replaced the green fingerprint on 2026-10-26, when
+punching stopped asking for a fingerprint and became a plain START / STOP tap.
+The master drawing is `docs/design/logo/logo-mark.svg`; DESIGN.md beside it
+says why it looks the way it does.
 
-Nothing is rasterised from a source file any more. The nine `d` strings below
-are copied verbatim from `WorkLogApp.v2.dc.html`, flattened to polylines here
-and stroked at the size being emitted, so every icon is drawn at its own
-resolution rather than downsampled from someone else's. Keep them byte-identical
-to the pad's — the fingerprint is the app's identity and the four copies of it
-(the pad plus three logos) are meant to be the same drawing.
+Nothing is rasterised from a source file. The `d` strings below are the
+master's shapes — its two circles rewritten as pairs of arcs, because this
+script reads paths only — flattened to polylines here and stroked at the size
+being emitted, so every icon is drawn at its own resolution. Keep them in step
+with the master; `test/regress.js` compares the two.
 
-`pwa/icon-source.png` is no longer read by anything. It is the wordmark and it
-is kept because that is still the logo inside the app; it is simply not the
-launcher icon.
+Where the folder crosses the clock, the master cuts the ring with a mask so
+there is a real gap rather than a painted patch. Here that is CUT: the clock is
+drawn, CUT is erased out of it, then the folder is drawn on top.
 
-Every icon is full-bleed: the disc touches all four edges and only the corners
-fall back to the field colour, so a circle mask crops exactly to the disc, and
-the mark stays inside the central 80% safe zone maskable icons require.
+A home-screen icon cannot be transparent — iOS fills alpha with black and
+Android masks every icon over a background layer — so the mark sits on the
+same white disc the fingerprint did. Every icon is full-bleed: the disc touches
+all four edges and only the corners fall back to the field colour, so a circle
+mask crops exactly to the disc, and the mark stays inside the central 80% safe
+zone maskable icons require.
 
 Android's adaptive icons are the exception: there the disc and the mark have to
 be separate layers for the launcher to mask and animate them, so the mark is
@@ -37,37 +40,32 @@ BG = (0xF3, 0xF2, 0xF2)       # --color-bg, the icon's corners
 DISC = (0xFD, 0xFD, 0xFD)     # the logo's disc, flattened from its faint sheen
 GREEN = (0x12, 0x7E, 0x38)    # oklch(0.52 0.14 149), the pad's padIconInk
 
-# The punch pad's fingerprint, verbatim from WorkLogApp.v2.dc.html. viewBox
-# 0 0 24 24, stroke-width 2, round caps and joins.
-VIEW = 24
-STROKE = 2
-PATHS = [
-    "M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4",
-    "M14 13.12c0 2.38 0 6.38-1 8.88",
-    "M17.29 21.02c.12-.6.43-2.3.5-3.02",
-    "M2 12a10 10 0 0 1 18-6",
-    "M2 16h.01",
-    "M21.8 16c.2-2 .131-5.354 0-6",
-    "M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2",
-    "M8.65 22c.21-.66.45-1.32.57-2",
-    "M9 6.8a6 6 0 0 1 9 5.2v2",
+# docs/design/logo/logo-mark.svg, in its own 100-unit space. Stroke 3.6, round
+# caps and joins.
+STROKE = 3.6
+CLOCK = [
+    "M17 44a27 27 0 1 0 54 0a27 27 0 1 0-54 0",          # the ring, r 27
+    "M44 21.5v4M21.5 44h4M62.5 44h4M44 62.5v4",           # 12 · 9 · 3 · 6
+    "M44 44 30.5 31M44 44 55 33",                         # the hands, 10:10
+    "M42.7 44a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0-2.6 0",   # the hub, r 1.3
 ]
+FOLDER = [
+    "M55 77V57.5a3 3 0 0 1 3-3h7.5l3 3.5h9.5a3 3 0 0 1 3 3V77a3 3 0 0 1-3 3H58a3 3 0 0 1-3-3Z",
+    "M55 64.5h26M61 71.5h13",
+]
+# the master's mask: what is erased from the clock where the folder sits
+CUT = (51, 51.5, 84, 82.5)
 
 # Fraction of the icon's width the mark's ink box spans.
 #
-# What a maskable icon has to keep inside the central 80% circle is its
-# *content*, and this glyph's content is nowhere near its box: the box is very
-# nearly square (21.93 x 22.00 units, so its corners sit at 1.414 times this
-# number) but the drawing inside it is a rounded blob with all four corners
-# empty. Sizing against the box costs about a fifth of the mark for nothing —
-# 0.55 is what the box allows and it lands the ink at 0.59 of the diameter,
-# which on a phone reads visibly smaller than every icon beside it.
-#
-# So size against the ink, and measure it rather than judging it: main() reports
-# the reach of the emitted maskable icon. At 0.62 the ink reaches 0.67 — well
-# inside the 0.80 circle — and the mark sits on the disc the way the pad's does
-# in its square. Past about 0.70 it starts crowding the rim.
-SPAN = 0.62
+# What a maskable icon has to keep inside the central 80% circle is its ink,
+# not its box. The fingerprint was a rounded blob and could take 0.62; this
+# mark is nearly square and its far corner is filled — the folder's bottom
+# right sits almost on the box corner — so the same span would push that corner
+# out to 0.85 of the diameter and a circle mask would clip it. main() measures
+# the emitted maskable icon and prints the reach: at 0.56 it lands at about
+# 0.75, inside the 0.80 circle with the mark still as large as the old one read.
+SPAN = 0.56
 
 # Android 8+ adaptive icons split the icon in two layers on a 108dp canvas. The
 # launcher masks away everything outside the central 72dp and animates the two
@@ -209,7 +207,7 @@ def walk(pts, step):
     return out
 
 
-def mark(lines, box, width):
+def mark(clock, folder, box, width):
     """The mark as an L-mode coverage mask `width` px across its ink box.
 
     The stroke is stamped as a run of overlapping discs rather than drawn with
@@ -218,6 +216,9 @@ def mark(lines, box, width):
     hairlines straight across the ink. A disc every quarter-width cannot leave a
     seam, and round caps and joins fall out of it for free — which is what the
     glyph asks for anyway.
+
+    The clock goes down first, CUT is erased out of it, and the folder is drawn
+    last — the master's mask, in three steps.
     """
     x0, y0, x1, y1 = box
     scale = width * SS / (x1 - x0)
@@ -225,41 +226,48 @@ def mark(lines, box, width):
     img = Image.new("L", (width * SS, height * SS), 0)
     draw = ImageDraw.Draw(img)
     r = STROKE * scale / 2
-    for ln in lines:
-        pts = [((px - x0) * scale, (py - y0) * scale) for px, py in ln]
-        for px, py in (walk(pts, r / 2) if len(pts) > 1 else pts):
-            draw.ellipse([px - r, py - r, px + r, py + r], fill=255)
+
+    def stroke(lines):
+        for ln in lines:
+            pts = [((px - x0) * scale, (py - y0) * scale) for px, py in ln]
+            for px, py in (walk(pts, r / 2) if len(pts) > 1 else pts):
+                draw.ellipse([px - r, py - r, px + r, py + r], fill=255)
+
+    stroke(clock)
+    cx0, cy0, cx1, cy1 = CUT
+    draw.rectangle([(cx0 - x0) * scale, (cy0 - y0) * scale,
+                    (cx1 - x0) * scale, (cy1 - y0) * scale], fill=0)
+    stroke(folder)
     return img.resize((width, height), Image.BOX)
 
 
-def place(img, lines, box, span):
+def place(img, clock, folder, box, span):
     """Centre the mark on `img`, across `span` of its width."""
     w = round(img.width * span)
-    m = mark(lines, box, w)
+    m = mark(clock, folder, box, w)
     at = ((img.width - m.width) // 2, (img.height - m.height) // 2)
     fill = GREEN + (255,) if img.mode == "RGBA" else GREEN
     img.paste(Image.new(img.mode, m.size, fill), at, m)
     return img
 
 
-def lay(size, lines, box, span):
+def lay(size, clock, folder, box, span):
     """A `size` px icon: the disc, then the mark on top of it."""
     img = Image.new("RGB", (size * SS, size * SS), BG)
     ImageDraw.Draw(img).ellipse([0, 0, size * SS - 1, size * SS - 1], fill=DISC)
-    return place(img.resize((size, size), Image.BOX), lines, box, span)
+    return place(img.resize((size, size), Image.BOX), clock, folder, box, span)
 
 
-def lay_foreground(size, lines, box, span):
+def lay_foreground(size, clock, folder, box, span):
     """A `size` px adaptive foreground: the mark alone, over transparency."""
-    return place(Image.new("RGBA", (size, size), (0, 0, 0, 0)), lines, box, span)
+    return place(Image.new("RGBA", (size, size), (0, 0, 0, 0)), clock, folder, box, span)
 
 
 def reach(path):
     """How far the mark's ink gets from the centre, as a fraction of the width.
 
     The maskable safe zone is the central 80% of the icon, and it is the ink
-    that has to stay inside it — not the ink's bounding box, whose corners this
-    glyph never reaches. Measured off the emitted PNG so it cannot drift from
+    that has to stay inside it — not the ink's bounding box. Measured off the emitted PNG so it cannot drift from
     what actually shipped.
     """
     img = Image.open(path).convert("RGB")
@@ -276,18 +284,19 @@ def reach(path):
 
 def main():
     out = os.path.dirname(os.path.abspath(__file__))
-    lines = [seg for d in PATHS for seg in flatten(d)]
-    box = glyph_box(lines)
+    clock = [seg for d in CLOCK for seg in flatten(d)]
+    folder = [seg for d in FOLDER for seg in flatten(d)]
+    box = glyph_box(clock + folder)
 
     def written(path):
         print(f"{os.path.relpath(path, out):52}{os.path.getsize(path):>8} bytes")
 
     def emit(path, size):
-        lay(size, lines, box, SPAN).save(path, "PNG", optimize=True)
+        lay(size, clock, folder, box, SPAN).save(path, "PNG", optimize=True)
         written(path)
 
     def emit_foreground(path, size):
-        lay_foreground(size, lines, box, SPAN * ADAPTIVE_VIEWPORT).save(
+        lay_foreground(size, clock, folder, box, SPAN * ADAPTIVE_VIEWPORT).save(
             path, "PNG", optimize=True
         )
         written(path)
