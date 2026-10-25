@@ -32,6 +32,9 @@ it, so there is a real gap, not a painted patch. PNGs: 1024, 512, 192, 180, 48.
   black, Android masks it over a background layer), so the launcher icon is
   this mark on the same white disc the fingerprint used to sit on.
   `pwa/make_icons.py` draws it; its ink stays inside the maskable 80% circle.
+- **The Android home-screen tile draws the mark larger** (`ADAPTIVE_SPAN`
+  0.66, ink reaching 0.88 of the 72dp tile against the 66dp safe circle's
+  0.92). At the PWA size it read clearly smaller than the apps beside it.
 
 ## The wordmark — the clock as the O
 

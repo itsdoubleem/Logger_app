@@ -78,6 +78,16 @@ SPAN = 0.56
 # keeps it the size it already is on the home screen.
 ADAPTIVE_VIEWPORT = 72 / 108
 
+# The adaptive foreground gets its own, larger span (2026-10-26). SPAN is sized
+# for the maskable PWA icon, whose safe zone is the central 80% circle of the
+# *whole* icon; reused here it left the mark at 0.75 of the 72dp viewport, and
+# on the home screen it read clearly smaller than Claude, EPS or GitHub beside
+# it. The adaptive safe zone is the 66dp circle — 66/72 = 0.917 of the viewport
+# — so the mark can grow by about a fifth. main() measures the emitted
+# foreground and stops if the ink leaves that circle.
+ADAPTIVE_SPAN = 0.66
+ADAPTIVE_SAFE = 66 / 72
+
 # Antialiasing: everything is drawn at SS times the final size and box-averaged
 # down. ImageDraw has no antialiasing of its own, for the strokes or the disc.
 SS = 4
@@ -282,6 +292,20 @@ def reach(path):
     return 2 * far / n
 
 
+def reach_foreground(path):
+    """How far the foreground's ink gets from the centre, as a fraction of the
+    72dp viewport's diameter — the number the 66dp safe circle is judged by."""
+    img = Image.open(path).convert("RGBA")
+    px, n = img.load(), img.width
+    c = (n - 1) / 2
+    far = 0.0
+    for y in range(n):
+        for x in range(n):
+            if px[x, y][3] > 32:
+                far = max(far, math.hypot(x - c, y - c))
+    return 2 * far / (n * ADAPTIVE_VIEWPORT)
+
+
 def main():
     out = os.path.dirname(os.path.abspath(__file__))
     clock = [seg for d in CLOCK for seg in flatten(d)]
@@ -296,7 +320,7 @@ def main():
         written(path)
 
     def emit_foreground(path, size):
-        lay_foreground(size, clock, folder, box, SPAN * ADAPTIVE_VIEWPORT).save(
+        lay_foreground(size, clock, folder, box, ADAPTIVE_SPAN * ADAPTIVE_VIEWPORT).save(
             path, "PNG", optimize=True
         )
         written(path)
@@ -328,6 +352,14 @@ def main():
         if os.path.isdir(d):
             emit(os.path.join(d, "ic_launcher.png"), legacy)
             emit_foreground(os.path.join(d, "ic_launcher_foreground.png"), adaptive)
+
+
+    xxx = os.path.join(res, "mipmap-xxxhdpi", "ic_launcher_foreground.png")
+    if os.path.exists(xxx):
+        r = reach_foreground(xxx)
+        print(f"{'adaptive ink reach':52}{r:>7.2f}  of the 72dp viewport (safe circle {ADAPTIVE_SAFE:.2f})")
+        if r > ADAPTIVE_SAFE:
+            raise SystemExit("make_icons: the adaptive mark leaves the 66dp safe circle — lower ADAPTIVE_SPAN")
 
     # The adaptive background is the disc, which at this point is one flat
     # colour, so it is written as a colour resource rather than five more
