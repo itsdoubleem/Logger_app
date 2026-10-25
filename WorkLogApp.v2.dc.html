@@ -494,10 +494,14 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
           </sc-if>
         </div>
 
-        <!-- 출퇴근 패드 — 넓은 단추 (2026-10-26, 여든일곱째).
-             가운데에 64px 상자 하나를 세웠더니 카드의 양옆이 비어 보였습니다. 이제
-             윗줄 왼쪽에 출근/퇴근(근무 중이면 그 옆에 근무중 등), 오른쪽에 시각,
-             그 아래에 카드 너비의 단추 하나 — ▶ START 또는 ■ STOP.
+        <!-- 출퇴근 패드 — 넓은 단추와 가운데 시계 (2026-10-26, 여든일곱째).
+             가운데에 64px 상자 하나를 세웠더니 카드의 양옆이 비어 보였습니다. 그래서
+             카드 너비의 단추 하나 — ▶ START 또는 ■ STOP — 를 아래에 두었고, 그 위는
+             처음에 '왼쪽 출근, 오른쪽 시각' 한 줄이었습니다. 크기도 색도 굵기도 다른
+             둘이 양끝에 떨어져 있어 서로 상관없는 것처럼 읽힌다는 말을 듣고, 셋을 한
+             가운데 줄에 세웠습니다: 출근/퇴근 알약(근무 중이면 그 옆에 근무중 등),
+             그 아래 큰 시계, 그 아래 단추. 시계는 폭에 따라 32–44px — 좁은 폰에서
+             '1d 13h 59m'도 카드 안에 들어가도록.
              찍는 것은 여전히 단추 하나뿐입니다. 카드 전체가 단추였을 때 두 가지가
              동시에 틀렸습니다(2026-09-14, 예순셋째) — 카드를 쓸면 touch-action:none이
              스크롤을 먹었고, 시각이나 글자를 짚은 손가락이 출근을 찍었습니다. 그래서
@@ -506,18 +510,21 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
              지문도 길게 누르기도 없습니다 — 한 번 누르면 찍힙니다(여든여섯째). 단추가
              넓어진 만큼 주머니 속 누름도 쉬워졌고, 그것은 퇴근할 때 아래의 oddOut
              카드가 묻습니다. 모양(둥근 모서리·바탕·그림자·눌림)은 ds-tokens.css
-             규칙 5가 height 60px + touch-action manipulation으로 잡습니다. -->
-        <div style="position:relative;overflow:hidden;display:flex;flex-direction:column;gap:12px;padding:16px 18px 18px;border-bottom:2px solid var(--color-divider);user-select:none">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0">
-            <div style="display:flex;align-items:center;gap:12px;min-width:0">
-              <div style="flex:none;white-space:nowrap;font-family:var(--font-heading);font-weight:800;font-size:17px;line-height:1;letter-spacing:-0.01em;color:{{ padStampInk }}">{{ padStamp }}</div>
+             규칙 5가 height 60px + touch-action manipulation으로 잡습니다.
+             양옆 여백은 48px입니다 — 18px일 때 단추가 카드 끝까지 닿아 너무 넓다는
+             말을 들었고, 폰에서 32px, 40px을 보고 두 번 더 줄여 달라고 했습니다(같은 날). 글자와 시각도
+             같은 여백 안으로 함께 들어옵니다. -->
+        <div style="position:relative;overflow:hidden;display:flex;flex-direction:column;gap:12px;padding:16px 48px 18px;border-bottom:2px solid var(--color-divider);user-select:none">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding-top:2px;min-width:0">
+            <div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;min-width:0">
+              <div style="flex:none;white-space:nowrap;padding:6px 14px;background:{{ padChipBg }};font-family:var(--font-heading);font-weight:800;font-size:14px;line-height:1;letter-spacing:0.02em;color:{{ padChipInk }}">{{ padStamp }}</div>
               <sc-if value="{{ padLive }}" hint-placeholder-val="{{ true }}">
                 <div style="display:flex;align-items:center;gap:7px;min-width:0;font-family:var(--font-heading);font-weight:800;font-size:13px;letter-spacing:0.08em;color:{{ padIconInk }}">
                   <div style="width:9px;height:9px;flex:none;background:{{ padIconInk }}"></div>{{ padLiveMsg }}
                 </div>
               </sc-if>
             </div>
-            <div style="flex:none;font-variant-numeric:tabular-nums;font-family:var(--font-heading);font-weight:800;font-size:24px;line-height:1;letter-spacing:-0.02em;color:{{ padInk }}">{{ padBig }}</div>
+            <div style="max-width:100%;white-space:nowrap;font-variant-numeric:tabular-nums;font-family:var(--font-heading);font-weight:800;font-size:{{ padBigFs }};line-height:1;letter-spacing:-0.03em;color:{{ padInk }}">{{ padBig }}</div>
           </div>
           <div onClick="{{ padTap }}" style="position:relative;height:60px;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;touch-action:manipulation">
             <sc-if value="{{ padOff }}" hint-placeholder-val="{{ true }}">
@@ -6748,6 +6755,15 @@ class Component extends DCLogic {
       padLiveMsg: todayHol ? this.T('on_shift') : this.T('on_shift_2'),
       padStampInk: S ? 'var(--color-accent)' : 'oklch(0.52 0.14 149)',
       padIconInk: 'oklch(0.52 0.14 149)',
+      // 시계 크기 — 폭에 따라 32–44px. 몇 주째 열린 근무의 '45d 13h 59m'처럼 두 자리
+      // 날 수가 붙으면 한 단계 작게: 그 길이는 320–360px 폰에서 44px 시계의 칸을 넘어
+      // 오른쪽 여백으로 비어져 나갔습니다(리뷰 S1). '1d 13h 59m'까지는 큰 시계에 들어갑니다.
+      padBigFs: padBig.length > 10 ? 'clamp(26px, 9vw, 36px)' : 'clamp(32px, 11.5vw, 44px)',
+      // 출근/퇴근 알약 — 바탕은 옅은 초록/옅은 빨강, 글자는 그 위에서 4.5:1을 넘는 색.
+      // 빨강 알약의 글자는 accent가 아니라 accent-700입니다: #ec3013은 옅은 빨강 위에서
+      // 3.2:1이라 14px 글자로는 읽기 힘듭니다(accent-700은 5.4:1).
+      padChipBg: S ? 'var(--color-accent-100)' : 'var(--color-mark-100)',
+      padChipInk: S ? 'var(--color-accent-700)' : 'oklch(0.52 0.14 149)',
       padInk: 'var(--color-text)',
       padTap: this.padTap,
       liveRows,

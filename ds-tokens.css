@@ -66,6 +66,9 @@
   --color-accent-300: #f1b5ab;  /* in-range calendar fill */
   --color-accent-600: #cb240a;  /* pressed / hover on accent */
   --color-accent-700: #ae1800;  /* accent ink on a tinted panel */
+  /* the mark green's own tint — the 출근 pill on the punch card. #127e38 on it
+     is 4.63:1 (AA for 14px text); the tint is the green mixed ~8% into white */
+  --color-mark-100: #ebf5ee;
 
   /* ── shape · added 2026-08-30 ─────────────────────────────────────────
    * The flat era set no border-radius and no box-shadow anywhere, so these
@@ -491,6 +494,15 @@
 /* only the plate darkens — a filter would dim the ▶ START ink with it */
 [style*="height: 60px"][style*="touch-action: manipulation"]:active {
   background-color: var(--color-neutral-300);
+}
+
+/* ── 5b · the 출근 / 퇴근 pill above the punch clock ────────────────────── */
+/* A soft pill, centred over the clock and the bar (2026-10-26, eighty-seventh
+   entry). Caught by `padding: 6px 14px` + `white-space: nowrap`, which no
+   other element in the source carries together — a test holds that. No
+   border and no min-height, so rules 2 and 2c leave it alone. */
+[style*="padding: 6px 14px"][style*="white-space: nowrap"] {
+  border-radius: var(--radius-pill);
 }
 
 /* ── 6 · the tab bar ────────────────────────────────────────────────────── */

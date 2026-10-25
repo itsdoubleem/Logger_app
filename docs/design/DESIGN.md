@@ -7,13 +7,14 @@ This file records the **mark** and the **punch pad**, which changed on
 
 ## Palette
 
-No new colours. The two the mark and the pad use are already the app's own:
+One new colour, `--color-mark-100` (the mark green's tint, for the 출근 pill); the rest are the app's own:
 
 | Role | Value | Where |
 |---|---|---|
 | mark / START | `oklch(0.52 0.14 149)` ≈ `#127E38` | logo, wordmark O, ▶, 출근, START, the 근무중 lamp |
 | STOP | `#ec3013` (`--color-accent`) | ■, 퇴근, STOP |
-| ground | `#f3f2f2` (`--color-bg`) | the pad tile, the launcher icon's corners |
+| ground | `#f3f2f2` (`--color-bg`) | the punch bar, the launcher icon's corners |
+| mark tint | `#ebf5ee` (`--color-mark-100`) | the 출근 pill |
 | card | `#ffffff` | the launcher icon's disc |
 
 The mark green on white is 5.2 : 1 and on the app grey 4.6 : 1 (WCAG AA for
@@ -31,6 +32,9 @@ it, so there is a real gap, not a painted patch. PNGs: 1024, 512, 192, 180, 48.
   black, Android masks it over a background layer), so the launcher icon is
   this mark on the same white disc the fingerprint used to sit on.
   `pwa/make_icons.py` draws it; its ink stays inside the maskable 80% circle.
+- **The Android home-screen tile draws the mark larger** (`ADAPTIVE_SPAN`
+  0.66, ink reaching 0.88 of the 72dp tile against the 66dp safe circle's
+  0.92). At the PWA size it read clearly smaller than the apps beside it.
 
 ## The wordmark — the clock as the O
 
@@ -42,31 +46,35 @@ flow), all the same drawing.
 
 ## The punch pad
 
-One tap, no fingerprint, no press-and-hold. A full-width bar since the
-eighty-seventh entry (2026-10-26):
+One tap, no fingerprint, no press-and-hold. Since the eighty-seventh entry
+(2026-10-26) everything stands on one centre line:
 
 ```
- 출근                       06:24      ← 출근/퇴근 17px · time 24px, Archivo 800
-┌──────────────────────────────────┐
-│            ▶  START              │   ← 60px bar, card width, 18px corners
-└──────────────────────────────────┘     26px glyph · START/STOP 15px, 0.14em
+                 ( 출근 )                ← pill, 14px Archivo 800
+                  06:53                 ← clock, clamp(32px, 11.5vw, 44px)
+     ┌────────────────────────────┐
+     │          ▶  START          │     ← 60px bar, 18px corners
+     └────────────────────────────┘       26px glyph · START/STOP 15px
 
- 퇴근  ● 근무중              3h 42m      (on shift: red 퇴근 · ■ STOP)
+           ( 퇴근 ) ● 근무중               (on shift: red pill · ■ STOP)
+                 3h 42m
 ```
 
-- **The Korean word leads, top left.** 출근 / 퇴근 is the word on the paper the
-  company hands the worker; START / STOP inside the bar is the same in every
-  language. On shift, the 근무중 lamp sits beside 퇴근.
-- **The time is top right**, so the card has no empty sides. The worker chose
-  this from three rendered proposals (`proposals-punch.png`: side by side,
-  wide button, merged into the date card). Measured: the card is 132px, down
-  from 168px with the centred tile and 242px with the fingerprint.
-- **Only the bar punches.** It covers neither the words nor the time, and the
-  screen still scrolls over it (`touch-action: manipulation`).
-- **Shape lives in `ds-tokens.css` rule 5**, caught by `height: 60px` +
-  `touch-action: manipulation`: 18px corners, the ground grey, an inset ring
-  and the card shadow, plus a pressed state (`:active` darkens the plate, not the ink). The bar
-  has no `min-height` and no border, so rules 2 and 2c leave it alone.
+- **The pill.** 출근 on `--color-mark-100` (`#ebf5ee`, the mark green's own
+  tint) in the mark green — 4.63 : 1. 퇴근 on `--color-accent-100` in
+  `--color-accent-700` — 5.42 : 1 (the plain accent would be 3.18 : 1). Shaped
+  by `ds-tokens.css` rule 5b (`padding: 6px 14px` + `white-space: nowrap`).
+  The 근무중 lamp sits beside it and drops to its own line on narrow phones.
+- **The clock is the hero**, centred and large. It scales with the screen so
+  the longest form, `1d 13h 59m`, fits a 320px phone (37px there, 44px at 384).
+- **The bar** is unchanged: card width inside **48px side margins** (272px at
+  384px — the worker narrowed it from 18 through 32 and 40), shaped by rule 5
+  (`height: 60px` + `touch-action: manipulation`), darkening while pressed.
+  Only the bar punches; it covers neither the pill nor the clock.
+- Card height 188px. The worker chose this from three rendered proposals for
+  the top line (`proposals-punch-head.png`: centred clock, label over number,
+  pill and clock on one line), after choosing the wide bar from
+  `proposals-punch.png`.
 - The 근무중 lamp keeps its size: the shape layer catches it by its exact
   width and height (`ds-tokens.css` rule 8).
 - `mockup-punch-tile.png` is the earlier centred-tile design, kept for the
@@ -89,4 +97,4 @@ eighty-seventh entry (2026-10-26):
 The two screenshots the user supplied (a clock-and-folder app icon on a dark
 tile, and the START / STOP mockup) were temporary captures and were not kept.
 The first set the concept and composition only; the mark was drawn fresh, not
-traced. `mockup-punch.png` is the approved punch pad (the wide bar); `preview.html` and `mockup-punch-tile.png` show the earlier centred tile.
+traced. `mockup-punch.png` is the approved punch pad (centred pill and clock over the wide bar); `preview.html` and `mockup-punch-tile.png` show the earlier centred tile.
