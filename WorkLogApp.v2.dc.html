@@ -501,9 +501,10 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
              카드입니다.
              2026-10-26부터는 지문도 길게 누르기도 없습니다 — 한 번 누르면 찍힙니다.
              근로자가 원한 것은 일한 시간이지 본인 확인이 아니었고, 아이폰에서는
-             지문이 오히려 걸림돌이었습니다. 실수로 누른 것은 원래 있던 두 가지가
-             받아 줍니다: 30분 안의 두 번째 누름은 퇴근이 되지 않고(shortOut)
-             출근을 취소할 길을 내밉니다. 위에 출근/퇴근, 아래에 START/STOP —
+             지문이 오히려 걸림돌이었습니다. 실수로 누른 것은 일부만 받습니다:
+             30분 안의 두 번째 누름은 퇴근이 되지 않고(shortOut) 출근을 취소할
+             길을 내밉니다. 못 보고 지나간 주머니 속 START는 아직 받지 못합니다
+             (CHANGELOG 여든여섯째). 위에 출근/퇴근, 아래에 START/STOP —
              종이에 적힌 말이 먼저입니다. 크기는 예전 패드의 3분의 2입니다
              (상자 96→64px, docs/design/DESIGN.md). -->
         <div style="position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:13px 12px 15px;border-bottom:2px solid var(--color-divider);user-select:none">
@@ -5942,9 +5943,12 @@ class Component extends DCLogic {
   noop = () => {};
   // 한 번 누르면 찍힙니다. 1.5초 안에 다시 닿은 손가락은 같은 누름으로 봅니다 —
   // 두 번 톡 친 것이 출근 직후 '너무 짧은 근무' 카드를 띄우면 안 되니까요.
+  // performance.now()이지 Date.now()가 아닙니다 — 폰 시계가 뒤로 맞춰지면
+  // Date.now()로 잰 1.5초는 시계가 따라잡을 때까지 모든 누름을 삼킵니다.
   padTap = () => {
-    const t = Date.now();
-    if (t - (this.lastTap || 0) < 1500) return;
+    const t = performance.now();
+    // 아직 누른 적이 없으면 null입니다 — 0이면 앱을 연 지 1.5초 안의 첫 누름이 삼켜집니다
+    if (this.lastTap != null && t - this.lastTap < 1500) return;
     this.lastTap = t;
     this.punch();
   };

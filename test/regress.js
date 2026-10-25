@@ -8154,13 +8154,14 @@ console.log('\n== 지문은 필요 없었습니다 — 한 번 누르면 출근,
 // 걷어 내고 패드를 START / STOP 단추 하나로 바꿨습니다. 출근이면 초록 ▶, 근무 중이면
 // 빨강 ■. 위에는 종이에 적힌 말 출근/퇴근, 아래에는 START/STOP.
 //
-// 길게 누르기가 막던 것은 주머니 속 실수였습니다. 그것은 원래 있던 두 장치가
+// 길게 누르기가 막던 것은 주머니 속 실수였습니다. 그 일부는 원래 있던 두 장치가
 // 받습니다: 30분 안의 두 번째 누름은 퇴근이 되지 않고 출근 취소를 내밀며(shortOut),
-// 1.5초 안에 다시 닿은 손가락은 같은 누름으로 봅니다.
+// 1.5초 안에 다시 닿은 손가락은 같은 누름으로 봅니다. 못 보고 지나간 주머니 속
+// START는 아직 받지 못합니다 — CHANGELOG 여든여섯째 항목에 적었습니다.
 //
 // 다음 사람에게: 단추를 '안전하게' 하려고 확인 창이나 길게 누르기를 다시 붙이지
 // 마십시오. 하루 두 번 누르는 단추에 붙인 마찰은 매일 두 번 내는 세금입니다.
-// 실수는 누른 다음에 받아 주는 것이 맞습니다.
+// 실수는 누른 다음에 받아 주는 것이 맞고, 못 받는 자리는 퇴근할 때 묻는 쪽입니다.
 {
   const fs = require('fs');
   const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
@@ -8179,7 +8180,7 @@ console.log('\n== 지문은 필요 없었습니다 — 한 번 누르면 출근,
   ok('출근 쪽 글자는 앱의 초록입니다', R.padStampInk === R.padIconInk && /^oklch/.test(R.padIconInk), R.padStampInk);
   ok('패드에 지문 안내 문장이 없습니다', !('padSub' in R));
 
-  c.lastTap = 0; R.padTap();
+  R.padTap();
   ok('한 번 누르면 출근입니다', !!c.state.session, JSON.stringify(c.state.session));
   const inIso = c.state.session && c.state.session.inIso;
   R = c.renderVals(); R.padTap();
@@ -8192,16 +8193,31 @@ console.log('\n== 지문은 필요 없었습니다 — 한 번 누르면 출근,
 
   // 2초 뒤의 두 번째 누름은 진짜 누름입니다 — 다만 30분이 안 됐으니 퇴근이 되지 않고
   // 출근을 취소할 길을 내밉니다. 주머니 속 실수를 받는 것은 이쪽입니다.
-  c.lastTap = Date.now() - 2000; R.padTap();
+  c.lastTap = performance.now() - 2000; R.padTap();
   ok('30분 안의 두 번째 누름은 퇴근이 아니라 확인 카드입니다',
     !!c.state.session && c.state.shortOut === true && c.state.extra.length === 0);
   c.cancelClockIn();
   ok('그 카드에서 출근을 취소할 수 있습니다', !c.state.session);
+  // 같은 누름인지는 폰 시계가 아니라 흐른 시간으로 잽니다(리뷰 S2) — 폰 시계가
+  // 뒤로 맞춰져도 손가락이 삼켜지지 않게.
+  const tapSrc = src.slice(src.indexOf('  padTap = () => {'), src.indexOf('  padTap = () => {') + 200);
+  // performance.now()는 앱을 연 순간 0에서 시작합니다. 첫 누름을 0과 견주면 앱을
+  // 열자마자 누른 출근이 삼켜집니다 — 아침에 폰을 꺼내 바로 누르는 바로 그 손가락입니다.
+  {
+    const realNow = performance.now;
+    performance.now = () => 100;
+    try {
+      const e = mk(V2, '2026-10-26T08:50:00');
+      e.renderVals().padTap();
+      ok('앱을 연 지 0.1초에 누른 출근도 찍힙니다', !!e.state.session);
+    } finally { performance.now = realNow; }
+  }
+  ok('반복 누름은 performance.now()로 잽니다', /performance\.now\(\)/.test(tapSrc) && !/Date\.now\(\)/.test(tapSrc), tapSrc);
 
   // 제대로 된 하루: 08:50 출근 → 18:05 퇴근, 한 번씩 눌러서.
   const d = mk(V2, '2026-10-26T18:05:00');
   d.state.session = { inIso: new Date('2026-10-26T08:50:00').toISOString() };
-  d.lastTap = 0; d.renderVals().padTap();
+  d.renderVals().padTap();
   ok('한 번 누르면 퇴근이고 근무가 기록됩니다', !d.state.session && d.state.extra.length === 1,
     'records=' + d.state.extra.length);
 
