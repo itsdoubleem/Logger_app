@@ -8119,7 +8119,7 @@ console.log('\n== 카드를 쓸면 화면이 굳었고, 짚으면 출근이 찍�
   const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
   const tpl = src.slice(0, src.indexOf('</x-dc>')).replace(/<!--[\s\S]*?-->/g, '');
   // (2026-10-26) 지문과 길게 누르기가 빠졌고, 같은 날 가운데 상자가 카드 너비의
-  // 단추가 되었습니다(여든일곱째) — 카드 여백은 16px 18px 18px. 교훈은 그대로입니다:
+  // 단추가 되었습니다(여든일곱째) — 카드 여백은 16px 48px 18px. 교훈은 그대로입니다:
   // 찍는 것은 단추 하나이고, 카드와 글자와 시각은 손잡이가 아닙니다.
   const pad = tpl.match(/<div style="position:relative;overflow:hidden;[^"]*padding:16px 48px 18px;[^"]*"[^>]*>/);
   ok('출퇴근 카드가 그대로 있습니다', !!pad);
@@ -8241,11 +8241,11 @@ console.log('\n== 지문은 필요 없었습니다 — 한 번 누르면 출근,
   const pad = tpl.slice(tpl.indexOf('{{ padStamp }}') - 300, tpl.indexOf('{{ padBig }}') + 20);
   // (같은 날 가운데 시계로 바뀌며 출근/퇴근은 14px 알약 — 여든일곱째)
   ok('출근/퇴근은 14px 알약', /font-size:14px;[^"]*">\{\{ padStamp \}\}/.test(pad));
-  // (같은 날 넓은 단추로 바뀌며: START/STOP은 단추 안 15px, 시각은 윗줄 오른쪽 24px,
-  // ▶·■는 26px — 여든일곱째)
+  // (같은 날 넓은 단추와 가운데 시계로 바뀌며: START/STOP은 단추 안 15px, 시각은 가운데
+  // 32–44px, ▶·■는 26px — 여든일곱째)
   const padAll = tpl.slice(tpl.indexOf('{{ padStamp }}') - 300, tpl.indexOf('{{ padTitle }}') + 20);
   ok('START/STOP은 15px', /font-size:15px;[^"]*">\{\{ padTitle \}\}/.test(padAll));
-  ok('시각은 폭에 따라 32–44px', /font-size:clamp\(32px, 11\.5vw, 44px\);[^"]*">\{\{ padBig \}\}/.test(padAll));
+  ok('시각의 크기는 renderVals가 정합니다', /font-size:\{\{ padBigFs \}\};[^"]*">\{\{ padBig \}\}/.test(padAll));
   ok('▶와 ■는 26px', (padAll.match(/<svg width="26" height="26"/g) || []).length === 2);
 }
 
@@ -8324,7 +8324,22 @@ console.log('\n== 출퇴근 카드의 양옆이 비어 있었습니다 — 넓�
   const stampTag = (head.match(/<div style="[^"]*">\{\{ padStamp \}\}/) || [''])[0];
   ok('출근/퇴근은 줄어들지도 쪼개지지도 않습니다', /flex:none/.test(stampTag) && /white-space:nowrap/.test(stampTag), stampTag);
   const timeTag = (head.match(/<div style="[^"]*">\{\{ padBig \}\}/) || [''])[0];
-  ok('시각은 한 줄이고 카드를 넘지 않습니다', /white-space:nowrap/.test(timeTag) && /max-width:100%/.test(timeTag), timeTag);
+  ok('시각은 한 줄입니다', /white-space:nowrap/.test(timeTag), timeTag);
+  // 리뷰 S1: max-width는 상자를 묶을 뿐 글자를 묶지 않습니다. 몇 주째 열린 근무의
+  // '45d 13h 59m'은 320–360px 폰에서 44px 시계의 칸을 넘었습니다 — 두 자리 날 수에는
+  // 한 단계 작은 시계를 씁니다.
+  {
+    const big = 'clamp(32px, 11.5vw, 44px)', small = 'clamp(26px, 9vw, 36px)';
+    const fsAt = (inIso, nowIso) => { const g = mk(V2, nowIso); g.state.session = { inIso: new Date(inIso).toISOString() }; const R = g.renderVals(); return [R.padBig, R.padBigFs]; };
+    const [t0, f0] = fsAt('2026-10-26T06:00:00', '2026-10-26T09:42:00');
+    ok('평범한 근무 시간은 큰 시계', f0 === big, t0 + ' ' + f0);
+    const [t1, f1] = fsAt('2026-10-25T06:00:00', '2026-10-26T19:59:00');
+    ok('1d 13h 59m까지는 큰 시계', f1 === big && /^1d /.test(t1), t1 + ' ' + f1);
+    const [t2, f2] = fsAt('2026-09-11T06:00:00', '2026-10-26T19:59:00');
+    ok('45d 13h 59m은 한 단계 작은 시계', f2 === small && /^45d /.test(t2), t2 + ' ' + f2);
+    const g = mk(V2, '2026-10-26T06:53:00');
+    ok('출근 전 시각(06:53)은 큰 시계', g.renderVals().padBigFs === big);
+  }
   ok('예전 64px 상자 규칙은 남아 있지 않습니다', ds.indexOf('[style*="width: 64px"][style*="height: 64px"]') < 0);
 }
 

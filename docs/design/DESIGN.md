@@ -7,7 +7,7 @@ This file records the **mark** and the **punch pad**, which changed on
 
 ## Palette
 
-No new colours. The two the mark and the pad use are already the app's own:
+One new colour, `--color-mark-100` (the mark green's tint, for the 출근 pill); the rest are the app's own:
 
 | Role | Value | Where |
 |---|---|---|
