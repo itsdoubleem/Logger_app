@@ -52,7 +52,7 @@ FILLS = [
 # (path, stroke width), round caps and joins
 STROKES = [
     ("M43.7 48.8 30.09 64.79", 1.85),  # second
-    ("M55.2 74.1V63a3.4 3.4 0 0 1 3.4-3.4h8l3.85 3.85h9.35a3.4 3.4 0 0 1 3.4 3.4v7.25", 4),  # folder back
+    ("M55.2 74.1V63a3.4 3.4 0 0 1 3.4-3.4h8l3.85 3.85h9.15a3.4 3.4 0 0 1 3.4 3.4v7.25", 4),  # folder back
     ("M59.2 70.1H79a4 4 0 0 1 4 4v8.4a4 4 0 0 1-4 4H59.2a4 4 0 0 1-4-4V74.1a4 4 0 0 1 4-4Z", 4),  # folder front
     ("M62.1 78.1h14", 4),  # bar
 ]
@@ -93,7 +93,7 @@ ADAPTIVE_VIEWPORT = 72 / 108
 # a slightly rounder square than Samsung's) at r = 0.93 of the half-viewport,
 # against ADAPTIVE_SAFE 0.95. The cost is written down: a launcher that crops to
 # a circle (Pixel and some others) clips the outer arc's tip and the folder's
-# corner — circle reach is 1.10. main() prints both numbers.
+# corner — circle reach is 1.11. main() prints both numbers.
 ADAPTIVE_SPAN = 0.82
 ADAPTIVE_SAFE = 0.95
 SQUIRCLE = 4
@@ -243,8 +243,8 @@ def mark(fills, strokes, box, width):
     disc every sixteenth of the width cannot leave a seam, and round caps and
     joins fall out of it for free — which is what the folder and the second hand
     ask for. The spacing matters at this weight: at a quarter-width the discs'
-    overlap left a scalloped edge about 0.8px deep on the 1024px icon (sagitta
-    of a disc stepped r/2); at r/8 it is under 0.05px.
+    overlap left a scalloped edge about 0.5px deep on the 1024px icon (sagitta
+    of a disc stepped r/2); at r/8 it is about 0.03px.
     """
     x0, y0, x1, y1 = box
     scale = width * SS / (x1 - x0)
@@ -404,6 +404,19 @@ def main():
                 "</resources>\n" % DISC
             )
         written(values)
+
+    # The transparent logo PNGs beside the master in docs/design/logo/, framed
+    # exactly as the SVG's viewBox (10 13 76 76) — generated here so a redraw
+    # refreshes them with everything else.
+    logo = os.path.join(out, os.pardir, "docs", "design", "logo")
+    if os.path.isdir(logo):
+        for size in (1024, 512, 192, 180, 48):
+            m = mark(fills, strokes, (10, 13, 86, 89), size)
+            img = Image.new("RGBA", (size, size), GREEN + (0,))
+            img.paste(Image.new("RGBA", m.size, GREEN + (255,)), (0, 0), m)
+            path = os.path.join(logo, f"logo-mark-{size}.png")
+            img.save(path, "PNG", optimize=True)
+            written(path)
 
     # The iOS app icon. One 1024px image; iOS masks the corners itself, and it
     # may not carry alpha, which the disc-on-field layout already satisfies.
