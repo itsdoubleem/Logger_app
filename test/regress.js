@@ -8468,6 +8468,29 @@ console.log('\n== 주머니 속에서 눌린 출근이 다음 날 아침 근무 
     ok('1분 반 뒤에 지우고 지금 출근 — 출근은 STOP을 누른 07:59:30입니다',
       !!r.state.session && Math.abs(new Date(r.state.session.inIso) - new Date('2026-10-27T07:59:30')) < 1000,
       r.state.session && r.state.session.inIso);
+    // 리뷰 2026-10-27(브랜치) S1: 그 순간은 '방금'일 때만 씁니다. 20:00 주머니 START,
+    // 03:00 주머니 STOP이 카드를 띄운 채 남아 있다가 07:59의 진짜 누름을 맞으면, 출근이
+    // 03:00이 되어 근무내역서에 가짜 5시간과 야간 가산이 붙었습니다. 10분이 지난 STOP은
+    // '방금'이 아닙니다 — 새 누름이 그 순간이 되고, 단추만 눌러도 지금이 출근입니다.
+    const q = at('2026-10-27T03:00:00');
+    q.state.session = { inIso: new Date('2026-10-26T20:00:00').toISOString() };
+    tap(q);
+    ok('03:00의 주머니 STOP도 카드를 띄웁니다', q.renderVals().oddOut === true);
+    q.base = new Date('2026-10-27T07:59:00'); q.t0 = Date.now(); q.lastTap = null; tap(q);
+    ok('다섯 시간 뒤의 진짜 누름이 STOP의 순간이 됩니다',
+      Math.abs(new Date(q.state.oddAt) - new Date('2026-10-27T07:59:00')) < 1000, q.state.oddAt);
+    q.renderVals().redoClockIn();
+    ok('지우고 지금 출근 — 07:59, 03:00이 아닙니다',
+      !!q.state.session && Math.abs(new Date(q.state.session.inIso) - new Date('2026-10-27T07:59:00')) < 1000,
+      q.state.session && q.state.session.inIso);
+    const w = at('2026-10-27T03:00:00');
+    w.state.session = { inIso: new Date('2026-10-26T20:00:00').toISOString() };
+    tap(w);
+    w.base = new Date('2026-10-27T07:59:00'); w.t0 = Date.now();
+    w.renderVals().redoClockIn();
+    ok('카드에서 바로 지워도 — 오래된 STOP이 아니라 지금이 출근입니다',
+      !!w.state.session && Math.abs(new Date(w.state.session.inIso) - new Date('2026-10-27T07:59:00')) < 1000,
+      w.state.session && w.state.session.inIso);
   }
 
   // ② 아직 아니다 — 닫기

@@ -5720,6 +5720,15 @@ class Component extends DCLogic {
   // 그것은 화면의 근무중 표시가 할 일로 남습니다.
   static ODD_LONG = 14;
   static ODD_FAR = 6;
+  // STOP을 누른 순간(oddAt)은 '방금'일 때만 그 순간입니다. 카드는 손대기 전까지 남으므로,
+  // 03:00 주머니 STOP이 띄운 카드가 07:59의 진짜 누름을 맞으면 03:00이 출근이 되어
+  // 가짜 5시간이 붙었습니다(리뷰 2026-10-27 브랜치 S1). 카드를 읽고 고르는 데는 몇 분이면
+  // 충분하므로 10분.
+  static ODD_FRESH_MIN = 10;
+  oddAtFresh() {
+    const a = this.state.oddAt ? new Date(this.state.oddAt) : null;
+    return a && !isNaN(a) && this.now() - a <= Component.ODD_FRESH_MIN * 60000 ? a : null;
+  }
   oddShift(L) {
     if (!L) return null;
     const kind = this.detectShift(L.inH);
@@ -5742,8 +5751,9 @@ class Component extends DCLogic {
   }
   // 지우고 '지금' 출근의 지금은 STOP을 누른 순간입니다 — 단추를 누른 순간이면 카드를
   // 읽는 1–2분이 출근을 늦추고, snapIn이 그것을 다음 30분으로 올립니다(리뷰 2026-10-27 S1).
+  // 단, 그 STOP이 ODD_FRESH_MIN 안일 때만 — 오래된 STOP이면 지금입니다(oddAtFresh).
   redoClockIn() {
-    const at = this.state.oddAt ? new Date(this.state.oddAt) : this.now();
+    const at = this.oddAtFresh() || this.now();
     this.setState({ session: { inIso: at.toISOString() }, oddOut: false, oddAt: null, shortOut: false, staleOut: false });
   }
 
@@ -6075,7 +6085,7 @@ class Component extends DCLogic {
       // 누르기 전의 마찰은 되돌리지 않기로 했으니, 묻는 자리는 퇴근입니다:
       // 14시간이 넘거나, 출근이 근무조 시작에서 6시간 넘게 떨어져 있으면 저장하기
       // 전에 카드로 확인합니다. 맞다고 하면 STOP을 누른 그 순간으로 평소대로 기록됩니다.
-      if (!odd && this.oddShift(L)) { this.setState({ oddOut: true, oddAt: (this.state.oddOut && this.state.oddAt) || n.toISOString(), shortOut: false }); return; }
+      if (!odd && this.oddShift(L)) { this.setState({ oddOut: true, oddAt: ((this.state.oddOut && this.oddAtFresh()) || n).toISOString(), shortOut: false }); return; }
       const y = inD.getFullYear(), m = inD.getMonth() + 1, day = inD.getDate(), k = this.keyOf(inD);
       // a 특근 mark already on this day survives the punch — the punch just
       // replaces the assumed times with the real ones. And a day that was never
