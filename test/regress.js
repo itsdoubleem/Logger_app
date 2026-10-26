@@ -10594,6 +10594,18 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('테두리 없는 것은 이름 묻는 상자 하나', all===3 && borderless===1, all+'/'+borderless);
 }
 
+console.log('\n== 빌드가 실패해도 검사는 초록이었습니다 (리뷰 2026-10-27 S2) ==');
+// test/run.sh는 `python3 build.py | head -1`로 빌드했습니다. 파이프의 종료 상태는 마지막
+// 명령(head)의 것이라, 빌드가 죽어도 set -e가 멈추지 않았고, boot.js는 지난번의
+// dist-v2/를 읽고 통과했습니다. 깨끗한 사본에서 build.py를 일부러 죽여 보니 예전
+// run.sh는 0, 고친 run.sh는 1로 끝났습니다.
+{
+  const run = require('fs').readFileSync(__dirname + '/run.sh', 'utf8');
+  const code = run.split('\n').filter(l => !/^\s*#/.test(l)).join('\n');
+  ok('빌드의 종료 상태가 파이프에 묻히지 않습니다', !/build\.py[^\n]*\|/.test(code) && /^out=\$\(python3 build\.py\)$/m.test(code));
+  ok('그리고 run.sh는 실패에서 멈춥니다', /^set -e$/m.test(run));
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);
