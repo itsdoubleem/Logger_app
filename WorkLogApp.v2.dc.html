@@ -5728,8 +5728,11 @@ class Component extends DCLogic {
     this.setState({ oddOut: false, oddAt: null });
     this.punch({ odd: { at } });
   }
+  // 지우고 '지금' 출근의 지금은 STOP을 누른 순간입니다 — 단추를 누른 순간이면 카드를
+  // 읽는 1–2분이 출근을 늦추고, snapIn이 그것을 다음 30분으로 올립니다(리뷰 2026-10-27 S1).
   redoClockIn() {
-    this.setState({ session: { inIso: this.now().toISOString() }, oddOut: false, oddAt: null, shortOut: false, staleOut: false });
+    const at = this.state.oddAt ? new Date(this.state.oddAt) : this.now();
+    this.setState({ session: { inIso: at.toISOString() }, oddOut: false, oddAt: null, shortOut: false, staleOut: false });
   }
 
   // ── 이미 출근한 뒤에 앱을 연 경우 ──
@@ -6060,7 +6063,7 @@ class Component extends DCLogic {
       // 누르기 전의 마찰은 되돌리지 않기로 했으니, 묻는 자리는 퇴근입니다:
       // 14시간이 넘거나, 출근이 근무조 시작에서 6시간 넘게 떨어져 있으면 저장하기
       // 전에 카드로 확인합니다. 맞다고 하면 STOP을 누른 그 순간으로 평소대로 기록됩니다.
-      if (!odd && this.oddShift(L)) { this.setState({ oddOut: true, oddAt: n.toISOString(), shortOut: false }); return; }
+      if (!odd && this.oddShift(L)) { this.setState({ oddOut: true, oddAt: (this.state.oddOut && this.state.oddAt) || n.toISOString(), shortOut: false }); return; }
       const y = inD.getFullYear(), m = inD.getMonth() + 1, day = inD.getDate(), k = this.keyOf(inD);
       // a 특근 mark already on this day survives the punch — the punch just
       // replaces the assumed times with the real ones. And a day that was never

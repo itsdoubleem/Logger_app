@@ -8451,6 +8451,25 @@ console.log('\n== 주머니 속에서 눌린 출근이 다음 날 아침 근무 
     c.state.session && c.state.session.inIso);
   ok('카드는 닫힙니다', c.renderVals().oddOut === false);
 
+  // 리뷰 2026-10-27 S1: '지우고 지금 출근'의 '지금'은 STOP을 누른 그 순간이어야 합니다.
+  // 카드를 읽는 데 1분 반이 걸리면 단추를 누른 08:01이 출근이 되고, snapIn이 그것을
+  // 08:30으로 올려 30분이 사라졌습니다. 기록하기(confirmOddOut)는 이미 oddAt을 썼고,
+  // 이 길만 빠져 있었습니다. 카드가 떠 있는 동안 한 번 더 눌러도 그 순간은 처음
+  // 누른 때로 남습니다.
+  {
+    const r = at('2026-10-27T07:59:30');
+    r.state.session = { inIso: new Date('2026-10-26T20:00:00').toISOString() };
+    tap(r);
+    r.base = new Date('2026-10-27T08:00:10'); r.t0 = Date.now(); r.lastTap = null; tap(r);
+    ok('카드 위에서 다시 눌러도 STOP의 순간은 처음 그대로입니다',
+      Math.abs(new Date(r.state.oddAt) - new Date('2026-10-27T07:59:30')) < 1000, r.state.oddAt);
+    r.base = new Date('2026-10-27T08:01:00'); r.t0 = Date.now();
+    r.renderVals().redoClockIn();
+    ok('1분 반 뒤에 지우고 지금 출근 — 출근은 STOP을 누른 07:59:30입니다',
+      !!r.state.session && Math.abs(new Date(r.state.session.inIso) - new Date('2026-10-27T07:59:30')) < 1000,
+      r.state.session && r.state.session.inIso);
+  }
+
   // ② 아직 아니다 — 닫기
   const d = at('2026-10-27T07:50:00');
   d.state.session = { inIso: new Date('2026-10-26T20:00:00').toISOString() };
