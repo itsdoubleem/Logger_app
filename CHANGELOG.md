@@ -1,6 +1,6 @@
 # 근무기록 LOGGER — change log beyond V2.md
 
-Ninety-six entries, newest first — eighty-nine carry an ordinal (first … eighty-ninth),
+Ninety-seven entries, newest first — ninety carry an ordinal (first … ninetieth),
 the seven oldest predate the numbering. Each one is a bug found by **actually using the app on
 shift**, what changed, and — the part worth reading — *why it was that and not the
 obvious fix*. Most entries end with a **다음 사람에게** paragraph: the rule the bug
@@ -18,7 +18,8 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 
 ## Index
 
-- 2026-10-27 (latest, eighty-ninth) — 아이콘은 근로자가 고른 그림으로: 열린 링, 바깥 호, 네모 눈금, 바늘 셋, 두 겹 폴더
+- 2026-10-27 (latest, ninetieth) — 30분을 잃는 '지우고 지금 출근', 말없이 실패하던 백업, 초록인 채로 실패하던 빌드
+- 2026-10-27 (eighty-ninth) — 아이콘은 근로자가 고른 그림으로: 열린 링, 바깥 호, 네모 눈금, 바늘 셋, 두 겹 폴더
 - 2026-10-26 (eighty-eighth) — 리뷰에 남아 있던 여섯: 영어 안내, 화면 밖 카드, 아이콘 테, 시계 크기, 320px 머리말, 잠든 지문 다리
 - 2026-10-26 (eighty-seventh) — 출퇴근 카드의 양옆이 비어 있었습니다: 카드 너비의 단추와 가운데 시계로
 - 2026-10-26 (eighty-sixth) — 지문은 필요 없었습니다: 한 번 누르면 출근, 한 번 누르면 퇴근
@@ -115,7 +116,47 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 - 2026-08-13 — the service worker was hiding every update
 - 2026-08-13 (earlier) — 조퇴 사유 became a popup with a dropdown
 
-### 2026-10-27 (latest, eighty-ninth) — 아이콘은 근로자가 고른 그림으로: 열린 링, 바깥 호, 네모 눈금, 바늘 셋, 두 겹 폴더
+### 2026-10-27 (latest, ninetieth) — 30분을 잃는 '지우고 지금 출근', 말없이 실패하던 백업, 초록인 채로 실패하던 빌드
+
+v1.3.0 이후 전체를 리뷰에 다시 맡겼더니 Must-fix는 없고 Should-fix가 다섯이었습니다. 한
+갈래(`fix/review-2026-10-27`)에서 항목마다 커밋 하나, 시험 하나 이상.
+
+- **'잘못 눌린 출근 — 지우고 지금 출근'이 30분을 잃었습니다.** 여든여섯째의 이상한 근무
+  카드에서 이 단추는 단추를 누른 순간을 출근으로 썼습니다. STOP을 07:59:30에 누르고 카드를
+  1분 반 읽은 뒤 누르면 출근은 08:01이 되고, `snapIn`이 그것을 08:30으로 올립니다. '기록하기'
+  쪽은 이미 STOP의 순간(`oddAt`)을 썼고 이 길만 빠져 있었습니다. 이제 두 길 모두 STOP을 누른
+  순간을 씁니다. 카드가 떠 있는 동안 한 번 더 눌러도 그 순간은 처음 누른 때로 남습니다 —
+  전에는 두 번째 누름이 덮어써서 '기록하기'도 늦어졌습니다.
+- **백업이 써지지 않아도 아무 말이 없었습니다.** 안드로이드와 아이폰의 저장 다리가 '파일을
+  쓰지 못했다'를 '저장 창을 닫았다'와 같은 이름(`NotAllowedError`)으로 돌려주었고, 페이지는
+  그것을 취소로 읽어 조용히 끝냈습니다. 더 나쁘게는 그 뒤 내려받기로 떨어져, 앱 안에서는
+  아무것도 받지 못하는 내려받기를 두고 '내보냈습니다' · '근무내역서를 만들었습니다'까지 말할 수
+  있었습니다. 이제 다리는 쓰지 못한 것을 `DataError`로 말하고, 페이지는 **이미 있는**
+  '파일을 만들지 못했습니다'를 **이미 있는** 알림 자리에 빨갛게 띄웁니다. 새 칸도 새 문장도
+  없습니다. 자바·스위프트는 여전히 시험이 없어 이름만 시험하고, 두 앱 모두 빌드를 확인했습니다.
+- **빌드가 죽어도 검사는 초록이었습니다.** `test/run.sh`의 `python3 build.py | head -1`은
+  파이프라서 종료 상태가 `head`의 것이었고, `set -e`는 멈추지 않았으며 `boot.js`는 지난번의
+  `dist-v2/`를 읽고 통과했습니다. 깨끗한 사본에서 build.py를 일부러 죽여 보니 예전 run.sh는
+  0, 고친 것은 1로 끝납니다.
+- **네팔어 23줄과 크메르어 20줄이 제 글자의 숫자를 썼습니다**('दफा ४६', '៧០%' — 숫자
+  82개). 규칙은 ASCII 숫자입니다 — 근로자는 화면을 한국어 명세서 옆에 들고 숫자를 맞춥니다.
+  모두 0–9로 바꿨고, `check_lang.py`가 이제 숫자 종류(Nd)의 비ASCII 글자를 거부합니다.
+  법조문의 항 표시 ①②는 숫자 종류가 아니라 그대로입니다.
+- **저장소의 아이콘이 스크립트가 그리는 것인지 아무도 보지 않았습니다.** `test/icons.py`가
+  `make_icons.py`를 임시 사본에 돌려 21개 파일을 픽셀로 견줍니다(다른 Pillow의 PNG 인코더로
+  틀리지 않게 바이트가 아니라 픽셀). 크기를 0.82 → 0.81로 바꿔 보니 적응형 다섯이 걸렸습니다.
+
+13 new assertions (3641 total), under 이상한 근무 카드, 마지막 백업이 언제였는지, and three new
+blocks at the end; plus `test/icons.py`. Each new assertion was checked failing on the code before
+its fix.
+
+**다음 사람에게.** 실패를 취소와 같은 이름으로 부르면 화면은 둘을 구별할 수 없습니다. 다리를
+놓을 때는 '아무 일도 없었다', '사람이 그만두었다', '하려다 못 했다'를 서로 다른 이름으로 돌려주고,
+페이지가 셋째를 받으면 성공으로 떨어지는 길(여기서는 내려받기)이 없는지 보십시오. 그리고
+검사 스크립트의 파이프는 실패를 삼킵니다 — 종료 상태가 필요한 명령은 파이프의 끝에 두지
+마십시오.
+
+### 2026-10-27 (eighty-ninth) — 아이콘은 근로자가 고른 그림으로: 열린 링, 바깥 호, 네모 눈금, 바늘 셋, 두 겹 폴더
 
 **근로자가 그림 한 장을 주며 앱 아이콘을 이것으로 바꿔 달라고 했습니다.** 여든여섯째에 그린
 시계 + 폴더와 같은 생각이지만 생김이 다릅니다 — 링이 굵고 폴더 쪽에서 열려 있으며, 왼쪽 위
