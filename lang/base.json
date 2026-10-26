@@ -2716,7 +2716,7 @@
     "ko": "지금 휴게시간 — 무급 휴게 {p0}–{p1}. 시계는 계속 가지만 이 시간은 지급되지 않습니다."
   },
   "live_logged_in": {
-    "en": "Logged in at {p0}. ",
+    "en": "Clocked in at {p0}. ",
     "ko": "{p0}에 출근. "
   },
   "live_next_break": {

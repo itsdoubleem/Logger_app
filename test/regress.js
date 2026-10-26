@@ -8559,7 +8559,7 @@ console.log('\n== 한국어로 둔 폰에서도 근무 중 안내는 영어였�
   const koDone = at('ko', '2026-10-26T08:50:00', '2026-10-26T19:00:00');
   ok('한국어: 휴게가 다 끝난 뒤', /휴게는 모두 끝났습니다/.test(koDone), koDone);
   const en = at('en', '2026-10-26T08:50:00', '2026-10-26T10:00:00');
-  ok('영어는 예전 그대로 읽힙니다', /^Logged in at 08:50\. Next unpaid break 11:30–12:30\./.test(en), en);
+  ok('영어도 앱의 말로 — 로그인이 아니라 출근(Clocked in)', /^Clocked in at 08:50\. Next unpaid break 11:30–12:30\./.test(en), en);
   const vi = at('vi', '2026-10-26T08:50:00', '2026-10-26T10:00:00');
   ok('베트남어도 자기 말로', /Vào ca lúc 08:50/.test(vi) && !/Logged/.test(vi), vi);
 }

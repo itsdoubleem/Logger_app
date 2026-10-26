@@ -70,8 +70,8 @@ final class PunchViewController: UIViewController, WKNavigationDelegate, WKUIDel
 
     /// What the origin actually bought us, printed once per launch.
     ///
-    /// Every one of these is a silent failure if it is wrong: isSecureContext
-    /// false means the service worker never registers, a missing
+    /// Every one of these is a silent failure if it is wrong: an origin that is
+    /// not secure or not fixed is not the one the records were saved under, a missing
     /// localStorage means the worker's records are gone and nothing is raised,
     /// and an origin that moved means they are gone the next launch instead.
     /// The repo's standing rule is that when a change appears to do nothing you

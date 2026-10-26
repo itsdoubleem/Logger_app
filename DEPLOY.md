@@ -420,9 +420,9 @@ xcrun simctl spawn booted log stream --style compact \
 Open `ios/WorkLog.xcodeproj`, pick your team under Signing & Capabilities, and
 Run. The signature is the only device-specific thing in the project — there is
 no entitlement to request, because the app uses no capability that needs one:
-no push, no iCloud, no associated domains, no network client. `Info.plist`
-carries `NSFaceIDUsageDescription`, which is not optional — without that key
-LocalAuthentication does not prompt, it terminates the app.
+no push, no iCloud, no associated domains, no network client. (`Info.plist`
+carried `NSFaceIDUsageDescription` for the fingerprint punch until 2026-10-26;
+the app no longer uses LocalAuthentication, so it is gone.)
 
 ## What did not change
 

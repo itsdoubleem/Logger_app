@@ -4,8 +4,9 @@ import Network
 /// The page's origin, and the reason there is a server in an offline app at all.
 ///
 /// WorkLogApp.v2.dc.html keeps every record the worker owns in localStorage,
-/// which is keyed by origin, and its service worker needs a secure context.
-/// (Until 2026-10-26 the fingerprint punch needed one too.) A WKWebView can
+/// which is keyed by origin, so the origin must be stable and must behave like
+/// a real web origin. (Until 2026-10-26 the fingerprint punch also needed it to
+/// be a secure context.) A WKWebView can
 /// load the page three ways and only one of them satisfies both:
 ///
 ///   file://              — not a secure context in WebKit; localStorage is

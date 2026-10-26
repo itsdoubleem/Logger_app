@@ -328,7 +328,8 @@ def main():
 
     def emit_foreground(path, size):
         # measured before it is written, at every density: a run that would leave
-        # the 66dp safe circle stops without touching the tree
+        # the 66dp safe circle stops before writing that foreground (the PWA
+        # icons and any lower density already written stay as they are)
         img = lay_foreground(size, clock, folder, box, ADAPTIVE_SPAN * ADAPTIVE_VIEWPORT)
         r = reach_foreground(img)
         if r > ADAPTIVE_SAFE:
