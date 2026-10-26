@@ -29,8 +29,17 @@ for L in ko en vi zh th id ne km; do
 done
 
 echo
+echo "== icons are what make_icons.py draws =="
+python3 test/icons.py
+
+echo
 echo "== builds =="
-python3 build.py | head -1
+# Not `python3 build.py | head -1`: a pipeline's status is its last command's, so
+# a failing build passed straight through `set -e` and boot.js then checked the
+# previous dist-v2/ (review 2026-10-27 S2). The assignment carries the build's
+# own exit status, and `set -e` stops on it.
+out=$(python3 build.py)
+printf '%s\n' "$out" | head -1
 
 echo
 echo "== boot: nothing shows before the app =="

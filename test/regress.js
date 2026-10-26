@@ -8451,6 +8451,48 @@ console.log('\n== 주머니 속에서 눌린 출근이 다음 날 아침 근무 
     c.state.session && c.state.session.inIso);
   ok('카드는 닫힙니다', c.renderVals().oddOut === false);
 
+  // 리뷰 2026-10-27 S1: '지우고 지금 출근'의 '지금'은 STOP을 누른 그 순간이어야 합니다.
+  // 카드를 읽는 데 1분 반이 걸리면 단추를 누른 08:01이 출근이 되고, snapIn이 그것을
+  // 08:30으로 올려 30분이 사라졌습니다. 기록하기(confirmOddOut)는 이미 oddAt을 썼고,
+  // 이 길만 빠져 있었습니다. 카드가 떠 있는 동안 한 번 더 눌러도 그 순간은 처음
+  // 누른 때로 남습니다.
+  {
+    const r = at('2026-10-27T07:59:30');
+    r.state.session = { inIso: new Date('2026-10-26T20:00:00').toISOString() };
+    tap(r);
+    r.base = new Date('2026-10-27T08:00:10'); r.t0 = Date.now(); r.lastTap = null; tap(r);
+    ok('카드 위에서 다시 눌러도 STOP의 순간은 처음 그대로입니다',
+      Math.abs(new Date(r.state.oddAt) - new Date('2026-10-27T07:59:30')) < 1000, r.state.oddAt);
+    r.base = new Date('2026-10-27T08:01:00'); r.t0 = Date.now();
+    r.renderVals().redoClockIn();
+    ok('1분 반 뒤에 지우고 지금 출근 — 출근은 STOP을 누른 07:59:30입니다',
+      !!r.state.session && Math.abs(new Date(r.state.session.inIso) - new Date('2026-10-27T07:59:30')) < 1000,
+      r.state.session && r.state.session.inIso);
+    // 리뷰 2026-10-27(브랜치) S1: 그 순간은 '방금'일 때만 씁니다. 20:00 주머니 START,
+    // 03:00 주머니 STOP이 카드를 띄운 채 남아 있다가 07:59의 진짜 누름을 맞으면, 출근이
+    // 03:00이 되어 근무내역서에 가짜 5시간과 야간 가산이 붙었습니다. 10분이 지난 STOP은
+    // '방금'이 아닙니다 — 새 누름이 그 순간이 되고, 단추만 눌러도 지금이 출근입니다.
+    const q = at('2026-10-27T03:00:00');
+    q.state.session = { inIso: new Date('2026-10-26T20:00:00').toISOString() };
+    tap(q);
+    ok('03:00의 주머니 STOP도 카드를 띄웁니다', q.renderVals().oddOut === true);
+    q.base = new Date('2026-10-27T07:59:00'); q.t0 = Date.now(); q.lastTap = null; tap(q);
+    ok('다섯 시간 뒤의 진짜 누름이 STOP의 순간이 됩니다',
+      Math.abs(new Date(q.state.oddAt) - new Date('2026-10-27T07:59:00')) < 1000, q.state.oddAt);
+    q.renderVals().redoClockIn();
+    ok('지우고 지금 출근 — 07:59, 03:00이 아닙니다',
+      !!q.state.session && Math.abs(new Date(q.state.session.inIso) - new Date('2026-10-27T07:59:00')) < 1000,
+      q.state.session && q.state.session.inIso);
+    const w = at('2026-10-27T03:00:00');
+    w.state.session = { inIso: new Date('2026-10-26T20:00:00').toISOString() };
+    tap(w);
+    w.base = new Date('2026-10-27T07:59:00'); w.t0 = Date.now();
+    w.renderVals().redoClockIn();
+    ok('카드에서 바로 지워도 — 오래된 STOP이 아니라 지금이 출근입니다',
+      !!w.state.session && Math.abs(new Date(w.state.session.inIso) - new Date('2026-10-27T07:59:00')) < 1000,
+      w.state.session && w.state.session.inIso);
+  }
+
   // ② 아직 아니다 — 닫기
   const d = at('2026-10-27T07:50:00');
   d.state.session = { inIso: new Date('2026-10-26T20:00:00').toISOString() };
@@ -8675,6 +8717,49 @@ console.log('\n== 백업을 언제 했는지 아무도 몰랐습니다 ==');
   const c7=mk(V2,'2026-09-25T10:00:00');
   later.push(c7.saveFile('{}','x.json','application/json','끝').then(r=>
     ok('내려받기로 넘기면 true', r===true, String(r))));
+
+  // 리뷰 2026-10-27 S4: 폰의 저장 다리가 '쓰지 못했다'를 '닫았다'와 같은 이름
+  // (NotAllowedError)으로 돌려주어, 쓰이지 않은 백업이 취소처럼 아무 말 없이
+  // 끝났습니다 — 그리고 페이지는 그 뒤 내려받기로 떨어져 '내보냈습니다'까지 말할 수
+  // 있었습니다. 이제 다리는 쓰지 못한 것을 DataError로 말하고, 페이지는 이미 있는
+  // '파일을 만들지 못했습니다'를 이미 있는 알림 자리에 빨갛게 띄웁니다.
+  {
+    const nav = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+    const fake = (name) => Object.defineProperty(globalThis, 'navigator', { configurable: true, writable: true,
+      value: { canShare: () => true, share: async () => { const e = new Error('save'); e.name = name; throw e; } } });
+    const runs = [];
+    fake('DataError');
+    const f1 = mk(V2,'2026-09-25T10:00:00');
+    runs.push(f1.saveFile('{}','x.json','application/json','끝').then(r => {
+      ok('쓰지 못한 백업은 false입니다 — 내려받기로 떨어져 성공을 말하지 않습니다', r === false, String(r));
+      ok('그리고 빨갛게 말합니다', f1.state.backupErr === true && f1.state.backupMsg === f1.T('could_not_create_the_file'), f1.state.backupMsg);
+    }));
+    const f2 = mk(V2,'2026-09-25T10:00:00');
+    f2.evidenceHtml = () => '<p>x</p>'; f2.evidenceName = () => 'x.html';
+    runs.push(f2.doEvidence().then(() =>
+      ok('근무내역서도 같습니다', f2.state.docErr === true && f2.state.docMsg === f2.T('could_not_create_the_file_2'), f2.state.docMsg)));
+    // navigator.share는 두 함수 안에서 첫 await 전에 불리므로, 가짜는 여기서 곧바로
+    // 되돌립니다 — 뒤의 동기 시험들이 가짜 navigator를 보지 않게(리뷰 N2)
+    const restore = () => { if (nav) Object.defineProperty(globalThis, 'navigator', nav); else delete globalThis.navigator; };
+    restore();
+    fake('AbortError');
+    const f3 = mk(V2,'2026-09-25T10:00:00');
+    runs.push(f3.saveFile('{}','x.json','application/json','끝').then(r =>
+      ok('저장 창을 닫은 것은 여전히 아무 말도 하지 않습니다', !r && f3.state.backupErr !== true && !f3.state.backupMsg, String(f3.state.backupMsg))));
+    restore();
+    later.push(Promise.all(runs));
+  }
+  {
+    const fs = require('fs');
+    const java = fs.readFileSync(__dirname + '/../android/app/src/main/java/app/worklog/punch/MainActivity.java', 'utf8');
+    const shim = fs.readFileSync(__dirname + '/../android/app/src/main/java/app/worklog/punch/FileShim.java', 'utf8');
+    const swift = fs.readFileSync(__dirname + '/../ios/WorkLog/Bridge.swift', 'utf8');
+    const iosShim = fs.readFileSync(__dirname + '/../ios/WorkLog/Shims.swift', 'utf8');
+    ok('안드로이드 다리는 쓰지 못한 것을 취소라 부르지 않습니다',
+      !/NotAllowedError/.test(java) && (java.match(/"DataError"/g) || []).length >= 3 && /"AbortError"/.test(java));
+    ok('아이폰 다리도', !/NotAllowedError/.test(swift) && (swift.match(/"DataError"/g) || []).length >= 3 && /"AbortError"/.test(swift));
+    ok('두 심도 읽기 실패를 DataError로', !/NotAllowedError/.test(shim) && !/NotAllowedError/.test(iosShim));
+  }
 }
 
 console.log('\n== 잔여 9일이 얼마인지는 아무도 말하지 않았습니다 ==');
@@ -10573,6 +10658,51 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   const all=src.split('background:var(--color-accent-100);padding:12px 13px').length-1;
   const borderless=(src.match(/<div style="[^"]*background:var\(--color-accent-100\);padding:12px 13px[^"]*">/g)||[]).filter(t=>t.indexOf('border:')<0).length;
   ok('테두리 없는 것은 이름 묻는 상자 하나', all===3 && borderless===1, all+'/'+borderless);
+}
+
+console.log('\n== 빌드가 실패해도 검사는 초록이었습니다 (리뷰 2026-10-27 S2) ==');
+// test/run.sh는 `python3 build.py | head -1`로 빌드했습니다. 파이프의 종료 상태는 마지막
+// 명령(head)의 것이라, 빌드가 죽어도 set -e가 멈추지 않았고, boot.js는 지난번의
+// dist-v2/를 읽고 통과했습니다. 깨끗한 사본에서 build.py를 일부러 죽여 보니 예전
+// run.sh는 0, 고친 run.sh는 1로 끝났습니다.
+{
+  const run = require('fs').readFileSync(__dirname + '/run.sh', 'utf8');
+  const code = run.split('\n').filter(l => !/^\s*#/.test(l)).join('\n');
+  ok('빌드의 종료 상태가 파이프에 묻히지 않습니다', !/build\.py[^\n]*\|/.test(code) && /^out=\$\(python3 build\.py\)$/m.test(code));
+  ok('그리고 run.sh는 실패에서 멈춥니다', /^set -e$/m.test(run));
+  // 리뷰 2026-10-27 S5: 아이콘은 만들어진 것인데 저장소에 들어 있어서, FILLS나 크기를
+  // 고치고 make_icons.py를 다시 돌리지 않으면 예전 아이콘이 그대로 나갔습니다.
+  // test/icons.py가 스크립트를 임시 사본에 돌려 픽셀로 견줍니다.
+  ok('검사가 아이콘을 다시 그려 견줍니다', /^python3 test\/icons\.py$/m.test(code)
+    && require('fs').existsSync(__dirname + '/icons.py'));
+  // 리뷰 2026-10-27 M1: 처음 판은 ImageChops.difference().getbbox()로 견줬는데, RGBA에서
+  // 그것은 투명도만 봅니다 — 512 아이콘에 자홍 네모를 칠해도 'OK'였습니다. 이제 모든
+  // 채널의 바이트를 견주고, 돌 때마다 한 픽셀 색 바뀜을 잡는지 스스로 시험합니다.
+  {
+    const icons = require('fs').readFileSync(__dirname + '/icons.py', 'utf8');
+    ok('아이콘 검사는 투명도만이 아니라 색을 봅니다', !/^from PIL import[^\n]*ImageChops/m.test(icons) && /a\.tobytes\(\) == b\.tobytes\(\)/.test(icons)
+      && /^    selftest\(\)$/m.test(icons));
+  }
+}
+
+console.log('\n== 네팔어와 크메르어만 제 글자의 숫자를 썼습니다 (리뷰 2026-10-27 S3) ==');
+// 규칙은 'ASCII 숫자만'입니다 — 근로자는 화면을 한국어 명세서 옆에 들고 숫자를 맞춰
+// 봅니다. 그런데 ne 17줄, km 14줄이 'दफा ४६', '៧០%'처럼 제 글자의 숫자를 썼고,
+// check_lang.py는 그것을 보지 않았습니다. 동그라미 숫자(①②)는 법조문의 항 표시라
+// 숫자 종류(Nd)가 아니므로 남습니다.
+{
+  const fs = require('fs');
+  const bad = [];
+  for (const f of fs.readdirSync(__dirname + '/../lang').filter(f => f.endsWith('.json'))) {
+    const d = JSON.parse(fs.readFileSync(__dirname + '/../lang/' + f, 'utf8'));
+    const walk = (o, k) => typeof o === 'string' ? (/[^\x00-\x7f]/.test(o) && /(?![0-9])\p{Nd}/u.test(o) && bad.push(f + ':' + k))
+      : Object.entries(o).forEach(([kk, v]) => walk(v, k ? k + '.' + kk : kk));
+    walk(d, '');
+  }
+  ok('여덟 언어 모두 숫자는 0–9입니다', bad.length === 0, bad.slice(0, 4).join(' '));
+  ok('법조문의 항 표시는 그대로입니다', /§56②/.test(fs.readFileSync(__dirname + '/../lang/ne.json', 'utf8')));
+  ok('check_lang.py가 다음 번을 잡습니다', /unicodedata\.category\(c\) == 'Nd' and not c\.isascii\(\)/.test(
+    fs.readFileSync(__dirname + '/../tools/check_lang.py', 'utf8')));
 }
 
 Promise.all(later).then(()=>{

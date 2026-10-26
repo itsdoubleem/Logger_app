@@ -14,6 +14,7 @@ Checks what actually breaks a translated build:
 """
 import io
 import json
+import unicodedata
 import os
 import re
 import sys
@@ -125,6 +126,13 @@ def main():
             en_ph = set(PH.findall(base[k]['en']))
             if en_ph and not (set(PH.findall(v)) & en_ph):
                 problems.append('%s: dropped every placeholder %s' % (k, sorted(en_ph)))
+            # ASCII digits always (CLAUDE.md, Wording): the worker holds the
+            # screen up against a Korean payslip, and a figure in the script's
+            # own numerals is one they cannot match. Category Nd only — the
+            # circled ①② are the statutes' own paragraph marks (§56②).
+            native = sorted({c for c in v if unicodedata.category(c) == 'Nd' and not c.isascii()})
+            if native:
+                problems.append('%s: digits must be ASCII, found %s' % (k, ''.join(native)))
             if '|' in base[k]['en'] and v.count('|') != base[k]['en'].count('|'):
                 problems.append('%s: list has %d items, needs %d'
                                 % (k, v.count('|') + 1, base[k]['en'].count('|') + 1))

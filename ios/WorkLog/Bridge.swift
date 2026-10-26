@@ -7,8 +7,9 @@ import UniformTypeIdentifiers
 ///
 /// Every reply goes back as a resolved or rejected Promise in the page. The
 /// rejection *message* is the DOMException name the page already reads —
-/// 'NotAllowedError' for "nothing happened, try again" and 'AbortError' for
-/// "the worker backed out" — so Shims.swift can rethrow it unchanged.
+/// 'DataError' for "the file was not written" (the page says so) and
+/// 'AbortError' for "the worker backed out" (it stays silent) — so Shims.swift
+/// can rethrow it unchanged.
 final class Bridge: NSObject, WKScriptMessageHandlerWithReply {
 
     private weak var host: UIViewController?
@@ -41,15 +42,17 @@ final class Bridge: NSObject, WKScriptMessageHandlerWithReply {
     private func saveFile(arg: [String: Any], reply: @escaping (Any?, String?) -> Void) {
         guard let dataURL = arg["data"] as? String,
               let bytes = Self.decodeDataURL(dataURL) else {
-            reply(nil, "NotAllowedError")
+            // DataError = the file was not written; the page says so. A cancel
+            // is AbortError and stays silent (review 2026-10-27 S4)
+            reply(nil, "DataError")
             return
         }
         let name = (arg["name"] as? String).flatMap { $0.isEmpty ? nil : $0 } ?? "worklog.json"
         let tmp = FileManager.default.temporaryDirectory.appendingPathComponent(name)
-        do { try bytes.write(to: tmp) } catch { reply(nil, "NotAllowedError"); return }
+        do { try bytes.write(to: tmp) } catch { reply(nil, "DataError"); return }
 
         DispatchQueue.main.async { [weak self] in
-            guard let self, let host = self.host else { reply(nil, "NotAllowedError"); return }
+            guard let self, let host = self.host else { reply(nil, "DataError"); return }
             // A second export before the first is answered would strand the
             // earlier promise — settle it rather than leave the page waiting.
             self.pendingSave?(nil, "AbortError")

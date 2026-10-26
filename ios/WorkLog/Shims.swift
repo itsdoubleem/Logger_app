@@ -17,7 +17,7 @@ enum Shims {
 
     /// Shared preamble: `nativeCall(op, arg)` -> Promise, rejecting with an
     /// Error whose .name is what the page already knows how to read
-    /// ('NotAllowedError' = nothing happened, 'AbortError' = worker backed out).
+    /// ('DataError' = the file was not written, 'AbortError' = worker backed out).
     private static let bridge = """
       var mh = window.webkit && window.webkit.messageHandlers
                && window.webkit.messageHandlers.worklog;
@@ -25,7 +25,7 @@ enum Shims {
       function nativeCall(op, arg) {
         return mh.postMessage({ op: op, arg: arg || {} }).catch(function (e) {
           var x = new Error('bridge');
-          x.name = (e && e.message) || 'NotAllowedError';
+          x.name = (e && e.message) || 'DataError';
           throw x;
         });
       }
@@ -51,7 +51,7 @@ enum Shims {
         var f = d.files[0];
         return new Promise(function (res, rej) {
           var fr = new FileReader();
-          fr.onerror = function () { var e = new Error('read'); e.name = 'NotAllowedError'; rej(e); };
+          fr.onerror = function () { var e = new Error('read'); e.name = 'DataError'; rej(e); };
           fr.onload = function () {
             nativeCall('saveFile', {
               name: f.name || 'worklog.json',
