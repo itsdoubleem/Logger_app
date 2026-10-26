@@ -35,14 +35,16 @@ The mark is the **clock and folder** — a clock (the hours) with a folder (the
 record), green `oklch(0.52 0.14 149)` on the white disc. It replaced the green
 fingerprint on 2026-10-26, when punching became a plain START / STOP tap
 (`CHANGELOG.md`, eighty-sixth entry). The master drawing is
-`docs/design/logo/logo-mark.svg`. Nothing is rasterised from it: its shapes live
-in `make_icons.py` as `d` strings (the two circles rewritten as arcs) and are
-flattened and stroked at whatever size is being emitted, so every icon is drawn
-at its own resolution and every size is the same drawing.
+`docs/design/logo/logo-mark.svg` (redrawn 2026-10-27, eighty-ninth entry).
+Nothing is rasterised from it: its shapes live in `make_icons.py` as `d`
+strings — `FILLS` filled, `STROKES` stroked at their own widths — flattened and
+drawn at whatever size is being emitted, so every icon is drawn at its own
+resolution and every size is the same drawing.
 
 Keep those strings in step with the master — `test/regress.js` compares them.
-The O in the in-app wordmark is the same clock without the folder
-(`docs/design/logo/clock-mark.svg`). `pwa/icon-source.png` is the old
+The O in the in-app wordmark is a clock without the folder
+(`docs/design/logo/clock-mark.svg`) — still the first mark's clock; the
+2026-10-27 redraw changed the launcher icon only. `pwa/icon-source.png` is the old
 근무기록 · LOGGER wordmark bitmap; nothing reads it any more.
 
 > The PWA head tags live in `PWA_HEAD` inside `build.py`, not in the app

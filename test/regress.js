@@ -3994,20 +3994,33 @@ console.log('\n== 이름 한가운데의 O는 앱의 시계입니다 ==');
     marks.length > 0 && JSON.stringify(shapes(marks[0])) === JSON.stringify(shapes(art)),
     JSON.stringify(shapes(marks[0] || '')) + ' vs ' + JSON.stringify(shapes(art)));
   // 앱 아이콘(pwa/make_icons.py)도 같은 원본에서 나옵니다 — 시계 + 폴더.
-  // 파이썬은 path만 읽어서 원을 호 두 개로 다시 썼으니, 선과 폴더는 글자 그대로,
-  // 원은 중심과 반지름으로, 마스크는 지우는 사각형으로 견줍니다.
+  //
+  // 2026-10-27: 근로자가 직접 고른 그림으로 아이콘을 다시 그렸습니다. 링이 더
+  // 굵고 폴더 쪽에서 열려 있으며, 바깥에 호가 하나 더 있고, 눈금은 네모, 바늘은
+  // 셋입니다. 링과 호는 끝이 네모로 잘린 '채운 부채꼴'이라 원과 마스크가
+  // 없어졌습니다 — 이제는 채우는 모양(FILLS)과 긋는 선(STROKES)을 원본과 글자
+  // 그대로, 선은 굵기까지 견줍니다.
   const py = fs.readFileSync(__dirname + '/../pwa/make_icons.py', 'utf8');
   const logo = fs.readFileSync(__dirname + '/../docs/design/logo/logo-mark.svg', 'utf8');
   const ds = [...logo.matchAll(/<path d="([^"]+)"/g)].map(m => m[1]);
-  ok('아이콘 그림의 선과 폴더가 원본과 글자 그대로 같습니다',
-    ds.length === 5 && ds.filter(d => d !== 'M51 51.5h33v31H51z').every(d => py.indexOf('"' + d + '"') >= 0), ds.join(' | '));
-  ok('아이콘의 링과 축은 원본의 원입니다',
-    /<circle cx="44" cy="44" r="27"\/>/.test(logo) && py.indexOf('"M17 44a27 27 0 1 0 54 0a27 27 0 1 0-54 0"') >= 0
-    && /<circle cx="44" cy="44" r="1.3"\/>/.test(logo) && py.indexOf('"M42.7 44a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0-2.6 0"') >= 0);
-  ok('폴더 자리에서 링을 끊는 사각형이 원본의 마스크와 같습니다',
-    logo.indexOf('<path d="M51 51.5h33v31H51z" fill="#000"/>') >= 0 && py.indexOf('CUT = (51, 51.5, 84, 82.5)') >= 0);
-  ok('아이콘 선 굵기도 원본과 같습니다',
-    /stroke-width="3\.6"/.test(logo) && /^STROKE = 3\.6$/m.test(py));
+  const pyFills = (py.match(/^FILLS = \[([\s\S]*?)^\]/m) || ['', ''])[1];
+  const pyStrokes = [...((py.match(/^STROKES = \[([\s\S]*?)^\]/m) || ['', ''])[1])
+    .matchAll(/\("([^"]+)", ([\d.]+)\)/g)].map(m => [m[1], m[2]]);
+  const fillDs = [...pyFills.matchAll(/"([^"]+)"/g)].map(m => m[1]);
+  ok('아이콘 그림의 모양이 원본과 글자 그대로 같습니다 — 빠진 것도 더한 것도 없이',
+    ds.length === fillDs.length + pyStrokes.length && ds.length === 10
+    && ds.every(d => fillDs.includes(d) || pyStrokes.some(([x]) => x === d)), ds.length + ' paths');
+  const fillGroup = (logo.match(/<g fill="#127e38">([\s\S]*?)<\/g>/) || ['', ''])[1];
+  ok('채우는 모양은 원본에서도 채웁니다', fillDs.length === 6 && fillDs.every(d => fillGroup.indexOf('"' + d + '"') >= 0));
+  ok('긋는 선은 원본에서도 같은 굵기로 긋습니다',
+    pyStrokes.length === 4 && pyStrokes.every(([d, w]) =>
+      new RegExp('stroke-width="' + w.replace('.', '\\.') + '"[^>]*>[^<]*(<path[^>]*>\\s*)*?<path d="' + d.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '"').test(logo)),
+    JSON.stringify(pyStrokes.map(x => x[1])));
+  ok('링은 마스크로 끊지 않고, 처음부터 폴더 앞에서 열려 있습니다',
+    logo.indexOf('<mask') < 0 && logo.indexOf('<circle') < 0 && py.indexOf('CUT') < 0);
+  // 굵은 선을 원판을 찍어서 그리는데, 원판 간격이 반지름의 절반이면 1024px
+  // 아이콘의 가장자리가 0.8px 깊이로 물결쳤습니다(확대하면 보입니다).
+  ok('선 가장자리가 물결치지 않을 만큼 촘촘히 찍습니다', /walk\(pts, r \/ 8\)/.test(py) && !/walk\(pts, r \/ 2\)/.test(py));
   ok('아이콘에 지문은 남아 있지 않습니다', py.indexOf('M12 10a2 2 0 0 0-2 2') < 0);
   // 리뷰: 적응형 아이콘의 투명 바탕이 '투명한 검정'이라 가장자리 픽셀이 검게 섞여
   // 획마다 어두운 테가 졌습니다. 바탕은 '투명한 초록'이어야 합니다.

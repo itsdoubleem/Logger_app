@@ -2,21 +2,21 @@
 """Render the app's mark to PNG launcher icons.
 
 The mark is the **clock and folder** — a clock (the hours the app counts) with
-a folder (the record it keeps) overlapping its lower right, in the app green
+a folder (the record it keeps) at its lower right, in the app green
 `oklch(0.52 0.14 149)`. It replaced the green fingerprint on 2026-10-26, when
-punching stopped asking for a fingerprint and became a plain START / STOP tap.
-The master drawing is `docs/design/logo/logo-mark.svg`; DESIGN.md beside it
-says why it looks the way it does.
+punching stopped asking for a fingerprint and became a plain START / STOP tap,
+and was redrawn on 2026-10-27 from the worker's own picture: a heavier ring
+that opens where the folder sits, a swept arc outside it, square ticks, three
+tapered hands and a two-layer folder. The master drawing is
+`docs/design/logo/logo-mark.svg`; DESIGN.md beside it says why it looks the
+way it does.
 
 Nothing is rasterised from a source file. The `d` strings below are the
-master's shapes — its two circles rewritten as pairs of arcs, because this
-script reads paths only — flattened to polylines here and stroked at the size
-being emitted, so every icon is drawn at its own resolution. Keep them in step
-with the master; `test/regress.js` compares the two.
-
-Where the folder crosses the clock, the master cuts the ring with a mask so
-there is a real gap rather than a painted patch. Here that is CUT: the clock is
-drawn, CUT is erased out of it, then the folder is drawn on top.
+master's paths, character for character, flattened to polylines here and drawn
+at the size being emitted, so every icon is drawn at its own resolution. FILLS
+are solid shapes (the ring and arc are annular sectors, so their ends are cut
+square, as in the picture); STROKES are lines with round caps. Keep them in
+step with the master; `test/regress.js` compares the two.
 
 A home-screen icon cannot be transparent — iOS fills alpha with black and
 Android masks every icon over a background layer — so the mark sits on the
@@ -40,21 +40,22 @@ BG = (0xF3, 0xF2, 0xF2)       # --color-bg, the icon's corners
 DISC = (0xFD, 0xFD, 0xFD)     # the logo's disc, flattened from its faint sheen
 GREEN = (0x12, 0x7E, 0x38)    # oklch(0.52 0.14 149), the pad's padIconInk
 
-# docs/design/logo/logo-mark.svg, in its own 100-unit space. Stroke 3.6, round
-# caps and joins.
-STROKE = 3.6
-CLOCK = [
-    "M17 44a27 27 0 1 0 54 0a27 27 0 1 0-54 0",          # the ring, r 27
-    "M44 21.5v4M21.5 44h4M62.5 44h4M44 62.5v4",           # 12 · 9 · 3 · 6
-    "M44 44 30.5 31M44 44 55 33",                         # the hands, 10:10
-    "M42.7 44a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0-2.6 0",   # the hub, r 1.3
+# docs/design/logo/logo-mark.svg, in its own 100-unit space (viewBox 10 13 76 76).
+FILLS = [
+    "M51.37 78.47A30.65 30.65 0 1 1 72.85 58.27L68.76 56.94A26.35 26.35 0 1 0 50.3 74.31Z",  # ring
+    "M10.88 27.73A39 39 0 0 1 26.48 13.81L28.38 17.67A34.7 34.7 0 0 0 14.5 30.05Z",  # arc
+    "M42.25 24.65h2.9a0.6 0.6 0 0 1 0.6 0.6v2.9a0.6 0.6 0 0 1-0.6 0.6h-2.9a0.6 0.6 0 0 1-0.6-0.6v-2.9a0.6 0.6 0 0 1 0.6-0.6ZM20.15 46.75h2.9a0.6 0.6 0 0 1 0.6 0.6v2.9a0.6 0.6 0 0 1-0.6 0.6h-2.9a0.6 0.6 0 0 1-0.6-0.6v-2.9a0.6 0.6 0 0 1 0.6-0.6ZM64.35 46.75h2.9a0.6 0.6 0 0 1 0.6 0.6v2.9a0.6 0.6 0 0 1-0.6 0.6h-2.9a0.6 0.6 0 0 1-0.6-0.6v-2.9a0.6 0.6 0 0 1 0.6-0.6ZM42.25 68.85h2.9a0.6 0.6 0 0 1 0.6 0.6v2.9a0.6 0.6 0 0 1-0.6 0.6h-2.9a0.6 0.6 0 0 1-0.6-0.6v-2.9a0.6 0.6 0 0 1 0.6-0.6Z",  # ticks
+    "M40.16 48.56L31.13 39.95A1.3 1.3 0 0 1 32.8 37.96L42.85 45.35A2.1 2.1 0 1 1 40.16 48.56Z",  # hour
+    "M44.37 45.26L58.63 32.65A1.4 1.4 0 0 1 60.56 34.68L47.26 48.3A2.1 2.1 0 1 1 44.37 45.26Z",  # minute
+    "M40 48.8a3.7 3.7 0 1 0 7.4 0a3.7 3.7 0 1 0-7.4 0Z",  # hub
 ]
-FOLDER = [
-    "M55 77V57.5a3 3 0 0 1 3-3h7.5l3 3.5h9.5a3 3 0 0 1 3 3V77a3 3 0 0 1-3 3H58a3 3 0 0 1-3-3Z",
-    "M55 64.5h26M61 71.5h13",
+# (path, stroke width), round caps and joins
+STROKES = [
+    ("M43.7 48.8 30.09 64.79", 1.85),  # second
+    ("M55.2 74.1V63a3.4 3.4 0 0 1 3.4-3.4h8l3.85 3.85h9.35a3.4 3.4 0 0 1 3.4 3.4v7.25", 4),  # folder back
+    ("M59.2 70.1H79a4 4 0 0 1 4 4v8.4a4 4 0 0 1-4 4H59.2a4 4 0 0 1-4-4V74.1a4 4 0 0 1 4-4Z", 4),  # folder front
+    ("M62.1 78.1h14", 4),  # bar
 ]
-# the master's mask: what is erased from the clock where the folder sits
-CUT = (51, 51.5, 84, 82.5)
 
 # Fraction of the icon's width the mark's ink box spans.
 #
@@ -200,12 +201,18 @@ def flatten(d):
     return lines
 
 
-def glyph_box(lines):
-    """The mark's ink box in viewBox units — the polylines plus the stroke."""
-    xs = [p[0] for ln in lines for p in ln]
-    ys = [p[1] for ln in lines for p in ln]
-    r = STROKE / 2
-    return min(xs) - r, min(ys) - r, max(xs) + r, max(ys) + r
+def glyph_box(fills, strokes):
+    """The mark's ink box in viewBox units — the filled outlines, plus each
+    stroked polyline grown by half its width."""
+    xs, ys = [], []
+    for ln in fills:
+        xs += [p[0] for p in ln]
+        ys += [p[1] for p in ln]
+    for lines, w in strokes:
+        for ln in lines:
+            xs += [p[0] - w / 2 for p in ln] + [p[0] + w / 2 for p in ln]
+            ys += [p[1] - w / 2 for p in ln] + [p[1] + w / 2 for p in ln]
+    return min(xs), min(ys), max(xs), max(ys)
 
 
 def walk(pts, step):
@@ -217,58 +224,55 @@ def walk(pts, step):
     return out
 
 
-def mark(clock, folder, box, width):
+def mark(fills, strokes, box, width):
     """The mark as an L-mode coverage mask `width` px across its ink box.
 
-    The stroke is stamped as a run of overlapping discs rather than drawn with
-    ImageDraw.line(): a wide line is rendered segment by segment with rounded
-    endpoints, and at this stroke weight the seams between segments show as pale
-    hairlines straight across the ink. A disc every quarter-width cannot leave a
-    seam, and round caps and joins fall out of it for free — which is what the
-    glyph asks for anyway.
-
-    The clock goes down first, CUT is erased out of it, and the folder is drawn
-    last — the master's mask, in three steps.
+    Fills are drawn as polygons. Strokes are stamped as a run of overlapping
+    discs rather than drawn with ImageDraw.line(): a wide line is rendered
+    segment by segment with rounded endpoints, and at this stroke weight the
+    seams between segments show as pale hairlines straight across the ink. A
+    disc every sixteenth of the width cannot leave a seam, and round caps and
+    joins fall out of it for free — which is what the folder and the second hand
+    ask for. The spacing matters at this weight: at a quarter-width the discs'
+    overlap left a scalloped edge about 0.8px deep on the 1024px icon (sagitta
+    of a disc stepped r/2); at r/8 it is under 0.05px.
     """
     x0, y0, x1, y1 = box
     scale = width * SS / (x1 - x0)
     height = round((y1 - y0) * scale / SS)
     img = Image.new("L", (width * SS, height * SS), 0)
     draw = ImageDraw.Draw(img)
-    r = STROKE * scale / 2
+    to = lambda ln: [((px - x0) * scale, (py - y0) * scale) for px, py in ln]
 
-    def stroke(lines):
+    for ln in fills:
+        draw.polygon(to(ln), fill=255)
+    for lines, w in strokes:
+        r = w * scale / 2
         for ln in lines:
-            pts = [((px - x0) * scale, (py - y0) * scale) for px, py in ln]
-            for px, py in (walk(pts, r / 2) if len(pts) > 1 else pts):
+            pts = to(ln)
+            for px, py in (walk(pts, r / 8) if len(pts) > 1 else pts):
                 draw.ellipse([px - r, py - r, px + r, py + r], fill=255)
-
-    stroke(clock)
-    cx0, cy0, cx1, cy1 = CUT
-    draw.rectangle([(cx0 - x0) * scale, (cy0 - y0) * scale,
-                    (cx1 - x0) * scale, (cy1 - y0) * scale], fill=0)
-    stroke(folder)
     return img.resize((width, height), Image.BOX)
 
 
-def place(img, clock, folder, box, span):
+def place(img, fills, strokes, box, span):
     """Centre the mark on `img`, across `span` of its width."""
     w = round(img.width * span)
-    m = mark(clock, folder, box, w)
+    m = mark(fills, strokes, box, w)
     at = ((img.width - m.width) // 2, (img.height - m.height) // 2)
     fill = GREEN + (255,) if img.mode == "RGBA" else GREEN
     img.paste(Image.new(img.mode, m.size, fill), at, m)
     return img
 
 
-def lay(size, clock, folder, box, span):
+def lay(size, fills, strokes, box, span):
     """A `size` px icon: the disc, then the mark on top of it."""
     img = Image.new("RGB", (size * SS, size * SS), BG)
     ImageDraw.Draw(img).ellipse([0, 0, size * SS - 1, size * SS - 1], fill=DISC)
-    return place(img.resize((size, size), Image.BOX), clock, folder, box, span)
+    return place(img.resize((size, size), Image.BOX), fills, strokes, box, span)
 
 
-def lay_foreground(size, clock, folder, box, span):
+def lay_foreground(size, fills, strokes, box, span):
     """A `size` px adaptive foreground: the mark alone, over transparency.
 
     The transparent canvas is transparent *green*, not transparent black. Paste
@@ -277,7 +281,7 @@ def lay_foreground(size, clock, folder, box, span):
     dark rim on the white disc (review, 2026-10-26). With the colour already
     green, only the alpha ramps and the edge stays the mark's own colour.
     """
-    return place(Image.new("RGBA", (size, size), GREEN + (0,)), clock, folder, box, span)
+    return place(Image.new("RGBA", (size, size), GREEN + (0,)), fills, strokes, box, span)
 
 
 def reach(path):
@@ -315,22 +319,22 @@ def reach_foreground(img):
 
 def main():
     out = os.path.dirname(os.path.abspath(__file__))
-    clock = [seg for d in CLOCK for seg in flatten(d)]
-    folder = [seg for d in FOLDER for seg in flatten(d)]
-    box = glyph_box(clock + folder)
+    fills = [seg for d in FILLS for seg in flatten(d)]
+    strokes = [(flatten(d), w) for d, w in STROKES]
+    box = glyph_box(fills, strokes)
 
     def written(path):
         print(f"{os.path.relpath(path, out):52}{os.path.getsize(path):>8} bytes")
 
     def emit(path, size):
-        lay(size, clock, folder, box, SPAN).save(path, "PNG", optimize=True)
+        lay(size, fills, strokes, box, SPAN).save(path, "PNG", optimize=True)
         written(path)
 
     def emit_foreground(path, size):
         # measured before it is written, at every density: a run that would leave
         # the 66dp safe circle stops before writing that foreground (the PWA
         # icons and any lower density already written stay as they are)
-        img = lay_foreground(size, clock, folder, box, ADAPTIVE_SPAN * ADAPTIVE_VIEWPORT)
+        img = lay_foreground(size, fills, strokes, box, ADAPTIVE_SPAN * ADAPTIVE_VIEWPORT)
         r = reach_foreground(img)
         if r > ADAPTIVE_SAFE:
             raise SystemExit(f"make_icons: {os.path.basename(os.path.dirname(path))} adaptive mark "

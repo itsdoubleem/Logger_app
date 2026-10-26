@@ -23,24 +23,33 @@ text). On a dark ground it falls to 3.0 : 1 — the mark is never placed on dark
 ## The mark — clock and folder
 
 `logo/logo-mark.svg` is the master: a clock (the hours the app counts) with a
-folder (the record it keeps) overlapping its lower right, green outline on a
-transparent ground. The clock ring is cut by a mask where the folder crosses
-it, so there is a real gap, not a painted patch. PNGs: 1024, 512, 192, 180, 48.
+folder (the record it keeps) at its lower right, green on a transparent ground.
+Redrawn on 2026-10-27 from the worker's own picture, measured rather than traced
+(CHANGELOG, eighty-ninth entry). PNGs: 1024, 512, 192, 180, 48.
 
-- **Line weight 3.6** in a 100-unit box, round caps and joins.
+- **The clock:** a heavy ring (4.3 in a 100-unit box) that opens where the folder
+  sits, a short swept arc outside it at the upper left, four square ticks, a hub
+  and three hands — tapered hour and minute hands and a thin second hand. The
+  ring and the arc are filled sectors with square-cut ends, not round-capped
+  strokes.
+- **The folder:** a back sheet with a tab and a front sheet over it, with one
+  bar across the front — round-capped strokes at 4. The back sheet's sides run
+  straight down into the front sheet's.
 - **Launcher icon:** a home-screen icon cannot be transparent (iOS fills it
   black, Android masks it over a background layer), so the launcher icon is
   this mark on the same white disc the fingerprint used to sit on.
   `pwa/make_icons.py` draws it; its ink stays inside the maskable 80% circle.
 - **The Android home-screen tile draws the mark larger** (`ADAPTIVE_SPAN`
-  0.66, ink reaching 0.88 of the 72dp tile against the 66dp safe circle's
+  0.66, ink reaching 0.89 of the 72dp tile against the 66dp safe circle's
   0.92). At the PWA size it read clearly smaller than the apps beside it.
 
 ## The wordmark — the clock as the O
 
-`근무기록 L◷GGER`: the O is the mark's clock **without the folder**, which turns
-to a smudge at 14–16px. Same ring, four ticks, 10:10 hands — drawn at line
-weight **4.6** instead of 3.6 so it holds up beside Archivo 800. File:
+`근무기록 L◷GGER`: the O is a clock **without the folder**, which turns to a
+smudge at 14–16px — ring, four ticks, 10:10 hands at line weight **4.6** so it
+holds up beside Archivo 800. It is still the first mark's clock: the 2026-10-27
+redraw changed the launcher icon only, and whether the new clock (outer arc,
+three hands) reads at wordmark size has not been decided. File:
 `logo/clock-mark.svg`; three copies in the source (welcome, header, setup
 flow), all the same drawing.
 
