@@ -145,11 +145,10 @@ your hand before deciding anything about hosting. Differences that matter:
 - The page is served by `WebViewAssetLoader` from
   `https://appassets.androidplatform.net`, not `file://`, so it is a real
   secure origin — localStorage persists and the service worker registers.
-- `BioShim` answers `navigator.credentials` with Android's `BiometricPrompt`,
-  which is how the fingerprint punch worked in the APK. **Since 2026-10-26 the
-  app never calls it** — punching is one tap — so it is installed but dormant.
-  Removing it (and `androidx.biometric` with it) is a separate cleanup; the app
-  source does not depend on it either way.
+- Until 2026-10-26 a `BioShim` answered `navigator.credentials` with Android's
+  `BiometricPrompt` for the fingerprint punch. Punching is one tap now, so the
+  shim, the `USE_BIOMETRIC` permission and `androidx.biometric` are gone
+  (CHANGELOG, eighty-eighth entry). The only bridge left is `FileShim`.
 - The APK holds **no INTERNET permission**, and cloud backup and device
   transfer are both switched off in the manifest. The 백업 export is the only
   way data leaves the phone, and the worker picks where it goes.
@@ -265,8 +264,9 @@ to check it starts, punches, and exports.
 
 ### R8 is off, deliberately
 
-`classes.dex` is about 2.7 MB — larger than the app itself (~1.2 MB of assets) —
-because androidx's biometric, fragment and activity libraries come along.
+`classes.dex` is larger than the app itself (~1.2 MB of assets) because
+androidx's fragment and activity libraries come along. (androidx.biometric used
+to as well; removing it took the release APK from 4.03 to 3.19 MB.)
 Turning R8 on would cut a lot of that.
 
 It is off anyway, because everything Java does here is reached **by name**:
@@ -377,24 +377,18 @@ the page a different localStorage on every launch and the worker's entire
 history disappears with nothing raised. `LocalServer.start()` retries the same
 port rather than moving; the only two outcomes are 8787 or a visible error.
 
-### The two bridges
+### The bridge
 
-`ios/WorkLog/Shims.swift` is the iOS half of `android/…/BioShim.java` and
-`FileShim.java`, and it keeps the same promise: `WorkLogApp.v2.dc.html` is not
+`ios/WorkLog/Shims.swift` is the iOS half of `android/…/FileShim.java`, and it
+keeps the same promise: `WorkLogApp.v2.dc.html` is not
 modified for the app and does not know it is inside one. WKWebView answers
 `postMessage` with a real Promise (`WKScriptMessageHandlerWithReply`), so the
 whole pending-map-and-`settle()` half of the Android shim is simply absent.
 
-- **지문 — dormant since 2026-10-26.** Punching is one tap and the app no longer
-  calls `navigator.credentials`, so this bridge is installed but never reached.
-  What follows is how it worked. Backed by `LAContext`, not WebAuthn. Unlike the Android shim this
-  one does *not* stand aside for an existing `window.PublicKeyCredential`:
-  WKWebView does expose the WebAuthn interface, but WebKit resolves a passkey's
-  relying party through the app's Associated Domains entitlement and no domain
-  can claim `127.0.0.1`. Deferring to it would hand the punch pad an
-  authenticator that fails at punch time rather than at feature-detect time.
-  `isUVPAA()` is answered by `canEvaluatePolicy`, so a phone with nothing
-  enrolled reports false and the app falls back to press-and-hold by itself.
+- **지문 — removed 2026-10-26.** A Face ID shim backed by `LAContext` answered
+  `navigator.credentials` for the fingerprint punch. Punching is one tap now,
+  so the shim, `LocalAuthentication` and `NSFaceIDUsageDescription` are gone
+  (CHANGELOG, eighty-eighth entry).
 - **백업 내보내기.** Same guard as Android — a WebView with a working Web Share
   keeps it, and iOS has one, so the shim installs only where it is missing.
   Restoring needs no host code at all: `<input type="file">` opens the document
@@ -414,7 +408,6 @@ to know the page got what it needs:
 
 ```
 [worklog] {"origin":"http://127.0.0.1:8787","secure":true,"store":true,…}
-[worklog] isUVPAA=success(1)
 ```
 
 ```sh
@@ -422,17 +415,14 @@ xcrun simctl spawn booted log stream --style compact \
   --predicate 'eventMessage CONTAINS "[worklog]"'
 ```
 
-The `isUVPAA` line comes from the dormant fingerprint bridge (above) and no
-longer affects the pad: punching is one tap whether or not Face ID is enrolled.
-
 ### Onto a real iPhone
 
 Open `ios/WorkLog.xcodeproj`, pick your team under Signing & Capabilities, and
 Run. The signature is the only device-specific thing in the project — there is
 no entitlement to request, because the app uses no capability that needs one:
-no push, no iCloud, no associated domains, no network client. `Info.plist`
-carries `NSFaceIDUsageDescription`, which is not optional — without that key
-LocalAuthentication does not prompt, it terminates the app.
+no push, no iCloud, no associated domains, no network client. (`Info.plist`
+carried `NSFaceIDUsageDescription` for the fingerprint punch until 2026-10-26;
+the app no longer uses LocalAuthentication, so it is gone.)
 
 ## What did not change
 

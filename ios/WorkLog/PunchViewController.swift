@@ -4,8 +4,9 @@ import WebKit
 /// The whole app, offline, inside the bundle.
 ///
 /// This is the iOS counterpart of android/.../MainActivity.java and it does the
-/// same three jobs: give the page a real secure origin, hand it a fingerprint,
-/// and hand it a way to write a backup file. The page itself is byte-identical
+/// same two jobs: give the page a real secure origin, and hand it a way to
+/// write a backup file. (A third — Face ID for the fingerprint punch — went
+/// with the one-tap pad on 2026-10-26.) The page itself is byte-identical
 /// to the one the web build and the APK serve.
 ///
 /// The app talks to nothing. There is no outbound request in the codebase, the
@@ -42,9 +43,9 @@ final class PunchViewController: UIViewController, WKNavigationDelegate, WKUIDel
         bridge = Bridge(host: self)
         let ucc = config.userContentController
         ucc.addScriptMessageHandler(bridge, contentWorld: .page, name: "worklog")
-        // Both must run before the page's own scripts, or the app has already
-        // decided there is no authenticator by the time we install one.
-        for source in [Shims.bio, Shims.files] {
+        // Must run before the page's own scripts, or the page has already
+        // decided there is no share sheet by the time we install one.
+        for source in [Shims.files] {
             ucc.addUserScript(WKUserScript(source: source,
                                            injectionTime: .atDocumentStart,
                                            forMainFrameOnly: true))
@@ -69,8 +70,8 @@ final class PunchViewController: UIViewController, WKNavigationDelegate, WKUIDel
 
     /// What the origin actually bought us, printed once per launch.
     ///
-    /// Every one of these is a silent failure if it is wrong: isSecureContext
-    /// false means the punch pad quietly drops to press-and-hold, a missing
+    /// Every one of these is a silent failure if it is wrong: an origin that is
+    /// not secure or not fixed is not the one the records were saved under, a missing
     /// localStorage means the worker's records are gone and nothing is raised,
     /// and an origin that moved means they are gone the next launch instead.
     /// The repo's standing rule is that when a change appears to do nothing you
@@ -86,19 +87,11 @@ final class PunchViewController: UIViewController, WKNavigationDelegate, WKUIDel
                                  catch (e) { return false; } })(),
           records: !!localStorage.getItem('worklog.v2'),
           sw:     !!navigator.serviceWorker,
-          share:  !!navigator.canShare,
-          cred:   !!(window.PublicKeyCredential && navigator.credentials)
+          share:  !!navigator.canShare
         })
         """
         webView.evaluateJavaScript(probe) { value, _ in
             NSLog("[worklog] %@", String(describing: value ?? "nil"))
-        }
-        // isUVPAA() answers a Promise, and evaluateJavaScript cannot await one --
-        // it hands back nil, which reads exactly like "no authenticator".
-        webView.callAsyncJavaScript(
-            "return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()",
-            in: nil, in: .page) { result in
-                NSLog("[worklog] isUVPAA=%@", String(describing: result))
         }
         #endif
     }

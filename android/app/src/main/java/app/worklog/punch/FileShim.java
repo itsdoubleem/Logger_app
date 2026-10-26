@@ -24,6 +24,25 @@ final class FileShim {
 
     private FileShim() {}
 
+    /** JSON-quotes a string for injection into evaluateJavascript. */
+    static String quote(String s) {
+        if (s == null) return "\"\"";
+        StringBuilder b = new StringBuilder("\"");
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            switch (c) {
+                case '"':  b.append("\\\""); break;
+                case '\\': b.append("\\\\"); break;
+                case '\n': b.append("\\n");  break;
+                case '\r': b.append("\\r");  break;
+                default:
+                    if (c < 0x20 || c > 0x7e) b.append(String.format("\\u%04x", (int) c));
+                    else b.append(c);
+            }
+        }
+        return b.append('"').toString();
+    }
+
     static final String SOURCE =
         "(function () {\n" +
         "  if (!window.WorkLogNative || !window.WorkLogNative.saveFile) return;\n" +
@@ -61,9 +80,9 @@ final class FileShim {
      */
     static String rescueDownload(String url, String name) {
         return "(function () {\n" +
-            "  fetch(" + BioShim.quote(url) + ").then(function (r) { return r.blob(); }).then(function (b) {\n" +
+            "  fetch(" + FileShim.quote(url) + ").then(function (r) { return r.blob(); }).then(function (b) {\n" +
             "    var fr = new FileReader();\n" +
-            "    fr.onload = function () { window.WorkLogNative.saveFile('', " + BioShim.quote(name) + ", 'application/json', String(fr.result)); };\n" +
+            "    fr.onload = function () { window.WorkLogNative.saveFile('', " + FileShim.quote(name) + ", 'application/json', String(fr.result)); };\n" +
             "    fr.readAsDataURL(b);\n" +
             "  }).catch(function () {});\n" +
             "})();";

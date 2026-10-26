@@ -4009,6 +4009,10 @@ console.log('\n== 이름 한가운데의 O는 앱의 시계입니다 ==');
   ok('아이콘 선 굵기도 원본과 같습니다',
     /stroke-width="3\.6"/.test(logo) && /^STROKE = 3\.6$/m.test(py));
   ok('아이콘에 지문은 남아 있지 않습니다', py.indexOf('M12 10a2 2 0 0 0-2 2') < 0);
+  // 리뷰: 적응형 아이콘의 투명 바탕이 '투명한 검정'이라 가장자리 픽셀이 검게 섞여
+  // 획마다 어두운 테가 졌습니다. 바탕은 '투명한 초록'이어야 합니다.
+  ok('적응형 아이콘의 바탕은 투명한 초록입니다', /Image\.new\("RGBA", \(size, size\), GREEN \+ \(0,\)\)/.test(py) && !/\(0, 0, 0, 0\)\), clock, folder/.test(py));
+  ok('안전 원 검사는 쓰기 전에, 모든 해상도에서', /r = reach_foreground\(img\)[\s\S]{0,200}raise SystemExit[\s\S]{0,200}img\.save\(path/.test(py));
   ok('선 굵기도 원본과 같습니다 — Archivo 800 옆에서 버티는 4.6',
     /stroke-width="4\.6"/.test(marks[0] || '') && /stroke-width="4\.6"/.test(art));
   // 세 자리의 크기·정렬이 한 벌입니다
@@ -7194,8 +7198,11 @@ console.log('\n== 화면 한 장이 근로자의 화면 한 장 반이었습니�
   // 끝은 설정 흐름이 닫히는 자리입니다 — 머리말까지 재면 EN ▾ 칩(30px)이
   // 딸려 들어와, 이 흐름을 잰다고 생각하면서 다른 화면을 재게 됩니다(스물일곱째)
   const su = tpl.slice(tpl.indexOf('{{ suOn }}'),
-    tpl.indexOf('display:flex;align-items:flex-end;justify-content:space-between;padding:8px 18px 10px'));
+    tpl.indexOf('<!-- 머리말.'));
 
+  // 끝 표지는 머리말의 주석입니다 — 머리말 스타일 문자열로 찾던 때, 그 줄에 gap 하나를
+  // 더하자 끝을 못 찾아 다른 화면까지 재었습니다(2026-10-26)
+  ok('머리말 표지가 한 자리에 있습니다', tpl.split('<!-- 머리말.').length === 2);
   ok('굴림판의 칸이 바닥 아래로 내려가지 않았습니다', V2.DRUM_ITEM >= 44, String(V2.DRUM_ITEM));
   // 통은 세 칸입니다 — 가운데와 위아래 이웃. 통이 칸의 세 배가 아니면 띠가
   // 가운데에 서지 않고, 그것은 오류를 내지 않습니다(마흔째).
@@ -7476,7 +7483,7 @@ console.log('\n== 다음 단추가 눌린 티를 내지 않았습니다 ==');
   const src = require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
   const tpl = src.split('class Component')[0];
   const su = tpl.slice(tpl.indexOf('{{ suOn }}'),
-    tpl.indexOf('display:flex;align-items:flex-end;justify-content:space-between;padding:8px 18px 10px'));
+    tpl.indexOf('<!-- 머리말.'));
 
   // ── 진행 막대는 위, 누를 것은 아래 ──────────────────────────────────
   const iProg = su.indexOf('{{ suProg }}');
@@ -7576,7 +7583,7 @@ console.log('\n== 갓 깐 앱의 첫 두 화면이 상태 표시줄 밑에 깔�
   // 44px은 이 앱에서 누를 것의 바닥입니다(마흔한째). 줄인 것은 글자 둘레의
   // 여백뿐이고, 글자 크기는 한 픽셀도 건드리지 않았습니다.
   const su = tpl.slice(tpl.indexOf('{{ suOn }}'),
-    tpl.indexOf('display:flex;align-items:flex-end;justify-content:space-between;padding:8px 18px 10px'));
+    tpl.indexOf('<!-- 머리말.'));
   // 여백은 그 뒤로 한 번 더 줄어 0이 됐습니다 — 아래 쉰두째를 보십시오.
   ok('두 칩의 여백이 좁아졌습니다',
     (su.split('padding:0;background:var(--color-text)').length - 1) === 2);
@@ -7604,7 +7611,7 @@ console.log('\n== 칩은 바닥에 닿았고, 바닥의 줄은 머리카락이 �
   const src = require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
   const tpl = src.split('class Component')[0];
   const su = tpl.slice(tpl.indexOf('{{ suOn }}'),
-    tpl.indexOf('display:flex;align-items:flex-end;justify-content:space-between;padding:8px 18px 10px'));
+    tpl.indexOf('<!-- 머리말.'));
 
   ok('두 칩에 글자 둘레의 여백이 없습니다',
     (su.split('padding:0;background:var(--color-text)').length - 1) === 2);
@@ -8168,6 +8175,17 @@ console.log('\n== 지문은 필요 없었습니다 — 한 번 누르면 출근,
   const fs = require('fs');
   const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
   const code = src.split('\n').filter(l => l.indexOf('"en":') < 0).join('\n');
+  // 지문 시절의 등록 id는 앱이 뜰 때 한 번 지웁니다
+  const mount = src.slice(src.indexOf('  componentDidMount() {'), src.indexOf('  componentDidMount() {') + 600);
+  ok('남은 지문 등록 id를 지웁니다', /removeItem\('worklog\.bio\.v1'\)/.test(mount));
+  {
+    const store = { 'worklog.bio.v1': '{"v":1,"id":"x"}', other: '1' };
+    const prev = global.window;
+    global.window = { localStorage: { removeItem: k => { delete store[k]; }, getItem: k => store[k] || null, setItem: (k, v) => { store[k] = v; } } };
+    try { const c0 = mk(V2, '2026-10-26T08:00:00'); c0.componentDidMount(); c0.componentWillUnmount && clearInterval(c0.iv); }
+    finally { global.window = prev; }
+    ok('앱이 뜨면 worklog.bio.v1은 없고 다른 것은 그대로입니다', !('worklog.bio.v1' in store) && store.other === '1');
+  }
   ok('지문을 부르는 코드가 남아 있지 않습니다',
     !/navigator\.credentials|PublicKeyCredential|bioPunch|bioDetect|startHold|holdStart/.test(code));
   const tpl = src.slice(0, src.indexOf('</x-dc>')).replace(/<!--[\s\S]*?-->/g, '');
@@ -8337,6 +8355,14 @@ console.log('\n== 출퇴근 카드의 양옆이 비어 있었습니다 — 넓�
     ok('1d 13h 59m까지는 큰 시계', f1 === big && /^1d /.test(t1), t1 + ' ' + f1);
     const [t2, f2] = fsAt('2026-09-11T06:00:00', '2026-10-26T19:59:00');
     ok('45d 13h 59m은 한 단계 작은 시계', f2 === small && /^45d /.test(t2), t2 + ' ' + f2);
+    // 날 수로 고릅니다 — 10일째 근무는 0–9시에도 작은 시계(글자 수로 고르던 때는 크게 떴다가
+    // 10시에 작아졌습니다)
+    const [t3, f3] = fsAt('2026-10-16T06:00:00', '2026-10-26T11:00:00');
+    ok('10d 5h 00m도 작은 시계 — 하루 안에 크기가 바뀌지 않습니다', f3 === small && /^10d 5h/.test(t3), t3 + ' ' + f3);
+    const [t4, f4] = fsAt('2026-10-17T06:00:00', '2026-10-26T19:59:00');
+    ok('9d 13h 59m은 큰 시계', f4 === big && /^9d /.test(t4), t4 + ' ' + f4);
+    const [t5, f5] = fsAt('2025-09-11T06:00:00', '2026-10-26T19:59:00');
+    ok('세 자리 날 수도 작은 시계', f5 === small && /^\d{3}d /.test(t5), t5 + ' ' + f5);
     const g = mk(V2, '2026-10-26T06:53:00');
     ok('출근 전 시각(06:53)은 큰 시계', g.renderVals().padBigFs === big);
   }
@@ -8472,6 +8498,9 @@ console.log('\n== 주머니 속에서 눌린 출근이 다음 날 아침 근무 
   const card = tpl.slice(tpl.indexOf('{{ oddOut }}'), tpl.indexOf('{{ L.oddOutClose }}') + 30);
   ok('카드가 화면에 있습니다', card.indexOf('{{ L.oddOutTitle }}') > 0 && card.indexOf('{{ oddOutMsg }}') > 0);
   // 카드는 STOP을 누른 손가락 바로 아래에 뜹니다 — 근무 카드들 아래면 폰에서는 화면 밖입니다
+  // 리뷰 2회차 N5: '너무 이른 퇴근' 카드도 같은 자리 — 근무 카드들 아래면 폰 화면 밖이었습니다
+  ok('너무 이른 퇴근 카드도 패드 바로 아래입니다',
+    tpl.indexOf('{{ padBig }}') < tpl.indexOf('{{ shortOut }}') && tpl.indexOf('{{ shortOut }}') < tpl.indexOf('{{ dayTypeBtns }}'));
   ok('카드는 패드 바로 아래, 근무 카드들보다 위에 있습니다',
     tpl.indexOf('{{ padBig }}') < tpl.indexOf('{{ oddOut }}') && tpl.indexOf('{{ oddOut }}') < tpl.indexOf('{{ dayTypeBtns }}'));
   ok('세 길이 모두 단추입니다', ['confirmOddOut', 'redoClockIn', 'dismissOdd'].every(h => card.indexOf('onClick="{{ ' + h + ' }}"') > 0));
@@ -8501,6 +8530,38 @@ console.log('\n== 주머니 속에서 눌린 출근이 다음 날 아침 근무 
   u.setState({ session: null });                       // 다른 길(귀가·강제 퇴근)로 근무가 닫힘
   u.lastTap = null; tap(u);
   ok('새 출근에는 지난 카드가 따라오지 않습니다', !!u.state.session && u.state.oddOut === false && u.state.oddAt == null);
+}
+
+console.log('\n== 320px 폰에서 이름이 두 줄로 쪼개지고 급여기간 칩이 잘렸습니다 ==');
+// 2026-10-26 리뷰. 머리말의 이름(근무기록 L◷GGER)과 언어 칩과 급여기간 칩이 320px에 한 줄로
+// 들어가지 않아, 줄어들 수 있었던 이름이 'L◷ / GGER'로 쪼개졌고 칩은 오른쪽 끝에서 잘렸습니다.
+// 이름은 쪼개지지 않고, 칩 둘은 자리가 모자랄 때만 위아래로 섭니다.
+{
+  const src = require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tpl = src.split('class Component')[0];
+  const head = tpl.slice(tpl.indexOf('<!-- 머리말.'), tpl.indexOf('{{ monthChip }}') + 20);
+  ok('이름은 줄어들지도 쪼개지지도 않습니다',
+    /flex-direction:column;gap:2px;flex:none/.test(head) && /aria-label="근무기록 LOGGER" style="white-space:nowrap/.test(head));
+  ok('칩 둘은 자리가 모자라면 위아래로 섭니다', /justify-content:flex-end;flex-wrap:wrap;gap:6px 8px;min-width:0/.test(head));
+  ok('급여기간 칩도 쪼개지지 않습니다', /white-space:nowrap;font-size:10px;letter-spacing:0\.12em;padding:6px 11px/.test(head));
+}
+
+console.log('\n== 한국어로 둔 폰에서도 근무 중 안내는 영어였습니다 ==');
+// 2026-10-26 리뷰(S4). 출근하고 나면 날짜 카드에 'Logged in at 02:41. Next unpaid break
+// 11:30–12:30.'이 떴습니다 — 언어를 한국어로 두어도. 그 문장 하나만 코드에 영어로
+// 박혀 있었습니다. 이제 네 문장이 여덟 언어로 있습니다.
+{
+  const at = (lang, inIso, nowIso) => { const c = mk(V2, nowIso); c.setS({ lang }); c.state.session = { inIso: new Date(inIso).toISOString() }; return c.renderVals().detectReason; };
+  const ko = at('ko', '2026-10-26T08:50:00', '2026-10-26T10:00:00');
+  ok('한국어: 출근 시각과 다음 휴게', /08:50에 출근/.test(ko) && /다음 무급 휴게 11:30–12:30/.test(ko) && !/Logged|unpaid/.test(ko), ko);
+  const koBreak = at('ko', '2026-10-26T08:50:00', '2026-10-26T12:00:00');
+  ok('한국어: 휴게 중', /지금 휴게시간/.test(koBreak) && /11:30–12:30/.test(koBreak) && !/unpaid/.test(koBreak), koBreak);
+  const koDone = at('ko', '2026-10-26T08:50:00', '2026-10-26T19:00:00');
+  ok('한국어: 휴게가 다 끝난 뒤', /휴게는 모두 끝났습니다/.test(koDone), koDone);
+  const en = at('en', '2026-10-26T08:50:00', '2026-10-26T10:00:00');
+  ok('영어도 앱의 말로 — 로그인이 아니라 출근(Clocked in)', /^Clocked in at 08:50\. Next unpaid break 11:30–12:30\./.test(en), en);
+  const vi = at('vi', '2026-10-26T08:50:00', '2026-10-26T10:00:00');
+  ok('베트남어도 자기 말로', /Vào ca lúc 08:50/.test(vi) && !/Logged/.test(vi), vi);
 }
 
 console.log('\n== 백업을 언제 했는지 아무도 몰랐습니다 ==');

@@ -22,10 +22,6 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<!-- The fingerprint is the punch. Without this key LocalAuthentication does
-	     not prompt, it terminates the app. -->
-	<key>NSFaceIDUsageDescription</key>
-	<string>출퇴근을 기록할 때 본인 확인에 사용합니다. 확인은 이 휴대폰 안에서만 이루어지며, 어떤 정보도 밖으로 나가지 않습니다.</string>
 	<!-- The page is served by the app itself on the loopback interface so that
 	     window.isSecureContext is true; see LocalServer.swift. Loopback is
 	     exempt from the local-network prompt, and the app makes no other

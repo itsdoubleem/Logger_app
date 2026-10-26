@@ -1,10 +1,9 @@
 import Foundation
-import LocalAuthentication
 import UIKit
 import WebKit
 import UniformTypeIdentifiers
 
-/// The native half of both shims. One message handler, dispatched on `op`.
+/// The native half of the file shim. One message handler, dispatched on `op`.
 ///
 /// Every reply goes back as a resolved or rejected Promise in the page. The
 /// rejection *message* is the DOMException name the page already reads —
@@ -16,11 +15,6 @@ final class Bridge: NSObject, WKScriptMessageHandlerWithReply {
 
     /// 내보내기, waiting on the document picker: the bytes on disk and the
     /// promise that must not be answered until they are somewhere permanent.
-    /// The authentication in flight. See authenticate() — an LAContext that
-    /// deallocates cancels its own evaluation, so this reference is what keeps
-    /// the Face ID sheet on screen.
-    private var authContext: LAContext?
-
     private var pendingSave: ((Any?, String?) -> Void)?
     private var pendingURL: URL?
 
@@ -37,54 +31,8 @@ final class Bridge: NSObject, WKScriptMessageHandlerWithReply {
         let arg = body["arg"] as? [String: Any] ?? [:]
 
         switch op {
-        case "bioAvailable": replyHandler(Self.bioAvailable(), nil)
-        case "bioAuth":      authenticate(reason: arg["reason"] as? String ?? "", reply: replyHandler)
-        case "saveFile":     saveFile(arg: arg, reply: replyHandler)
-        default:             replyHandler(nil, "NotSupportedError")
-        }
-    }
-
-    // MARK: 지문
-
-    /// Biometrics only, no passcode fallback — parity with the Android build,
-    /// which asks for BIOMETRIC_STRONG and nothing else. A device with nothing
-    /// enrolled answers false here and the page drops to press-and-hold by
-    /// itself, which is the same thing it does in a desktop browser.
-    private static func bioAvailable() -> Bool {
-        LAContext().canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil)
-    }
-
-    private func authenticate(reason: String, reply: @escaping (Any?, String?) -> Void) {
-        let context = LAContext()
-        context.localizedCancelTitle = "취소"
-        guard context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil) else {
-            reply(nil, "NotAllowedError")
-            return
-        }
-        // An LAContext cancels the evaluation it is running when it deallocates,
-        // and evaluatePolicy's signature does nothing to keep it alive, so the
-        // context is held here rather than left as a local for the optimiser to
-        // release at a moment of its choosing.
-        //
-        // If you are chasing a punch that fails the instant it is asked, with no
-        // sheet drawn: check whether the app was frontmost before you suspect
-        // this. iOS refuses to evaluate biometrics for an inactive app and the
-        // refusal arrives as a plain failure, indistinguishable from a worker
-        // who declined. That is only reachable from a test harness driving a
-        // simulator window that does not have focus — a worker's finger on the
-        // punch pad means the app is active by definition — and it cost a round
-        // of blaming this line for it. It is the same shape as the note in
-        // CLAUDE.md about focus events in headless Chrome, and it lies the same
-        // way: it looks exactly like a broken feature.
-        authContext = context
-        context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason) { [weak self] ok, _ in
-            DispatchQueue.main.async {
-                self?.authContext = nil
-                // A face that did not match is retried inside the OS sheet, so
-                // anything that reaches here is a real refusal or a cancel —
-                // both of which the page reads as "nothing happened".
-                ok ? reply(true, nil) : reply(nil, "NotAllowedError")
-            }
+        case "saveFile": saveFile(arg: arg, reply: replyHandler)
+        default:         replyHandler(nil, "NotSupportedError")
         }
     }
 

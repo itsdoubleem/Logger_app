@@ -55,12 +55,11 @@ SOFTWARE.
 
 ## Android libraries (APK only)
 
-The APK links four androidx libraries, declared in `android/app/build.gradle`:
+The APK links three androidx libraries, declared in `android/app/build.gradle`:
 
 | Library | Version | Licence |
 |---|---|---|
 | `androidx.webkit:webkit` | 1.14.0 | Apache-2.0 |
-| `androidx.biometric:biometric` | 1.1.0 | Apache-2.0 |
 | `androidx.activity:activity` | 1.9.3 | Apache-2.0 |
 | `androidx.fragment:fragment` | 1.8.5 | Apache-2.0 |
 
