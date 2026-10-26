@@ -1,20 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="13 13 72 72" width="1024" height="1024">
-  <!-- 근무기록 LOGGER mark: clock (the hours) + folder (the record). Transparent;
-       the mask cuts the clock ring where the folder overlaps it. -->
-  <defs>
-    <mask id="cut" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
-      <rect width="100" height="100" fill="#fff"/>
-      <path d="M51 51.5h33v31H51z" fill="#000"/>
-    </mask>
-  </defs>
-  <g fill="none" stroke="#127e38" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round">
-    <g mask="url(#cut)">
-      <circle cx="44" cy="44" r="27"/>
-      <path d="M44 21.5v4M21.5 44h4M62.5 44h4M44 62.5v4"/>
-      <path d="M44 44 30.5 31M44 44 55 33"/>
-      <circle cx="44" cy="44" r="1.3"/>
-    </g>
-    <path d="M55 77V57.5a3 3 0 0 1 3-3h7.5l3 3.5h9.5a3 3 0 0 1 3 3V77a3 3 0 0 1-3 3H58a3 3 0 0 1-3-3Z"/>
-    <path d="M55 64.5h26M61 71.5h13"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="10 13 76 76" width="1024" height="1024">
+  <!-- 근무기록 LOGGER mark: clock (the hours) + folder (the record), redrawn
+       2026-10-27 from the worker's picture. Transparent. The ring and the arc
+       are filled sectors so their ends are cut square; the folder and the
+       second hand are round-capped strokes. -->
+  <g fill="#127e38">
+    <path d="M51.37 78.47A30.65 30.65 0 1 1 72.85 58.27L68.76 56.94A26.35 26.35 0 1 0 50.3 74.31Z"/>
+    <path d="M10.88 27.73A39 39 0 0 1 26.48 13.81L28.38 17.67A34.7 34.7 0 0 0 14.5 30.05Z"/>
+    <path d="M42.25 24.65h2.9a0.6 0.6 0 0 1 0.6 0.6v2.9a0.6 0.6 0 0 1-0.6 0.6h-2.9a0.6 0.6 0 0 1-0.6-0.6v-2.9a0.6 0.6 0 0 1 0.6-0.6ZM20.15 46.75h2.9a0.6 0.6 0 0 1 0.6 0.6v2.9a0.6 0.6 0 0 1-0.6 0.6h-2.9a0.6 0.6 0 0 1-0.6-0.6v-2.9a0.6 0.6 0 0 1 0.6-0.6ZM64.35 46.75h2.9a0.6 0.6 0 0 1 0.6 0.6v2.9a0.6 0.6 0 0 1-0.6 0.6h-2.9a0.6 0.6 0 0 1-0.6-0.6v-2.9a0.6 0.6 0 0 1 0.6-0.6ZM42.25 68.85h2.9a0.6 0.6 0 0 1 0.6 0.6v2.9a0.6 0.6 0 0 1-0.6 0.6h-2.9a0.6 0.6 0 0 1-0.6-0.6v-2.9a0.6 0.6 0 0 1 0.6-0.6Z"/>
+    <path d="M40.16 48.56L31.13 39.95A1.3 1.3 0 0 1 32.8 37.96L42.85 45.35A2.1 2.1 0 1 1 40.16 48.56Z"/>
+    <path d="M44.37 45.26L58.63 32.65A1.4 1.4 0 0 1 60.56 34.68L47.26 48.3A2.1 2.1 0 1 1 44.37 45.26Z"/>
+    <path d="M40 48.8a3.7 3.7 0 1 0 7.4 0a3.7 3.7 0 1 0-7.4 0Z"/>
+  </g>
+  <g fill="none" stroke="#127e38" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M43.7 48.8 30.09 64.79"/>
+  </g>
+  <g fill="none" stroke="#127e38" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M55.2 74.1V63a3.4 3.4 0 0 1 3.4-3.4h8l3.85 3.85h9.15a3.4 3.4 0 0 1 3.4 3.4v7.25"/>
+    <path d="M59.2 70.1H79a4 4 0 0 1 4 4v8.4a4 4 0 0 1-4 4H59.2a4 4 0 0 1-4-4V74.1a4 4 0 0 1 4-4Z"/>
+    <path d="M62.1 78.1h14"/>
   </g>
 </svg>
