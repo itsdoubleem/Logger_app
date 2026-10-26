@@ -5814,6 +5814,8 @@ class Component extends DCLogic {
   // 것은 사업주 귀책 휴업이고, 근로기준법 제46조는 평균임금의 70% 이상을
   // 지급하도록 정하고 있습니다 — 연차와는 전혀 다른 날입니다.
   sentHome() {
+    // 카드는 열린 근무에 대해서만 묻습니다 — 근무가 없으면 카드를 닫고 끝입니다
+    if (!this.state.session) { this.setState({ shortOut: false }); return; }
     const inD = new Date(this.state.session.inIso);
     const y = inD.getFullYear(), m = inD.getMonth() + 1, day = inD.getDate(), k = this.keyOf(inD);
     const e = {
@@ -5837,6 +5839,7 @@ class Component extends DCLogic {
     this.addT = setTimeout(() => this.setState({ undoKeys: [], editedKeys: [], undoPrev: null, undoRm: [] }), 9000);
   }
   forceClockOut() {
+    if (!this.state.session) { this.setState({ shortOut: false }); return; }
     const L = this.sessionHours();
     const inD = L.inD, inH = L.inH, outH = L.outH;
     const y = inD.getFullYear(), m = inD.getMonth() + 1, day = inD.getDate(), k = this.keyOf(inD);
@@ -6125,7 +6128,9 @@ class Component extends DCLogic {
   commitShift(e) {
     const k = this.key(e);
     this.setState(Object.assign(this.undoState([k]), {
-      session: null,
+      // 근무가 닫히면 그 근무에 대해 묻던 카드도 닫힙니다 — 남으면 빈 문장의 카드가
+      // 막 퇴근한 사람에게 STOP이 실패한 것처럼 보였습니다(리뷰 v1.4.0 S6)
+      session: null, shortOut: false, oddOut: false, oddAt: null,
       extra: this.state.extra.filter(x => this.key(x) !== k).concat([e]),
       removed: this.state.removed.filter(x => x !== k),
       // 되돌리기는 이 퇴근만 — 앞의 고침에서 남은 것은 여기서 바뀝니다(리뷰 S3). 미리 잡아 둔

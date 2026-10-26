@@ -10660,6 +10660,29 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('테두리 없는 것은 이름 묻는 상자 하나', all===3 && borderless===1, all+'/'+borderless);
 }
 
+console.log('\n== 제대로 퇴근했는데 \'너무 이른 퇴근\' 카드가 남았습니다 (리뷰 v1.4.0 S6) ==');
+// 08:50 START, 08:52에 한 번 더(너무 이른 퇴근 카드), 카드를 그냥 두고 18:05 STOP.
+// 근무는 제대로 기록되는데 카드는 패드 밑에 빈 문장으로 남았고, 두 단추는 근무가 없으니
+// 오류를 던지고 아무것도 하지 않았습니다(일감 부족: null.inIso, 그대로 퇴근: null.inD).
+// 막 퇴근한 사람에게는 STOP이 실패한 것처럼 보여, START를 다시 누르게 됩니다.
+// v1.3.0에도 있던 것이지만, 한 번 누르는 출퇴근에서는 30분 안의 두 번째 누름이 훨씬 흔합니다.
+{
+  const tap = c => c.renderVals().padTap();
+  const c = mk(V2, '2026-10-27T08:50:00'); c.lastTap = null;
+  tap(c);
+  c.base = new Date('2026-10-27T08:52:00'); c.t0 = Date.now(); c.lastTap = null; tap(c);
+  ok('08:52의 누름은 너무 이른 퇴근 카드를 띄웁니다', c.state.shortOut === true && !!c.state.session);
+  c.base = new Date('2026-10-27T18:05:00'); c.t0 = Date.now(); c.lastTap = null; tap(c);
+  ok('18:05의 STOP은 근무를 기록합니다', !c.state.session && c.state.extra.length === 1, c.state.extra.length);
+  ok('그리고 카드는 닫힙니다', c.state.shortOut === false && c.renderVals().shortOut === false);
+  // 카드가 어떻게든 남아 있더라도, 근무가 없으면 두 단추는 조용히 아무것도 하지 않습니다
+  const n = c.state.extra.length;
+  let threw = null;
+  try { c.sentHome(); c.forceClockOut(); } catch (e) { threw = e.message; }
+  ok('근무가 없을 때 일감 부족 · 그대로 퇴근은 던지지 않습니다', threw === null, String(threw));
+  ok('그리고 기록을 바꾸지 않습니다', c.state.extra.length === n && !c.state.session);
+}
+
 console.log('\n== 빌드가 실패해도 검사는 초록이었습니다 (리뷰 2026-10-27 S2) ==');
 // test/run.sh는 `python3 build.py | head -1`로 빌드했습니다. 파이프의 종료 상태는 마지막
 // 명령(head)의 것이라, 빌드가 죽어도 set -e가 멈추지 않았고, boot.js는 지난번의
