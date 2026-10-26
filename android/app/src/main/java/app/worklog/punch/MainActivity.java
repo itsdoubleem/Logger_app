@@ -100,8 +100,10 @@ public class MainActivity extends FragmentActivity {
                 settleSave(id, true, "");
             } catch (Exception e) {
                 // only now may the page claim the export failed — and it must,
-                // because a backup that was never written is worse than none
-                settleSave(id, false, "NotAllowedError");
+                // because a backup that was never written is worse than none.
+                // DataError: the page reads the other DOMException names as a
+                // cancel and says nothing (review 2026-10-27 S4)
+                settleSave(id, false, "DataError");
             }
         });
 
@@ -261,7 +263,7 @@ public class MainActivity extends FragmentActivity {
         public void saveFile(final String id, final String name, final String mime, final String dataUrl) {
             final byte[] bytes = decodeDataUrl(dataUrl);
             if (bytes == null) {
-                settleSave(id, false, "NotAllowedError");
+                settleSave(id, false, "DataError");
                 return;
             }
             runOnUiThread(() -> {
@@ -279,7 +281,7 @@ public class MainActivity extends FragmentActivity {
                 } catch (Exception e) {
                     pendingId = null;
                     pendingBytes = null;
-                    settleSave(id, false, "NotAllowedError");
+                    settleSave(id, false, "DataError");
                 }
             });
         }

@@ -8694,6 +8694,45 @@ console.log('\n== 백업을 언제 했는지 아무도 몰랐습니다 ==');
   const c7=mk(V2,'2026-09-25T10:00:00');
   later.push(c7.saveFile('{}','x.json','application/json','끝').then(r=>
     ok('내려받기로 넘기면 true', r===true, String(r))));
+
+  // 리뷰 2026-10-27 S4: 폰의 저장 다리가 '쓰지 못했다'를 '닫았다'와 같은 이름
+  // (NotAllowedError)으로 돌려주어, 쓰이지 않은 백업이 취소처럼 아무 말 없이
+  // 끝났습니다 — 그리고 페이지는 그 뒤 내려받기로 떨어져 '내보냈습니다'까지 말할 수
+  // 있었습니다. 이제 다리는 쓰지 못한 것을 DataError로 말하고, 페이지는 이미 있는
+  // '파일을 만들지 못했습니다'를 이미 있는 알림 자리에 빨갛게 띄웁니다.
+  {
+    const nav = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+    const fake = (name) => Object.defineProperty(globalThis, 'navigator', { configurable: true, writable: true,
+      value: { canShare: () => true, share: async () => { const e = new Error('save'); e.name = name; throw e; } } });
+    const runs = [];
+    fake('DataError');
+    const f1 = mk(V2,'2026-09-25T10:00:00');
+    runs.push(f1.saveFile('{}','x.json','application/json','끝').then(r => {
+      ok('쓰지 못한 백업은 false입니다 — 내려받기로 떨어져 성공을 말하지 않습니다', r === false, String(r));
+      ok('그리고 빨갛게 말합니다', f1.state.backupErr === true && f1.state.backupMsg === f1.T('could_not_create_the_file'), f1.state.backupMsg);
+    }));
+    const f2 = mk(V2,'2026-09-25T10:00:00');
+    f2.evidenceHtml = () => '<p>x</p>'; f2.evidenceName = () => 'x.html';
+    runs.push(f2.doEvidence().then(() =>
+      ok('근무내역서도 같습니다', f2.state.docErr === true && f2.state.docMsg === f2.T('could_not_create_the_file_2'), f2.state.docMsg)));
+    later.push(Promise.all(runs).then(() => {
+      fake('AbortError');
+      const f3 = mk(V2,'2026-09-25T10:00:00');
+      return f3.saveFile('{}','x.json','application/json','끝').then(r =>
+        ok('저장 창을 닫은 것은 여전히 아무 말도 하지 않습니다', !r && f3.state.backupErr !== true && !f3.state.backupMsg, String(f3.state.backupMsg)));
+    }).then(() => { if (nav) Object.defineProperty(globalThis, 'navigator', nav); else delete globalThis.navigator; }));
+  }
+  {
+    const fs = require('fs');
+    const java = fs.readFileSync(__dirname + '/../android/app/src/main/java/app/worklog/punch/MainActivity.java', 'utf8');
+    const shim = fs.readFileSync(__dirname + '/../android/app/src/main/java/app/worklog/punch/FileShim.java', 'utf8');
+    const swift = fs.readFileSync(__dirname + '/../ios/WorkLog/Bridge.swift', 'utf8');
+    const iosShim = fs.readFileSync(__dirname + '/../ios/WorkLog/Shims.swift', 'utf8');
+    ok('안드로이드 다리는 쓰지 못한 것을 취소라 부르지 않습니다',
+      !/NotAllowedError/.test(java) && (java.match(/"DataError"/g) || []).length >= 3 && /"AbortError"/.test(java));
+    ok('아이폰 다리도', !/NotAllowedError/.test(swift) && (swift.match(/"DataError"/g) || []).length >= 3 && /"AbortError"/.test(swift));
+    ok('두 심도 읽기 실패를 DataError로', !/NotAllowedError/.test(shim) && !/NotAllowedError/.test(iosShim));
+  }
 }
 
 console.log('\n== 잔여 9일이 얼마인지는 아무도 말하지 않았습니다 ==');

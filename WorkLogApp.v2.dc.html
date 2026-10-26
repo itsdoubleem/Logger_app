@@ -2352,6 +2352,14 @@ class Component extends DCLogic {
         say('');
         return;
       }
+      // the phone's save bridge says DataError when the worker picked a place
+      // and the bytes did not get there. That is a failure, and the download
+      // below cannot rescue it inside the app — it would only claim success
+      // (review 2026-10-27 S4)
+      if (e && e.name === 'DataError') {
+        say(this.T('could_not_create_the_file'), true);
+        return false;
+      }
       // anything else: fall through to the download
     }
     try {
@@ -2683,6 +2691,10 @@ class Component extends DCLogic {
     } catch (e) {
       if (e && (e.name === 'AbortError' || e.name === 'NotAllowedError')) {
         this.setState({ docMsg: '', docErr: false });
+        return;
+      }
+      if (e && e.name === 'DataError') {
+        this.setState({ docErr: true, docMsg: this.T('could_not_create_the_file_2') });
         return;
       }
     }

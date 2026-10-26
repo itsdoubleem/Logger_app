@@ -60,12 +60,12 @@ final class FileShim {
         "    var f = d.files[0];\n" +
         "    return new Promise(function (res, rej) {\n" +
         "      var fr = new FileReader();\n" +
-        "      fr.onerror = function () { var e = new Error('read'); e.name = 'NotAllowedError'; rej(e); };\n" +
+        "      fr.onerror = function () { var e = new Error('read'); e.name = 'DataError'; rej(e); };\n" +
         "      fr.onload = function () {\n" +
         "        var id = String(Date.now()) + '-' + String(Math.random()).slice(2);\n" +
         "        pending[id] = { res: res, rej: rej };\n" +
         "        try { window.WorkLogNative.saveFile(id, f.name || 'worklog.json', f.type || 'application/json', String(fr.result)); }\n" +
-        "        catch (e) { delete pending[id]; var x = new Error('bridge'); x.name = 'NotAllowedError'; rej(x); }\n" +
+        "        catch (e) { delete pending[id]; var x = new Error('bridge'); x.name = 'DataError'; rej(x); }\n" +
         "      };\n" +
         "      fr.readAsDataURL(f);\n" +
         "    });\n" +
