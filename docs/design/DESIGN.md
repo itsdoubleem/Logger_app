@@ -49,11 +49,12 @@ Redrawn on 2026-10-27 from the worker's own picture, measured rather than traced
 
 ## The wordmark — the clock as the O
 
-`근무기록 L◷GGER`: the O is a clock **without the folder**, which turns to a
-smudge at 14–16px — ring, four ticks, 10:10 hands at line weight **4.6** so it
-holds up beside Archivo 800. It is still the first mark's clock: the 2026-10-27
-redraw changed the launcher icon only, and whether the new clock (outer arc,
-three hands) reads at wordmark size has not been decided. File:
+`근무기록 L◷GGER`: the O is the mark's clock **without the folder**, which turns
+to a smudge at 14–16px. Same arc, ticks, hands and hub — the same paths as the
+icon. Two differences, both for wordmark size: the ring is **closed** (opened
+where the folder would be, it reads as C or G), and the second hand is **2.4**
+instead of 1.85, which at 16px is a half-pixel line. The outer arc reaches out
+of the O's box into the empty space above the L (`overflow: visible`). File:
 `logo/clock-mark.svg`; three copies in the source (welcome, header, setup
 flow), all the same drawing.
 

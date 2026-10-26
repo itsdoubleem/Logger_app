@@ -3975,21 +3975,23 @@ console.log('\n== 이름 한가운데의 O는 앱의 시계입니다 ==');
   const pad = (src.match(/padIconInk:[^\n]*'(oklch\([^']+\))'/)||[])[1];
   ok('패드의 초록을 읽어 왔습니다', !!pad, String(pad));
   ok('로고의 초록이 패드와 같습니다',
-    count(new RegExp('stroke="'+pad.replace(/[().]/g,'\\$&')+'"','g'))===3, pad);
+    count(new RegExp('<svg viewBox="13 18\\.15 61\\.4 61\\.4" fill="'+pad.replace(/[().]/g,'\\$&')+'"','g'))===3, pad);
   ok('근무기록의 등도 패드와 같은 초록입니다',
     (src.match(/liveInk: '(oklch\([^']+\))'/) || [])[1] === pad,
     String((src.match(/liveInk: '(oklch\([^']+\))'/) || [])[1]));
   // 그림은 글자가 아니므로, 이름은 aria-label이 말해 줍니다
   ok('세 자리 모두 읽을 수 있는 이름이 붙어 있습니다',
     count(/aria-label="근무기록 LOGGER/g)===3);
-  ok('그림 자체는 읽히지 않습니다', count(/<svg viewBox="15 15 58 58"[^>]*aria-hidden="true"/g)===3);
+  ok('그림 자체는 읽히지 않습니다', count(/<svg viewBox="13 18\.15 61\.4 61\.4"[^>]*aria-hidden="true"/g)===3);
   ok('이름 안에 지문은 남아 있지 않습니다', tpl.indexOf('M12 10a2 2 0 0 0-2 2') < 0);
   // 셋이 같은 그림이고, 그 그림이 승인된 시계 원본과 같은 선을 긋습니다
-  const marks = tpl.match(/<svg viewBox="15 15 58 58"[\s\S]*?<\/svg>/g) || [];
+  const marks = tpl.match(/<svg viewBox="13 18\.15 61\.4 61\.4"[\s\S]*?<\/svg>/g) || [];
   ok('세 시계가 한 그림입니다', marks.length === 3 && marks.every(m => m === marks[0]));
   const art = fs.readFileSync(__dirname + '/../docs/design/logo/clock-mark.svg', 'utf8');
+  // 색은 앱에서는 oklch, 원본 파일에서는 hex라 '잉크'로 맞춰 놓고 견줍니다
   const shapes = x => (x.match(/<(?:circle|path) [^>]*?\/?>/g) || [])
-    .map(e => e.replace(/\s*\/?>$/, '').replace(/\s+/g, ' '));
+    .map(e => e.replace(/\s*\/?>$/, '').replace(/\s+/g, ' ')
+      .replace(/oklch\(0\.52 0\.14 149\)|#127e38/g, 'INK'));
   ok('그 그림은 docs/design의 시계 원본입니다',
     marks.length > 0 && JSON.stringify(shapes(marks[0])) === JSON.stringify(shapes(art)),
     JSON.stringify(shapes(marks[0] || '')) + ' vs ' + JSON.stringify(shapes(art)));
@@ -4032,8 +4034,22 @@ console.log('\n== 이름 한가운데의 O는 앱의 시계입니다 ==');
     && /^ADAPTIVE_SAFE = 0\.95$/m.test(py) && /^SQUIRCLE = 4$/m.test(py)
     && /reach_foreground\(Image\.open\(xxx\), 2\)/.test(py));
   ok('안전 원 검사는 쓰기 전에, 모든 해상도에서', /r = reach_foreground\(img\)[\s\S]{0,200}raise SystemExit[\s\S]{0,200}img\.save\(path/.test(py));
-  ok('선 굵기도 원본과 같습니다 — Archivo 800 옆에서 버티는 4.6',
-    /stroke-width="4\.6"/.test(marks[0] || '') && /stroke-width="4\.6"/.test(art));
+  // 2026-10-27: 근로자의 요청으로 O도 새 아이콘의 시계가 됐습니다 — 폴더만 뺀
+  // 그대로입니다. 호·눈금·바늘·축은 아이콘과 글자 그대로 같은 경로이고, 링은
+  // 아이콘의 링과 같은 반지름(28.5)과 굵기(4.3)이되 닫혀 있습니다: 폴더 자리가
+  // 열린 링은 글자 사이에서 C나 G로 읽힙니다. 초침만 1.85 → 2.4로 굵습니다 —
+  // 16px에서 1.85는 0.5px 선이라 사라집니다.
+  const oDs = [...(marks[0] || '').matchAll(/<path d="([^"]+)"/g)].map(m => m[1]);
+  ok('O의 호·눈금·바늘·축은 아이콘과 같은 경로입니다',
+    oDs.length === 6 && oDs.slice(0, 5).every(d => fillDs.slice(1).includes(d)) && oDs[5] === pyStrokes[0][0],
+    oDs.length + ' paths');
+  ok('O의 링은 아이콘의 링과 같은 원이되 닫혀 있습니다',
+    /<circle cx="43\.7" cy="48\.8" r="28\.5" fill="none" stroke="[^"]+" stroke-width="4\.3"/.test(marks[0] || '')
+    && fillDs[0].indexOf('A30.65 30.65') >= 0 && fillDs[0].indexOf('A26.35 26.35') >= 0);
+  ok('O의 초침은 글자 크기에서 보일 만큼 굵습니다',
+    /<path d="[^"]+" fill="none" stroke="[^"]+" stroke-width="2\.4"/.test(marks[0] || '') && /stroke-width="2\.4"/.test(art));
+  ok('호는 상자 밖 L 위로 나갑니다 — 잘리지 않게',
+    /overflow:visible/.test(marks[0] || '') && /overflow="visible"/.test(art));
   // 세 자리의 크기·정렬이 한 벌입니다
   ok('크기와 정렬이 셋 다 같습니다',
     count(/width:1\.05em;height:1\.05em;vertical-align:-0\.13em/g)===3);

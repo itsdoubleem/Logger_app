@@ -43,8 +43,7 @@ resolution and every size is the same drawing.
 
 Keep those strings in step with the master — `test/regress.js` compares them.
 The O in the in-app wordmark is a clock without the folder
-(`docs/design/logo/clock-mark.svg`) — still the first mark's clock; the
-2026-10-27 redraw changed the launcher icon only. `pwa/icon-source.png` is the old
+(`docs/design/logo/clock-mark.svg`), with the ring closed. `pwa/icon-source.png` is the old
 근무기록 · LOGGER wordmark bitmap; nothing reads it any more.
 
 > The PWA head tags live in `PWA_HEAD` inside `build.py`, not in the app
