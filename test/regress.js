@@ -8738,12 +8738,16 @@ console.log('\n== 백업을 언제 했는지 아무도 몰랐습니다 ==');
     f2.evidenceHtml = () => '<p>x</p>'; f2.evidenceName = () => 'x.html';
     runs.push(f2.doEvidence().then(() =>
       ok('근무내역서도 같습니다', f2.state.docErr === true && f2.state.docMsg === f2.T('could_not_create_the_file_2'), f2.state.docMsg)));
-    later.push(Promise.all(runs).then(() => {
-      fake('AbortError');
-      const f3 = mk(V2,'2026-09-25T10:00:00');
-      return f3.saveFile('{}','x.json','application/json','끝').then(r =>
-        ok('저장 창을 닫은 것은 여전히 아무 말도 하지 않습니다', !r && f3.state.backupErr !== true && !f3.state.backupMsg, String(f3.state.backupMsg)));
-    }).then(() => { if (nav) Object.defineProperty(globalThis, 'navigator', nav); else delete globalThis.navigator; }));
+    // navigator.share는 두 함수 안에서 첫 await 전에 불리므로, 가짜는 여기서 곧바로
+    // 되돌립니다 — 뒤의 동기 시험들이 가짜 navigator를 보지 않게(리뷰 N2)
+    const restore = () => { if (nav) Object.defineProperty(globalThis, 'navigator', nav); else delete globalThis.navigator; };
+    restore();
+    fake('AbortError');
+    const f3 = mk(V2,'2026-09-25T10:00:00');
+    runs.push(f3.saveFile('{}','x.json','application/json','끝').then(r =>
+      ok('저장 창을 닫은 것은 여전히 아무 말도 하지 않습니다', !r && f3.state.backupErr !== true && !f3.state.backupMsg, String(f3.state.backupMsg))));
+    restore();
+    later.push(Promise.all(runs));
   }
   {
     const fs = require('fs');
