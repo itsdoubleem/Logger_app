@@ -1,6 +1,6 @@
 # 근무기록 LOGGER — change log beyond V2.md
 
-Ninety-four entries, newest first — eighty-seven carry an ordinal (first … eighty-seventh),
+Ninety-five entries, newest first — eighty-eight carry an ordinal (first … eighty-eighth),
 the seven oldest predate the numbering. Each one is a bug found by **actually using the app on
 shift**, what changed, and — the part worth reading — *why it was that and not the
 obvious fix*. Most entries end with a **다음 사람에게** paragraph: the rule the bug
@@ -18,7 +18,8 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 
 ## Index
 
-- 2026-10-26 (latest, eighty-seventh) — 출퇴근 카드의 양옆이 비어 있었습니다: 카드 너비의 단추와 가운데 시계로
+- 2026-10-26 (latest, eighty-eighth) — 리뷰에 남아 있던 여섯: 영어 안내, 화면 밖 카드, 아이콘 테, 시계 크기, 320px 머리말, 잠든 지문 다리
+- 2026-10-26 (eighty-seventh) — 출퇴근 카드의 양옆이 비어 있었습니다: 카드 너비의 단추와 가운데 시계로
 - 2026-10-26 (eighty-sixth) — 지문은 필요 없었습니다: 한 번 누르면 출근, 한 번 누르면 퇴근
 - 2026-10-21 (eighty-fifth) — 같은 아침이 두 번 왔습니다: 근무기록은 이제 방금 끝낸 근무가 있는 기간으로 열립니다
 - 2026-10-12 (eighty-fourth) — 보수월액 20을 쳐도, 앱이 보여 준 국민연금을 옮겨 적어도
@@ -113,7 +114,44 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 - 2026-08-13 — the service worker was hiding every update
 - 2026-08-13 (earlier) — 조퇴 사유 became a popup with a dropdown
 
-### 2026-10-26 (latest, eighty-seventh) — 출퇴근 카드의 양옆이 비어 있었습니다: 카드 너비의 단추와 가운데 시계로
+### 2026-10-26 (latest, eighty-eighth) — 리뷰에 남아 있던 여섯: 영어 안내, 화면 밖 카드, 아이콘 테, 시계 크기, 320px 머리말, 잠든 지문 다리
+
+여든여섯째·여든일곱째를 거치며 리뷰가 남긴 Should-fix와, '나중에'로 미뤄 둔 것들을 한
+갈래(`fix/review-2026-10-26`)에서 정리했습니다. 항목마다 커밋 하나, 시험 하나 이상.
+
+- **근무 중 안내가 고른 언어로 말합니다.** 출근하면 날짜 카드에 뜨는
+  `Logged in at 02:41. Next unpaid break 11:30–12:30.`이 코드에 영어로 박혀 있어, 한국어로
+  둔 폰에서도 영어였습니다. 네 문장(`live_logged_in`, `live_next_break`, `live_breaks_done`,
+  `live_on_break`)을 여덟 언어로 넣었습니다.
+- **'너무 이른 퇴근' 카드도 패드 바로 아래입니다.** 근무 카드들 아래에 있어 폰에서는 화면
+  밖이었고, STOP을 누른 사람에게는 아무 일도 일어나지 않은 것으로 보였습니다 — 여든여섯째의
+  이상한 근무 카드가 이미 겪은 그 일입니다.
+- **앱 아이콘 획의 어두운 테가 사라졌습니다.** 적응형 아이콘의 투명 바탕이 '투명한 검정'
+  `(0,0,0,0)`이라, 마스크로 붙일 때 가장자리 픽셀의 색이 검정과 섞였습니다(초록 126이어야 할
+  가장자리가 평균 62). 바탕을 '투명한 초록'으로 두니 알파만 변하고 색은 그대로입니다. 안전 원
+  검사도 이제 해상도마다, 쓰기 **전에** 합니다 — 넘으면 파일을 남기지 않고 멈춥니다.
+- **시계 크기를 글자 수가 아니라 날 수로 고릅니다.** 글자 수로 고르면 10–99일째 근무는
+  0–9시에 큰 시계, 10시부터 작은 시계라 하루에 한 번 크기가 바뀌었습니다.
+- **320px 폰에서 머리말 이름이 쪼개지지 않습니다.** 이름과 두 칩이 한 줄에 들어가지 않아
+  `근무기록 L◷ / GGER`로 쪼개지고 급여기간 칩이 잘렸습니다. 이름은 줄어들지 않고, 칩 둘은
+  자리가 모자랄 때만 위아래로 섭니다 — 360·384px에서는 예전처럼 한 줄입니다. 머리말의 스타일
+  문자열로 설정 흐름의 끝을 찾던 시험 넷은 머리말 주석(`<!-- 머리말.`)으로 찾게 바꿨습니다 —
+  그 줄에 `gap` 하나를 더하자 끝을 못 찾고 다른 화면까지 재었습니다.
+- **잠들어 있던 지문 다리를 걷어 냈습니다.** 안드로이드는 `BioShim`, `BiometricPrompt`
+  다리, `USE_BIOMETRIC` 권한, `androidx.biometric`(릴리스 APK 4.03 → 3.19MB). 아이폰은
+  Face ID 심, `LocalAuthentication`, `NSFaceIDUsageDescription`. 백업 내보내기 다리는 그대로
+  두고 이름만 `NativeBridge`로 바꿨습니다. 앱이 뜰 때 남은 `worklog.bio.v1`도 지웁니다.
+  두 앱 모두 빌드를 확인했지만 **자바와 스위프트에는 시험이 없으므로** 실제 폰에서 백업
+  내보내기를 한 번 손으로 확인해야 합니다.
+
+17 new assertions (3621 total), in the blocks they belong to and under 한국어로 둔 폰에서도
+근무 중 안내는 영어였습니다 and 320px 폰에서 이름이 두 줄로 쪼개지고 급여기간 칩이 잘렸습니다.
+
+**다음 사람에게.** 시험이 화면의 한 자리를 '스타일 문자열'로 찾으면, 그 줄에 무엇을 더하는
+순간 시험은 조용히 다른 곳을 잽니다. 끝 표지가 필요하면 바뀌지 않을 표지 — 주석 — 를 두고,
+그 표지가 정확히 한 번 있다는 것도 함께 시험하십시오.
+
+### 2026-10-26 (eighty-seventh) — 출퇴근 카드의 양옆이 비어 있었습니다: 카드 너비의 단추와 가운데 시계로
 
 **여든여섯째 항목을 폰에 깐 지 한 시간 만에 온 말입니다: 출퇴근 카드가 너무 크고,
 양옆의 빈 자리가 거슬린다.** 패드를 3분의 2로 줄였는데도 그랬습니다. 줄인 것은 높이였고,
@@ -273,13 +311,13 @@ assertion 아홉은 단추의 숫자로 바꿨습니다.
     바꿨습니다.
 - 손잡이는 여전히 가운데 상자 하나입니다(2026-09-14). 길게 누르기가 없으니
   `touch-action:none`은 `manipulation`이 되었습니다 — 상자 위에서도 화면이 스크롤됩니다.
-- **안드로이드 `BioShim`과 아이폰 `LAContext` 다리는 그대로 두었습니다.** 앱이 더
+- **안드로이드 `BioShim`과 아이폰 `LAContext` 다리는 그대로 두었습니다**(같은 날 여든여덟째에서 걷어 냈습니다). 앱이 더
   이상 `navigator.credentials`를 부르지 않으니 둘 다 잠들어 있을 뿐입니다. 걷어 내는
   것은 따로 할 일입니다(androidx.biometric도 함께 빠집니다). 아이폰의
   `127.0.0.1:8787`은 걷어 내면 안 됩니다 — 이제는 지문이 아니라 localStorage의
   origin 때문에 있습니다. 포트가 바뀌면 기록이 사라집니다.
 - 이미 저장된 `worklog.bio.v1`(지문 등록 id)은 지우지 않았습니다. 개인 정보가 아니고,
-  읽는 코드도 없습니다.
+  읽는 코드도 없습니다(여든여덟째부터는 앱이 뜰 때 지웁니다).
 
 68 new assertions (3577 total) under 지문은 필요 없었습니다, 주머니 속에서 눌린 출근이 다음 날 아침 근무 한 칸이 됐습니다, and 이름 한가운데의 O는
 앱의 시계입니다: 한 번 누르면 출근·퇴근이 되는지, 이상한 근무는 저장 전에 묻고 평범한 날은 묻지 않는지, 곧바로 다시 닿은 손가락은 같은
