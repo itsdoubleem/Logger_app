@@ -10683,6 +10683,31 @@ console.log('\n== 제대로 퇴근했는데 \'너무 이른 퇴근\' 카드가 �
   ok('그리고 기록을 바꾸지 않습니다', c.state.extra.length === n && !c.state.session);
 }
 
+console.log('\n== 320px 폰에서 요일 칩과 인도네시아어 설정 탭이 잘렸습니다 (리뷰 v1.4.0 S7) ==');
+// 날짜 카드의 '화요일 · 06:56' 칩이 큰 날짜 옆 한 줄에 들어가지 않아 카드 끝에서 잘렸고
+// ('TUESDAY·06:5'), 인도네시아어의 PENGATURAN은 탭 막대 밖으로 나갔습니다(오른쪽 326 > 320).
+// 칩은 자리가 모자랄 때만 날짜 밑으로 내려갑니다 — 머리말 칩과 같은 방법(여든여덟째).
+// 탭은 안드로이드 인도네시아어가 '설정'에 쓰는 SETELAN으로 줄였고, 그 탭을 가리키는 문장
+// 셋도 같은 낱말로 바꿨습니다. 헤드리스로 여덟 언어를 320px에서 재어 잘림 0을 확인했고,
+// 같은 측정이 예전 PENGATURAN은 잡았습니다.
+{
+  const fs = require('fs');
+  const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const row = src.slice(0, src.indexOf('{{ todayDate }}'));
+  ok('날짜 줄은 자리가 모자라면 칩을 밑으로 내립니다',
+    /<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 10px">\s*<div[^>]*>$/.test(row));
+  const id = JSON.parse(fs.readFileSync(__dirname + '/../lang/id.json', 'utf8'));
+  ok('인도네시아어 설정 탭은 SETELAN입니다', id.tab_set === 'SETELAN', id.tab_set);
+  ok('그 탭을 가리키는 문장도 같은 낱말입니다',
+    ['rsn_46_est_low', 'you_can_change_any_of_this_later_in_se', 'setup_has_more_none_of_it_is_needed']
+      .every(k => /Setelan/.test(id[k]) && !/Pengaturan\b/i.test(id[k])));
+  // 라틴 글자 언어의 탭 이름은 9자 안 — 320px에서 잰 가장 긴 통과값이 CHẤM CÔNG(9)이고,
+  // 잘린 PENGATURAN은 10자였습니다
+  const latin = ['vi', 'id'].map(l => JSON.parse(fs.readFileSync(__dirname + '/../lang/' + l + '.json', 'utf8')));
+  const longest = Math.max(...latin.flatMap(d => ['tab_punch','tab_logs','tab_pay','tab_rights','tab_set'].map(k => [...d[k]].length)));
+  ok('라틴 글자 탭 이름은 9자를 넘지 않습니다', longest <= 9, String(longest));
+}
+
 console.log('\n== 빌드가 실패해도 검사는 초록이었습니다 (리뷰 2026-10-27 S2) ==');
 // test/run.sh는 `python3 build.py | head -1`로 빌드했습니다. 파이프의 종료 상태는 마지막
 // 명령(head)의 것이라, 빌드가 죽어도 set -e가 멈추지 않았고, boot.js는 지난번의
