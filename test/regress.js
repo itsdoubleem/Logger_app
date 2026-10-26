@@ -10682,6 +10682,31 @@ console.log('\n== 제대로 퇴근했는데 \'너무 이른 퇴근\' 카드가 �
   ok('근무가 없을 때 일감 부족 · 그대로 퇴근은 던지지 않습니다', threw === null, String(threw));
   ok('그리고 기록을 바꾸지 않습니다', c.state.extra.length === n && !c.state.session);
 }
+// 리뷰 S9·N6: 24시간 카드도 같은 병이었습니다. 24시간 넘게 열린 근무에서 STOP → 24시간
+// 카드. 여기서 '출근 취소'를 누르면 근무는 사라지는데 카드는 남았고, 새로 START해도 카드가
+// '24시간 넘게 열린 근무'를 경고했습니다. 그리고 무시해 둔 '너무 이른 퇴근' 카드는 하루 뒤의
+// STOP에서 24시간 카드와 함께 떴습니다 — 두 카드는 함께 뜨지 않아야 합니다.
+{
+  const tap = c => c.renderVals().padTap();
+  const c = mk(V2, '2026-10-27T08:00:00'); c.lastTap = null;
+  c.state.session = { inIso: new Date('2026-10-26T07:00:00').toISOString() };
+  tap(c);
+  ok('25시간 열린 근무의 STOP은 24시간 카드를 띄웁니다', c.state.staleOut === true && !!c.state.session);
+  c.cancelClockIn();
+  ok('출근 취소는 24시간 카드도 닫습니다', c.state.staleOut === false && !c.state.session);
+  const d = mk(V2, '2026-10-27T08:00:00'); d.lastTap = null;
+  d.state.session = { inIso: new Date('2026-10-26T07:00:00').toISOString() };
+  d.state.staleOut = true; d.state.session = null;
+  tap(d);
+  ok('새 START는 24시간 카드를 데려오지 않습니다', !!d.state.session && d.state.staleOut === false);
+  const e = mk(V2, '2026-10-26T08:50:00'); e.lastTap = null;
+  tap(e);
+  e.base = new Date('2026-10-26T08:52:00'); e.t0 = Date.now(); e.lastTap = null; tap(e);
+  ok('너무 이른 퇴근 카드가 떠 있습니다', e.state.shortOut === true);
+  e.base = new Date('2026-10-27T09:30:00'); e.t0 = Date.now(); e.lastTap = null; tap(e);
+  ok('하루 뒤의 STOP — 24시간 카드만 남습니다', e.state.staleOut === true && e.state.shortOut === false,
+    'stale=' + e.state.staleOut + ' short=' + e.state.shortOut);
+}
 
 console.log('\n== 320px 폰에서 요일 칩과 인도네시아어 설정 탭이 잘렸습니다 (리뷰 v1.4.0 S7) ==');
 // 날짜 카드의 '화요일 · 06:56' 칩이 큰 날짜 옆 한 줄에 들어가지 않아 카드 끝에서 잘렸고

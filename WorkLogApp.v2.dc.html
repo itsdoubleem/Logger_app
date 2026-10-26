@@ -5701,7 +5701,7 @@ class Component extends DCLogic {
     const outH = Math.max(inH, (now - mid) / 3600000);
     return { inD, inH, outH, el, min: Math.round(el * 60) };
   }
-  cancelClockIn() { this.setState({ session: null, shortOut: false, oddOut: false, oddAt: null }); }
+  cancelClockIn() { this.setState({ session: null, shortOut: false, staleOut: false, oddOut: false, oddAt: null }); }
 
   // 퇴근하려는 근무가 실수로 눌린 출근일 수 있는지 — 아니면 null.
   // 기준은 둘입니다: 근무가 ODD_LONG시간을 넘거나, 출근 시각이 그 근무조의 시작
@@ -6071,7 +6071,7 @@ class Component extends DCLogic {
     const n = odd ? odd.at : this.now();
     if (!this.state.session) {
       // 새 근무에는 지난 근무의 카드가 따라오지 않습니다(리뷰 3회차 S1)
-      this.setState({ session: { inIso: n.toISOString() }, oddOut: false, oddAt: null, shortOut: false });
+      this.setState({ session: { inIso: n.toISOString() }, oddOut: false, oddAt: null, shortOut: false, staleOut: false });
     } else {
       const L = this.sessionHours(n);
       const inD = L.inD, inH = L.inH, outH = L.outH;
@@ -6082,7 +6082,7 @@ class Component extends DCLogic {
         return;
       }
       // a session left open past a day can't be trusted — send it to 근무 for real times
-      if (L.el > 24) { this.setState({ staleOut: true, oddOut: false, oddAt: null }); return; }
+      if (L.el > 24) { this.setState({ staleOut: true, shortOut: false, oddOut: false, oddAt: null }); return; }
       // ── 이상한 근무는 퇴근할 때 한 번 묻습니다 (2026-10-26, 여든여섯째) ──
       // 길게 누르기가 없어진 뒤로 주머니 속에서 눌린 START는 그 자리에서 아무도
       // 묻지 않습니다. 근로자가 못 보고 다음 날 아침 평소처럼 누르면, 그 누름이
