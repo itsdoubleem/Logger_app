@@ -10643,6 +10643,11 @@ console.log('\n== 빌드가 실패해도 검사는 초록이었습니다 (리뷰
   const code = run.split('\n').filter(l => !/^\s*#/.test(l)).join('\n');
   ok('빌드의 종료 상태가 파이프에 묻히지 않습니다', !/build\.py[^\n]*\|/.test(code) && /^out=\$\(python3 build\.py\)$/m.test(code));
   ok('그리고 run.sh는 실패에서 멈춥니다', /^set -e$/m.test(run));
+  // 리뷰 2026-10-27 S5: 아이콘은 만들어진 것인데 저장소에 들어 있어서, FILLS나 크기를
+  // 고치고 make_icons.py를 다시 돌리지 않으면 예전 아이콘이 그대로 나갔습니다.
+  // test/icons.py가 스크립트를 임시 사본에 돌려 픽셀로 견줍니다.
+  ok('검사가 아이콘을 다시 그려 견줍니다', /^python3 test\/icons\.py$/m.test(code)
+    && require('fs').existsSync(__dirname + '/icons.py'));
 }
 
 console.log('\n== 네팔어와 크메르어만 제 글자의 숫자를 썼습니다 (리뷰 2026-10-27 S3) ==');

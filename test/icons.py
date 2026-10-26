@@ -1,0 +1,64 @@
+#!/usr/bin/env python3
+"""Every committed icon is what pwa/make_icons.py draws today.
+
+The icons are generated, but they are committed — so an edit to FILLS,
+STROKES or a span that is never followed by a run of the script ships the old
+icons while every other check stays green (review 2026-10-27 S5). This runs
+the script into a scratch copy of the tree and compares each output with the
+committed file, pixel by pixel rather than byte by byte, so a different
+Pillow's PNG encoder cannot fail it.
+"""
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+
+from PIL import Image, ImageChops
+
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+RES = os.path.join("android", "app", "src", "main", "res")
+DIRS = [
+    "pwa",
+    os.path.join("ios", "WorkLog", "Assets.xcassets", "AppIcon.appiconset"),
+    os.path.join("docs", "design", "logo"),
+    os.path.join(RES, "values"),
+] + [os.path.join(RES, "mipmap-" + d) for d in ("mdpi", "hdpi", "xhdpi", "xxhdpi", "xxxhdpi")]
+
+
+def main():
+    tmp = tempfile.mkdtemp(prefix="worklog-icons-")
+    try:
+        for d in DIRS:
+            os.makedirs(os.path.join(tmp, d))
+        shutil.copy(os.path.join(ROOT, "pwa", "make_icons.py"), os.path.join(tmp, "pwa"))
+        subprocess.run([sys.executable, os.path.join(tmp, "pwa", "make_icons.py")],
+                       check=True, stdout=subprocess.DEVNULL)
+        bad, n = [], 0
+        for d in DIRS:
+            for f in sorted(os.listdir(os.path.join(tmp, d))):
+                if f == "make_icons.py":
+                    continue
+                n += 1
+                made, kept = os.path.join(tmp, d, f), os.path.join(ROOT, d, f)
+                rel = os.path.join(d, f)
+                if not os.path.exists(kept):
+                    bad.append(rel + ": generated but not committed")
+                elif f.endswith(".png"):
+                    a, b = Image.open(made).convert("RGBA"), Image.open(kept).convert("RGBA")
+                    if a.size != b.size or ImageChops.difference(a, b).getbbox():
+                        bad.append(rel + ": differs from what make_icons.py draws")
+                elif open(made, "rb").read() != open(kept, "rb").read():
+                    bad.append(rel + ": differs from what make_icons.py writes")
+        for b in bad:
+            print("  ! " + b)
+        print("  %d generated files, %d differ%s" % (n, len(bad), "" if bad else "  OK"))
+        if bad:
+            print("  run: python3 pwa/make_icons.py")
+        return 1 if bad else 0
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+if __name__ == "__main__":
+    sys.exit(main())
