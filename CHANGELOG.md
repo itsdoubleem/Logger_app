@@ -1,6 +1,6 @@
 # 근무기록 LOGGER — change log beyond V2.md
 
-Ninety-seven entries, newest first — ninety carry an ordinal (first … ninetieth),
+Ninety-eight entries, newest first — ninety-one carry an ordinal (first … ninety-first),
 the seven oldest predate the numbering. Each one is a bug found by **actually using the app on
 shift**, what changed, and — the part worth reading — *why it was that and not the
 obvious fix*. Most entries end with a **다음 사람에게** paragraph: the rule the bug
@@ -18,7 +18,8 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 
 ## Index
 
-- 2026-10-27 (latest, ninetieth) — 30분을 잃는 '지우고 지금 출근', 말없이 실패하던 백업, 초록인 채로 실패하던 빌드
+- 2026-10-27 (latest, ninety-first) — 제대로 퇴근했는데 '너무 이른 퇴근' 카드가 남았습니다, 그리고 320px의 잘린 칩과 탭
+- 2026-10-27 (ninetieth) — 30분을 잃는 '지우고 지금 출근', 말없이 실패하던 백업, 초록인 채로 실패하던 빌드
 - 2026-10-27 (eighty-ninth) — 아이콘은 근로자가 고른 그림으로: 열린 링, 바깥 호, 네모 눈금, 바늘 셋, 두 겹 폴더
 - 2026-10-26 (eighty-eighth) — 리뷰에 남아 있던 여섯: 영어 안내, 화면 밖 카드, 아이콘 테, 시계 크기, 320px 머리말, 잠든 지문 다리
 - 2026-10-26 (eighty-seventh) — 출퇴근 카드의 양옆이 비어 있었습니다: 카드 너비의 단추와 가운데 시계로
@@ -116,7 +117,40 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 - 2026-08-13 — the service worker was hiding every update
 - 2026-08-13 (earlier) — 조퇴 사유 became a popup with a dropdown
 
-### 2026-10-27 (latest, ninetieth) — 30분을 잃는 '지우고 지금 출근', 말없이 실패하던 백업, 초록인 채로 실패하던 빌드
+### 2026-10-27 (latest, ninety-first) — 제대로 퇴근했는데 '너무 이른 퇴근' 카드가 남았습니다, 그리고 320px의 잘린 칩과 탭
+
+v1.4.0을 내기 전 리뷰가 남긴 Should-fix 둘입니다. 둘 다 v1.3.0에도 있던 것이지만, 첫째는
+한 번 누르는 출퇴근에서 훨씬 자주 생깁니다.
+
+- **'너무 이른 퇴근' 카드가 퇴근 뒤에도 남았습니다.** 08:50 START, 08:52에 한 번 더 —
+  여기서 카드가 뜹니다 — 그리고 카드를 그냥 둔 채 18:05에 STOP. 근무는 제대로 기록되는데
+  카드는 패드 밑에 빈 문장으로 남았고, 패드는 이미 START였습니다. 카드의 두 단추는 근무가 없으니
+  오류를 던지고 아무것도 하지 않았습니다(일감 부족, 그대로 퇴근). 막 퇴근한 사람에게는 STOP이
+  실패한 것처럼 보여 START를 다시 누르게 됩니다 — 그러면 퇴근한 사람이 출근 중이 됩니다.
+  근무를 기록하는 자리(`commitShift`)가 이제 그 근무에 대해 묻던 카드를 모두 닫고
+  (`shortOut`, `oddOut`, `oddAt`), 두 단추는 열린 근무가 없으면 카드만 닫습니다.
+  브랜치 리뷰가 같은 병을 하나 더 찾았습니다: **24시간 카드**는 '출근 취소'를 눌러도, 새로
+  START해도 남아서 막 시작한 근무에 '24시간 넘게 열린 근무'를 경고했습니다. 두 자리에서도
+  닫고, 24시간 카드가 뜰 때 무시해 둔 '너무 이른 퇴근' 카드는 내립니다 — 두 카드는 함께 뜨지
+  않습니다.
+- **320px 폰에서 요일 칩이 잘렸습니다.** 날짜 카드의 'TUESDAY · 06:56'이 큰 날짜 옆 한 줄에
+  들어가지 않아 카드 끝에서 'TUESDAY·06:5'로 잘렸습니다 — 브랜치 리뷰가 재 보니 320px에서는
+  여덟 언어 모두, 360px에서도 영어의 긴 요일(WEDNESDAY)은 잘렸습니다. 이제 자리가 모자랄 때만
+  날짜 밑으로 내려갑니다 — 머리말 칩과 같은 방법입니다. 384px에서는 여덟 언어 모두 예전과 같습니다.
+- **인도네시아어 설정 탭이 탭 막대 밖으로 나갔습니다**(PENGATURAN, 오른쪽 326px > 320).
+  안드로이드 인도네시아어가 '설정'에 쓰는 낱말 **SETELAN**으로 줄였고, 그 탭을 가리키는 문장
+  넷('nanti di Setelan', 'masukkan di Setelan' 등)도 같은 낱말로 바꿨습니다. 화면의 탭 이름과
+  문장이 가리키는 이름이 다르면 근로자는 그 탭을 찾지 못합니다. 처음에는 셋만 고쳤고, 넷째는
+  브랜치 리뷰가 찾았습니다 — 그래서 시험은 이제 이름 댄 줄이 아니라 모든 문장을 훑습니다.
+
+여덟 언어를 320px에서 헤드리스로 재어 잘림 0을 확인했고, 같은 측정이 예전 PENGATURAN을
+잡는 것도 확인했습니다. 15 new assertions (3661 total), each checked failing on the code before.
+
+**다음 사람에게.** 질문 카드를 띄우는 길만 보지 말고, 그 질문이 **끝나는** 길을 모두 세어
+보십시오. 이 카드는 단추 셋으로만 닫혔고, 근로자가 카드를 무시하고 그냥 퇴근하는 넷째 길은
+아무도 닫지 않았습니다. 카드가 묻는 대상(여기서는 열린 근무)이 사라지는 곳에서 카드도 닫으십시오.
+
+### 2026-10-27 (ninetieth) — 30분을 잃는 '지우고 지금 출근', 말없이 실패하던 백업, 초록인 채로 실패하던 빌드
 
 v1.3.0 이후 전체를 리뷰에 다시 맡겼더니 Must-fix는 없고 Should-fix가 다섯이었습니다. 한
 갈래(`fix/review-2026-10-27`)에서 항목마다 커밋 하나, 시험 하나 이상.

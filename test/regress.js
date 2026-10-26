@@ -10660,6 +10660,85 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('테두리 없는 것은 이름 묻는 상자 하나', all===3 && borderless===1, all+'/'+borderless);
 }
 
+console.log('\n== 제대로 퇴근했는데 \'너무 이른 퇴근\' 카드가 남았습니다 (리뷰 v1.4.0 S6) ==');
+// 08:50 START, 08:52에 한 번 더(너무 이른 퇴근 카드), 카드를 그냥 두고 18:05 STOP.
+// 근무는 제대로 기록되는데 카드는 패드 밑에 빈 문장으로 남았고, 두 단추는 근무가 없으니
+// 오류를 던지고 아무것도 하지 않았습니다(일감 부족: null.inIso, 그대로 퇴근: null.inD).
+// 막 퇴근한 사람에게는 STOP이 실패한 것처럼 보여, START를 다시 누르게 됩니다.
+// v1.3.0에도 있던 것이지만, 한 번 누르는 출퇴근에서는 30분 안의 두 번째 누름이 훨씬 흔합니다.
+{
+  const tap = c => c.renderVals().padTap();
+  const c = mk(V2, '2026-10-27T08:50:00'); c.lastTap = null;
+  tap(c);
+  c.base = new Date('2026-10-27T08:52:00'); c.t0 = Date.now(); c.lastTap = null; tap(c);
+  ok('08:52의 누름은 너무 이른 퇴근 카드를 띄웁니다', c.state.shortOut === true && !!c.state.session);
+  c.base = new Date('2026-10-27T18:05:00'); c.t0 = Date.now(); c.lastTap = null; tap(c);
+  ok('18:05의 STOP은 근무를 기록합니다', !c.state.session && c.state.extra.length === 1, c.state.extra.length);
+  ok('그리고 카드는 닫힙니다', c.state.shortOut === false && c.renderVals().shortOut === false);
+  // 카드가 어떻게든 남아 있더라도, 근무가 없으면 두 단추는 조용히 아무것도 하지 않습니다
+  const n = c.state.extra.length;
+  let threw = null;
+  try { c.sentHome(); c.forceClockOut(); } catch (e) { threw = e.message; }
+  ok('근무가 없을 때 일감 부족 · 그대로 퇴근은 던지지 않습니다', threw === null, String(threw));
+  ok('그리고 기록을 바꾸지 않습니다', c.state.extra.length === n && !c.state.session);
+}
+// 리뷰 S9·N6: 24시간 카드도 같은 병이었습니다. 24시간 넘게 열린 근무에서 STOP → 24시간
+// 카드. 여기서 '출근 취소'를 누르면 근무는 사라지는데 카드는 남았고, 새로 START해도 카드가
+// '24시간 넘게 열린 근무'를 경고했습니다. 그리고 무시해 둔 '너무 이른 퇴근' 카드는 하루 뒤의
+// STOP에서 24시간 카드와 함께 떴습니다 — 두 카드는 함께 뜨지 않아야 합니다.
+{
+  const tap = c => c.renderVals().padTap();
+  const c = mk(V2, '2026-10-27T08:00:00'); c.lastTap = null;
+  c.state.session = { inIso: new Date('2026-10-26T07:00:00').toISOString() };
+  tap(c);
+  ok('25시간 열린 근무의 STOP은 24시간 카드를 띄웁니다', c.state.staleOut === true && !!c.state.session);
+  c.cancelClockIn();
+  ok('출근 취소는 24시간 카드도 닫습니다', c.state.staleOut === false && !c.state.session);
+  const d = mk(V2, '2026-10-27T08:00:00'); d.lastTap = null;
+  d.state.session = { inIso: new Date('2026-10-26T07:00:00').toISOString() };
+  d.state.staleOut = true; d.state.session = null;
+  tap(d);
+  ok('새 START는 24시간 카드를 데려오지 않습니다', !!d.state.session && d.state.staleOut === false);
+  const e = mk(V2, '2026-10-26T08:50:00'); e.lastTap = null;
+  tap(e);
+  e.base = new Date('2026-10-26T08:52:00'); e.t0 = Date.now(); e.lastTap = null; tap(e);
+  ok('너무 이른 퇴근 카드가 떠 있습니다', e.state.shortOut === true);
+  e.base = new Date('2026-10-27T09:30:00'); e.t0 = Date.now(); e.lastTap = null; tap(e);
+  ok('하루 뒤의 STOP — 24시간 카드만 남습니다', e.state.staleOut === true && e.state.shortOut === false,
+    'stale=' + e.state.staleOut + ' short=' + e.state.shortOut);
+}
+
+console.log('\n== 320px 폰에서 요일 칩과 인도네시아어 설정 탭이 잘렸습니다 (리뷰 v1.4.0 S7) ==');
+// 날짜 카드의 '화요일 · 06:56' 칩이 큰 날짜 옆 한 줄에 들어가지 않아 카드 끝에서 잘렸고
+// ('TUESDAY·06:5'), 인도네시아어의 PENGATURAN은 탭 막대 밖으로 나갔습니다(오른쪽 326 > 320).
+// 칩은 자리가 모자랄 때만 날짜 밑으로 내려갑니다 — 머리말 칩과 같은 방법(여든여덟째).
+// 탭은 안드로이드 인도네시아어가 '설정'에 쓰는 SETELAN으로 줄였고, 그 탭을 가리키는 문장
+// 셋도 같은 낱말로 바꿨습니다. 헤드리스로 여덟 언어를 320px에서 재어 잘림 0을 확인했고,
+// 같은 측정이 예전 PENGATURAN은 잡았습니다.
+{
+  const fs = require('fs');
+  const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const row = src.slice(0, src.indexOf('{{ todayDate }}'));
+  ok('날짜 줄은 자리가 모자라면 칩을 밑으로 내립니다',
+    /<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 10px">\s*<div[^>]*>$/.test(row));
+  const id = JSON.parse(fs.readFileSync(__dirname + '/../lang/id.json', 'utf8'));
+  ok('인도네시아어 설정 탭은 SETELAN입니다', id.tab_set === 'SETELAN', id.tab_set);
+  ok('그 탭을 가리키는 문장도 같은 낱말입니다',
+    ['rsn_46_est_low', 'you_can_change_any_of_this_later_in_se', 'setup_has_more_none_of_it_is_needed',
+     'calculated_on_your_basic_salary_plus_f']
+      .every(k => /Setelan/.test(id[k]) && !/Pengaturan\b/i.test(id[k])));
+  // 리뷰 S8: 이름을 댄 세 줄만 보다가 넷째('masukkan di Pengaturan')를 놓쳤습니다. 이제
+  // 'di Pengaturan'(설정에서)처럼 자리를 가리키는 쓰임은 어느 문장에도 없어야 합니다.
+  // 'PENGATURAN AWAL'·'PENGATURAN GAJI SAYA'는 제목이라 그대로입니다.
+  const stale = Object.entries(id).filter(([, v]) => /\b(di|ke) pengaturan\b|설정 Pengaturan/i.test(v)).map(([k]) => k);
+  ok('어느 문장도 탭을 옛 이름으로 가리키지 않습니다', stale.length === 0, stale.join(' '));
+  // 라틴 글자 언어의 탭 이름은 9자 안 — 320px에서 잰 가장 긴 통과값이 CHẤM CÔNG(9)이고,
+  // 잘린 PENGATURAN은 10자였습니다
+  const latin = ['vi', 'id'].map(l => JSON.parse(fs.readFileSync(__dirname + '/../lang/' + l + '.json', 'utf8')));
+  const longest = Math.max(...latin.flatMap(d => ['tab_punch','tab_logs','tab_pay','tab_rights','tab_set'].map(k => [...d[k]].length)));
+  ok('라틴 글자 탭 이름은 9자를 넘지 않습니다', longest <= 9, String(longest));
+}
+
 console.log('\n== 빌드가 실패해도 검사는 초록이었습니다 (리뷰 2026-10-27 S2) ==');
 // test/run.sh는 `python3 build.py | head -1`로 빌드했습니다. 파이프의 종료 상태는 마지막
 // 명령(head)의 것이라, 빌드가 죽어도 set -e가 멈추지 않았고, boot.js는 지난번의
