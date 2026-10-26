@@ -10606,6 +10606,26 @@ console.log('\n== 빌드가 실패해도 검사는 초록이었습니다 (리뷰
   ok('그리고 run.sh는 실패에서 멈춥니다', /^set -e$/m.test(run));
 }
 
+console.log('\n== 네팔어와 크메르어만 제 글자의 숫자를 썼습니다 (리뷰 2026-10-27 S3) ==');
+// 규칙은 'ASCII 숫자만'입니다 — 근로자는 화면을 한국어 명세서 옆에 들고 숫자를 맞춰
+// 봅니다. 그런데 ne 23줄, km 20줄이 'दफा ४६', '៧០%'처럼 제 글자의 숫자를 썼고,
+// check_lang.py는 그것을 보지 않았습니다. 동그라미 숫자(①②)는 법조문의 항 표시라
+// 숫자 종류(Nd)가 아니므로 남습니다.
+{
+  const fs = require('fs');
+  const bad = [];
+  for (const f of fs.readdirSync(__dirname + '/../lang').filter(f => f.endsWith('.json'))) {
+    const d = JSON.parse(fs.readFileSync(__dirname + '/../lang/' + f, 'utf8'));
+    const walk = (o, k) => typeof o === 'string' ? (/[^\x00-\x7f]/.test(o) && /(?![0-9])\p{Nd}/u.test(o) && bad.push(f + ':' + k))
+      : Object.entries(o).forEach(([kk, v]) => walk(v, k ? k + '.' + kk : kk));
+    walk(d, '');
+  }
+  ok('여덟 언어 모두 숫자는 0–9입니다', bad.length === 0, bad.slice(0, 4).join(' '));
+  ok('법조문의 항 표시는 그대로입니다', /§56②/.test(fs.readFileSync(__dirname + '/../lang/ne.json', 'utf8')));
+  ok('check_lang.py가 다음 번을 잡습니다', /unicodedata\.category\(c\) == 'Nd' and not c\.isascii\(\)/.test(
+    fs.readFileSync(__dirname + '/../tools/check_lang.py', 'utf8')));
+}
+
 Promise.all(later).then(()=>{
   console.log('\n'+(fail?'!! ':'')+pass+' passed, '+fail+' failed');
   process.exit(fail?1:0);
