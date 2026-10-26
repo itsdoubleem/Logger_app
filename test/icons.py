@@ -14,7 +14,7 @@ import subprocess
 import sys
 import tempfile
 
-from PIL import Image, ImageChops
+from PIL import Image
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 RES = os.path.join("android", "app", "src", "main", "res")
@@ -26,7 +26,25 @@ DIRS = [
 ] + [os.path.join(RES, "mipmap-" + d) for d in ("mdpi", "hdpi", "xhdpi", "xxhdpi", "xxxhdpi")]
 
 
+def same(a, b):
+    """Every channel of every pixel. Not ImageChops.difference().getbbox():
+    on RGBA that looks at alpha only (Pillow's default), so a recoloured icon —
+    and anything at all on the ten opaque ones — passed (review 2026-10-27 M1)."""
+    a, b = a.convert("RGBA"), b.convert("RGBA")
+    return a.size == b.size and a.tobytes() == b.tobytes()
+
+
+def selftest():
+    """The comparison must see one opaque pixel change colour."""
+    a = Image.new("RGBA", (4, 4), (255, 255, 255, 255))
+    b = a.copy()
+    b.putpixel((1, 1), (255, 0, 255, 255))
+    if same(a, b) or not same(a, a.copy()):
+        raise SystemExit("icons.py: the pixel comparison is blind — fix same()")
+
+
 def main():
+    selftest()
     tmp = tempfile.mkdtemp(prefix="worklog-icons-")
     try:
         for d in DIRS:
@@ -45,8 +63,7 @@ def main():
                 if not os.path.exists(kept):
                     bad.append(rel + ": generated but not committed")
                 elif f.endswith(".png"):
-                    a, b = Image.open(made).convert("RGBA"), Image.open(kept).convert("RGBA")
-                    if a.size != b.size or ImageChops.difference(a, b).getbbox():
+                    if not same(Image.open(made), Image.open(kept)):
                         bad.append(rel + ": differs from what make_icons.py draws")
                 elif open(made, "rb").read() != open(kept, "rb").read():
                     bad.append(rel + ": differs from what make_icons.py writes")

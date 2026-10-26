@@ -10648,6 +10648,14 @@ console.log('\n== 빌드가 실패해도 검사는 초록이었습니다 (리뷰
   // test/icons.py가 스크립트를 임시 사본에 돌려 픽셀로 견줍니다.
   ok('검사가 아이콘을 다시 그려 견줍니다', /^python3 test\/icons\.py$/m.test(code)
     && require('fs').existsSync(__dirname + '/icons.py'));
+  // 리뷰 2026-10-27 M1: 처음 판은 ImageChops.difference().getbbox()로 견줬는데, RGBA에서
+  // 그것은 투명도만 봅니다 — 512 아이콘에 자홍 네모를 칠해도 'OK'였습니다. 이제 모든
+  // 채널의 바이트를 견주고, 돌 때마다 한 픽셀 색 바뀜을 잡는지 스스로 시험합니다.
+  {
+    const icons = require('fs').readFileSync(__dirname + '/icons.py', 'utf8');
+    ok('아이콘 검사는 투명도만이 아니라 색을 봅니다', !/^from PIL import[^\n]*ImageChops/m.test(icons) && /a\.tobytes\(\) == b\.tobytes\(\)/.test(icons)
+      && /^    selftest\(\)$/m.test(icons));
+  }
 }
 
 console.log('\n== 네팔어와 크메르어만 제 글자의 숫자를 썼습니다 (리뷰 2026-10-27 S3) ==');
