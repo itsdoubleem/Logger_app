@@ -84,10 +84,19 @@ ADAPTIVE_VIEWPORT = 72 / 108
 # *whole* icon; reused here it left the mark at 0.75 of the 72dp viewport, and
 # on the home screen it read clearly smaller than Claude, EPS or GitHub beside
 # it. The adaptive safe zone is the 66dp circle — 66/72 = 0.917 of the viewport
-# — so the mark can grow by about a fifth. main() measures the emitted
-# foreground and stops if the ink leaves that circle.
-ADAPTIVE_SPAN = 0.66
-ADAPTIVE_SAFE = 66 / 72
+# — so the mark could grow by about a fifth, to 0.66.
+#
+# 2026-10-27: at 0.66 it still read small, and the worker asked for it at its
+# largest. Their Galaxy (and One UI generally) crops the 72dp viewport to a
+# rounded square, not a circle, so the limit that matters there is that shape.
+# ADAPTIVE_SPAN 0.82 keeps the ink inside a superellipse (|x|^4 + |y|^4 = r^4,
+# a slightly rounder square than Samsung's) at r = 0.93 of the half-viewport,
+# against ADAPTIVE_SAFE 0.95. The cost is written down: a launcher that crops to
+# a circle (Pixel and some others) clips the outer arc's tip and the folder's
+# corner — circle reach is 1.10. main() prints both numbers.
+ADAPTIVE_SPAN = 0.82
+ADAPTIVE_SAFE = 0.95
+SQUIRCLE = 4
 
 # Antialiasing: everything is drawn at SS times the final size and box-averaged
 # down. ImageDraw has no antialiasing of its own, for the strokes or the disc.
@@ -303,18 +312,21 @@ def reach(path):
     return 2 * far / n
 
 
-def reach_foreground(img):
+def reach_foreground(img, k=SQUIRCLE):
     """How far the foreground's ink gets from the centre, as a fraction of the
-    72dp viewport's diameter — the number the 66dp safe circle is judged by."""
+    72dp viewport, measured in the k-norm: k=SQUIRCLE is the rounded square the
+    launcher crops to (judged against ADAPTIVE_SAFE), k=2 is a circle."""
     img = img.convert("RGBA")
     px, n = img.load(), img.width
     c = (n - 1) / 2
+    h = n * ADAPTIVE_VIEWPORT / 2
     far = 0.0
     for y in range(n):
         for x in range(n):
             if px[x, y][3] > 32:
-                far = max(far, math.hypot(x - c, y - c))
-    return 2 * far / (n * ADAPTIVE_VIEWPORT)
+                u, v = abs(x - c) / h, abs(y - c) / h
+                far = max(far, (u ** k + v ** k) ** (1 / k))
+    return far
 
 
 def main():
@@ -332,7 +344,7 @@ def main():
 
     def emit_foreground(path, size):
         # measured before it is written, at every density: a run that would leave
-        # the 66dp safe circle stops before writing that foreground (the PWA
+        # the rounded-square safe zone stops before writing that foreground (the PWA
         # icons and any lower density already written stay as they are)
         img = lay_foreground(size, fills, strokes, box, ADAPTIVE_SPAN * ADAPTIVE_VIEWPORT)
         r = reach_foreground(img)
@@ -374,7 +386,8 @@ def main():
     xxx = os.path.join(res, "mipmap-xxxhdpi", "ic_launcher_foreground.png")
     if os.path.exists(xxx):
         r = reach_foreground(Image.open(xxx))
-        print(f"{'adaptive ink reach':52}{r:>7.2f}  of the 72dp viewport (safe circle {ADAPTIVE_SAFE:.2f})")
+        print(f"{'adaptive ink reach':52}{r:>7.2f}  of the 72dp viewport (rounded square, safe {ADAPTIVE_SAFE:.2f})")
+        print(f"{'  … if a launcher crops to a circle':52}{reach_foreground(Image.open(xxx), 2):>7.2f}  (above 1.00 the corners are clipped)")
 
     # The adaptive background is the disc, which at this point is one flat
     # colour, so it is written as a colour resource rather than five more

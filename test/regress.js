@@ -4025,6 +4025,12 @@ console.log('\n== 이름 한가운데의 O는 앱의 시계입니다 ==');
   // 리뷰: 적응형 아이콘의 투명 바탕이 '투명한 검정'이라 가장자리 픽셀이 검게 섞여
   // 획마다 어두운 테가 졌습니다. 바탕은 '투명한 초록'이어야 합니다.
   ok('적응형 아이콘의 바탕은 투명한 초록입니다', /Image\.new\("RGBA", \(size, size\), GREEN \+ \(0,\)\)/.test(py) && !/\(0, 0, 0, 0\)\), clock, folder/.test(py));
+  // 근로자: 아이콘을 최대 크기로. 갤럭시는 아이콘을 둥근 네모로 자르므로, 66dp 원이
+  // 아니라 그 모양으로 재고 0.82까지 키웠습니다. 원으로 자르는 폰에서는 모서리가
+  // 잘린다는 것도 스크립트가 찍어 줍니다 — 몰래 넘지 않습니다.
+  ok('홈 화면 아이콘은 둥근 네모 안에서 가장 크게', /^ADAPTIVE_SPAN = 0\.82$/m.test(py)
+    && /^ADAPTIVE_SAFE = 0\.95$/m.test(py) && /^SQUIRCLE = 4$/m.test(py)
+    && /reach_foreground\(Image\.open\(xxx\), 2\)/.test(py));
   ok('안전 원 검사는 쓰기 전에, 모든 해상도에서', /r = reach_foreground\(img\)[\s\S]{0,200}raise SystemExit[\s\S]{0,200}img\.save\(path/.test(py));
   ok('선 굵기도 원본과 같습니다 — Archivo 800 옆에서 버티는 4.6',
     /stroke-width="4\.6"/.test(marks[0] || '') && /stroke-width="4\.6"/.test(art));

@@ -39,9 +39,13 @@ Redrawn on 2026-10-27 from the worker's own picture, measured rather than traced
   black, Android masks it over a background layer), so the launcher icon is
   this mark on the same white disc the fingerprint used to sit on.
   `pwa/make_icons.py` draws it; its ink stays inside the maskable 80% circle.
-- **The Android home-screen tile draws the mark larger** (`ADAPTIVE_SPAN`
-  0.66, ink reaching 0.89 of the 72dp tile against the 66dp safe circle's
-  0.92). At the PWA size it read clearly smaller than the apps beside it.
+- **The Android home-screen tile draws the mark at its largest**
+  (`ADAPTIVE_SPAN` 0.82 of the 72dp tile, since 2026-10-27). One UI crops the
+  tile to a rounded square, and the ink stays inside one at 0.93 against a
+  0.95 limit. At 0.66, sized for the strict 66dp circle, it still read small
+  beside Claude and EPS. On a launcher that crops to a circle the outer arc's
+  tip and the folder's corner are clipped — the price of the size, chosen by
+  the worker.
 
 ## The wordmark — the clock as the O
 
