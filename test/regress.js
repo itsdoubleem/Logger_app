@@ -10699,8 +10699,14 @@ console.log('\n== 320px 폰에서 요일 칩과 인도네시아어 설정 탭이
   const id = JSON.parse(fs.readFileSync(__dirname + '/../lang/id.json', 'utf8'));
   ok('인도네시아어 설정 탭은 SETELAN입니다', id.tab_set === 'SETELAN', id.tab_set);
   ok('그 탭을 가리키는 문장도 같은 낱말입니다',
-    ['rsn_46_est_low', 'you_can_change_any_of_this_later_in_se', 'setup_has_more_none_of_it_is_needed']
+    ['rsn_46_est_low', 'you_can_change_any_of_this_later_in_se', 'setup_has_more_none_of_it_is_needed',
+     'calculated_on_your_basic_salary_plus_f']
       .every(k => /Setelan/.test(id[k]) && !/Pengaturan\b/i.test(id[k])));
+  // 리뷰 S8: 이름을 댄 세 줄만 보다가 넷째('masukkan di Pengaturan')를 놓쳤습니다. 이제
+  // 'di Pengaturan'(설정에서)처럼 자리를 가리키는 쓰임은 어느 문장에도 없어야 합니다.
+  // 'PENGATURAN AWAL'·'PENGATURAN GAJI SAYA'는 제목이라 그대로입니다.
+  const stale = Object.entries(id).filter(([, v]) => /\b(di|ke) pengaturan\b|설정 Pengaturan/i.test(v)).map(([k]) => k);
+  ok('어느 문장도 탭을 옛 이름으로 가리키지 않습니다', stale.length === 0, stale.join(' '));
   // 라틴 글자 언어의 탭 이름은 9자 안 — 320px에서 잰 가장 긴 통과값이 CHẤM CÔNG(9)이고,
   // 잘린 PENGATURAN은 10자였습니다
   const latin = ['vi', 'id'].map(l => JSON.parse(fs.readFileSync(__dirname + '/../lang/' + l + '.json', 'utf8')));
