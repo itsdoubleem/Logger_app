@@ -94,9 +94,27 @@ ADAPTIVE_VIEWPORT = 72 / 108
 # against ADAPTIVE_SAFE 0.95. The cost is written down: a launcher that crops to
 # a circle (Pixel and some others) clips the outer arc's tip and the folder's
 # corner — circle reach is 1.11. main() prints both numbers.
-ADAPTIVE_SPAN = 0.82
+#
+# 2026-11-09: the folder's right edge was cut on the worker's Galaxy S24 Ultra.
+# Its launcher (One UI with a theme) draws its own white tile and sets the
+# adaptive icon inside it, cropped to a shape *measured* off a screencap of the
+# home screen: a superellipse with k = 2.5, much rounder than the k = 4 guessed
+# above. Against that shape the folder's corner reached 1.04 while the arc tip
+# at the top left reached only 0.92. The mark is centred by its ink box, but its
+# weight is not: the arc is a thin tip, the folder a full corner. So the mark is
+# now pushed up and left by ADAPTIVE_OFFSET (a fraction of the half-viewport)
+# and drawn 5% smaller (0.82 → 0.78), which brings both corners to about 0.93,
+# inside ADAPTIVE_SAFE at every density (worst 0.939, at mdpi). The push is whole
+# pixels, and at mdpi the half-viewport is only 36px: 0.79 with a 0.04 push
+# rounded to a 1px move there and reached 0.953. Pushing alone, at full size,
+# would have balanced the corners at 0.975, about 2px from the edge on the
+# phone: too thin to call the folder fully shown. As a side effect, a launcher
+# that crops to a circle now reaches 0.99 instead of 1.11 at xxxhdpi, so it no
+# longer clips the folder; at mdpi the arc's tip just touches that edge (1.005).
+ADAPTIVE_SPAN = 0.78
+ADAPTIVE_OFFSET = 0.045
 ADAPTIVE_SAFE = 0.95
-SQUIRCLE = 4
+SQUIRCLE = 2.5
 
 # Antialiasing: everything is drawn at SS times the final size and box-averaged
 # down. ImageDraw has no antialiasing of its own, for the strokes or the disc.
@@ -264,11 +282,12 @@ def mark(fills, strokes, box, width):
     return img.resize((width, height), Image.BOX)
 
 
-def place(img, fills, strokes, box, span):
-    """Centre the mark on `img`, across `span` of its width."""
+def place(img, fills, strokes, box, span, nudge=0):
+    """Centre the mark on `img`, across `span` of its width, then move it up
+    and left by `nudge` px."""
     w = round(img.width * span)
     m = mark(fills, strokes, box, w)
-    at = ((img.width - m.width) // 2, (img.height - m.height) // 2)
+    at = ((img.width - m.width) // 2 - nudge, (img.height - m.height) // 2 - nudge)
     fill = GREEN + (255,) if img.mode == "RGBA" else GREEN
     img.paste(Image.new(img.mode, m.size, fill), at, m)
     return img
@@ -290,7 +309,8 @@ def lay_foreground(size, fills, strokes, box, span):
     dark rim on the white disc (review, 2026-10-26). With the colour already
     green, only the alpha ramps and the edge stays the mark's own colour.
     """
-    return place(Image.new("RGBA", (size, size), GREEN + (0,)), fills, strokes, box, span)
+    nudge = round(ADAPTIVE_OFFSET * size * ADAPTIVE_VIEWPORT / 2)
+    return place(Image.new("RGBA", (size, size), GREEN + (0,)), fills, strokes, box, span, nudge)
 
 
 def reach(path):

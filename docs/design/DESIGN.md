@@ -49,13 +49,18 @@ Redrawn on 2026-10-27 from the worker's own picture, measured rather than traced
   black, Android masks it over a background layer), so the launcher icon is
   this mark on the same white disc the fingerprint used to sit on.
   `pwa/make_icons.py` draws it; its ink stays inside the maskable 80% circle.
-- **The Android home-screen tile draws the mark at its largest**
-  (`ADAPTIVE_SPAN` 0.82 of the 72dp tile, since 2026-10-27). One UI crops the
-  tile to a rounded square, and the ink stays inside one at 0.93 against a
-  0.95 limit. At 0.66, sized for the strict 66dp circle, it still read small
-  beside Claude and EPS. On a launcher that crops to a circle the outer arc's
-  tip and the folder's corner are clipped — the price of the size, chosen by
-  the worker.
+- **The Android home-screen tile draws the mark large, nudged up and left**
+  (`ADAPTIVE_SPAN` 0.78 of the 72dp tile, `ADAPTIVE_OFFSET` 0.045, since
+  2026-11-09, the ninety-second entry). The worker's themed One UI launcher
+  crops the tile to a shape measured off a home-screen capture as a k = 2.5
+  superellipse — much rounder than the rounded square once assumed — and at
+  0.82, centred, the folder's corner reached 1.04 of it and was cut. The mark
+  is centred by its ink box but its weight is not (a thin arc tip top-left, a
+  full folder corner bottom-right), so it is pushed toward the arc and drawn
+  5% smaller: both corners sit at about 0.93 against a 0.95 limit, at every
+  density (worst 0.939, mdpi). On a launcher that crops to a circle the
+  folder is no longer clipped (0.99); at mdpi the arc's tip just touches the
+  edge (1.005).
 
 ## The wordmark — the clock as the O
 

@@ -4030,9 +4030,58 @@ console.log('\n== 이름 한가운데의 O는 앱의 시계입니다 ==');
   // 근로자: 아이콘을 최대 크기로. 갤럭시는 아이콘을 둥근 네모로 자르므로, 66dp 원이
   // 아니라 그 모양으로 재고 0.82까지 키웠습니다. 원으로 자르는 폰에서는 모서리가
   // 잘린다는 것도 스크립트가 찍어 줍니다 — 몰래 넘지 않습니다.
-  ok('홈 화면 아이콘은 둥근 네모 안에서 가장 크게', /^ADAPTIVE_SPAN = 0\.82$/m.test(py)
-    && /^ADAPTIVE_SAFE = 0\.95$/m.test(py) && /^SQUIRCLE = 4$/m.test(py)
+  //
+  // 2026-11-09: 근로자의 갤럭시 S24 Ultra 홈 화면에서 폴더 오른쪽이 잘렸습니다. 그 폰의
+  // 런처(테마를 쓴 One UI)는 흰 판을 따로 그리고 그 안에 아이콘을 더 둥근 모양으로 잘라
+  // 넣습니다 — 홈 화면을 screencap으로 떠서 재 보니 k = 4가 아니라 k = 2.5였고, 그
+  // 모양에서 폴더 모서리는 1.04, 왼쪽 위의 호 끝은 0.92였습니다. 스크립트는 0.93이라고
+  // 찍으며 통과했습니다 — 잘못 가정한 모양을 재고 있었으니까요. 그래서 그림을 왼쪽
+  // 위로 밀고(ADAPTIVE_OFFSET) 5% 줄여 두 모서리가 모두 0.93 안팎이 되게 했습니다.
+  ok('홈 화면 아이콘은 잰 모양(k = 2.5) 안에서, 폴더 쪽을 안으로 밀어',
+    /^ADAPTIVE_SPAN = 0\.78$/m.test(py) && /^ADAPTIVE_OFFSET = 0\.045$/m.test(py)
+    && /^ADAPTIVE_SAFE = 0\.95$/m.test(py) && /^SQUIRCLE = 2\.5$/m.test(py)
+    && /nudge = round\(ADAPTIVE_OFFSET \* size \* ADAPTIVE_VIEWPORT \/ 2\)/.test(py)
     && /reach_foreground\(Image\.open\(xxx\), 2\)/.test(py));
+  // 숫자만 보는 시험은 이번 일을 잡지 못했습니다. 그래서 실제로 나가는 xxxhdpi 그림을
+  // 풀어서, 잉크가 잰 모양 안에 얼마나 들어와 있는지 직접 잽니다 — 모서리마다.
+  {
+    const zlib = require('zlib');
+    const png = fs.readFileSync(__dirname + '/../android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png');
+    const W = png.readUInt32BE(16), H = png.readUInt32BE(20);
+    // 이 디코더는 8비트 RGBA, 인터레이스 없음만 풉니다 — 다른 꼴이 오면 엉뚱한 숫자 대신 이유를 말합니다.
+    ok('앞 그림은 8비트 RGBA, 인터레이스 없음입니다', png[24] === 8 && png[25] === 6 && png[28] === 0,
+      'depth ' + png[24] + ' type ' + png[25] + ' interlace ' + png[28]);
+    const idat = [];
+    for (let o = 8; o < png.length;) {
+      const len = png.readUInt32BE(o), type = png.toString('ascii', o + 4, o + 8);
+      if (type === 'IDAT') idat.push(png.subarray(o + 8, o + 8 + len));
+      o += 12 + len;
+    }
+    const raw = zlib.inflateSync(Buffer.concat(idat)), bpp = 4, stride = W * bpp;
+    const px = Buffer.alloc(H * stride);
+    for (let y = 0; y < H; y++) {
+      const f = raw[y * (stride + 1)];
+      for (let i = 0; i < stride; i++) {
+        const x = raw[y * (stride + 1) + 1 + i];
+        const a = i >= bpp ? px[y * stride + i - bpp] : 0, b = y ? px[(y - 1) * stride + i] : 0;
+        const c = i >= bpp && y ? px[(y - 1) * stride + i - bpp] : 0;
+        const p = a + b - c, pa = Math.abs(p - a), pb = Math.abs(p - b), pc = Math.abs(p - c);
+        const pred = [0, a, b, (a + b) >> 1, pa <= pb && pa <= pc ? a : pb <= pc ? b : c][f];
+        px[y * stride + i] = (x + pred) & 255;
+      }
+    }
+    const cc = (W - 1) / 2, half = W * (72 / 108) / 2, reach = {};
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      if (px[y * stride + x * 4 + 3] <= 32) continue;
+      const u = Math.abs(x - cc) / half, v = Math.abs(y - cc) / half;
+      const r = Math.pow(Math.pow(u, 2.5) + Math.pow(v, 2.5), 1 / 2.5);
+      const k = (x < cc ? 'L' : 'R') + (y < cc ? 'T' : 'B');
+      reach[k] = Math.max(reach[k] || 0, r);
+    }
+    ok('폴더 모서리(오른쪽 아래)와 호 끝(왼쪽 위)이 모두 잰 모양의 0.95 안에 있습니다',
+      reach.RB <= 0.95 && reach.LT <= 0.95 && reach.RB >= 0.85,
+      Object.entries(reach).map(([k, r]) => k + ' ' + r.toFixed(3)).join(' · '));
+  }
   ok('안전 원 검사는 쓰기 전에, 모든 해상도에서', /r = reach_foreground\(img\)[\s\S]{0,200}raise SystemExit[\s\S]{0,200}img\.save\(path/.test(py));
   // 2026-10-27: 근로자의 요청으로 O도 새 아이콘의 시계가 됐습니다 — 폴더만 뺀
   // 그대로입니다. 호·눈금·바늘·축은 아이콘과 글자 그대로 같은 경로이고, 링은
