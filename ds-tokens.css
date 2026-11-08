@@ -479,27 +479,23 @@
   background: var(--color-accent-100) !important;
 }
 /* ── 5 · the punch pad's START / STOP button ────────────────────────────── */
-/* A full-width bar under the 출근/퇴근 line (2026-10-26, eighty-seventh entry).
-   It was a 64px tile centred in the card, which left the card's two sides
-   empty. Caught by two values only it carries — `height: 60px` and
-   `touch-action: manipulation` — so the number lives in three places: the
+/* The round START / STOP button left of the clock, from the worker's own
+   drawing (2026-11-09, ninety-third entry). Caught by two values only it
+   carries — its width string `clamp(88px, 27vw, 104px)` and
+   `touch-action: manipulation` — so that string lives in three places: the
    source, this selector and test/regress.js. Change all three together or the
-   bar goes flat and square, silently.
+   button goes square, silently.
+   The fill is NOT set here: --color-punch-start / --color-punch-stop come
+   inline per state. Pressed, it darkens a step and sinks slightly: a light
+   fill under dark text, so brightness goes *down* (fiftieth entry: a dark
+   control would need up). The pressed state matters because this is the
+   button the worker presses twice a day, and a tap with no answer gets
+   pressed again.
    No `min-height`, on purpose: rule 2c rounds anything tappable with one and
-   would hand the bar --radius-md instead of this. No border either, for rule 2.
-   The pressed state is here because this is the button the worker presses
-   twice a day: the old hold drew a red fill that said "it landed", and a tap
-   with no answer gets pressed again. The odd-shift and 1.5 s guards catch the
-   second press, but the screen should say it first. */
-/* 2026-11-09 (ninety-third entry): the bar became the round button from the
-   worker's own drawing — left of the pill and the clock, filled with
-   --color-punch-start / --color-punch-stop (set inline per state), dark text,
-   no icon. Caught now by its own width, `clamp(88px, 27vw, 104px)`, together
-   with `touch-action: manipulation`; the width string lives in the source,
-   this selector and test/regress.js — change all three together.
-   The background is NOT set here: the state colour comes inline. Pressed, it
-   darkens a step and sinks slightly; a light fill under dark text, so
-   brightness goes *down* (fiftieth entry: a dark control would need up). */
+   would hand the button --radius-md instead of a circle. No border either,
+   for rule 2.
+   Before it (2026-10-26, eighty-seventh entry) this was a full-width bar under
+   the 출근/퇴근 line, caught by `height: 60px`; before that, a 64px tile. */
 [style*="clamp(88px, 27vw, 104px)"][style*="touch-action: manipulation"] {
   border-radius: 50%;
   transition: filter .12s ease, transform .12s ease;

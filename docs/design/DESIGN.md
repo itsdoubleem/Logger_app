@@ -16,7 +16,7 @@ punch-button fills — the rest are the app's:
 | mark | `oklch(0.52 0.14 149)` ≈ `#127E38` | logo, wordmark O, 출근, the 근무중 lamp |
 | START button | `#60b973` (`--color-punch-start`) | the round button before a shift |
 | STOP button | `#e9806f` (`--color-punch-stop`) | the round button during a shift |
-| accent | `#ec3013` (`--color-accent`) | 퇴근 |
+| accent | `#ec3013` (`--color-accent`), ink `--color-accent-700` | the 퇴근 pill (accent-700 on accent-100) |
 | ground | `#f3f2f2` (`--color-bg`) | the launcher icon's corners |
 | mark tint | `#ebf5ee` (`--color-mark-100`) | the 출근 pill |
 | card | `#ffffff` | the launcher icon's disc |
@@ -134,4 +134,4 @@ circle with START in dark text on the left, a 출근 pill and a red filler label
 layout, the button and the salmon; the green and the OFF SHIFT ring were
 derived from it.
 The first set the concept and composition only; the mark was drawn fresh, not
-traced. `mockup-punch.png` is the approved punch pad (centred pill and clock over the wide bar); `preview.html` and `mockup-punch-tile.png` show the earlier centred tile.
+traced. `preview-punch-circle.html` is the approved punch pad (the round button, option 1). `mockup-punch.png` is the wide-bar design it replaced; `preview.html` and `mockup-punch-tile.png` show the centred tile before that.
