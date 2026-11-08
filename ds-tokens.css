@@ -481,7 +481,7 @@
 /* ── 5 · the punch pad's START / STOP button ────────────────────────────── */
 /* The round START / STOP button left of the clock, from the worker's own
    drawing (2026-11-09, ninety-third entry). Caught by two values only it
-   carries — its width string `clamp(88px, 27vw, 104px)` and
+   carries — its width string `clamp(78px, 24vw, 92px)` and
    `touch-action: manipulation` — so that string lives in three places: the
    source, this selector and test/regress.js. Change all three together or the
    button goes square, silently.
@@ -496,11 +496,11 @@
    for rule 2.
    Before it (2026-10-26, eighty-seventh entry) this was a full-width bar under
    the 출근/퇴근 line, caught by `height: 60px`; before that, a 64px tile. */
-[style*="clamp(88px, 27vw, 104px)"][style*="touch-action: manipulation"] {
+[style*="clamp(78px, 24vw, 92px)"][style*="touch-action: manipulation"] {
   border-radius: 50%;
   transition: filter .12s ease, transform .12s ease;
 }
-[style*="clamp(88px, 27vw, 104px)"][style*="touch-action: manipulation"]:active {
+[style*="clamp(78px, 24vw, 92px)"][style*="touch-action: manipulation"]:active {
   filter: brightness(.9);
   transform: scale(.97);
 }

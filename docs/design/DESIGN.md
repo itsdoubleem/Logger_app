@@ -78,17 +78,17 @@ the pill and a lamp on one line beside it, and the clock under them.
   ╭──────╮   ( 출근 )  ○ 근무 외            ← pill 14px 800 · lamp 13px 800
   │START │                                   (ring: grey, unlit, still)
   ╰──────╯   02:59                       ← clock, clamp(32px, 11vw, 48px)
-  88–104px circle, #60b973, dark text 19–22px 600
+  78–92px circle, #60b973, dark text 17–20px 600
 
   ╭──────╮   ( 퇴근 )  ● 근무중              (on shift: salmon #e9806f,
   │ STOP │                                   red pill, green lamp breathing)
   ╰──────╯   3h 42m
 ```
 
-- **The button** is a circle, `clamp(88px, 27vw, 104px)` across — 104px at
-  384, 88px at 320 — filled with `--color-punch-start` before a shift and
+- **The button** is a circle, `clamp(78px, 24vw, 92px)` across — 92px at
+  384, 78px at 320 (made smaller at the worker's request; it was 104 / 88) — filled with `--color-punch-start` before a shift and
   `--color-punch-stop` during one, with START / STOP in dark ink and no icon.
-  The label scales 19–22px so START keeps 12px either side at 320. Shaped and
+  The label scales 17–20px with it. Shaped and
   pressed (a step darker, slightly sunk) by `ds-tokens.css` rule 5, which
   catches it by that width string plus `touch-action: manipulation`.
   **Only the circle punches**: it covers neither the pill nor the clock (the

@@ -8172,7 +8172,7 @@ console.log('\n== 카드를 쓸면 화면이 굳었고, 짚으면 출근이 찍�
     padTag.indexOf('onClick') < 0 && padTag.indexOf('onPointerDown') < 0, padTag);
   ok('카드가 스크롤을 먹지 않습니다', padTag.indexOf('touch-action') < 0, padTag);
 
-  const box = tpl.match(/<div [^>]*width:clamp\(88px, 27vw, 104px\);[^>]*touch-action:manipulation[^>]*>/);
+  const box = tpl.match(/<div [^>]*width:clamp\(78px, 24vw, 92px\);[^>]*touch-action:manipulation[^>]*>/);
   ok('출퇴근 단추가 그대로 있습니다', !!box);
   const boxTag = box ? box[0] : '';
   ok('찍는 것은 출퇴근 단추입니다', /onClick="\{\{ padTap \}\}"/.test(boxTag), boxTag);
@@ -8182,12 +8182,12 @@ console.log('\n== 카드를 쓸면 화면이 굳었고, 짚으면 출근이 찍�
     boxTag.indexOf('touch-action:none') < 0 && boxTag.indexOf('touch-action:manipulation') >= 0, boxTag);
   ok('출퇴근 단추가 손가락에게 단추라고 말합니다',
     boxTag.indexOf('cursor:pointer') >= 0, boxTag);
-  // 층 규칙 5는 단추의 폭 clamp(88px, 27vw, 104px) + touch-action manipulation 두 값으로만
+  // 층 규칙 5는 단추의 폭 clamp(78px, 24vw, 92px) + touch-action manipulation 두 값으로만
   // 단추를 잡습니다 — 크기를 바꾸면 세 곳(소스·ds-tokens.css·여기)을 같이.
   const ds = fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
   ok('출퇴근 단추는 층 규칙 5가 잡는 둥근 단추입니다',
-    ds.indexOf('[style*="clamp(88px, 27vw, 104px)"][style*="touch-action: manipulation"]') >= 0
-    && /width:clamp\(88px, 27vw, 104px\);height:clamp\(88px, 27vw, 104px\);/.test(boxTag), boxTag);
+    ds.indexOf('[style*="clamp(78px, 24vw, 92px)"][style*="touch-action: manipulation"]') >= 0
+    && /width:clamp\(78px, 24vw, 92px\);height:clamp\(78px, 24vw, 92px\);/.test(boxTag), boxTag);
   // 손잡이는 하나뿐이어야 합니다 — 카드 안에 또 다른 padTap이 생기면 안 됩니다.
   ok('padTap은 화면에 한 자리뿐입니다', (tpl.match(/\{\{ padTap \}\}/g) || []).length === 1);
 }
@@ -8299,11 +8299,11 @@ console.log('\n== 지문은 필요 없었습니다 — 한 번 누르면 출근,
   // (같은 날 가운데 시계로 바뀌며 출근/퇴근은 14px 알약 — 여든일곱째)
   ok('출근/퇴근은 14px 알약', /font-size:14px;[^"]*">\{\{ padStamp \}\}/.test(pad));
   // (2026-11-09, 아흔셋째) 둥근 단추 안의 START/STOP은 600, 진한 잉크 — 근로자가 그린
-  // 그대로. 크기는 19–22px: 320px 폰의 88px 단추에서 22px START는 가장자리에 닿았습니다.
+  // 그대로. 크기는 17–20px: 단추를 92px(320px 폰에서 78px)로 줄이며 글자도 함께 줄였습니다.
   // ▶·■ 그림은 없습니다.
   const padAll = tpl.slice(tpl.indexOf('{{ padTap }}') - 20, tpl.indexOf('{{ padBig }}') + 20);
-  ok('START/STOP은 19–22px 600, 진한 잉크',
-    /font-weight:600;font-size:clamp\(19px, 5\.8vw, 22px\);[^"]*color:var\(--color-text\)">\{\{ padTitle \}\}/.test(padAll));
+  ok('START/STOP은 17–20px 600, 진한 잉크',
+    /font-weight:600;font-size:clamp\(17px, 5vw, 20px\);[^"]*color:var\(--color-text\)">\{\{ padTitle \}\}/.test(padAll));
   ok('시각의 크기는 renderVals가 정합니다', /font-size:\{\{ padBigFs \}\};[^"]*">\{\{ padBig \}\}/.test(padAll));
   ok('단추에 ▶·■ 그림이 없습니다', padAll.length > 100 && !/<svg/.test(padAll));
 }
@@ -8390,7 +8390,9 @@ console.log('\n== 출퇴근 카드의 양옆이 비어 있었습니다 — 넓�
     R0 = c0.renderVals();
     ok('근무 중 알약은 옅은 빨강 바탕에 accent-700', R0.padChipBg === 'var(--color-accent-100)' && R0.padChipInk === 'var(--color-accent-700)');
   }
-  ok('단추는 둥근 정사각입니다 — 폭과 높이가 같은 clamp', /width:clamp\(88px, 27vw, 104px\);height:clamp\(88px, 27vw, 104px\)/.test(bar), bar);
+  ok('단추는 둥근 정사각입니다 — 폭과 높이가 같은 clamp', /width:clamp\(78px, 24vw, 92px\);height:clamp\(78px, 24vw, 92px\)/.test(bar), bar);
+  // 같은 날 다시: 근로자가 동그라미를 조금 작게 해 달라고 했습니다 — 104 → 92px(320px에서 78px).
+  ok('단추는 가장 커도 92px입니다', /width:clamp\(78px, 24vw, 92px\)/.test(bar) && !/104px/.test(bar), bar);
   ok('단추의 바탕은 renderVals가 상태마다 정합니다', /background:\{\{ padBtnBg \}\}/.test(bar), bar);
   ok('단추는 글자와 시각을 덮지 않습니다', head.indexOf('padTap') < 0 && (tpl.match(/\{\{ padTap \}\}/g) || []).length === 1);
   ok('단추에 min-height가 없습니다 — 규칙 2c가 모서리를 가로채지 않게', !/min-height/.test(bar));
@@ -8405,7 +8407,7 @@ console.log('\n== 출퇴근 카드의 양옆이 비어 있었습니다 — 넓�
   // 조용히 이 단추의 모서리와 눌림을 받습니다.
   const full = src.slice(0, src.indexOf('</x-dc>'));
   // 주석은 빼고 셉니다 — 단추 위의 주석이 그 값을 이름으로 부릅니다. 폭과 높이, 두 번.
-  ok('단추의 폭 clamp는 소스에 단추 한 자리뿐입니다', (tpl.match(/clamp\(88px, 27vw, 104px\)/g) || []).length === 2);
+  ok('단추의 폭 clamp는 소스에 단추 한 자리뿐입니다', (tpl.match(/clamp\(78px, 24vw, 92px\)/g) || []).length === 2);
   ok('touch-action: manipulation도 단추 한 자리뿐입니다', (full.match(/touch-action:\s*manipulation/g) || []).length === 1);
   ok('예전 60px 막대의 흔적은 남아 있지 않습니다',
     ds.indexOf('[style*="height: 60px"]') < 0 && (full.match(/height:\s*60px/g) || []).length === 0);

@@ -498,7 +498,7 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
         </div>
 
         <!-- 출퇴근 패드 — 근로자가 그린 둥근 단추 (2026-11-09, 아흔셋째).
-             지금 모양: 왼쪽에 둥근 START / STOP 단추(clamp(88px, 27vw, 104px)), 오른쪽에
+             지금 모양: 왼쪽에 둥근 START / STOP 단추(clamp(78px, 24vw, 92px)), 오른쪽에
              출근/퇴근 알약과 표시등 한 줄, 그 아래 큰 시계. 단추의 바탕은 출근 전 초록
              (--color-punch-start), 근무 중 연어색(--color-punch-stop)이고 글자는 진한 잉크,
              그림은 없습니다. 표시등은 두 상태 모두 섭니다: 근무 중에는 숨 쉬는 초록 등과
@@ -524,7 +524,7 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
              지난 모양(여든일곱째, 2026-10-26): 알약 · 가운데 시계 · 카드 너비의 ▶ START 막대가
              한 가운데 줄에 섰고, 막대는 height 60px으로 잡혔으며 양옆 여백은 48px이었습니다. -->
         <div style="position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:clamp(14px, 5vw, 20px);padding:18px 20px;border-bottom:2px solid var(--color-divider);user-select:none">
-          <div onClick="{{ padTap }}" style="flex:none;width:clamp(88px, 27vw, 104px);height:clamp(88px, 27vw, 104px);display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:manipulation;background:{{ padBtnBg }};font-family:var(--font-heading);font-weight:600;font-size:clamp(19px, 5.8vw, 22px);line-height:1;letter-spacing:0.02em;color:var(--color-text)">{{ padTitle }}</div>
+          <div onClick="{{ padTap }}" style="flex:none;width:clamp(78px, 24vw, 92px);height:clamp(78px, 24vw, 92px);display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:manipulation;background:{{ padBtnBg }};font-family:var(--font-heading);font-weight:600;font-size:clamp(17px, 5vw, 20px);line-height:1;letter-spacing:0.02em;color:var(--color-text)">{{ padTitle }}</div>
           <div style="flex:0 1 auto;display:flex;flex-direction:column;align-items:flex-start;gap:10px;min-width:0">
             <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px;min-width:0">
               <div style="flex:none;white-space:nowrap;padding:6px 14px;background:{{ padChipBg }};font-family:var(--font-heading);font-weight:800;font-size:14px;line-height:1;letter-spacing:0.02em;color:{{ padChipInk }}">{{ padStamp }}</div>
