@@ -1,6 +1,6 @@
 # 근무기록 LOGGER — change log beyond V2.md
 
-Ninety-eight entries, newest first — ninety-one carry an ordinal (first … ninety-first),
+Ninety-nine entries, newest first — ninety-two carry an ordinal (first … ninety-second),
 the seven oldest predate the numbering. Each one is a bug found by **actually using the app on
 shift**, what changed, and — the part worth reading — *why it was that and not the
 obvious fix*. Most entries end with a **다음 사람에게** paragraph: the rule the bug
@@ -18,7 +18,8 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 
 ## Index
 
-- 2026-10-27 (latest, ninety-first) — 제대로 퇴근했는데 '너무 이른 퇴근' 카드가 남았습니다, 그리고 320px의 잘린 칩과 탭
+- 2026-11-09 (latest, ninety-second) — 홈 화면에서 폴더 오른쪽이 잘려 있었습니다
+- 2026-10-27 (ninety-first) — 제대로 퇴근했는데 '너무 이른 퇴근' 카드가 남았습니다, 그리고 320px의 잘린 칩과 탭
 - 2026-10-27 (ninetieth) — 30분을 잃는 '지우고 지금 출근', 말없이 실패하던 백업, 초록인 채로 실패하던 빌드
 - 2026-10-27 (eighty-ninth) — 아이콘은 근로자가 고른 그림으로: 열린 링, 바깥 호, 네모 눈금, 바늘 셋, 두 겹 폴더
 - 2026-10-26 (eighty-eighth) — 리뷰에 남아 있던 여섯: 영어 안내, 화면 밖 카드, 아이콘 테, 시계 크기, 320px 머리말, 잠든 지문 다리
@@ -117,7 +118,46 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 - 2026-08-13 — the service worker was hiding every update
 - 2026-08-13 (earlier) — 조퇴 사유 became a popup with a dropdown
 
-### 2026-10-27 (latest, ninety-first) — 제대로 퇴근했는데 '너무 이른 퇴근' 카드가 남았습니다, 그리고 320px의 잘린 칩과 탭
+### 2026-11-09 (latest, ninety-second) — 홈 화면에서 폴더 오른쪽이 잘려 있었습니다
+
+근로자가 자기 폰(갤럭시 S24 Ultra)의 홈 화면을 찍어 보냈습니다: 아이콘의 폴더 오른쪽 끝이
+조금 잘려 있었습니다. `make_icons.py`는 그 아이콘을 만들 때마다 '둥근 네모 안 0.93, 안전
+0.95'라고 찍으며 통과했습니다 — 틀린 모양을 재고 있었기 때문입니다.
+
+- **런처가 쓰는 모양을 폰에서 직접 쟀습니다.** `adb exec-out screencap`으로 홈 화면을 떠서
+  보니, 테마를 쓴 One UI는 흰 판을 따로 그리고 그 안에 적응형 아이콘을 넣는데, 그 안쪽
+  모양은 k = 4의 둥근 네모가 아니라 **k = 2.5**(원은 2)의 훨씬 둥근 모양이었습니다(경계에
+  맞춘 오차 0.016). 그 모양으로 재면 폴더 모서리가 **1.04**, 화면에서는 폴더 오른쪽이 흰 판에
+  바로 닿아 있었습니다.
+- **폴더만 안으로 옮기는 것으로는 안 됐습니다.** 그림은 잉크 상자로 크기를 정하고 가운데에
+  놓는데, 폴더의 오른쪽 아래가 바로 그 상자의 모서리입니다. 폴더를 그림 안에서 옮기면 상자가
+  줄고 그림 전체가 다시 커져서 모서리는 같은 자리로 돌아옵니다. 게다가 링은 폴더 자리에서
+  열려 있고 그 끝이 폴더에 닿아 있어, 폴더를 옮기려면 원본 그림부터 다시 그려야 합니다.
+- **대신 그림 전체를 왼쪽 위로 밀었습니다.** 상자는 가운데지만 무게는 아닙니다: 왼쪽 위는
+  가는 호의 끝(0.92), 오른쪽 아래는 꽉 찬 폴더 모서리(1.04)입니다. `ADAPTIVE_OFFSET` 0.045만큼
+  밀고 5% 줄이면(`ADAPTIVE_SPAN` 0.82 → 0.78) 두 모서리가 모두 0.93 안팎입니다. 밀기만 하면
+  크기는 그대로지만 두 모서리가 0.975에서 만나 폰에서 가장자리까지 2px 남짓이었습니다 —
+  '다 보인다'고 하기엔 모자랍니다. 원으로 자르는 런처(픽셀 등)에서도 1.11 → 0.99가 되어 이제
+  잘리지 않습니다.
+- 바뀐 것은 적응형 아이콘의 앞 그림 다섯 장뿐입니다. PWA, iOS, 옛 안드로이드 아이콘과
+  `docs/design/logo/`의 원본은 한 바이트도 바뀌지 않았습니다 — 그쪽은 원판 위에 그리는 그림이라
+  0.75로 이미 안에 있습니다.
+
+밀기는 픽셀 단위라 해상도마다 다르게 반올림됩니다: mdpi(가로 108px)에서 0.04는 1px로
+떨어져 0.953이 되었고, 스크립트가 쓰기 전에 멈췄습니다. 0.78 / 0.045는 다섯 해상도 모두에서
+가장 나쁜 값이 0.939입니다.
+
+시험이 하나 늘었습니다: 실제로 나가는 xxxhdpi PNG를 풀어서 모서리마다 잉크가 k = 2.5 모양의
+어디까지 닿는지 잽니다. 예전 그림에서는 실패합니다(오른쪽 아래 1.036). 2 new assertions
+(3662 total).
+
+**다음 사람에게.** 스크립트가 찍는 '안전'은 스크립트가 가정한 모양에 대한 말입니다. 아이콘이
+잘린다는 말을 들으면 그 숫자를 믿지 말고, 그 폰의 홈 화면을 떠서 런처가 실제로 쓰는 모양을
+재십시오 — 이번에는 잉크 둘레의 옅은 원판(`DISC`)이 런처의 흰 판보다 두 단계 어두워서, 그
+경계로 모양을 그대로 읽을 수 있었습니다. 그리고 크기를 정하는 상자의 가운데와 그림의 무게
+가운데는 다릅니다: 한쪽 모서리만 넘치면 줄이기 전에 밀어 보십시오.
+
+### 2026-10-27 (ninety-first) — 제대로 퇴근했는데 '너무 이른 퇴근' 카드가 남았습니다, 그리고 320px의 잘린 칩과 탭
 
 v1.4.0을 내기 전 리뷰가 남긴 Should-fix 둘입니다. 둘 다 v1.3.0에도 있던 것이지만, 첫째는
 한 번 누르는 출퇴근에서 훨씬 자주 생깁니다.
