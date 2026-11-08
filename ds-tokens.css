@@ -195,6 +195,23 @@
    from the buttons around them. */
 [style*="min-height: 30px"][style*="display: inline-flex"] { border-radius: var(--radius-pill); }
 
+/* ── 1d · the "I clocked in earlier today" pill ─────────────────────────── */
+/* Drawn the same size as the red pay-period band on LOGS / PAY (2026-11-09,
+   the worker's request): same 9px 18px padding and a 16px line, so 36px tall
+   instead of 50. It is still a button, and 44px is the floor, so the tap area
+   reaches 4px up and 4px down — into the 9px card gaps — invisibly. A
+   top-level card clips its own content (rule 1, overflow: hidden), which
+   would cut the strip off, so this one card lets it out; it has no inner
+   hairlines to clip. Caught by `cursor: pointer` + `padding: 9px 18px`, which
+   no other element carries together (a test holds that). */
+#tabScroll > div > div[style*="cursor: pointer"][style*="padding: 9px 18px"] { overflow: visible; }
+/* bottom is -6px, not -4px: an absolute box is placed from the padding edge,
+   and the pill has a 2px bottom border, so -4px reached only 2px past it
+   (measured with elementFromPoint: a tap 3px under the pill missed). */
+#tabScroll > div > div[style*="cursor: pointer"][style*="padding: 9px 18px"]::after {
+  content: ""; position: absolute; left: 0; right: 0; top: -4px; bottom: -6px;
+}
+
 /* ── 2c · buttons ───────────────────────────────────────────────────────── */
 /* Rule 2 rounds anything with a border, so the outlined buttons (취소, 나중에)
    came out curved while the solid ones beside them — 확인, 추가, the red

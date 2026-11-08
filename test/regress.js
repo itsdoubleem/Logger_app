@@ -8489,6 +8489,34 @@ console.log('\n== 출근 전 알약 옆이 비어 있었습니다 — 근무중�
   ok('두 단추 색은 토큰입니다', /--color-punch-start: #60b973;/.test(ds) && /--color-punch-stop: #e9806f;/.test(ds));
 }
 
+console.log('\n== 이미 출근했습니다 줄은 빨간 기간 띠와 같은 크기입니다 ==');
+// 2026-11-09. 근로자가 출퇴근 탭의 분홍 '이미 출근했습니다' 줄(50px)을 급여 탭의 빨간 기간 띠(36px)와
+// 같은 크기로 해 달라고 했습니다. 폭과 모서리는 이미 같았습니다(368px, 16px — 헤드리스에서 재어서).
+// 높이만 다릅니다: 같은 여백 9px 18px와 16px 줄로 36px. 다만 분홍 줄은 단추라 손가락 칸은 44px이어야
+// 합니다 — 층 규칙 1d가 위아래로 4px씩 보이지 않게 늘립니다.
+//
+// 다음 사람에게: 보이는 크기와 누르는 크기는 따로 정할 수 있습니다. 작게 그려 달라는 말을 들었다고
+// 손가락 칸까지 줄이지 마십시오.
+{
+  const fs = require('fs');
+  const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tpl = src.slice(0, src.indexOf('</x-dc>')).replace(/<!--[\s\S]*?-->/g, '');
+  const ds = fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
+  const row = (tpl.match(/<div onClick="\{\{ openBackIn \}\}" style="[^"]*"/) || [''])[0];
+  const band = (tpl.match(/<div style="position:sticky;top:0;z-index:5;background:\{\{ viewPeriodBg \}\};[^"]*"/) || [''])[0];
+  ok('분홍 줄의 여백은 빨간 띠와 같은 9px 18px입니다', /padding:9px 18px;/.test(row) && /padding:9px 18px;/.test(band), row);
+  ok('분홍 줄은 16px 줄 — 빨간 띠의 13px × 1.25와 같은 높이', /line-height:16px;/.test(row) && /font-size:13px;line-height:1\.25;/.test(band), band);
+  ok('분홍 줄에 min-height가 없습니다 — 있으면 규칙 2c가 잡고 높이가 다시 커집니다', !/min-height/.test(row));
+  ok('cursor:pointer와 padding:9px 18px을 함께 가진 것은 분홍 줄 하나뿐입니다',
+    (tpl.match(/style="[^"]*"/g) || []).filter(x => /cursor:pointer/.test(x) && /padding:9px 18px/.test(x)).length === 1);
+  const r1d = ds.slice(ds.indexOf('── 1d ·'), ds.indexOf('── 2c ·'));
+  ok('손가락 칸은 위아래 4px씩 늘어 44px입니다',
+    /\[style\*="cursor: pointer"\]\[style\*="padding: 9px 18px"\] \{ overflow: visible; \}/.test(r1d)
+    && /::after \{[^}]*top: -4px; bottom: -6px;/.test(r1d.replace(/\n/g, ' ')));
+  // 아래쪽은 -6px입니다: 절대 위치는 패딩 가장자리에서 재는데 분홍 줄에는 아래 테두리 2px이 있어,
+  // -4px로는 줄 밖으로 2px밖에 나가지 않았습니다(헤드리스에서 줄 3px 아래를 짚으면 빗나갔습니다).
+}
+
 console.log('\n== 주머니 속에서 눌린 출근이 다음 날 아침 근무 한 칸이 됐습니다 ==');
 // 2026-10-26, 같은 날의 리뷰(S1). 한 번 누르면 찍히게 바꾸자, 길게 누르기가 막던
 // 실수 하나가 그대로 지나가게 됐습니다. 저녁 20:00에 주머니 속에서 START가 눌리고,

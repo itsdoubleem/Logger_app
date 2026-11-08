@@ -575,8 +575,11 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
           </div>
         </sc-if>
 
+        <!-- '이미 출근했습니다' 줄은 급여 탭의 빨간 기간 띠와 같은 크기입니다(2026-11-09, 근로자의 말):
+             같은 9px 18px 여백, 16px 줄, 36px 높이. 그래도 단추라 손가락 칸은 44px — ds-tokens.css
+             규칙 1d가 위아래로 4px씩 보이지 않게 늘립니다. min-height를 다시 넣으면 규칙 2c가 잡습니다. -->
         <sc-if value="{{ backInShut }}" hint-placeholder-val="{{ true }}">
-          <div onClick="{{ openBackIn }}" style="display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 18px;border-bottom:2px solid var(--color-divider);background:var(--color-accent-100);cursor:pointer;text-align:center" style-hover="background:var(--color-accent-100)">
+          <div onClick="{{ openBackIn }}" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:9px 18px;line-height:16px;border-bottom:2px solid var(--color-divider);background:var(--color-accent-100);cursor:pointer;text-align:center" style-hover="background:var(--color-accent-100)">
             <div style="font-family:var(--font-heading);font-weight:800;font-size:12px;letter-spacing:0.02em">{{ L.backInB }}</div>
             <div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--color-neutral-600)">{{ L.backInBEn }}</div>
           </div>
