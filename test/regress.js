@@ -8381,7 +8381,8 @@ console.log('\n== 출퇴근 카드의 양옆이 비어 있었습니다 — 넓�
   // 리뷰 S2(여든일곱째): 규칙 5의 두 값은 단추 하나에만 있어야 합니다 — 둘 다 붙은 요소는
   // 조용히 이 단추의 모서리와 눌림을 받습니다.
   const full = src.slice(0, src.indexOf('</x-dc>'));
-  ok('단추의 폭 clamp는 소스에 단추 한 자리뿐입니다', (full.match(/clamp\(88px, 27vw, 104px\)/g) || []).length === 2);
+  // 주석은 빼고 셉니다 — 단추 위의 주석이 그 값을 이름으로 부릅니다. 폭과 높이, 두 번.
+  ok('단추의 폭 clamp는 소스에 단추 한 자리뿐입니다', (tpl.match(/clamp\(88px, 27vw, 104px\)/g) || []).length === 2);
   ok('touch-action: manipulation도 단추 한 자리뿐입니다', (full.match(/touch-action:\s*manipulation/g) || []).length === 1);
   ok('예전 60px 막대의 흔적은 남아 있지 않습니다',
     ds.indexOf('[style*="height: 60px"]') < 0 && (full.match(/height:\s*60px/g) || []).length === 0);
