@@ -8436,6 +8436,13 @@ console.log('\n== 출근 전 알약 옆이 비어 있었습니다 — 근무중�
   ['vi', 'zh', 'th', 'id', 'km', 'ne'].forEach(k => { L[k] = require('../lang/' + k + '.json'); });
   const missing = ['vi', 'zh', 'th', 'id', 'km', 'ne'].filter(k => !(L[k].off_shift || '').trim());
   ok('여덟 언어 모두 근무 외를 말합니다', !!L.base.off_shift && L.base.off_shift.ko === '근무 외' && missing.length === 0, missing.join(' '));
+  // 리뷰 S1: 중국어 근무 외가 '下班'이었는데, 그 낱말은 앱의 퇴근(clock_out)과 같았습니다 — START
+  // 옆에서 '퇴근하라'는 말로 읽힙니다. 근무 외는 상태이지 동작이 아니므로, 어느 언어에서도
+  // 퇴근이라는 낱말을 빌려 쓰지 않습니다.
+  const outWord = k => (k === 'base' ? L.base.clock_out.ko : L[k].clock_out) || '';
+  const offWord = k => (k === 'base' ? L.base.off_shift.ko : L[k].off_shift) || '';
+  const borrows = ['base', 'vi', 'zh', 'th', 'id', 'km', 'ne'].filter(k => offWord(k).indexOf(outWord(k)) >= 0 || outWord(k).indexOf(offWord(k)) >= 0);
+  ok('근무 외는 어느 언어에서도 퇴근이라는 낱말이 아닙니다', borrows.length === 0, borrows.map(k => k + ':' + offWord(k)).join(' '));
   c.st().lang = 'ko';
   c.state.session = { inIso: new Date('2026-11-09T08:41:00').toISOString() };
   R = c.renderVals();
