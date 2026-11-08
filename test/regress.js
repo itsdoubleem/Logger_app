@@ -8485,6 +8485,9 @@ console.log('\n== 출근 전 알약 옆이 비어 있었습니다 — 근무중�
   ok('규칙 8c: 둥글고, 속이 빈 고리이고, 움직이지 않습니다',
     /\[style\*="width: 8px"\]\[style\*="height: 8px"\] \{[^}]*--radius-pill[^}]*inset 0 0 0 2px currentColor/.test(r8c.replace(/\n/g, ' '))
     && !/animation/.test(r8c.slice(r8c.indexOf('[style*='), r8c.indexOf('}') )));
+  // 리뷰 S1: 두 표시등을 한 칸에 겹쳐 감추게 되자, 감춘 근무중 등이 출근 전 내내 숨을 쉬었습니다(초당
+  // 약 60번 다시 그림). 감춘 등은 움직이지 않습니다.
+  ok('감춘 근무중 등은 숨 쉬지 않습니다', ds.indexOf('[style*="visibility: hidden"] > [style*="width: 9px"][style*="height: 9px"] { animation: none; }') >= 0);
   ok('규칙 8(숨 쉬는 등)은 여전히 9px만 잡습니다', ds.indexOf('[style*="width: 8px"][style*="height: 8px"] {') > ds.indexOf('@keyframes onshift-lamp-sm'));
   ok('두 단추 색은 토큰입니다', /--color-punch-start: #60b973;/.test(ds) && /--color-punch-stop: #e9806f;/.test(ds));
 }
@@ -8522,6 +8525,8 @@ console.log('\n== 이미 출근했습니다 줄은 빨간 기간 띠와 같은 �
       ko.backInTitleFs === 'clamp(10px, calc((100vw - 80px) / 26.7), 12px)' && ko.backInGlossLs === '0.06em', ko.backInTitleFs);
     ok('넘치지 않는 언어(영어)는 예전 그대로 12px / 9px',
       en.backInTitleFs === '12px' && en.backInGlossFs === '9px' && en.backInGlossLs === '0.12em');
+    // 리뷰 S2: 바닥에 닿는 320px의 한국어는 여전히 '입 / 력'으로 쪼개졌습니다 — 낱말 사이에서만 줄을 바꿉니다.
+    ok('제목은 낱말 가운데서 쪼개지지 않습니다(keep-all)', /word-break:keep-all">\{\{ L\.backInB \}\}/.test(after));
     ok('320px에서 넘치던 베트남어·인도네시아어도 줄어듭니다',
       /\/ 21\.6\)/.test(at('vi').backInTitleFs) && /\/ 24\.9\)/.test(at('id').backInTitleFs));
   }

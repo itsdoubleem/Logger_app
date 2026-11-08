@@ -664,6 +664,11 @@
                          0 0 0 2px   color-mix(in oklab, currentColor 22%, transparent),
                          0 0 0 3px   color-mix(in oklab, currentColor 9%, transparent); }
 }
+/* The punch card keeps both lamps in one cell and hides the inactive one
+   (visibility, so the button does not slide at the START tap — ninety-third
+   entry). Hidden, the ON SHIFT lamp must not keep breathing: off shift that
+   was ~60 style recalcs a second for nothing, all day (branch review S1). */
+[style*="visibility: hidden"] > [style*="width: 9px"][style*="height: 9px"] { animation: none; }
 /* A worker who has switched motion off keeps the lamp, without the breath. */
 @media (prefers-reduced-motion: reduce) {
   [style*="width: 9px"][style*="height: 9px"],

@@ -103,8 +103,8 @@ the pill and a lamp on one line beside it, and the clock under them.
   on `--color-accent-100` in `--color-accent-700` — 5.42 : 1. Shaped by rule 5b.
   The pill line starts at the column's left edge; the clock is centred in the
   column under it (the worker's choice, after the English `○ OFF SHIFT` line
-  ran wider than the clock and left it looking pushed to the left). On a 320px phone a long
-  lamp label (Indonesian, Khmer) drops to its own line under the pill.
+  ran wider than the clock and left it looking pushed to the left). The long
+  Indonesian lamp label drops to its own line under the pill at 320 and 360px.
 - **The clock** is the hero of the right column. Every form with a day count
   (`1d 13h 59m`, only when a shift was left open) uses the smaller
   `clamp(22px, 7vw, 34px)`. Measured at 320 / 360 / 384px in eight languages:
@@ -119,7 +119,8 @@ the pill and a lamp on one line beside it, and the clock under them.
   as wide as the longer label. Measured at 320 / 360 / 384px in four
   languages: centred to 1px, and the button moves 0px at the tap. Past ten
   hours the clock widens once and the button shifts about 12px, mid-shift.
-- Card height 126px at 320 and 142px at 384, against 188px for the bar design.
+- Card height 116px at 320 and 130px at 384 (Indonesian 134px), against 188px
+  for the bar design.
 - `preview-punch-circle.html` is the approved preview (option 1, the matched
   green). `mockup-punch.png` is the bar design it replaced, and
   `mockup-punch-tile.png` the centred tile before that — kept for the record.
