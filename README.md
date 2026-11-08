@@ -1,4 +1,4 @@
-# Handoff: 근무기록 Work Log — Korean shift & wage tracker
+# Handoff: LOGGER Work Log — Korean shift & wage tracker
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-ec3013.svg)](LICENSE)
 
@@ -11,13 +11,13 @@
 > and what changed. Source `WorkLogApp.v2.dc.html`, built with `python3 build.py`
 > into `dist-v2/`. Checks: `sh test/run.sh`.
 >
-> v2 ships in eight languages — 한국어, English, Tiếng Việt, 中文, ไทย, Bahasa
-> Indonesia, नेपाली, ភាសាខ្មែរ — with the Korean payslip terms kept visible beside
+> v2 ships in eight languages — Korean, English, Vietnamese, Chinese, Thai,
+> Indonesian, Nepali and Khmer — with the Korean payslip terms kept visible beside
 > every translation. Wording lives in `lang/*.json`; adding a language is adding a
 > file, then `python3 tools/sync_lang.py`.
 >
-> v2 also records **why** a day ended early (조퇴 사유) and computes 근로기준법
-> 제46조 휴업수당 on 평균임금, including partial-day shutdowns. See Part 2 §6–7 of
+> v2 also records **why** a day ended early (the early-leave reason) and computes the
+> Labor Standards Act Article 46 shutdown allowance on average wage, including partial-day shutdowns. See Part 2 §6–7 of
 > [`V2.md`](V2.md).
 >
 > v1 — everything described in this file — is unchanged and still builds with
@@ -29,47 +29,49 @@
 A working prototype of a work-log app for foreign workers in Korea (built with an EPS E-9
 worker, generalised for any visa/company). It records clock-in / clock-out, decides day vs
 night shift automatically, applies Korean overtime and night-premium law, and predicts the
-月 payslip. It is fully functional today — settings and records persist in localStorage.
+monthly payslip. It is fully functional today — settings and records persist in localStorage.
 
 It ships as an Android APK and an iPhone app, both wrapping the same offline web build.
-Punching is **one tap**: 출근 START to clock in, 퇴근 STOP to clock out. The wage engine is
+Punching is **one tap**: START to clock in, STOP to clock out. The wage engine is
 done and should be preserved exactly.
 
 ## What this is *not*
 
-It is a **calculator**, not a 공인노무사 and not a lawyer. It applies 근로기준법 to a record
-the worker keeps themselves and shows the arithmetic. It gives no legal advice, provides no
-labour consulting, drafts and files nothing on anyone's behalf, and is free — which is what
-keeps it clear of 공인노무사법 제27조, whose §1 reserves 노동관계법령 상담·지도 and 서류의
-작성·확인 *as a business* (업으로서) to licensed 노무사, and whose §2 also bars advertising
-that could be mistaken for it. Keep the app's own description in those terms.
+It is a **calculator**, not a certified labor attorney and not a lawyer. It applies the Labor
+Standards Act to a record the worker keeps themselves and shows the arithmetic. It gives no legal
+advice, provides no labour consulting, drafts and files nothing on anyone's behalf, and is free —
+which is what keeps it clear of Article 27 of the Certified Public Labor Attorney Act, whose §1
+reserves advice and guidance on labour law, and the drafting and checking of documents, *as a
+business* to licensed labor attorneys, and whose §2 also bars advertising that could be mistaken
+for it. Keep the app's own description in those terms.
 
 Everything it produces says so on its face:
 
-- the 근무내역서 opens with **이 문서는 근로자 본인이 작성한 기록입니다** — a self-record,
+- the work record opens with a bold line saying **the worker wrote this record themselves** — a self-record,
   not a certificate issued by a company or an agency — above the first table, not in grey
   type at the bottom;
-- its 안내 states that the document is not legal advice, that whether wages are owed is for
-  고용노동부 and a 노무사 or lawyer to decide, that the binding figures are on the company's
-  급여명세서, and where to get free help;
+- its notice states that the document is not legal advice, that whether wages are owed is for
+  the Ministry of Employment and Labor and a labor attorney or lawyer to decide, that the binding
+  figures are on the company's payslip, and where to get free help;
 - **no developer name is printed on it.** The tool name and version are, so the arithmetic
-  can be checked. Credit stays in 설정 › 정보, a screen only the worker sees;
-- the **worker's** name does appear, from 설정 › 백업과 내보내기 — on the document, in the
+  can be checked. Credit stays in Setup › About, a screen only the worker sees;
+- the **worker's** name does appear, from Setup › Backup and export — on the document, in the
   CSV's first column, and in both file names, so that three workmates at one factory who
-  each submit a 근무내역서 produce three documents that can be told apart. It is optional,
-  and a document made without it says **성명 미기재** on its face rather than going out
+  each submit a work record produce three documents that can be told apart. It is optional,
+  and a document made without it says **name not given** on its face rather than going out
   silently anonymous;
 - the **employer** appears too, and is stamped per pay period alongside the wage basis, so
   changing jobs never rewrites an old document. Where no employer was recorded for a
   period, the document says it is showing the current setting rather than pretending to
-  know. The 근무내역서 is made in exactly one place — 설정 › 백업과 내보내기, beside the
+  know. The work record is made in exactly one place — Setup › Backup and export, beside the
   backup and CSV exports.
 
-Free help, in the app and on every document: **고용노동부 고객상담센터 ☎ 1350** (weekdays
-09:00–18:00, interpreters), the 노동포털 at labor.moel.go.kr, and any 외국인노동자지원센터.
+Free help, in the app and on every document: **the Ministry of Employment and Labor customer
+center ☎ 1350** (weekdays 09:00–18:00, interpreters), the labour portal at labor.moel.go.kr, and
+any foreign workers' support center.
 
 Three things would cross the line and must not be added: telling the worker what action to
-take, drafting or filing a 진정 for them, and charging for the calculation.
+take, drafting or filing a labour complaint for them, and charging for the calculation.
 
 ## About the design files
 `근무기록-WorkLog.html` is a single self-contained file — the entire app, offline, no server.
@@ -89,9 +91,9 @@ Every interactive target is >= 44px. Do not round corners, do not center button 
 
 ### 1. The punch pad — one tap, no fingerprint
 The pad was a WebAuthn fingerprint prompt (with press-and-hold as the fallback) until
-2026-10-26. It is now a single full-width START / STOP bar: 출근 and the time on the line
-above it and a green ▶ START when the worker is off shift; 퇴근, the 근무중 lamp and a red
-■ STOP while on shift. The app counts hours; it does
+2026-10-26. It is now a single full-width START / STOP bar: a clock-in label and the time on the
+line above it and a green ▶ START when the worker is off shift; a clock-out label, the ON SHIFT
+lamp and a red ■ STOP while on shift. The app counts hours; it does
 not need to verify who pressed, and with no server there was never anything to check a
 signature against. `CHANGELOG.md` (eighty-sixth entry) has the reasoning.
 
@@ -126,12 +128,12 @@ screen" installs it properly and it opens offline.
 All of it lives in the `Component` class in `WorkLogApp.v2.dc.html`. Read `calc()`,
 `snapIn()`, `snapOut()`, `detectShift()`, `period()`, `legalGap()`.
 
-**Rates** (all derived from 기본금, nothing hardcoded):
-- hourly = 기본금 ÷ 기준시간 (default 209) — e.g. 2,156,880 ÷ 209 = ₩10,320
-- 잔업 overtime = hourly × 1.5, on hours past 8 net in a day
-- 야간심야 night premium = hourly × 0.5, on any hour worked 22:00–06:00 (stacks with OT)
-- 특근 holiday work = hourly × 1.5 (company practice)
-- Legal 휴일근로 (근로기준법 §56②) = ×1.5 first 8h, **×2.0 past 8h**
+**Rates** (all derived from base pay, nothing hardcoded):
+- hourly = base pay ÷ standard hours (default 209) — e.g. 2,156,880 ÷ 209 = ₩10,320
+- overtime = hourly × 1.5, on hours past 8 net in a day
+- night premium = hourly × 0.5, on any hour worked 22:00–06:00 (stacks with OT)
+- holiday work = hourly × 1.5 (company practice)
+- Legal holiday work (Labor Standards Act §56②) = ×1.5 first 8h, **×2.0 past 8h**
 - OT / night / holiday hours floor to 0.5h
 
 **Punch rounding — asymmetric, this matters:**
@@ -142,7 +144,7 @@ All of it lives in the `Component` class in `WorkLogApp.v2.dc.html`. Read `calc(
   20:45 -> 21:00). A new install starts at 0, so nothing is credited that the company
   may not give; set it to what your company actually does.
 
-**Shift detection:** the user sets their own 주간 시작 / 야간 시작 times. A punch is logged as
+**Shift detection:** the user sets their own day-shift start / night-shift start times. A punch is logged as
 whichever of the two it is *circularly nearer* to. No fixed windows. Watch the wrap-around
 maths — `(((a-b) % 24) + 24) % 24`, then `min(d, 24-d)`. Getting this wrong silently
 misclassifies shifts.
@@ -160,22 +162,25 @@ the app refuses to auto-close and sends the user to the manual entry sheet.
 
 **Why a day was short (v2 only).** A punch-out below the worker's own recent median
 for that shift kind opens a popup offering twelve translated reasons in a dropdown,
-each carrying a legal classification: `employer` (자재·금형·물량 등) puts the day under
-근로기준법 제46조, `worker` (조퇴) does not, `other` routes 업무 중 부상 to 산재보험. The
+each carrying a legal classification: `employer` (no materials, a broken mould, no orders and
+the like) puts the day under Labor Standards Act Article 46, `worker` (leaving early by choice)
+does not, `other` routes an injury at work to industrial accident insurance. The
 same popup is how a past day is tagged from its LOGS row, and how a day recorded by
 "sent home" or "record it anyway" gets its reason. The reason is stored with its
-Korean text so the 근무내역서 prints Korean whatever language the app is set to. 휴업수당 is 평균임금 × 70% — floored by 제2조② and capped by the
-제46조① proviso, not 통상임금 as v1's successor first had it.
+Korean text so the work record prints Korean whatever language the app is set to. The
+shutdown allowance is average wage × 70% — floored by Article 2② and capped by the
+Article 46① proviso, not ordinary wage as v1's successor first had it.
 
-**Day types with no punch:** 연차 (annual leave), 휴가 (vacation), 특근 (holiday worked).
-Leave pays 8h regular — already inside 기본금 — so it adds no variable pay. Korean public
-holidays for 2026–2027 are built in (including lunar 설날/추석/부처님오신날 which move each
-year); leave ranges skip weekends and red days. Saturday is treated as 무급휴무일 (overtime
-only, no ×2.0 tier) unless the user flags their company designates it a 휴일.
+**Day types with no punch:** annual leave, vacation, holiday worked.
+Leave pays 8h regular — already inside base pay — so it adds no variable pay. Korean public
+holidays for 2026–2027 are built in (including Lunar New Year, Chuseok and Buddha's Birthday, which follow the lunar
+calendar and move each year); leave ranges skip weekends and red days. Saturday is treated as an unpaid day off
+(overtime only, no ×2.0 tier) unless the user flags that their company designates it a holiday.
 
-**Deductions:** 4대보험 can auto-calc from 보수월액 at 2026 rates (건강보험 3.545% employee,
-장기요양 = 건강보험 × 13.14%, 국민연금 4.5%), or be typed manually. 소득세 is estimated from
-근로소득 간이세액표 behaviour; 주민세 is always 10% of 소득세. Users can add their own rows.
+**Deductions:** the four major insurances can auto-calc from the monthly pay base at 2026 rates
+(Health Insurance 3.545% employee, long-term care = Health Insurance × 13.14%, National Pension
+4.5%), or be typed manually. Income tax is estimated from the behaviour of the simplified
+withholding tax table for earned income; local income tax is always 10% of income tax. Users can add their own rows.
 
 ## Non-negotiables
 1. **No server, no account, no telemetry.** Data stays on the device. Add an export/backup
@@ -200,12 +205,12 @@ MIT — see [LICENSE](LICENSE). Third-party notices, including React's, are in
 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
 The licence is deliberate rather than incidental. This app makes a strong claim —
-that nothing leaves the device — and the cheapest way for a 노무사, an NGO or a
-근로감독관 to check that claim is to read the source and the manifest themselves.
-MIT also lets a 외국인노동자지원센터 mirror the APK and hand it out without asking
+that nothing leaves the device — and the cheapest way for a labor attorney, an NGO or a
+labour inspector to check that claim is to read the source and the manifest themselves.
+MIT also lets a foreign workers' support center mirror the APK and hand it out without asking
 anyone's permission, which is how a free tool actually reaches the people it was
 built for.
 
 What the licence does **not** change is [what this is not](#what-this-is-not): it
 remains a calculator, it gives no legal advice, and it stays free. The MIT warranty
-disclaimer is not a substitute for the 안내 printed on every 근무내역서.
+disclaimer is not a substitute for the notice printed on every work record.
