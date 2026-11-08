@@ -8509,6 +8509,22 @@ console.log('\n== 이미 출근했습니다 줄은 빨간 기간 띠와 같은 �
   ok('분홍 줄에 min-height가 없습니다 — 있으면 규칙 2c가 잡고 높이가 다시 커집니다', !/min-height/.test(row));
   ok('cursor:pointer와 padding:9px 18px을 함께 가진 것은 분홍 줄 하나뿐입니다',
     (tpl.match(/style="[^"]*"/g) || []).filter(x => /cursor:pointer/.test(x) && /padding:9px 18px/.test(x)).length === 1);
+  // 같은 날 다시: 한국어에서는 제목과 영어 보조 줄이 한 줄에 들어가지 않아 '입 / 력'으로 쪼개지고 52px이
+  // 됐습니다. 넘치는 언어만 글자를 줄여 한 줄로 — 384px 폰의 한국어는 제목 11.4px, 보조 줄 8.5px.
+  {
+    const after = tpl.slice(tpl.indexOf(row), tpl.indexOf(row) + 900);
+    ok('제목과 보조 줄의 크기는 renderVals가 언어마다 정합니다',
+      /font-size:\{\{ backInTitleFs \}\};[^"]*">\{\{ L\.backInB \}\}/.test(after)
+      && /font-size:\{\{ backInGlossFs \}\};letter-spacing:\{\{ backInGlossLs \}\};[^"]*">\{\{ L\.backInBEn \}\}/.test(after));
+    const at = lang => { const c = mk(V2, '2026-11-09T08:41:00'); c.st().lang = lang; return c.renderVals(); };
+    const ko = at('ko'), en = at('en');
+    ok('한국어는 폭에 따라 줄어듭니다 — 바닥 10px, 꼭대기 12px',
+      ko.backInTitleFs === 'clamp(10px, calc((100vw - 80px) / 26.7), 12px)' && ko.backInGlossLs === '0.06em', ko.backInTitleFs);
+    ok('넘치지 않는 언어(영어)는 예전 그대로 12px / 9px',
+      en.backInTitleFs === '12px' && en.backInGlossFs === '9px' && en.backInGlossLs === '0.12em');
+    ok('320px에서 넘치던 베트남어·인도네시아어도 줄어듭니다',
+      /\/ 21\.6\)/.test(at('vi').backInTitleFs) && /\/ 24\.9\)/.test(at('id').backInTitleFs));
+  }
   const r1d = ds.slice(ds.indexOf('── 1d ·'), ds.indexOf('── 2c ·'));
   ok('손가락 칸은 위아래 4px씩 늘어 44px입니다',
     /\[style\*="cursor: pointer"\]\[style\*="padding: 9px 18px"\] \{ overflow: visible; \}/.test(r1d)
