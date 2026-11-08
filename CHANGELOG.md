@@ -157,6 +157,8 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
   같은 여백 9px 18px와 16px 줄로 36px에 맞췄습니다. 분홍 줄은 단추라 손가락 칸은 44px을 지킵니다 —
   층 규칙 1d가 위로 4px, 아래로 4px(아래 테두리 2px 때문에 -6px) 보이지 않게 늘립니다. 한국어에서는
   제목과 영어 줄이 한 줄에 들어가지 않아 두 줄, 52px입니다.
+- **그 줄의 색은 STOP 단추와 같은 연어색으로.** 바탕이 `--color-punch-stop`이 되었고, 회색 보조 줄
+  (출근 시간 직접 입력 / CLOCK IN AT AN EARLIER TIME)은 그 위에서 1.75:1이라 진한 잉크(6.2:1)로 바꿨습니다.
 - **시계**는 오른쪽 칸으로 옮겨 칸이 좁아졌습니다. 날 수가 붙는 모든 꼴(예전에는 두 자리 날
   수부터)이 작은 시계 `clamp(22px, 7vw, 34px)`를 씁니다.
 
@@ -165,7 +167,7 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 진짜 원(50%), 고리는 움직이지 않고 근무중 등은 숨 쉽니다. 320px의 22px START는 88px 원의
 가장자리에 8px까지 붙어 19px로 줄였습니다(12px). 카드 높이는 188 → 126–142px.
 막대를 붙들던 시험 29개를 새 모양으로 다시 썼고(교훈은 그대로), 근무 외 표시를 붙드는 시험을
-더했습니다. 27 new assertions (3688 total).
+더했습니다. 29 new assertions (3690 total).
 
 **다음 사람에게.** 빈자리를 채우려고 문장을 넣고 싶어지면, 다른 상태에서 그 자리에 무엇이 서
 있는지 먼저 보십시오. 대개 빠진 것은 문장이 아니라 그 짝입니다. 그리고 근로자가 자기 그림을
