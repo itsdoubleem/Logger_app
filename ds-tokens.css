@@ -69,6 +69,12 @@
   /* the mark green's own tint — the 출근 pill on the punch card. #127e38 on it
      is 4.63:1 (AA for 14px text); the tint is the green mixed ~8% into white */
   --color-mark-100: #ebf5ee;
+  /* the round punch button (2026-11-09, ninety-third entry). The salmon is the
+     worker's own pick; the green has its OKLCH lightness and chroma (L 0.71,
+     C 0.13) at the mark's hue 149, so the two read as one pair. Dark text
+     (--color-text) on them is 6.9:1 and 6.2:1. */
+  --color-punch-start: #60b973;
+  --color-punch-stop: #e9806f;
 
   /* ── shape · added 2026-08-30 ─────────────────────────────────────────
    * The flat era set no border-radius and no box-shadow anywhere, so these
@@ -485,15 +491,22 @@
    twice a day: the old hold drew a red fill that said "it landed", and a tap
    with no answer gets pressed again. The odd-shift and 1.5 s guards catch the
    second press, but the screen should say it first. */
-[style*="height: 60px"][style*="touch-action: manipulation"] {
-  border-radius: 18px;
-  background: var(--color-bg);
-  box-shadow: inset 0 0 0 1px var(--color-neutral-300), var(--shadow-card);
-  transition: background-color .12s ease;
+/* 2026-11-09 (ninety-third entry): the bar became the round button from the
+   worker's own drawing — left of the pill and the clock, filled with
+   --color-punch-start / --color-punch-stop (set inline per state), dark text,
+   no icon. Caught now by its own width, `clamp(88px, 27vw, 104px)`, together
+   with `touch-action: manipulation`; the width string lives in the source,
+   this selector and test/regress.js — change all three together.
+   The background is NOT set here: the state colour comes inline. Pressed, it
+   darkens a step and sinks slightly; a light fill under dark text, so
+   brightness goes *down* (fiftieth entry: a dark control would need up). */
+[style*="clamp(88px, 27vw, 104px)"][style*="touch-action: manipulation"] {
+  border-radius: 50%;
+  transition: filter .12s ease, transform .12s ease;
 }
-/* only the plate darkens — a filter would dim the ▶ START ink with it */
-[style*="height: 60px"][style*="touch-action: manipulation"]:active {
-  background-color: var(--color-neutral-300);
+[style*="clamp(88px, 27vw, 104px)"][style*="touch-action: manipulation"]:active {
+  filter: brightness(.9);
+  transform: scale(.97);
 }
 
 /* ── 5b · the 출근 / 퇴근 pill above the punch clock ────────────────────── */
@@ -642,4 +655,19 @@
 @media (prefers-reduced-motion: reduce) {
   [style*="width: 9px"][style*="height: 9px"],
   [style*="width: 4px"][style*="height: 4px"] { animation: none; }
+}
+
+/* ── 8c · the OFF SHIFT ring ───────────────────────────────────────────── */
+/* The opposite of the ON SHIFT lamp, beside the 출근 pill before a shift
+   (2026-11-09, ninety-third entry). ON SHIFT is lit and breathes; OFF SHIFT
+   is the same lamp switched off — an empty grey ring that does not move, so
+   the two states differ in two ways at once: fill and motion. It replaces
+   the filler line the worker had drawn there ("TAP START TO START SHIFT").
+   Caught by its own geometry, `width: 8px` + `height: 8px`, which occurs
+   once in the source (a test holds that). Not 9px: that would put it under
+   rule 8 and make an unlit lamp breathe. The ring is currentColor, set inline
+   to --color-neutral-500, a step lighter than its label. */
+[style*="width: 8px"][style*="height: 8px"] {
+  border-radius: var(--radius-pill);
+  box-shadow: inset 0 0 0 2px currentColor;
 }

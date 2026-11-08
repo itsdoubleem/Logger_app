@@ -1707,6 +1707,10 @@
     "en": "ON SHIFT",
     "ko": "근무중"
   },
+  "off_shift": {
+    "en": "OFF SHIFT",
+    "ko": "근무 외"
+  },
   "on_shift_in_not_clocked_out": {
     "en": "ON SHIFT · in {p0} · not clocked out",
     "ko": "근무중 · {p0} 출근 · 퇴근 아직"

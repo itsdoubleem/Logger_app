@@ -8163,14 +8163,15 @@ console.log('\n== 카드를 쓸면 화면이 굳었고, 짚으면 출근이 찍�
   // (2026-10-26) 지문과 길게 누르기가 빠졌고, 같은 날 가운데 상자가 카드 너비의
   // 단추가 되었습니다(여든일곱째) — 카드 여백은 16px 48px 18px. 교훈은 그대로입니다:
   // 찍는 것은 단추 하나이고, 카드와 글자와 시각은 손잡이가 아닙니다.
-  const pad = tpl.match(/<div style="position:relative;overflow:hidden;[^"]*padding:16px 48px 18px;[^"]*"[^>]*>/);
+  // (2026-11-09) 근로자가 그린 둥근 단추로 — 카드 여백은 18px 20px(아흔셋째).
+  const pad = tpl.match(/<div style="position:relative;overflow:hidden;[^"]*padding:18px 20px;[^"]*"[^>]*>/);
   ok('출퇴근 카드가 그대로 있습니다', !!pad);
   const padTag = pad ? pad[0] : '';
   ok('카드는 더 이상 손잡이가 아닙니다',
     padTag.indexOf('onClick') < 0 && padTag.indexOf('onPointerDown') < 0, padTag);
   ok('카드가 스크롤을 먹지 않습니다', padTag.indexOf('touch-action') < 0, padTag);
 
-  const box = tpl.match(/<div [^>]*height:60px;[^>]*touch-action:manipulation[^>]*>/);
+  const box = tpl.match(/<div [^>]*width:clamp\(88px, 27vw, 104px\);[^>]*touch-action:manipulation[^>]*>/);
   ok('출퇴근 단추가 그대로 있습니다', !!box);
   const boxTag = box ? box[0] : '';
   ok('찍는 것은 출퇴근 단추입니다', /onClick="\{\{ padTap \}\}"/.test(boxTag), boxTag);
@@ -8180,12 +8181,12 @@ console.log('\n== 카드를 쓸면 화면이 굳었고, 짚으면 출근이 찍�
     boxTag.indexOf('touch-action:none') < 0 && boxTag.indexOf('touch-action:manipulation') >= 0, boxTag);
   ok('출퇴근 단추가 손가락에게 단추라고 말합니다',
     boxTag.indexOf('cursor:pointer') >= 0, boxTag);
-  // 층 규칙 5는 height 60px + touch-action manipulation 두 값으로만 단추를 잡습니다 —
-  // 높이를 바꾸면 세 곳(소스·ds-tokens.css·여기)을 같이.
+  // 층 규칙 5는 단추의 폭 clamp(88px, 27vw, 104px) + touch-action manipulation 두 값으로만
+  // 단추를 잡습니다 — 크기를 바꾸면 세 곳(소스·ds-tokens.css·여기)을 같이.
   const ds = fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
-  ok('출퇴근 단추는 층 규칙 5가 잡는 60px입니다',
-    ds.indexOf('[style*="height: 60px"][style*="touch-action: manipulation"]') >= 0
-    && /height:60px;/.test(boxTag));
+  ok('출퇴근 단추는 층 규칙 5가 잡는 둥근 단추입니다',
+    ds.indexOf('[style*="clamp(88px, 27vw, 104px)"][style*="touch-action: manipulation"]') >= 0
+    && /width:clamp\(88px, 27vw, 104px\);height:clamp\(88px, 27vw, 104px\);/.test(boxTag), boxTag);
   // 손잡이는 하나뿐이어야 합니다 — 카드 안에 또 다른 padTap이 생기면 안 됩니다.
   ok('padTap은 화면에 한 자리뿐입니다', (tpl.match(/\{\{ padTap \}\}/g) || []).length === 1);
 }
@@ -8231,8 +8232,9 @@ console.log('\n== 지문은 필요 없었습니다 — 한 번 누르면 출근,
   let R = c.renderVals();
   ok('출근 전: 위에는 출근', R.padStamp === '출근', R.padStamp);
   ok('출근 전: 아래에는 START', R.padTitle === 'START', R.padTitle);
-  ok('출근 전: ▶가 보이고 ■는 숨습니다', R.padOff === true && R.padLive === false);
-  ok('출근 쪽 글자는 앱의 초록입니다', R.padStampInk === R.padIconInk && /^oklch/.test(R.padIconInk), R.padStampInk);
+  ok('출근 전: 근무 외 표시가 서고 근무중은 숨습니다', R.padOff === true && R.padLive === false);
+  // (2026-11-09, 아흔셋째) 단추가 둥글어지며 글자 대신 바탕이 상태를 말합니다.
+  ok('출근 전 단추는 초록 바탕입니다', R.padBtnBg === 'var(--color-punch-start)', R.padBtnBg);
   ok('패드에 지문 안내 문장이 없습니다', !('padSub' in R));
 
   R.padTap();
@@ -8243,8 +8245,8 @@ console.log('\n== 지문은 필요 없었습니다 — 한 번 누르면 출근,
     c.state.session && c.state.session.inIso === inIso && !c.state.shortOut);
   R = c.renderVals();
   ok('근무 중: 위에는 퇴근, 아래에는 STOP', R.padStamp === '퇴근' && R.padTitle === 'STOP');
-  ok('근무 중: ■가 보이고 ▶는 숨습니다', R.padLive === true && R.padOff === false);
-  ok('퇴근 쪽 글자는 앱의 빨강입니다', R.padStampInk === 'var(--color-accent)', R.padStampInk);
+  ok('근무 중: 근무중 표시가 서고 근무 외는 숨습니다', R.padLive === true && R.padOff === false);
+  ok('근무 중 단추는 연어색 바탕입니다', R.padBtnBg === 'var(--color-punch-stop)', R.padBtnBg);
 
   // 2초 뒤의 두 번째 누름은 진짜 누름입니다 — 다만 30분이 안 됐으니 퇴근이 되지 않고
   // 출근을 취소할 길을 내밉니다. 주머니 속 실수를 받는 것은 이쪽입니다.
@@ -8290,16 +8292,18 @@ console.log('\n== 지문은 필요 없었습니다 — 한 번 누르면 출근,
   ok('출근하는 법은 출근 START를 누르는 것입니다',
     c.T('tour1_body').indexOf('출근 START') >= 0 && c.T('tour1_body').indexOf('퇴근 STOP') >= 0, c.T('tour1_body'));
 
-  // 크기는 예전의 3분의 2 — 글자는 숫자로 고정해 둡니다(docs/design/DESIGN.md).
+  // 크기는 숫자로 고정해 둡니다(docs/design/DESIGN.md).
   const pad = tpl.slice(tpl.indexOf('{{ padStamp }}') - 300, tpl.indexOf('{{ padBig }}') + 20);
   // (같은 날 가운데 시계로 바뀌며 출근/퇴근은 14px 알약 — 여든일곱째)
   ok('출근/퇴근은 14px 알약', /font-size:14px;[^"]*">\{\{ padStamp \}\}/.test(pad));
-  // (같은 날 넓은 단추와 가운데 시계로 바뀌며: START/STOP은 단추 안 15px, 시각은 가운데
-  // 32–44px, ▶·■는 26px — 여든일곱째)
-  const padAll = tpl.slice(tpl.indexOf('{{ padStamp }}') - 300, tpl.indexOf('{{ padTitle }}') + 20);
-  ok('START/STOP은 15px', /font-size:15px;[^"]*">\{\{ padTitle \}\}/.test(padAll));
+  // (2026-11-09, 아흔셋째) 둥근 단추 안의 START/STOP은 600, 진한 잉크 — 근로자가 그린
+  // 그대로. 크기는 19–22px: 320px 폰의 88px 단추에서 22px START는 가장자리에 닿았습니다.
+  // ▶·■ 그림은 없습니다.
+  const padAll = tpl.slice(tpl.indexOf('{{ padTap }}') - 20, tpl.indexOf('{{ padBig }}') + 20);
+  ok('START/STOP은 19–22px 600, 진한 잉크',
+    /font-weight:600;font-size:clamp\(19px, 5\.8vw, 22px\);[^"]*color:var\(--color-text\)">\{\{ padTitle \}\}/.test(padAll));
   ok('시각의 크기는 renderVals가 정합니다', /font-size:\{\{ padBigFs \}\};[^"]*">\{\{ padBig \}\}/.test(padAll));
-  ok('▶와 ■는 26px', (padAll.match(/<svg width="26" height="26"/g) || []).length === 2);
+  ok('단추에 ▶·■ 그림이 없습니다', padAll.length > 100 && !/<svg/.test(padAll));
 }
 
 console.log('\n== 출퇴근 카드의 양옆이 비어 있었습니다 — 넓은 단추로 ==');
@@ -8317,17 +8321,22 @@ console.log('\n== 출퇴근 카드의 양옆이 비어 있었습니다 — 넓�
   const fs = require('fs');
   const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
   const tpl = src.slice(0, src.indexOf('</x-dc>')).replace(/<!--[\s\S]*?-->/g, '');
-  const i0 = tpl.indexOf('padding:16px 48px 18px'), i1 = tpl.indexOf('{{ padTitle }}');
+  // 2026-11-09(아흔셋째): 근로자가 그린 모양 — 왼쪽에 둥근 단추, 오른쪽에 알약·표시등 한
+  // 줄과 그 아래 시계. 아래 검사들은 그 모양을 붙들되, 여든일곱째의 교훈(단추는 글자와
+  // 시각을 덮지 않는다, 알약은 쪼개지지 않는다, 시계는 한 줄)은 그대로 지킵니다.
+  const i0 = tpl.indexOf('padding:18px 20px;border-bottom'), i1 = tpl.indexOf('{{ padBig }}');
   const pad = tpl.slice(i0, i1 + 40);
   const bar = (pad.match(/<div onClick="\{\{ padTap \}\}"[^>]*>/) || [''])[0];
-  const head = pad.slice(0, pad.indexOf(bar));
-  // 같은 날 세 번째: '왼쪽 출근, 오른쪽 시각'은 크기도 색도 다른 둘이 양끝에 떨어져
-  // 서로 상관없어 보였습니다. 이제 알약 · 시계 · 단추가 한 가운데 줄에 섭니다.
-  ok('알약과 시계와 단추가 한 가운데 줄에 섭니다',
-    head.indexOf('{{ padStamp }}') >= 0 && head.indexOf('{{ padBig }}') > head.indexOf('{{ padStamp }}')
-    && /flex-direction:column;align-items:center/.test(head) && !/justify-content:space-between/.test(head));
+  const head = pad.slice(pad.indexOf(bar) + bar.length);
+  ok('단추가 왼쪽, 알약과 시계가 오른쪽에 나란히 섭니다',
+    i0 > 0 && !!bar && pad.indexOf(bar) < pad.indexOf('{{ padStamp }}')
+    && head.indexOf('{{ padBig }}') > head.indexOf('{{ padStamp }}')
+    && /display:flex;align-items:center;/.test(tpl.slice(i0 - 120, i0)) && !/flex-direction:column/.test(tpl.slice(i0 - 120, i0)));
+  ok('알약과 시계는 같은 왼쪽 끝에서 시작합니다', /flex-direction:column;align-items:flex-start/.test(head));
   ok('근무중 표시는 알약 옆입니다', head.indexOf('{{ padLiveMsg }}') > head.indexOf('{{ padStamp }}')
     && head.indexOf('{{ padLiveMsg }}') < head.indexOf('{{ padBig }}'));
+  ok('근무 외 표시도 같은 자리, 알약 옆입니다', head.indexOf('{{ padOffMsg }}') > head.indexOf('{{ padStamp }}')
+    && head.indexOf('{{ padOffMsg }}') < head.indexOf('{{ padBig }}'));
   const dsx = fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
   const chipTag = (head.match(/<div style="[^"]*">\{\{ padStamp \}\}/) || [''])[0];
   ok('알약은 정해진 바탕과 글자 색을 씁니다', /background:\{\{ padChipBg \}\}/.test(chipTag) && /color:\{\{ padChipInk \}\}/.test(chipTag), chipTag);
@@ -8343,6 +8352,11 @@ console.log('\n== 출퇴근 카드의 양옆이 비어 있었습니다 — 넓�
     const tok = n => ((dsx.match(new RegExp('--' + n + ':\\s*#([0-9a-fA-F]{6})')) || [])[1] || '');
     ok('초록 알약: #127e38 on --color-mark-100 ≥ 4.5', cr('127e38', tok('color-mark-100')) >= 4.5, tok('color-mark-100'));
     ok('빨강 알약: accent-700 on accent-100 ≥ 4.5', cr(tok('color-accent-700'), tok('color-accent-100')) >= 4.5);
+    // 둥근 단추의 START/STOP은 22px 600 진한 잉크 — 두 바탕 위에서 모두 4.5:1을 넘습니다.
+    ok('START: 진한 잉크 on --color-punch-start ≥ 4.5', cr(tok('color-text'), tok('color-punch-start')) >= 4.5, tok('color-punch-start'));
+    ok('STOP: 진한 잉크 on --color-punch-stop ≥ 4.5', cr(tok('color-text'), tok('color-punch-stop')) >= 4.5, tok('color-punch-stop'));
+    // '근무 외' 글자(neutral-600)는 흰 카드 위에서 4.5:1
+    ok('근무 외 글자: neutral-600 on 흰 카드 ≥ 4.5', cr('747372', 'ffffff') >= 4.5 && /color:var\(--color-neutral-600\)[^"]*">\s*<div style="width:8px/.test(head.replace(/\n/g, '')));
     const c0 = mk(V2, '2026-10-26T08:50:00');
     let R0 = c0.renderVals();
     ok('출근 전 알약은 옅은 초록 바탕', R0.padChipBg === 'var(--color-mark-100)' && /^oklch/.test(R0.padChipInk));
@@ -8350,58 +8364,93 @@ console.log('\n== 출퇴근 카드의 양옆이 비어 있었습니다 — 넓�
     R0 = c0.renderVals();
     ok('근무 중 알약은 옅은 빨강 바탕에 accent-700', R0.padChipBg === 'var(--color-accent-100)' && R0.padChipInk === 'var(--color-accent-700)');
   }
-  // 같은 날 다시: 단추가 카드 끝까지 닿아 너무 넓다 — 양옆 여백을 18 → 32 → 40 → 48px로. 글자와
-  // 시각은 단추와 같은 여백 안에 있어야 합니다(한 줄로 서 있게).
-  ok('카드의 양옆 여백은 48px — 단추와 윗줄이 같은 여백 안에 섭니다', /padding:16px 48px 18px/.test(pad.slice(0, 80)) || /padding:16px 48px 18px/.test(tpl.slice(i0 - 10, i0 + 30)));
-  ok('단추는 카드 너비입니다 — 폭을 정하지 않고 늘어납니다',
-    !!bar && !/width:/.test(bar) && /height:60px/.test(bar));
+  ok('단추는 둥근 정사각입니다 — 폭과 높이가 같은 clamp', /width:clamp\(88px, 27vw, 104px\);height:clamp\(88px, 27vw, 104px\)/.test(bar), bar);
+  ok('단추의 바탕은 renderVals가 상태마다 정합니다', /background:\{\{ padBtnBg \}\}/.test(bar), bar);
   ok('단추는 글자와 시각을 덮지 않습니다', head.indexOf('padTap') < 0 && (tpl.match(/\{\{ padTap \}\}/g) || []).length === 1);
-  ok('단추 안에 ▶/■와 START/STOP이 함께 있습니다',
-    pad.slice(pad.indexOf(bar)).indexOf('{{ padTitle }}') > 0 && (pad.slice(pad.indexOf(bar)).match(/<svg width="26"/g) || []).length === 2);
   ok('단추에 min-height가 없습니다 — 규칙 2c가 모서리를 가로채지 않게', !/min-height/.test(bar));
   ok('단추에 테두리가 없습니다 — 규칙 2가 모서리를 가로채지 않게', !/border:/.test(bar));
   ok('소스에는 여전히 border-radius가 없습니다', !/border-radius/.test(tpl));
   const ds = fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
-  const r5 = ds.slice(ds.indexOf("── 5 · the punch pad's START / STOP button"), ds.indexOf('── 6 · the tab bar'));
-  ok('규칙 5가 단추의 모서리를 둥글게 합니다', /border-radius: 18px/.test(r5));
-  ok('눌린 단추는 그 자리에서 답합니다', /:active\s*\{[^}]*background-color/.test(r5));
-  // 리뷰 S2: 규칙 5의 두 글자는 단추 하나에만 있어야 합니다. [style*="height: 60px"]는
-  // min-height: 60px과 line-height: 60px에도 걸리고, touch-action: manipulation은 다음
-  // 사람이 빨리 눌리는 단추에 그대로 옮겨 붙일 첫 값입니다 — 둘 다 붙은 요소는 조용히
-  // 이 단추의 모서리·바탕·눌림을 받습니다.
+  const r5 = ds.slice(ds.indexOf("── 5 · the punch pad's START / STOP button"), ds.indexOf('── 5b ·'));
+  ok('규칙 5가 단추를 둥글게 합니다', /border-radius: 50%/.test(r5));
+  ok('눌린 단추는 그 자리에서 답합니다 — 밝은 바탕이라 어둡게', /:active\s*\{[^}]*filter: brightness\(\.9\)/.test(r5));
+  ok('규칙 5는 바탕을 정하지 않습니다 — 상태 색은 소스에서 옵니다', !/background/.test(r5.slice(r5.indexOf('[style*='))));
+  // 리뷰 S2(여든일곱째): 규칙 5의 두 값은 단추 하나에만 있어야 합니다 — 둘 다 붙은 요소는
+  // 조용히 이 단추의 모서리와 눌림을 받습니다.
   const full = src.slice(0, src.indexOf('</x-dc>'));
-  ok('height: 60px은 소스에 단추 한 자리뿐입니다', (full.match(/height:\s*60px/g) || []).length === 1);
+  ok('단추의 폭 clamp는 소스에 단추 한 자리뿐입니다', (full.match(/clamp\(88px, 27vw, 104px\)/g) || []).length === 2);
   ok('touch-action: manipulation도 단추 한 자리뿐입니다', (full.match(/touch-action:\s*manipulation/g) || []).length === 1);
+  ok('예전 60px 막대의 흔적은 남아 있지 않습니다',
+    ds.indexOf('[style*="height: 60px"]') < 0 && (full.match(/height:\s*60px/g) || []).length === 0);
   // 리뷰 S1: 좁은 폰(320–360px)에서 근무중 문구가 길면 '퇴근'이 퇴 / 근으로 쪼개졌습니다.
   // 한글은 아무 음절 사이에서나 줄이 바뀝니다 — 도장은 줄어들지 않고, 줄지는 쪽은 등입니다.
   const stampTag = (head.match(/<div style="[^"]*">\{\{ padStamp \}\}/) || [''])[0];
   ok('출근/퇴근은 줄어들지도 쪼개지지도 않습니다', /flex:none/.test(stampTag) && /white-space:nowrap/.test(stampTag), stampTag);
   const timeTag = (head.match(/<div style="[^"]*">\{\{ padBig \}\}/) || [''])[0];
   ok('시각은 한 줄입니다', /white-space:nowrap/.test(timeTag), timeTag);
-  // 리뷰 S1: max-width는 상자를 묶을 뿐 글자를 묶지 않습니다. 몇 주째 열린 근무의
-  // '45d 13h 59m'은 320–360px 폰에서 44px 시계의 칸을 넘었습니다 — 두 자리 날 수에는
-  // 한 단계 작은 시계를 씁니다.
+  // 시계가 단추 옆 칸으로 옮겨 칸이 좁아졌습니다 — 날 수가 붙는 모든 꼴은 작은 시계입니다.
+  // 크기는 날 수가 있느냐로 고릅니다(글자 수로 고르면 하루 안에 크기가 바뀝니다).
   {
-    const big = 'clamp(32px, 11.5vw, 44px)', small = 'clamp(26px, 9vw, 36px)';
+    const big = 'clamp(32px, 11vw, 48px)', small = 'clamp(22px, 7vw, 34px)';
     const fsAt = (inIso, nowIso) => { const g = mk(V2, nowIso); g.state.session = { inIso: new Date(inIso).toISOString() }; const R = g.renderVals(); return [R.padBig, R.padBigFs]; };
     const [t0, f0] = fsAt('2026-10-26T06:00:00', '2026-10-26T09:42:00');
     ok('평범한 근무 시간은 큰 시계', f0 === big, t0 + ' ' + f0);
+    const [t6, f6] = fsAt('2026-10-25T20:00:00', '2026-10-26T19:59:00');
+    ok('23h 59m도 큰 시계', f6 === big && /^23h /.test(t6), t6 + ' ' + f6);
     const [t1, f1] = fsAt('2026-10-25T06:00:00', '2026-10-26T19:59:00');
-    ok('1d 13h 59m까지는 큰 시계', f1 === big && /^1d /.test(t1), t1 + ' ' + f1);
+    ok('1d 13h 59m부터는 작은 시계', f1 === small && /^1d /.test(t1), t1 + ' ' + f1);
     const [t2, f2] = fsAt('2026-09-11T06:00:00', '2026-10-26T19:59:00');
-    ok('45d 13h 59m은 한 단계 작은 시계', f2 === small && /^45d /.test(t2), t2 + ' ' + f2);
-    // 날 수로 고릅니다 — 10일째 근무는 0–9시에도 작은 시계(글자 수로 고르던 때는 크게 떴다가
-    // 10시에 작아졌습니다)
+    ok('45d 13h 59m은 작은 시계', f2 === small && /^45d /.test(t2), t2 + ' ' + f2);
     const [t3, f3] = fsAt('2026-10-16T06:00:00', '2026-10-26T11:00:00');
     ok('10d 5h 00m도 작은 시계 — 하루 안에 크기가 바뀌지 않습니다', f3 === small && /^10d 5h/.test(t3), t3 + ' ' + f3);
-    const [t4, f4] = fsAt('2026-10-17T06:00:00', '2026-10-26T19:59:00');
-    ok('9d 13h 59m은 큰 시계', f4 === big && /^9d /.test(t4), t4 + ' ' + f4);
     const [t5, f5] = fsAt('2025-09-11T06:00:00', '2026-10-26T19:59:00');
     ok('세 자리 날 수도 작은 시계', f5 === small && /^\d{3}d /.test(t5), t5 + ' ' + f5);
     const g = mk(V2, '2026-10-26T06:53:00');
     ok('출근 전 시각(06:53)은 큰 시계', g.renderVals().padBigFs === big);
   }
   ok('예전 64px 상자 규칙은 남아 있지 않습니다', ds.indexOf('[style*="width: 64px"][style*="height: 64px"]') < 0);
+}
+
+console.log('\n== 출근 전 알약 옆이 비어 있었습니다 — 근무중의 반대, 불 꺼진 고리 ==');
+// 2026-11-09(아흔셋째). 근로자가 출퇴근 카드를 직접 그려 왔습니다: 왼쪽에 둥근 START,
+// 오른쪽에 출근 알약과 큰 시계. 알약 옆에는 'TAP START TO START SHIFT'라는 줄을 넣었는데,
+// 근로자 말로는 "그 자리가 비면 어색해서 채우려고 넣은 것"이었습니다. 근무 중에는 그
+// 자리에 숨 쉬는 초록 등과 '근무중'이 섭니다 — 비어 있던 것은 출근 전의 짝이었습니다.
+// 그래서 같은 자리, 같은 글꼴에 근무중의 반대를 세웠습니다: 불 꺼진 회색 고리와 '근무 외'.
+// 켜짐/꺼짐이 채움과 움직임 두 가지로 동시에 달라, 한눈에 갈립니다. 단추는 근로자가 고른
+// 연어색(STOP)과, 그 색과 OKLCH 밝기·채도가 같은 초록(START, #60b973)입니다.
+//
+// 다음 사람에게: 빈자리를 채우려고 문장을 넣고 싶어지면, 그 자리에 다른 상태에서는 무엇이
+// 서 있는지 먼저 보십시오. 대개 빠진 것은 문장이 아니라 그 짝입니다.
+{
+  const fs = require('fs');
+  const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tpl = src.slice(0, src.indexOf('</x-dc>')).replace(/<!--[\s\S]*?-->/g, '');
+  const ds = fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
+  const c = mk(V2, '2026-11-09T08:41:00');
+  let R = c.renderVals();
+  ok('출근 전: 근무 외', R.padOff === true && R.padOffMsg === '근무 외', R.padOffMsg);
+  c.st().lang = 'en'; R = c.renderVals();
+  ok('영어로는 OFF SHIFT — ON SHIFT의 반대', R.padOffMsg === 'OFF SHIFT' && c.T('on_shift_2') === 'ON SHIFT', R.padOffMsg);
+  const L = { base: require('../lang/base.json') };
+  ['vi', 'zh', 'th', 'id', 'km', 'ne'].forEach(k => { L[k] = require('../lang/' + k + '.json'); });
+  const missing = ['vi', 'zh', 'th', 'id', 'km', 'ne'].filter(k => !(L[k].off_shift || '').trim());
+  ok('여덟 언어 모두 근무 외를 말합니다', !!L.base.off_shift && L.base.off_shift.ko === '근무 외' && missing.length === 0, missing.join(' '));
+  c.st().lang = 'ko';
+  c.state.session = { inIso: new Date('2026-11-09T08:41:00').toISOString() };
+  R = c.renderVals();
+  ok('근무 중에는 근무 외가 숨고 근무중이 섭니다', R.padOff === false && R.padLive === true);
+  // 고리는 제 크기(8px)로 층 규칙 8c에 잡힙니다. 9px이면 규칙 8이 잡아 꺼진 등이 숨을 쉽니다.
+  const ring = (tpl.match(/<div style="width:8px;height:8px;[^"]*"><\/div>\{\{ padOffMsg \}\}/) || [''])[0];
+  ok('고리는 8px이고 근무 외 글자 바로 앞입니다', !!ring && /color:var\(--color-neutral-500\)/.test(ring), ring);
+  ok('8px 정사각은 소스에 고리 한 자리뿐입니다',
+    (tpl.match(/width:\s*8px/g) || []).length === 1 && (tpl.match(/height:\s*8px/g) || []).length === 1);
+  const r8c = ds.slice(ds.indexOf('── 8c · the OFF SHIFT ring'));
+  ok('규칙 8c: 둥글고, 속이 빈 고리이고, 움직이지 않습니다',
+    /\[style\*="width: 8px"\]\[style\*="height: 8px"\] \{[^}]*--radius-pill[^}]*inset 0 0 0 2px currentColor/.test(r8c.replace(/\n/g, ' '))
+    && !/animation/.test(r8c.slice(r8c.indexOf('[style*='), r8c.indexOf('}') )));
+  ok('규칙 8(숨 쉬는 등)은 여전히 9px만 잡습니다', ds.indexOf('[style*="width: 8px"][style*="height: 8px"] {') > ds.indexOf('@keyframes onshift-lamp-sm'));
+  ok('두 단추 색은 토큰입니다', /--color-punch-start: #60b973;/.test(ds) && /--color-punch-stop: #e9806f;/.test(ds));
 }
 
 console.log('\n== 주머니 속에서 눌린 출근이 다음 날 아침 근무 한 칸이 됐습니다 ==');
