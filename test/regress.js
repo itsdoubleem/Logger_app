@@ -8336,6 +8336,25 @@ console.log('\n== 출퇴근 카드의 양옆이 비어 있었습니다 — 넓�
     && head.indexOf('{{ padBig }}') > head.indexOf('{{ padStamp }}')
     && /display:flex;align-items:center;/.test(tpl.slice(i0 - 120, i0)) && !/flex-direction:column/.test(tpl.slice(i0 - 120, i0)));
   ok('알약과 시계는 같은 왼쪽 끝에서 시작합니다', /flex-direction:column;align-items:flex-start/.test(head));
+  // 같은 날 다시(아흔셋째): 묶음이 왼쪽에 붙어 오른쪽이 비었습니다 — 단추와 글자 칸을 한 묶음으로
+  // 카드 가운데에. 글자 칸이 늘어나면(flex-grow) 가운데 맞춤이 아무 일도 하지 않습니다.
+  ok('단추와 글자 묶음은 카드 가운데에 섭니다',
+    /display:flex;align-items:center;justify-content:center;gap:clamp\(14px, 5vw, 20px\);padding:18px 20px;/.test(tpl)
+    && /<div style="flex:0 1 auto;display:flex;flex-direction:column;align-items:flex-start/.test(head));
+  // 가운데에 세우자 새 문제가 생겼습니다: 묶음의 폭이 상태마다 달라 START를 누르는 순간 단추가
+  // 옆으로 13–15px 미끄러졌습니다(헤드리스에서 재어서). 두 군데가 폭을 바꿨습니다 —
+  // 시계(03:14 → 3h 42m)와 표시등 글자(근무 외 → 근무중). 시계에는 '3h 42m'의 폭을 최소로
+  // 주고, 두 표시등은 한 칸에 겹쳐 지금 아닌 쪽만 visibility로 감춥니다.
+  ok('시계의 최소 폭은 3h 42m의 폭(3.46em)입니다', /<div style="min-width:3\.46em;[^"]*">\{\{ padBig \}\}/.test(head));
+  ok('두 표시등은 한 칸에 겹쳐 있습니다 — sc-if로 빼지 않고 visibility로 감춥니다',
+    /<div style="display:grid;min-width:0">\s*<div style="grid-area:1 \/ 1;visibility:\{\{ padLiveVis \}\};[^"]*">[\s\S]*?\{\{ padLiveMsg \}\}\s*<\/div>\s*<div style="grid-area:1 \/ 1;visibility:\{\{ padOffVis \}\};/.test(head)
+    && !/<sc-if value="\{\{ pad(Live|Off) \}\}"/.test(head));
+  {
+    const v0 = mk(V2, '2026-11-09T08:41:00'); let Rv = v0.renderVals();
+    const offOk = Rv.padLiveVis === 'hidden' && Rv.padOffVis === 'visible';
+    v0.state.session = { inIso: new Date('2026-11-09T08:41:00').toISOString() }; Rv = v0.renderVals();
+    ok('출근 전에는 근무 외만, 근무 중에는 근무중만 보입니다', offOk && Rv.padLiveVis === 'visible' && Rv.padOffVis === 'hidden');
+  }
   ok('근무중 표시는 알약 옆입니다', head.indexOf('{{ padLiveMsg }}') > head.indexOf('{{ padStamp }}')
     && head.indexOf('{{ padLiveMsg }}') < head.indexOf('{{ padBig }}'));
   ok('근무 외 표시도 같은 자리, 알약 옆입니다', head.indexOf('{{ padOffMsg }}') > head.indexOf('{{ padStamp }}')

@@ -107,6 +107,16 @@ the pill and a lamp on one line beside it, and the clock under them.
   (`1d 13h 59m`, only when a shift was left open) uses the smaller
   `clamp(22px, 7vw, 34px)`. Measured at 320 / 360 / 384px in eight languages:
   nothing overflows and the page never scrolls sideways.
+- **Centred as a group, and still under the finger.** The button and the text
+  column stand together in the middle of the card (`justify-content: center`;
+  the column does not grow). Centring made the group's width depend on the
+  state, so at first the button slid 13–15px sideways the moment START was
+  tapped. Two things held it: the clock has `min-width: 3.46em` (the measured
+  width of `3h 42m`, so `03:14` takes the same room), and both lamps sit in one
+  grid cell with the inactive one `visibility: hidden`, so the cell is always
+  as wide as the longer label. Measured at 320 / 360 / 384px in four
+  languages: centred to 1px, and the button moves 0px at the tap. Past ten
+  hours the clock widens once and the button shifts about 12px, mid-shift.
 - Card height 126px at 320 and 142px at 384, against 188px for the bar design.
 - `preview-punch-circle.html` is the approved preview (option 1, the matched
   green). `mockup-punch.png` is the bar design it replaced, and

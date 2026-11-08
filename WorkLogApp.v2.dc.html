@@ -512,25 +512,33 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
              시각을 덮지 않고, touch-action은 manipulation이라 단추 위에서도 화면이 스크롤됩니다.
              지문도 길게 누르기도 없습니다 — 한 번 누르면 찍힙니다(여든여섯째). 주머니 속
              누름은 퇴근할 때 아래의 oddOut 카드가 묻습니다.
+             같은 날 다시: 단추와 글자 묶음이 왼쪽에 붙고 오른쪽이 비어 어색하다는 말을 듣고,
+             묶음 전체를 카드 가운데에 세웠습니다(justify-content:center). 시계에는 min-width
+             3.46em — '3h 42m'의 폭(Archivo 800, 재어서)입니다. 그것이 없으면 03:14(2.69em) →
+             3h 42m에서 묶음이 넓어져 START를 누르는 순간 단추가 옆으로 13–15px 미끄러졌습니다.
+             칸 폭을 가장 긴 꼴(13h 59m)로 못 박아 보았더니 단추는 서지만 출근 전 카드가 다시
+             한쪽으로 쏠렸습니다(왼쪽 34px, 오른쪽 91px). 10시간을 넘기면 시계가 한 번 넓어져
+             단추가 12px쯤 옮겨 갑니다 — 누르는 순간이 아니라 근무 중에.
              지난 모양(여든일곱째, 2026-10-26): 알약 · 가운데 시계 · 카드 너비의 ▶ START 막대가
              한 가운데 줄에 섰고, 막대는 height 60px으로 잡혔으며 양옆 여백은 48px이었습니다. -->
-        <div style="position:relative;overflow:hidden;display:flex;align-items:center;gap:clamp(14px, 5vw, 20px);padding:18px 20px;border-bottom:2px solid var(--color-divider);user-select:none">
+        <div style="position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:clamp(14px, 5vw, 20px);padding:18px 20px;border-bottom:2px solid var(--color-divider);user-select:none">
           <div onClick="{{ padTap }}" style="flex:none;width:clamp(88px, 27vw, 104px);height:clamp(88px, 27vw, 104px);display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:manipulation;background:{{ padBtnBg }};font-family:var(--font-heading);font-weight:600;font-size:clamp(19px, 5.8vw, 22px);line-height:1;letter-spacing:0.02em;color:var(--color-text)">{{ padTitle }}</div>
-          <div style="flex:1 1 auto;display:flex;flex-direction:column;align-items:flex-start;gap:10px;min-width:0">
+          <div style="flex:0 1 auto;display:flex;flex-direction:column;align-items:flex-start;gap:10px;min-width:0">
             <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px;min-width:0">
               <div style="flex:none;white-space:nowrap;padding:6px 14px;background:{{ padChipBg }};font-family:var(--font-heading);font-weight:800;font-size:14px;line-height:1;letter-spacing:0.02em;color:{{ padChipInk }}">{{ padStamp }}</div>
-              <sc-if value="{{ padLive }}" hint-placeholder-val="{{ true }}">
-                <div style="display:flex;align-items:center;gap:7px;min-width:0;font-family:var(--font-heading);font-weight:800;font-size:13px;letter-spacing:0.08em;color:{{ padIconInk }}">
+              <!-- 두 표시등을 한 칸에 겹쳐 두고 지금 아닌 쪽만 감춥니다(visibility). 칸은 언제나 둘 중
+                   긴 쪽의 폭이라, START를 누르는 순간 묶음의 폭이 그대로이고 가운데에 선 단추가
+                   옆으로 미끄러지지 않습니다. 감춘 쪽은 화면 읽기에서도 빠집니다. -->
+              <div style="display:grid;min-width:0">
+                <div style="grid-area:1 / 1;visibility:{{ padLiveVis }};display:flex;align-items:center;gap:7px;min-width:0;font-family:var(--font-heading);font-weight:800;font-size:13px;letter-spacing:0.08em;color:{{ padIconInk }}">
                   <div style="width:9px;height:9px;flex:none;background:{{ padIconInk }}"></div>{{ padLiveMsg }}
                 </div>
-              </sc-if>
-              <sc-if value="{{ padOff }}" hint-placeholder-val="{{ false }}">
-                <div style="display:flex;align-items:center;gap:7px;min-width:0;font-family:var(--font-heading);font-weight:800;font-size:13px;letter-spacing:0.08em;color:var(--color-neutral-600)">
+                <div style="grid-area:1 / 1;visibility:{{ padOffVis }};display:flex;align-items:center;gap:7px;min-width:0;font-family:var(--font-heading);font-weight:800;font-size:13px;letter-spacing:0.08em;color:var(--color-neutral-600)">
                   <div style="width:8px;height:8px;flex:none;color:var(--color-neutral-500)"></div>{{ padOffMsg }}
                 </div>
-              </sc-if>
+              </div>
             </div>
-            <div style="max-width:100%;white-space:nowrap;font-variant-numeric:tabular-nums;font-family:var(--font-heading);font-weight:800;font-size:{{ padBigFs }};line-height:1;letter-spacing:-0.03em;color:{{ padInk }}">{{ padBig }}</div>
+            <div style="min-width:3.46em;max-width:100%;white-space:nowrap;font-variant-numeric:tabular-nums;font-family:var(--font-heading);font-weight:800;font-size:{{ padBigFs }};line-height:1;letter-spacing:-0.03em;color:{{ padInk }}">{{ padBig }}</div>
           </div>
         </div>
 
@@ -6797,6 +6805,8 @@ class Component extends DCLogic {
       padLiveMsg: todayHol ? this.T('on_shift') : this.T('on_shift_2'),
       // 근무중의 반대 — 출근 전 알약 옆의 빈자리(아흔셋째). 불 꺼진 고리와 함께 섭니다.
       padOffMsg: this.T('off_shift'),
+      padLiveVis: S ? 'visible' : 'hidden',
+      padOffVis: S ? 'hidden' : 'visible',
       // 둥근 단추의 바탕: 출근 전 초록, 근무 중 연어색. 둘은 OKLCH 밝기가 같아(0.71) 한 쌍으로
       // 읽히고, 그 위의 진한 글자는 6.2:1 이상입니다.
       padBtnBg: S ? 'var(--color-punch-stop)' : 'var(--color-punch-start)',
