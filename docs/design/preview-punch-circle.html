@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Punch Card Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  /* Values copied from ds-tokens.css so this page renders on its own. */
+  :root {
+    --color-bg: #f3f2f2; --color-surface: #ffffff; --color-text: #201e1d;
+    --color-neutral-400: #c4c1c1; --color-neutral-500: #a9a7a6; --color-neutral-600: #747372; --color-neutral-700: #555352;
+    --color-accent-100: #f2dbd7; --color-accent-700: #ae1800;
+    --color-mark: #127e38; --color-mark-100: #ebf5ee;
+    --ref-salmon: #e9806f;   /* the reference's START circle — read by eye, the capture was not kept */
+    --font: 'Archivo', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 24px 16px 40px; background: var(--color-bg); color: var(--color-text); font-family: var(--font); }
+  h1 { font-size: 20px; font-weight: 800; margin: 0 0 4px; }
+  h2 { font-size: 13px; font-weight: 800; letter-spacing: .08em; margin: 28px 0 10px; color: var(--color-neutral-700); }
+  p.note { font-size: 13px; line-height: 1.5; color: var(--color-neutral-700); max-width: 780px; margin: 6px 0; }
+  .row { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
+  .cap { font-size: 11px; font-weight: 800; letter-spacing: .06em; color: var(--color-neutral-600); margin: 0 0 6px 4px; }
+
+  /* the reference card, as sent */
+  .card { width: 384px; background: var(--color-surface); border-radius: 16px; box-shadow: 0 1px 2px rgba(32,30,29,.06), 0 4px 14px rgba(32,30,29,.06);
+          padding: 18px 20px; display: flex; align-items: center; gap: 20px; }
+  .btn { flex: none; width: 104px; height: 104px; border-radius: 50%; background: var(--ref-salmon); color: var(--color-text);
+         display: flex; align-items: center; justify-content: center; font: 600 22px/1 var(--font); letter-spacing: .02em; }
+  .side { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+  .top { display: flex; align-items: center; gap: 12px; white-space: nowrap; }
+  .pill { padding: 6px 14px; border-radius: 999px; font: 800 14px/1 var(--font); letter-spacing: .02em; }
+  .pill.in  { background: var(--color-mark-100); color: var(--color-mark); }
+  .pill.out { background: var(--color-accent-100); color: var(--color-accent-700); }
+  .clock { font: 800 52px/1 var(--font); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+  .tag { background: var(--ref-salmon); color: var(--color-accent-700); font: 800 10px/1 var(--font); padding: 4px 5px; }
+
+  /* the lamp — label beside it, as in the app */
+  .lamp { display: flex; align-items: center; gap: 7px; font: 800 13px/1 var(--font); letter-spacing: .08em; }
+  .dot { width: 9px; height: 9px; flex: none; border-radius: 50%; }
+
+  /* ON SHIFT — the app's real lamp (ds-tokens.css rule 8): lit, halo breathing */
+  .on { color: var(--color-mark); }
+  .on .dot { background: currentColor; animation: breathe 2.7s ease-in-out infinite;
+             box-shadow: 0 0 0 1.5px rgba(18,126,56,.30), 0 0 0 3px rgba(18,126,56,.14), 0 0 0 4.5px rgba(18,126,56,.05); }
+  @keyframes breathe {
+    0%, 100% { box-shadow: 0 0 0 1.5px rgba(18,126,56,.30), 0 0 0 3px rgba(18,126,56,.14), 0 0 0 4.5px rgba(18,126,56,.05); }
+    50%      { box-shadow: 0 0 0 2px rgba(18,126,56,.40),   0 0 0 4px rgba(18,126,56,.20), 0 0 0 6px rgba(18,126,56,.08); }
+  }
+
+  /* OFF SHIFT — the opposite: unlit and still */
+  .off { color: var(--color-neutral-600); }
+  .off.a .dot { background: transparent; box-shadow: inset 0 0 0 2px var(--color-neutral-500); }   /* A: empty ring */
+  .off.b .dot { background: var(--color-neutral-400); }                                        /* B: grey dot, no halo */
+
+  @media (prefers-reduced-motion: reduce) { .on .dot { animation: none; } }
+</style>
+</head>
+<body>
+<h1>Punch card — the opposite of ON SHIFT</h1>
+<p class="note">Your design as sent, with one change: the filler beside 출근 is replaced by an <b>OFF SHIFT lamp</b>, the mirror of the ON SHIFT lamp that appears after START. ON SHIFT is lit green and breathes. OFF SHIFT is unlit grey and still. The label uses the same type and the same place, so tapping START just switches the lamp on.</p>
+
+<h2>START GREEN — PAIRED WITH THE STOP SALMON</h2>
+<p class="note">Each green has the salmon's own lightness, measured in OKLCH (L 0.71), so the two read as one pair; only the hue changes. Dark text on every one is 6.7–6.9 : 1.</p>
+<div class="row">
+  <div><div class="cap">1 · MATCHED · THE APP'S GREEN HUE · #60B973 (RECOMMENDED)</div>
+    <div class="card"><div class="btn" style="background:#60b973">START</div><div class="side"><div class="top"><span class="pill in">출근</span><span class="lamp off a"><i class="dot"></i>OFF SHIFT</span></div><div class="clock">02:22</div></div></div></div>
+  <div><div class="cap">STOP</div>
+    <div class="card"><div class="btn">STOP</div><div class="side"><div class="top"><span class="pill out">퇴근</span><span class="lamp on"><i class="dot"></i>ON SHIFT</span></div><div class="clock">3h 42m</div></div></div></div>
+</div>
+<div class="row" style="margin-top:20px">
+  <div><div class="cap">2 · SAGE · SOFTER · #7AB37B</div>
+    <div class="card"><div class="btn" style="background:#7ab37b">START</div><div class="side"><div class="top"><span class="pill in">출근</span><span class="lamp off a"><i class="dot"></i>OFF SHIFT</span></div><div class="clock">02:22</div></div></div></div>
+  <div><div class="cap">3 · LEAF · WARMER · #7DB45C</div>
+    <div class="card"><div class="btn" style="background:#7db45c">START</div><div class="side"><div class="top"><span class="pill in">출근</span><span class="lamp off a"><i class="dot"></i>OFF SHIFT</span></div><div class="clock">02:22</div></div></div></div>
+</div>
+
+<h2>AS SENT</h2>
+<div class="row">
+  <div><div class="cap">REFERENCE</div>
+    <div class="card"><div class="btn">START</div><div class="side"><div class="top"><span class="pill in">출근</span><span class="tag">TAP START TO START SHIFT</span></div><div class="clock">02:22</div></div></div></div>
+</div>
+
+<h2>A · EMPTY RING (RECOMMENDED)</h2>
+<div class="row">
+  <div><div class="cap">BEFORE START</div>
+    <div class="card"><div class="btn">START</div><div class="side"><div class="top"><span class="pill in">출근</span><span class="lamp off a"><i class="dot"></i>근무 외</span></div><div class="clock">02:22</div></div></div></div>
+  <div><div class="cap">AFTER START</div>
+    <div class="card"><div class="btn">STOP</div><div class="side"><div class="top"><span class="pill out">퇴근</span><span class="lamp on"><i class="dot"></i>근무중</span></div><div class="clock">3h 42m</div></div></div></div>
+</div>
+
+<h2>B · GREY DOT</h2>
+<div class="row">
+  <div><div class="cap">BEFORE START</div>
+    <div class="card"><div class="btn">START</div><div class="side"><div class="top"><span class="pill in">출근</span><span class="lamp off b"><i class="dot"></i>근무 외</span></div><div class="clock">02:22</div></div></div></div>
+  <div><div class="cap">AFTER START</div>
+    <div class="card"><div class="btn">STOP</div><div class="side"><div class="top"><span class="pill out">퇴근</span><span class="lamp on"><i class="dot"></i>근무중</span></div><div class="clock">3h 42m</div></div></div></div>
+</div>
+
+<h2>WORDING — ENGLISH SCREEN</h2>
+<div class="row">
+  <div><div class="cap">A IN ENGLISH</div>
+    <div class="card"><div class="btn">START</div><div class="side"><div class="top"><span class="pill in">출근</span><span class="lamp off a"><i class="dot"></i>OFF SHIFT</span></div><div class="clock">02:22</div></div></div></div>
+  <div><div class="cap">AFTER START</div>
+    <div class="card"><div class="btn">STOP</div><div class="side"><div class="top"><span class="pill out">퇴근</span><span class="lamp on"><i class="dot"></i>ON SHIFT</span></div><div class="clock">3h 42m</div></div></div></div>
+</div>
+</body>
+</html>

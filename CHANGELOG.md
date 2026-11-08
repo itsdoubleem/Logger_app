@@ -1,6 +1,6 @@
 # 근무기록 LOGGER — change log beyond V2.md
 
-Ninety-eight entries, newest first — ninety-one carry an ordinal (first … ninety-first),
+Ninety-nine entries, newest first — ninety-two carry an ordinal (first … ninety-first, ninety-third; the ninety-second is on the unmerged icon branch),
 the seven oldest predate the numbering. Each one is a bug found by **actually using the app on
 shift**, what changed, and — the part worth reading — *why it was that and not the
 obvious fix*. Most entries end with a **다음 사람에게** paragraph: the rule the bug
@@ -18,7 +18,8 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 
 ## Index
 
-- 2026-10-27 (latest, ninety-first) — 제대로 퇴근했는데 '너무 이른 퇴근' 카드가 남았습니다, 그리고 320px의 잘린 칩과 탭
+- 2026-11-09 (latest, ninety-third) — 근로자가 그린 출퇴근 카드, 그리고 근무중의 반대
+- 2026-10-27 (ninety-first) — 제대로 퇴근했는데 '너무 이른 퇴근' 카드가 남았습니다, 그리고 320px의 잘린 칩과 탭
 - 2026-10-27 (ninetieth) — 30분을 잃는 '지우고 지금 출근', 말없이 실패하던 백업, 초록인 채로 실패하던 빌드
 - 2026-10-27 (eighty-ninth) — 아이콘은 근로자가 고른 그림으로: 열린 링, 바깥 호, 네모 눈금, 바늘 셋, 두 겹 폴더
 - 2026-10-26 (eighty-eighth) — 리뷰에 남아 있던 여섯: 영어 안내, 화면 밖 카드, 아이콘 테, 시계 크기, 320px 머리말, 잠든 지문 다리
@@ -117,7 +118,43 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 - 2026-08-13 — the service worker was hiding every update
 - 2026-08-13 (earlier) — 조퇴 사유 became a popup with a dropdown
 
-### 2026-10-27 (latest, ninety-first) — 제대로 퇴근했는데 '너무 이른 퇴근' 카드가 남았습니다, 그리고 320px의 잘린 칩과 탭
+### 2026-11-09 (latest, ninety-third) — 근로자가 그린 출퇴근 카드, 그리고 근무중의 반대
+
+근로자가 출퇴근 카드를 직접 그려 왔습니다: 왼쪽에 연어색 동그라미 START(진한 글자), 오른쪽에
+출근 알약과 큰 시계. 알약 옆에는 빨간 띠에 'TAP START TO START SHIFT'를 넣었는데, 그 줄은
+"그 자리가 비면 어색해 보여서 채우려고 넣은 것"이라고 했습니다. 처음 낸 안(초록 단추에 ▶,
+알약 옆에 '09:00로 기록')은 모두 싫다는 답을 들었습니다 — 근로자가 원한 것은 자기 그림 그대로에,
+빈자리에 들어갈 **근무중의 반대**였습니다.
+
+- **둥근 단추.** 넓은 막대(여든일곱째)가 `clamp(88px, 27vw, 104px)`의 동그라미가 되어 시계
+  왼쪽에 섭니다. 출근 전에는 초록 `--color-punch-start` `#60b973`, 근무 중에는 연어색
+  `--color-punch-stop` `#e9806f`, 글자는 진한 잉크 19–22px 600이고 ▶·■ 그림은 없습니다.
+  연어색은 근로자의 것이고, 초록은 그 연어색과 **OKLCH 밝기·채도가 같고**(L 0.71, C 0.13)
+  색상만 앱의 초록(149)인 색입니다 — 세 안(맞춘 초록 · 세이지 · 잎사귀) 가운데 근로자가
+  골랐습니다. 진한 글자는 각각 6.9 : 1, 6.2 : 1. 모양과 눌림은 층 규칙 5가 단추의 폭 문자열 +
+  `touch-action: manipulation`으로 잡습니다. 찍는 것은 여전히 단추 하나이고 알약과 시계는
+  손잡이가 아닙니다(예순셋째).
+- **근무 외 표시.** 근무 중에는 알약 옆에 숨 쉬는 초록 등과 '근무중'이 섭니다(규칙 8). 비어
+  있던 것은 출근 전의 그 짝이었습니다. 같은 자리, 같은 글꼴에 **불 꺼진 회색 고리와 '근무 외'**
+  (OFF SHIFT, 여덟 언어)를 세웠습니다. 켜짐/꺼짐이 채움과 움직임 두 가지로 동시에 갈립니다.
+  고리는 8px라 규칙 8(9px)에 잡히지 않고 — 잡히면 꺼진 등이 숨을 쉽니다 — 새 규칙 8c가
+  속이 빈 고리로 그립니다. 낱말은 '근무 전'이 아니라 '근무 외'입니다: 퇴근한 뒤에도 맞아야 합니다.
+- **시계**는 오른쪽 칸으로 옮겨 칸이 좁아졌습니다. 날 수가 붙는 모든 꼴(예전에는 두 자리 날
+  수부터)이 작은 시계 `clamp(22px, 7vw, 34px)`를 씁니다.
+
+헤드리스 크롬에서 320 / 360 / 384px, 한국어·영어·인도네시아어·크메르어, 출근 전·근무 중·
+특근·날 수가 붙은 근무를 재었습니다: 시계는 어디서도 넘치지 않고 가로 스크롤은 0, 단추는
+진짜 원(50%), 고리는 움직이지 않고 근무중 등은 숨 쉽니다. 320px의 22px START는 88px 원의
+가장자리에 8px까지 붙어 19px로 줄였습니다(12px). 카드 높이는 188 → 126–142px.
+막대를 붙들던 시험 29개를 새 모양으로 다시 썼고(교훈은 그대로), 근무 외 표시를 붙드는 시험을
+더했습니다. 15 new assertions (3676 total).
+
+**다음 사람에게.** 빈자리를 채우려고 문장을 넣고 싶어지면, 다른 상태에서 그 자리에 무엇이 서
+있는지 먼저 보십시오. 대개 빠진 것은 문장이 아니라 그 짝입니다. 그리고 근로자가 자기 그림을
+들고 오면, 고칠 곳을 물은 그 한 군데만 고치십시오 — 이번에는 나머지까지 '더 낫게' 바꾼 첫 안이
+통째로 돌아왔습니다.
+
+### 2026-10-27 (ninety-first) — 제대로 퇴근했는데 '너무 이른 퇴근' 카드가 남았습니다, 그리고 320px의 잘린 칩과 탭
 
 v1.4.0을 내기 전 리뷰가 남긴 Should-fix 둘입니다. 둘 다 v1.3.0에도 있던 것이지만, 첫째는
 한 번 누르는 출퇴근에서 훨씬 자주 생깁니다.

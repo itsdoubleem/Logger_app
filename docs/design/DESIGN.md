@@ -2,23 +2,33 @@
 
 The app's look is already in code: colours, type and the card layer live in
 `ds-tokens.css`, and `CLAUDE.md` §"Design system" explains how that layer works.
-This file records the **mark** and the **punch pad**, which changed on
-2026-10-26 when the fingerprint punch was dropped for a plain START / STOP tap.
+This file records the **mark** and the **punch pad**. The pad changed on
+2026-10-26, when the fingerprint punch was dropped for a plain START / STOP tap,
+and again on 2026-11-09, when it took the shape the worker drew.
 
 ## Palette
 
-One new colour, `--color-mark-100` (the mark green's tint, for the 출근 pill); the rest are the app's own:
+Three colours of the pad's own — `--color-mark-100` for the 출근 pill and the two
+punch-button fills — the rest are the app's:
 
 | Role | Value | Where |
 |---|---|---|
-| mark / START | `oklch(0.52 0.14 149)` ≈ `#127E38` | logo, wordmark O, ▶, 출근, START, the 근무중 lamp |
-| STOP | `#ec3013` (`--color-accent`) | ■, 퇴근, STOP |
-| ground | `#f3f2f2` (`--color-bg`) | the punch bar, the launcher icon's corners |
+| mark | `oklch(0.52 0.14 149)` ≈ `#127E38` | logo, wordmark O, 출근, the 근무중 lamp |
+| START button | `#60b973` (`--color-punch-start`) | the round button before a shift |
+| STOP button | `#e9806f` (`--color-punch-stop`) | the round button during a shift |
+| accent | `#ec3013` (`--color-accent`) | 퇴근 |
+| ground | `#f3f2f2` (`--color-bg`) | the launcher icon's corners |
 | mark tint | `#ebf5ee` (`--color-mark-100`) | the 출근 pill |
 | card | `#ffffff` | the launcher icon's disc |
 
 The mark green on white is 5.2 : 1 and on the app grey 4.6 : 1 (WCAG AA for
 text). On a dark ground it falls to 3.0 : 1 — the mark is never placed on dark.
+
+The two button fills are a pair: the salmon is the worker's pick, and the green
+has its exact OKLCH lightness and chroma (L 0.71, C 0.13) at the mark's hue
+(149), so neither shouts over the other and START still reads as the app's
+green. Both carry dark text (`--color-text`): 6.9 : 1 on the green, 6.2 : 1 on
+the salmon.
 
 ## The mark — clock and folder
 
@@ -60,39 +70,47 @@ flow), all the same drawing.
 
 ## The punch pad
 
-One tap, no fingerprint, no press-and-hold. Since the eighty-seventh entry
-(2026-10-26) everything stands on one centre line:
+One tap, no fingerprint, no press-and-hold. Since the ninety-third entry
+(2026-11-09) the card is the worker's own drawing: a round button on the left,
+the pill and a lamp on one line beside it, and the clock under them.
 
 ```
-                 ( 출근 )                ← pill, 14px Archivo 800
-                  06:53                 ← clock, clamp(32px, 11.5vw, 44px)
-     ┌────────────────────────────┐
-     │          ▶  START          │     ← 60px bar, 18px corners
-     └────────────────────────────┘       26px glyph · START/STOP 15px
+  ╭──────╮   ( 출근 )  ○ 근무 외            ← pill 14px 800 · lamp 13px 800
+  │START │                                   (ring: grey, unlit, still)
+  ╰──────╯   02:59                       ← clock, clamp(32px, 11vw, 48px)
+  88–104px circle, #60b973, dark text 19–22px 600
 
-           ( 퇴근 ) ● 근무중               (on shift: red pill · ■ STOP)
-                 3h 42m
+  ╭──────╮   ( 퇴근 )  ● 근무중              (on shift: salmon #e9806f,
+  │ STOP │                                   red pill, green lamp breathing)
+  ╰──────╯   3h 42m
 ```
 
-- **The pill.** 출근 on `--color-mark-100` (`#ebf5ee`, the mark green's own
-  tint) in the mark green — 4.63 : 1. 퇴근 on `--color-accent-100` in
-  `--color-accent-700` — 5.42 : 1 (the plain accent would be 3.18 : 1). Shaped
-  by `ds-tokens.css` rule 5b (`padding: 6px 14px` + `white-space: nowrap`).
-  The 근무중 lamp sits beside it and drops to its own line on narrow phones.
-- **The clock is the hero**, centred and large. It scales with the screen so
-  the longest form, `1d 13h 59m`, fits a 320px phone (37px there, 44px at 384).
-- **The bar** is unchanged: card width inside **48px side margins** (272px at
-  384px — the worker narrowed it from 18 through 32 and 40), shaped by rule 5
-  (`height: 60px` + `touch-action: manipulation`), darkening while pressed.
-  Only the bar punches; it covers neither the pill nor the clock.
-- Card height 188px. The worker chose this from three rendered proposals for
-  the top line (`proposals-punch-head.png`: centred clock, label over number,
-  pill and clock on one line), after choosing the wide bar from
-  `proposals-punch.png`.
-- The 근무중 lamp keeps its size: the shape layer catches it by its exact
-  width and height (`ds-tokens.css` rule 8).
-- `mockup-punch-tile.png` is the earlier centred-tile design, kept for the
-  record.
+- **The button** is a circle, `clamp(88px, 27vw, 104px)` across — 104px at
+  384, 88px at 320 — filled with `--color-punch-start` before a shift and
+  `--color-punch-stop` during one, with START / STOP in dark ink and no icon.
+  The label scales 19–22px so START keeps 12px either side at 320. Shaped and
+  pressed (a step darker, slightly sunk) by `ds-tokens.css` rule 5, which
+  catches it by that width string plus `touch-action: manipulation`.
+  **Only the circle punches**: it covers neither the pill nor the clock (the
+  sixty-third entry), and the page still scrolls over it.
+- **The lamp beside the pill has two states.** On shift: the green dot whose
+  halo breathes (rule 8), with 근무중 / ON SHIFT. Off shift: its opposite — an
+  empty grey ring that does not move (rule 8c, 8px so rule 8 cannot catch it),
+  with 근무 외 / OFF SHIFT in `--color-neutral-600` (4.7 : 1). It replaced the
+  filler line in the worker's drawing ("TAP START TO START SHIFT"): what was
+  missing there was not a sentence but the ON SHIFT lamp's pair.
+- **The pill.** 출근 on `--color-mark-100` in the mark green — 4.63 : 1. 퇴근
+  on `--color-accent-100` in `--color-accent-700` — 5.42 : 1. Shaped by rule 5b.
+  The pill and the clock start at the same left edge. On a 320px phone a long
+  lamp label (Indonesian, Khmer) drops to its own line under the pill.
+- **The clock** is the hero of the right column. Every form with a day count
+  (`1d 13h 59m`, only when a shift was left open) uses the smaller
+  `clamp(22px, 7vw, 34px)`. Measured at 320 / 360 / 384px in eight languages:
+  nothing overflows and the page never scrolls sideways.
+- Card height 126px at 320 and 142px at 384, against 188px for the bar design.
+- `preview-punch-circle.html` is the approved preview (option 1, the matched
+  green). `mockup-punch.png` is the bar design it replaced, and
+  `mockup-punch-tile.png` the centred tile before that — kept for the record.
 
 ## Do / don't
 
@@ -110,5 +128,10 @@ One tap, no fingerprint, no press-and-hold. Since the eighty-seventh entry
 
 The two screenshots the user supplied (a clock-and-folder app icon on a dark
 tile, and the START / STOP mockup) were temporary captures and were not kept.
+Nor was the worker's drawing of the round-button card (2026-11-09): a salmon
+circle with START in dark text on the left, a 출근 pill and a red filler label
+("TAP START TO START SHIFT") above a large clock on the right. It set the
+layout, the button and the salmon; the green and the OFF SHIFT ring were
+derived from it.
 The first set the concept and composition only; the mark was drawn fresh, not
 traced. `mockup-punch.png` is the approved punch pad (centred pill and clock over the wide bar); `preview.html` and `mockup-punch-tile.png` show the earlier centred tile.
