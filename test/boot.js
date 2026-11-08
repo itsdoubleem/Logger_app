@@ -289,9 +289,8 @@ console.log('\n== 모양은 소스가 아니라 ds-tokens.css에 있습니다 ==
   // 소스에서 바꾼 두 줄
   ok('머리말의 급여기간 칩은 검은 알약입니다',
     /padding:6px 11px;background:var\(--color-text\);color:var\(--color-bg\);font-weight:700">\{\{ monthChip \}\}/.test(src));
-  // (2026-11-09) 근로자의 말로 STOP 단추와 같은 연어색이 되었습니다.
-  ok('이미 출근했습니다 줄은 STOP과 같은 연어색 카드입니다',
-    /openBackIn[^>]*background:var\(--color-punch-stop\)/.test(src));
+  ok('이미 출근했습니다 줄은 분홍 카드입니다',
+    /openBackIn[^>]*background:var\(--color-accent-100\)/.test(src));
 }
 
 // ══ 카드 안의 여백은 margin이 아니라 padding입니다 ═══════════════════════

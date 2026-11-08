@@ -8489,7 +8489,7 @@ console.log('\n== 출근 전 알약 옆이 비어 있었습니다 — 근무중�
   ok('두 단추 색은 토큰입니다', /--color-punch-start: #60b973;/.test(ds) && /--color-punch-stop: #e9806f;/.test(ds));
 }
 
-console.log('\n== 이미 출근했습니다 줄은 빨간 기간 띠와 같은 크기, STOP과 같은 색입니다 ==');
+console.log('\n== 이미 출근했습니다 줄은 빨간 기간 띠와 같은 크기입니다 ==');
 // 2026-11-09. 근로자가 출퇴근 탭의 분홍 '이미 출근했습니다' 줄(50px)을 급여 탭의 빨간 기간 띠(36px)와
 // 같은 크기로 해 달라고 했습니다. 폭과 모서리는 이미 같았습니다(368px, 16px — 헤드리스에서 재어서).
 // 높이만 다릅니다: 같은 여백 9px 18px와 16px 줄로 36px. 다만 분홍 줄은 단추라 손가락 칸은 44px이어야
@@ -8507,16 +8507,6 @@ console.log('\n== 이미 출근했습니다 줄은 빨간 기간 띠와 같은 �
   ok('분홍 줄의 여백은 빨간 띠와 같은 9px 18px입니다', /padding:9px 18px;/.test(row) && /padding:9px 18px;/.test(band), row);
   ok('분홍 줄은 16px 줄 — 빨간 띠의 13px × 1.25와 같은 높이', /line-height:16px;/.test(row) && /font-size:13px;line-height:1\.25;/.test(band), band);
   ok('분홍 줄에 min-height가 없습니다 — 있으면 규칙 2c가 잡고 높이가 다시 커집니다', !/min-height/.test(row));
-  // 같은 날 다시: 바탕을 STOP 단추와 같은 연어색으로(근로자의 말). 회색 보조 줄(neutral-600)은 그 위에서
-  // 1.75:1이라 읽히지 않습니다 — 두 줄 모두 진한 잉크입니다.
-  ok('줄의 바탕은 STOP과 같은 연어색입니다', /background:var\(--color-punch-stop\);/.test(row) && /style-hover="background:var\(--color-punch-stop\)"/.test(tpl.slice(tpl.indexOf(row), tpl.indexOf(row) + row.length + 60)));
-  {
-    const after = tpl.slice(tpl.indexOf(row), tpl.indexOf(row) + 900);
-    const gloss = (after.match(/<div style="[^"]*">\{\{ L\.backInBEn \}\}/) || [''])[0];
-    const lum = h => { const c = [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16) / 255).map(v => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
-    const cr = (a, b) => { const x = [lum(a), lum(b)].sort((p, q) => p - q); return (x[1] + 0.05) / (x[0] + 0.05); };
-    ok('보조 줄은 진한 잉크 — 연어색 위에서 4.5:1을 넘습니다', /color:var\(--color-text\)/.test(gloss) && cr('201e1d', 'e9806f') >= 4.5, gloss);
-  }
   ok('cursor:pointer와 padding:9px 18px을 함께 가진 것은 분홍 줄 하나뿐입니다',
     (tpl.match(/style="[^"]*"/g) || []).filter(x => /cursor:pointer/.test(x) && /padding:9px 18px/.test(x)).length === 1);
   const r1d = ds.slice(ds.indexOf('── 1d ·'), ds.indexOf('── 2c ·'));
