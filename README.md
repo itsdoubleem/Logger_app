@@ -91,9 +91,9 @@ Every interactive target is >= 44px. Do not round corners, do not center button 
 
 ### 1. The punch pad — one tap, no fingerprint
 The pad was a WebAuthn fingerprint prompt (with press-and-hold as the fallback) until
-2026-10-26. It is now a single full-width START / STOP bar: a clock-in label and the time on the
-line above it and a green ▶ START when the worker is off shift; a clock-out label, the ON SHIFT
-lamp and a red ■ STOP while on shift. The app counts hours; it does
+2026-10-26. It is now a round START / STOP button beside the clock: a green START, a clock-in
+label and a still grey OFF SHIFT ring when the worker is off shift; a salmon STOP, a clock-out
+label and the breathing ON SHIFT lamp while on shift. Only the button punches. The app counts hours; it does
 not need to verify who pressed, and with no server there was never anything to check a
 signature against. `CHANGELOG.md` (eighty-sixth entry) has the reasoning.
 

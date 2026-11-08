@@ -69,6 +69,12 @@
   /* the mark green's own tint — the 출근 pill on the punch card. #127e38 on it
      is 4.63:1 (AA for 14px text); the tint is the green mixed ~8% into white */
   --color-mark-100: #ebf5ee;
+  /* the round punch button (2026-11-09, ninety-third entry). The salmon is the
+     worker's own pick; the green has its OKLCH lightness and chroma (L 0.71,
+     C 0.13) at the mark's hue 149, so the two read as one pair. Dark text
+     (--color-text) on them is 6.9:1 and 6.2:1. */
+  --color-punch-start: #60b973;
+  --color-punch-stop: #e9806f;
 
   /* ── shape · added 2026-08-30 ─────────────────────────────────────────
    * The flat era set no border-radius and no box-shadow anywhere, so these
@@ -188,6 +194,23 @@
    pill, not a rounded box: it is what a chip *is*, and it separates them
    from the buttons around them. */
 [style*="min-height: 30px"][style*="display: inline-flex"] { border-radius: var(--radius-pill); }
+
+/* ── 1d · the "I clocked in earlier today" pill ─────────────────────────── */
+/* Drawn the same size as the red pay-period band on LOGS / PAY (2026-11-09,
+   the worker's request): same 9px 18px padding and a 16px line, so 36px tall
+   instead of 50. It is still a button, and 44px is the floor, so the tap area
+   reaches 4px up and 4px down — into the 9px card gaps — invisibly. A
+   top-level card clips its own content (rule 1, overflow: hidden), which
+   would cut the strip off, so this one card lets it out; it has no inner
+   hairlines to clip. Caught by `cursor: pointer` + `padding: 9px 18px`, which
+   no other element carries together (a test holds that). */
+#tabScroll > div > div[style*="cursor: pointer"][style*="padding: 9px 18px"] { overflow: visible; }
+/* bottom is -6px, not -4px: an absolute box is placed from the padding edge,
+   and the pill has a 2px bottom border, so -4px reached only 2px past it
+   (measured with elementFromPoint: a tap 3px under the pill missed). */
+#tabScroll > div > div[style*="cursor: pointer"][style*="padding: 9px 18px"]::after {
+  content: ""; position: absolute; left: 0; right: 0; top: -4px; bottom: -6px;
+}
 
 /* ── 2c · buttons ───────────────────────────────────────────────────────── */
 /* Rule 2 rounds anything with a border, so the outlined buttons (취소, 나중에)
@@ -473,27 +496,30 @@
   background: var(--color-accent-100) !important;
 }
 /* ── 5 · the punch pad's START / STOP button ────────────────────────────── */
-/* A full-width bar under the 출근/퇴근 line (2026-10-26, eighty-seventh entry).
-   It was a 64px tile centred in the card, which left the card's two sides
-   empty. Caught by two values only it carries — `height: 60px` and
-   `touch-action: manipulation` — so the number lives in three places: the
+/* The round START / STOP button left of the clock, from the worker's own
+   drawing (2026-11-09, ninety-third entry). Caught by two values only it
+   carries — its width string `clamp(78px, 24vw, 92px)` and
+   `touch-action: manipulation` — so that string lives in three places: the
    source, this selector and test/regress.js. Change all three together or the
-   bar goes flat and square, silently.
+   button goes square, silently.
+   The fill is NOT set here: --color-punch-start / --color-punch-stop come
+   inline per state. Pressed, it darkens a step and sinks slightly: a light
+   fill under dark text, so brightness goes *down* (fiftieth entry: a dark
+   control would need up). The pressed state matters because this is the
+   button the worker presses twice a day, and a tap with no answer gets
+   pressed again.
    No `min-height`, on purpose: rule 2c rounds anything tappable with one and
-   would hand the bar --radius-md instead of this. No border either, for rule 2.
-   The pressed state is here because this is the button the worker presses
-   twice a day: the old hold drew a red fill that said "it landed", and a tap
-   with no answer gets pressed again. The odd-shift and 1.5 s guards catch the
-   second press, but the screen should say it first. */
-[style*="height: 60px"][style*="touch-action: manipulation"] {
-  border-radius: 18px;
-  background: var(--color-bg);
-  box-shadow: inset 0 0 0 1px var(--color-neutral-300), var(--shadow-card);
-  transition: background-color .12s ease;
+   would hand the button --radius-md instead of a circle. No border either,
+   for rule 2.
+   Before it (2026-10-26, eighty-seventh entry) this was a full-width bar under
+   the 출근/퇴근 line, caught by `height: 60px`; before that, a 64px tile. */
+[style*="clamp(78px, 24vw, 92px)"][style*="touch-action: manipulation"] {
+  border-radius: 50%;
+  transition: filter .12s ease, transform .12s ease;
 }
-/* only the plate darkens — a filter would dim the ▶ START ink with it */
-[style*="height: 60px"][style*="touch-action: manipulation"]:active {
-  background-color: var(--color-neutral-300);
+[style*="clamp(78px, 24vw, 92px)"][style*="touch-action: manipulation"]:active {
+  filter: brightness(.9);
+  transform: scale(.97);
 }
 
 /* ── 5b · the 출근 / 퇴근 pill above the punch clock ────────────────────── */
@@ -638,8 +664,28 @@
                          0 0 0 2px   color-mix(in oklab, currentColor 22%, transparent),
                          0 0 0 3px   color-mix(in oklab, currentColor 9%, transparent); }
 }
+/* The punch card keeps both lamps in one cell and hides the inactive one
+   (visibility, so the button does not slide at the START tap — ninety-third
+   entry). Hidden, the ON SHIFT lamp must not keep breathing: off shift that
+   was ~60 style recalcs a second for nothing, all day (branch review S1). */
+[style*="visibility: hidden"] > [style*="width: 9px"][style*="height: 9px"] { animation: none; }
 /* A worker who has switched motion off keeps the lamp, without the breath. */
 @media (prefers-reduced-motion: reduce) {
   [style*="width: 9px"][style*="height: 9px"],
   [style*="width: 4px"][style*="height: 4px"] { animation: none; }
+}
+
+/* ── 8c · the OFF SHIFT ring ───────────────────────────────────────────── */
+/* The opposite of the ON SHIFT lamp, beside the 출근 pill before a shift
+   (2026-11-09, ninety-third entry). ON SHIFT is lit and breathes; OFF SHIFT
+   is the same lamp switched off — an empty grey ring that does not move, so
+   the two states differ in two ways at once: fill and motion. It replaces
+   the filler line the worker had drawn there ("TAP START TO START SHIFT").
+   Caught by its own geometry, `width: 8px` + `height: 8px`, which occurs
+   once in the source (a test holds that). Not 9px: that would put it under
+   rule 8 and make an unlit lamp breathe. The ring is currentColor, set inline
+   to --color-neutral-500, a step lighter than its label. */
+[style*="width: 8px"][style*="height: 8px"] {
+  border-radius: var(--radius-pill);
+  box-shadow: inset 0 0 0 2px currentColor;
 }

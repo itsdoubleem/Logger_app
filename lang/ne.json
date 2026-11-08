@@ -394,6 +394,7 @@
   "on_even_the_first_8h_pay_1_5_and_every": "특근 मा पहिलो 8 घण्टा पनि ×1.5 मा गणना हुन्छ, र 22:00–06:00 बीचको हरेक घण्टामा 야간 रातको भत्ता ×0.5 थपिन्छ। ",
   "on_shift": "काममा · 특근",
   "on_shift_2": "काममा",
+  "off_shift": "काममा छैन",
   "on_shift_in_not_clocked_out": "काममा · {p0} हाजिर · छुट्टी बाँकी",
   "one_day_cut_short_by_the_company": "कम्पनीले छोट्याएको 1 दिन",
   "one_full_day_sent_home": "पूरै बिदा भएको 1 दिन",
