@@ -519,6 +519,8 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
              칸 폭을 가장 긴 꼴(13h 59m)로 못 박아 보았더니 단추는 서지만 출근 전 카드가 다시
              한쪽으로 쏠렸습니다(왼쪽 34px, 오른쪽 91px). 10시간을 넘기면 시계가 한 번 넓어져
              단추가 12px쯤 옮겨 갑니다 — 누르는 순간이 아니라 근무 중에.
+             같은 날 한 번 더: 영어의 '○ OFF SHIFT' 줄이 시계보다 길어 시계가 왼쪽에 쏠려 보였습니다.
+             시계를 글자 칸의 가운데에 세웁니다(align-self:center, 칸 안의 숫자도 text-align:center).
              지난 모양(여든일곱째, 2026-10-26): 알약 · 가운데 시계 · 카드 너비의 ▶ START 막대가
              한 가운데 줄에 섰고, 막대는 height 60px으로 잡혔으며 양옆 여백은 48px이었습니다. -->
         <div style="position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:clamp(14px, 5vw, 20px);padding:18px 20px;border-bottom:2px solid var(--color-divider);user-select:none">
@@ -538,7 +540,7 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
                 </div>
               </div>
             </div>
-            <div style="min-width:3.46em;max-width:100%;white-space:nowrap;font-variant-numeric:tabular-nums;font-family:var(--font-heading);font-weight:800;font-size:{{ padBigFs }};line-height:1;letter-spacing:-0.03em;color:{{ padInk }}">{{ padBig }}</div>
+            <div style="min-width:3.46em;max-width:100%;align-self:center;text-align:center;white-space:nowrap;font-variant-numeric:tabular-nums;font-family:var(--font-heading);font-weight:800;font-size:{{ padBigFs }};line-height:1;letter-spacing:-0.03em;color:{{ padInk }}">{{ padBig }}</div>
           </div>
         </div>
 

@@ -101,7 +101,9 @@ the pill and a lamp on one line beside it, and the clock under them.
   missing there was not a sentence but the ON SHIFT lamp's pair.
 - **The pill.** 출근 on `--color-mark-100` in the mark green — 4.63 : 1. 퇴근
   on `--color-accent-100` in `--color-accent-700` — 5.42 : 1. Shaped by rule 5b.
-  The pill and the clock start at the same left edge. On a 320px phone a long
+  The pill line starts at the column's left edge; the clock is centred in the
+  column under it (the worker's choice, after the English `○ OFF SHIFT` line
+  ran wider than the clock and left it looking pushed to the left). On a 320px phone a long
   lamp label (Indonesian, Khmer) drops to its own line under the pill.
 - **The clock** is the hero of the right column. Every form with a day count
   (`1d 13h 59m`, only when a shift was left open) uses the smaller

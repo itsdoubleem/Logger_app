@@ -8335,7 +8335,11 @@ console.log('\n== 출퇴근 카드의 양옆이 비어 있었습니다 — 넓�
     i0 > 0 && !!bar && pad.indexOf(bar) < pad.indexOf('{{ padStamp }}')
     && head.indexOf('{{ padBig }}') > head.indexOf('{{ padStamp }}')
     && /display:flex;align-items:center;/.test(tpl.slice(i0 - 120, i0)) && !/flex-direction:column/.test(tpl.slice(i0 - 120, i0)));
-  ok('알약과 시계는 같은 왼쪽 끝에서 시작합니다', /flex-direction:column;align-items:flex-start/.test(head));
+  ok('알약 줄은 글자 칸의 왼쪽 끝에서 시작합니다', /flex-direction:column;align-items:flex-start/.test(head));
+  // 같은 날 다시(아흔셋째): 영어의 '○ OFF SHIFT' 줄이 시계보다 길어 시계가 왼쪽에 쏠려 보였습니다.
+  // 근로자가 고른 답은 시계를 글자 칸의 가운데에 — 칸 안에서도, 최소 폭 안의 숫자도 가운데.
+  ok('시계는 글자 칸의 가운데에 섭니다',
+    /<div style="min-width:3\.46em;max-width:100%;align-self:center;text-align:center;[^"]*">\{\{ padBig \}\}/.test(head));
   // 같은 날 다시(아흔셋째): 묶음이 왼쪽에 붙어 오른쪽이 비었습니다 — 단추와 글자 칸을 한 묶음으로
   // 카드 가운데에. 글자 칸이 늘어나면(flex-grow) 가운데 맞춤이 아무 일도 하지 않습니다.
   ok('단추와 글자 묶음은 카드 가운데에 섭니다',
