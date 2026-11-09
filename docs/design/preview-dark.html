@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dark Mode Options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* Preview only — four phones side by side: today's light theme and three dark
+   candidates. Every colour below is a token value; each .phone overrides them
+   the same way the app's :root would. Contrast figures are WCAG ratios,
+   computed, not judged. */
+:root {
+  --page: #d9d7d6; --page-ink: #201e1d;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --page: #0b0b0b; --page-ink: #e8e6e5; } }
+:root[data-theme="dark"] { --page: #0b0b0b; --page-ink: #e8e6e5; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--page-ink); font-family: 'Archivo', system-ui, sans-serif; padding: 24px 16px 48px; }
+h1 { font-size: 22px; font-weight: 800; margin: 0 0 4px; }
+.lede { font-size: 14px; line-height: 1.5; max-width: 760px; margin: 0 0 24px; opacity: .8; }
+.grid { display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; }
+.col { width: 340px; max-width: 100%; }
+.col h2 { font-size: 16px; font-weight: 800; margin: 0 0 2px; }
+.col p.tag { font-size: 12.5px; line-height: 1.45; margin: 0 0 10px; opacity: .78; min-height: 54px; }
+
+/* ── one phone ─────────────────────────────────────────────── */
+.phone { --font: 'Archivo', system-ui, sans-serif;
+  background: var(--color-bg); color: var(--color-text); border-radius: 28px; overflow: hidden;
+  border: 6px solid #111; font-family: var(--font); padding-bottom: 10px; }
+.bar { display: flex; align-items: center; justify-content: space-between; padding: 14px 14px 10px; background: var(--color-card); box-shadow: var(--shadow-bar); }
+.wm { font-weight: 800; font-size: 15px; line-height: 1; letter-spacing: -.01em; display: flex; align-items: center; }
+.wm svg { width: 14px; height: 14px; color: var(--mark-ink); margin: 0 .5px; }
+.wm small { display: block; font-weight: 600; font-size: 8px; letter-spacing: .14em; color: var(--color-neutral-600); margin-top: 4px; }
+.chips { display: flex; gap: 6px; }
+.chip { font-size: 9.5px; font-weight: 800; letter-spacing: .08em; padding: 7px 10px; border-radius: 999px; }
+.chip.o { border: 1.5px solid var(--color-neutral-400); }
+.chip.f { background: var(--color-text); color: var(--color-bg); }
+.card { background: var(--color-card); margin: 8px 8px 0; border-radius: 16px; box-shadow: var(--shadow-card); border: 1px solid var(--card-edge); }
+.date { padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; }
+.date b { font-size: 26px; font-weight: 800; letter-spacing: -.02em; }
+.date span { font-size: 9px; font-weight: 700; letter-spacing: .1em; padding: 8px 10px; border-radius: 999px; background: var(--color-neutral-100); color: var(--color-neutral-700); }
+.shift { padding: 0 16px 14px; font-size: 12px; color: var(--color-neutral-700); line-height: 1.5; }
+.shift .lbl { font-size: 10px; letter-spacing: .1em; color: var(--color-neutral-600); }
+.sun { display: inline-block; font-weight: 800; font-size: 12px; padding: 6px 12px; border-radius: 999px; background: var(--day-chip); color: var(--day-chip-ink); margin: 6px 6px 6px 0; }
+.punch { display: flex; align-items: center; justify-content: center; gap: 18px; padding: 16px 18px; }
+.btn { width: 84px; height: 84px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 18px; color: var(--punch-ink); }
+.colm { display: flex; flex-direction: column; align-items: center; gap: 9px; }
+.pillrow { display: flex; align-items: center; gap: 10px; }
+.pill { font-weight: 800; font-size: 13px; padding: 6px 13px; border-radius: 999px; }
+.pill.in { background: var(--color-mark-100); color: var(--mark-ink); }
+.pill.out { background: var(--color-accent-100); color: var(--color-accent-700); }
+.lamp { display: flex; align-items: center; gap: 6px; font-weight: 800; font-size: 12px; letter-spacing: .06em; }
+.ring { width: 8px; height: 8px; border-radius: 50%; border: 2px solid var(--color-neutral-500); }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--mark-ink); box-shadow: 0 0 0 4px color-mix(in srgb, var(--mark-ink) 22%, transparent); }
+.clock { font-weight: 800; font-size: 44px; letter-spacing: -.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+.pay { padding: 14px 16px; }
+.pay .row { display: flex; justify-content: space-between; font-size: 12.5px; padding: 7px 0; border-bottom: 1px solid var(--color-neutral-300); }
+.pay .row:last-child { border: 0; }
+.pay .row em { font-style: normal; color: var(--color-neutral-600); font-size: 10.5px; margin-left: 4px; }
+.pay .tot { font-weight: 800; font-size: 20px; }
+.band { background: var(--color-accent); color: var(--color-on-accent); font-weight: 800; font-size: 11px; letter-spacing: .08em; padding: 10px 16px; border-radius: 16px; margin: 8px 8px 0; }
+.tabs { display: flex; justify-content: space-around; background: var(--color-card); margin: 8px 8px 0; border-radius: 999px; padding: 6px; box-shadow: var(--shadow-card); border: 1px solid var(--card-edge); }
+.tabs div { font-size: 10px; font-weight: 800; padding: 9px 10px; border-radius: 999px; color: var(--color-neutral-600); }
+.tabs div.on { background: var(--color-text); color: var(--color-bg); }
+.cr { font-size: 11.5px; line-height: 1.6; margin: 10px 2px 0; }
+.cr b { font-variant-numeric: tabular-nums; }
+.cr .warn { color: #c0392b; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .cr .warn { color: #ff8a73; } }
+:root[data-theme="dark"] .cr .warn { color: #ff8a73; }
+
+/* ── the four themes ───────────────────────────────────────── */
+.t-light { --color-bg:#f3f2f2; --color-card:#ffffff; --color-text:#201e1d; --color-neutral-100:#eeecec; --color-neutral-300:#e0dddd; --color-neutral-400:#c4c1c1; --color-neutral-500:#a9a7a6; --color-neutral-600:#747372; --color-neutral-700:#555352;
+  --color-accent:#ec3013; --color-accent-100:#f2dbd7; --color-accent-700:#ae1800; --color-on-accent:#f3f2f2; --color-mark-100:#ebf5ee; --mark-ink:#127e38;
+  --punch-start:#60b973; --punch-stop:#e9806f; --punch-ink:#201e1d; --day-chip:#f3c12e; --day-chip-ink:#201e1d;
+  --shadow-card:0 1px 2px rgba(32,30,29,.05),0 4px 12px rgba(32,30,29,.06); --shadow-bar:0 1px 14px rgba(32,30,29,.07); --card-edge:transparent; }
+.t-a { --color-bg:#151413; --color-card:#211f1e; --color-text:#f3f2f2; --color-neutral-100:#2b2928; --color-neutral-300:#3a3736; --color-neutral-400:#4d4a49; --color-neutral-500:#6f6c6a; --color-neutral-600:#9c9997; --color-neutral-700:#c9c6c4;
+  --color-accent:#ff5a3d; --color-accent-100:#3a1d17; --color-accent-700:#ff8a73; --color-on-accent:#151413; --color-mark-100:#173322; --mark-ink:#5cc27a;
+  --punch-start:#60b973; --punch-stop:#e9806f; --punch-ink:#201e1d; --day-chip:#e0b12a; --day-chip-ink:#201e1d;
+  --shadow-card:none; --shadow-bar:none; --card-edge:#2c2a29; }
+.t-b { --color-bg:#000000; --color-card:#141414; --color-text:#e4e2e1; --color-neutral-100:#1f1f1f; --color-neutral-300:#2c2b2a; --color-neutral-400:#3d3c3b; --color-neutral-500:#5e5c5b; --color-neutral-600:#8f8c8a; --color-neutral-700:#b8b5b3;
+  --color-accent:#f0472b; --color-accent-100:#331611; --color-accent-700:#ff7a62; --color-on-accent:#000000; --color-mark-100:#10261a; --mark-ink:#4fb46d;
+  --punch-start:#4fa865; --punch-stop:#d0705f; --punch-ink:#0d0d0d; --day-chip:#b8901f; --day-chip-ink:#0d0d0d;
+  --shadow-card:none; --shadow-bar:none; --card-edge:#1e1e1e; }
+.t-c { --color-bg:#2b2a29; --color-card:#363433; --color-text:#f6f5f4; --color-neutral-100:#403e3d; --color-neutral-300:#4a4746; --color-neutral-400:#5c5958; --color-neutral-500:#7a7776; --color-neutral-600:#a9a6a4; --color-neutral-700:#d2cfcd;
+  --color-accent:#ff7059; --color-accent-100:#4a2a24; --color-accent-700:#ff9a86; --color-on-accent:#2b2a29; --color-mark-100:#2a4232; --mark-ink:#6fcf8a;
+  --punch-start:#60b973; --punch-stop:#e9806f; --punch-ink:#201e1d; --day-chip:#f3c12e; --day-chip-ink:#201e1d;
+  --shadow-card:0 1px 2px rgba(0,0,0,.25),0 4px 12px rgba(0,0,0,.22); --shadow-bar:0 1px 14px rgba(0,0,0,.3); --card-edge:transparent; }
+</style>
+</head>
+<body>
+<h1>Dark mode: three options next to today's light theme</h1>
+<p class="lede">Same Archivo, same red-and-green pair, same cards and pills. Only the token values change. Each phone shows the punch card off shift, the same card on shift, and a pay card. The numbers under each phone are WCAG contrast ratios (AA needs 4.5 for body text).</p>
+
+<div class="grid" id="grid"></div>
+
+<template id="phone">
+  <div class="phone">
+    <div class="bar">
+      <div class="wm"><div>근무기록 L<svg viewBox="13 18.15 61.4 61.4" fill="currentColor" overflow="visible"><circle cx="43.7" cy="48.8" r="28.5" fill="none" stroke="currentColor" stroke-width="4.3"/><path d="M10.88 27.73A39 39 0 0 1 26.48 13.81L28.38 17.67A34.7 34.7 0 0 0 14.5 30.05Z"/><path d="M42.25 24.65h2.9a.6.6 0 0 1 .6.6v2.9a.6.6 0 0 1-.6.6h-2.9a.6.6 0 0 1-.6-.6v-2.9a.6.6 0 0 1 .6-.6ZM20.15 46.75h2.9a.6.6 0 0 1 .6.6v2.9a.6.6 0 0 1-.6.6h-2.9a.6.6 0 0 1-.6-.6v-2.9a.6.6 0 0 1 .6-.6ZM64.35 46.75h2.9a.6.6 0 0 1 .6.6v2.9a.6.6 0 0 1-.6.6h-2.9a.6.6 0 0 1-.6-.6v-2.9a.6.6 0 0 1 .6-.6ZM42.25 68.85h2.9a.6.6 0 0 1 .6.6v2.9a.6.6 0 0 1-.6.6h-2.9a.6.6 0 0 1-.6-.6v-2.9a.6.6 0 0 1 .6-.6Z"/><path d="M40.16 48.56 31.13 39.95A1.3 1.3 0 0 1 32.8 37.96L42.85 45.35A2.1 2.1 0 1 1 40.16 48.56Z"/><path d="M44.37 45.26 58.63 32.65A1.4 1.4 0 0 1 60.56 34.68L47.26 48.3A2.1 2.1 0 1 1 44.37 45.26Z"/><path d="M40 48.8a3.7 3.7 0 1 0 7.4 0 3.7 3.7 0 1 0-7.4 0Z"/><path d="M43.7 48.8 30.09 64.79" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>GGER<small>SHIFT · HOURS · PAY</small></div></div>
+      <div class="chips"><div class="chip o">KO ▾</div><div class="chip f">11.01 → 11.30</div></div>
+    </div>
+    <div class="card"><div class="date"><b>2026.11.09</b><span>MON 월 · 14:41</span></div>
+      <div class="shift"><div class="lbl">근무조 자동판별</div><span class="sun">☀ 주간</span>09:00 시작</div></div>
+    <div class="card"><div class="punch"><div class="btn" style="background:var(--punch-start)">START</div>
+      <div class="colm"><div class="pillrow"><div class="pill in">출근</div><div class="lamp" style="color:var(--color-neutral-600)"><div class="ring"></div>근무 외</div></div><div class="clock">14:41</div></div></div></div>
+    <div class="card"><div class="punch"><div class="btn" style="background:var(--punch-stop)">STOP</div>
+      <div class="colm"><div class="pillrow"><div class="pill out">퇴근</div><div class="lamp" style="color:var(--mark-ink)"><div class="dot"></div>근무중</div></div><div class="clock">3h 42m</div></div></div></div>
+    <div class="band">11.01 → 11.30 · 예상 급여</div>
+    <div class="card pay">
+      <div class="row"><span>기본급<em>Base</em></span><span>2,096,270</span></div>
+      <div class="row"><span>잔업 ×1.5<em>Overtime</em></span><span>412,320</span></div>
+      <div class="row"><span>공제<em>Deductions</em></span><span style="color:var(--color-accent-700)">−298,410</span></div>
+      <div class="row"><span>실수령<em>Net pay</em></span><span class="tot">2,210,180</span></div>
+    </div>
+    <div class="tabs"><div class="on">출퇴근</div><div>기록</div><div>급여</div><div>권리</div><div>설정</div></div>
+  </div>
+</template>
+
+<script>
+const T = [
+  { cls: 't-light', name: 'Today: light', tag: 'Warm off-white ground, white cards with a soft shadow. For comparison.',
+    v: { bg:'#f3f2f2', card:'#ffffff', text:'#201e1d', n600:'#747372', accent:'#ec3013', acc700:'#ae1800', acc100:'#f2dbd7', mark:'#127e38', mark100:'#ebf5ee', punch:'#201e1d', start:'#60b973', stop:'#e9806f' } },
+  { cls: 't-a', name: 'A · Inverted', tag: 'The direct opposite: the same warm near-black that is today\'s ink becomes the ground, and today\'s ground becomes the ink. Cards are a lighter step with a hairline edge instead of a shadow. The red and green are lifted so they still pass on dark.',
+    v: { bg:'#151413', card:'#211f1e', text:'#f3f2f2', n600:'#9c9997', accent:'#ff5a3d', acc700:'#ff8a73', acc100:'#3a1d17', mark:'#5cc27a', mark100:'#173322', punch:'#201e1d', start:'#60b973', stop:'#e9806f' } },
+  { cls: 't-b', name: 'B · Night shift', tag: 'Built for clocking out at 3 a.m.: a true-black ground (OLED pixels switch off, so less glare and battery), slightly dimmed white ink, and dimmed START/STOP fills so the biggest thing on screen isn\'t a lamp in a dark dorm.',
+    v: { bg:'#000000', card:'#141414', text:'#e4e2e1', n600:'#8f8c8a', accent:'#f0472b', acc700:'#ff7a62', acc100:'#331611', mark:'#4fb46d', mark100:'#10261a', punch:'#0d0d0d', start:'#4fa865', stop:'#d0705f' } },
+  { cls: 't-c', name: 'C · Graphite', tag: 'In line with today\'s soft card look: mid-dark warm grey, not black, so the cards can keep a real shadow and the layout reads exactly as it does now. Gentlest change for the eye; least battery saved.',
+    v: { bg:'#2b2a29', card:'#363433', text:'#f6f5f4', n600:'#a9a6a4', accent:'#ff7059', acc700:'#ff9a86', acc100:'#4a2a24', mark:'#6fcf8a', mark100:'#2a4232', punch:'#201e1d', start:'#60b973', stop:'#e9806f' } },
+];
+function lum(h){const c=[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4);return .2126*c[0]+.7152*c[1]+.0722*c[2];}
+function cr(a,b){const x=lum(a),y=lum(b);return ((Math.max(x,y)+.05)/(Math.min(x,y)+.05)).toFixed(1);}
+const grid = document.getElementById('grid'), tpl = document.getElementById('phone');
+for (const t of T) {
+  const col = document.createElement('div'); col.className = 'col';
+  col.innerHTML = `<h2>${t.name}</h2><p class="tag">${t.tag}</p>`;
+  const ph = tpl.content.firstElementChild.cloneNode(true); ph.classList.add(t.cls); col.appendChild(ph);
+  const v = t.v, rows = [
+    ['Body text on card', cr(v.text, v.card)], ['Grey label on card', cr(v.n600, v.card)],
+    ['Red on card', cr(v.accent, v.card)], ['퇴근 pill', cr(v.acc700, v.acc100)],
+    ['출근 pill / green lamp', cr(v.mark, v.mark100) + ' / ' + cr(v.mark, v.card)],
+    ['START / STOP label', cr(v.punch, v.start) + ' / ' + cr(v.punch, v.stop)],
+  ];
+  const d = document.createElement('div'); d.className = 'cr';
+  d.innerHTML = rows.map(([k, n]) => `${k}: <b class="${String(n).split(' / ').some(x => +x < 4.5) ? 'warn' : ''}">${n}</b>`).join('<br>');
+  col.appendChild(d); grid.appendChild(col);
+}
+</script>
+</body>
+</html>
