@@ -12,6 +12,9 @@
   "orientation": "portrait",
   "background_color": "#f3f2f2",
   "theme_color": "#f3f2f2",
+  "user_preferences": {
+    "color_scheme_dark": { "background_color": "#2b2a29", "theme_color": "#2b2a29" }
+  },
   "categories": ["productivity", "utilities", "finance"],
   "icons": [
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },

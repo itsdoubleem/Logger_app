@@ -56,8 +56,8 @@ entry).
 | mark tint `--color-mark-100` | `#ebf5ee` | `#2a4232` | 5.7 : 1 under the ink |
 | START / STOP | `#60b973` / `#e9806f` | unchanged | dark ink 6.9 / 6.2 |
 
-- **Who decides.** 설정 › 화면: 자동 (default, follows the phone) / 밝게 /
-  어둡게. The app puts the result on `<html data-theme>`; the dark tokens hang
+- **Who decides.** 설정 › 화면: 자동 (default, follows the phone) / 라이트 /
+  다크. The app puts the result on `<html data-theme>`; the dark tokens hang
   on that attribute only, never on a media query, so there is one copy of
   every rule.
 - **Fixed fills keep fixed ink.** The yellow 주간 chip, START / STOP and the

@@ -3289,11 +3289,11 @@
   },
   "theme_light": {
     "en": "Light",
-    "ko": "밝게"
+    "ko": "라이트"
   },
   "theme_dark": {
     "en": "Dark",
-    "ko": "어둡게"
+    "ko": "다크"
   },
   "theme_note": {
     "en": "Auto follows your phone's dark mode setting. A 근무내역서 you print or save is always on white.",

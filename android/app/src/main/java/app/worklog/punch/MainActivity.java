@@ -325,7 +325,7 @@ public class MainActivity extends FragmentActivity {
          * 화면 · the status bar and navigation bar icons follow the page's theme:
          * dark icons on the light ground, light icons on the dark one. The page
          * calls this whenever its theme changes — including when the worker picks
-         * 어둡게 on a phone that is in light mode, which no resource qualifier sees.
+         * 다크 on a phone that is in light mode, which no resource qualifier sees.
          */
         @JavascriptInterface
         public void setDarkBars(final boolean dark) {

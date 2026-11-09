@@ -7227,7 +7227,7 @@ console.log('\n== 굴림판이 종이에 그린 표였습니다 ==');
   ok('숫자가 띠 위에 올라섭니다',
     (q1.match(/position:relative;display:flex;align-items:stretch;height:100%/g) || []).length === 2);
   ok('띠는 검은 두 줄이 아니라 빛을 받는 면입니다',
-    q1.indexOf('top:44px;height:44px;background:var(--color-surface)') > 0
+    q1.indexOf('top:44px;height:44px;background:var(--color-raised)') > 0
     && q1.indexOf('border-top:2px solid var(--color-text);border-bottom:2px solid var(--color-text)') < 0);
   // 통은 스스로 모서리를 자릅니다 — 안 그러면 띠와 그늘이 둥근 모서리 밖으로 삐져나갑니다
   ok('통이 자기 모서리로 자릅니다',
@@ -7299,7 +7299,7 @@ console.log('\n== 화면 한 장이 근로자의 화면 한 장 반이었습니�
     String(3 * V2.DRUM_ITEM));
   ok('빈칸도 칸 하나입니다', (su.match(new RegExp('<div style="height:' + V2.DRUM_ITEM + 'px"></div>', 'g')) || []).length === 16);
   ok('띠도 칸 하나이고 그 자리에 섭니다',
-    (su.match(new RegExp('top:' + V2.DRUM_ITEM + 'px;height:' + V2.DRUM_ITEM + 'px;background:var\\(--color-surface\\)', 'g')) || []).length === 4);
+    (su.match(new RegExp('top:' + V2.DRUM_ITEM + 'px;height:' + V2.DRUM_ITEM + 'px;background:var\\(--color-raised\\)', 'g')) || []).length === 4);
 
   // 여기가 이번의 알맹이입니다 — 줄이다 보면 44를 넘겨 내려가기 쉽고, 그때
   // 화면은 그냥 조금 더 작아 보일 뿐 아무 오류도 나지 않습니다.
@@ -10999,6 +10999,12 @@ console.log('\n== 밤에 출퇴근을 찍는 사람에게 흰 화면은 손전�
     /--color-on-fill: #201e1d;/.test(root) && /--color-on-dark-fill: #f3f2f2;/.test(root)
     && dark.indexOf('--color-on-fill') < 0 && dark.indexOf('--color-on-dark-fill') < 0);
   // 초록은 하나 — 이제 토큰입니다. 어두운 화면에서만 밝아집니다(#127e38은 어두운 바탕에서 3.0:1).
+  // 드럼의 띠는 통보다 한 단 밝아야 '빛을 받는 면'입니다. 어두운 화면에서는 카드색이 통보다 어두워
+  // 띠가 파인 홈처럼 읽혔습니다(리뷰 N1) — 띠는 자기 토큰을 갖고, 밝은 화면에서는 예전 그대로 흰색입니다.
+  ok('드럼의 띠는 밝은 화면에서 흰색, 어두운 화면에서 통보다 한 단 밝습니다',
+    /--color-raised: #ffffff;/.test(root) && /--color-raised: #4a4847;/.test(dark)
+    && /--color-neutral-100: #403e3d;/.test(dark)
+    && (code.match(/top:44px;height:44px;background:var\(--color-raised\)/g) || []).length === 4);
   ok('마크 초록 리터럴이 소스에 남아 있지 않습니다', code.indexOf('oklch(0.52 0.14 149)') < 0);
   ok('마크 초록은 토큰 하나입니다', /--color-mark: oklch\(0\.52 0\.14 149\);/.test(root) && /--color-mark: #6fcf8a;/.test(dark));
   // SVG의 fill 속성은 var()를 읽지 못합니다 — 그림은 currentColor, 색은 svg의 color입니다
@@ -11070,6 +11076,16 @@ console.log('\n== 밤에 출퇴근을 찍는 사람에게 흰 화면은 손전�
     /\+ THEME_BOOT \+ """/.test(build) && /shell\[:head_end\] \+ THEME_BOOT \+ LOADER_CSS/.test(build));
   ok('부팅 스크립트는 기록 전체가 아니라 작은 키를 읽습니다',
     /localStorage\.getItem\('worklog\.theme'\)/.test(build) && !/getItem\('worklog\.v2'\)/.test(build));
+  // 설치한 웹앱의 시작 화면과 브라우저 막대 (리뷰 N3). 매니페스트는 시작 화면 색을 하나만 가질 수 있어,
+  // 지원하는 브라우저만 읽는 user_preferences로 어두운 색을 더합니다. 부팅 스크립트는 고른 값으로 둘 다 덮습니다.
+  {
+    const man = JSON.parse(fs.readFileSync(__dirname + '/../pwa/manifest.webmanifest', 'utf8'));
+    ok('설치한 웹앱도 어두운 시작 화면 색을 압니다', man.background_color === '#f3f2f2'
+      && man.user_preferences && man.user_preferences.color_scheme_dark.background_color === '#2b2a29');
+    ok('브라우저 막대 색은 폰의 설정마다 하나씩', /<meta name="theme-color" content="#2b2a29" media="\(prefers-color-scheme: dark\)">/.test(build)
+      && /<meta name="theme-color" content="#f3f2f2" media="\(prefers-color-scheme: light\)">/.test(build));
+    ok('부팅 스크립트는 고른 값으로 두 막대 색을 모두 덮습니다', /t === 'dark' \? '#2b2a29' : '#f3f2f2'/.test(build));
+  }
   ok('앱이 그 키를 씁니다', /localStorage\.setItem\('worklog\.theme', pref\)/.test(code));
   // 안드로이드
   const A = __dirname + '/../android/app/src/main/';

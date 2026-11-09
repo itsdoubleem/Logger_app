@@ -84,6 +84,12 @@
      follow --color-text / --color-bg, which swap. These two never move. */
   --color-on-fill: #201e1d;       /* dark ink on a light fixed fill */
   --color-on-dark-fill: #f3f2f2;  /* light ink on a dark fixed fill */
+  /* the time drum's lit centre band — the one surface that must stand *above*
+     the drum well (neutral-100) rather than equal the card. Light: card white,
+     as before. Dark: card #363433 is darker than the well #403e3d, and the band
+     read as a slot sunk into it; #4a4847 is the same step above the well (1.17)
+     that white is above the light well (1.18). (dark-mode review N1) */
+  --color-raised: #ffffff;
   /* 결근 — the unpaid-absence grey (calendar bar and the 결 badge). Not a fixed
      fill after all: at oklch(0.45 0.02 0) it is 1.7:1 on the dark panel and the
      bar all but vanished (dark-mode review S4). Dark lifts it to #8f8c8a — 3.3:1
@@ -128,7 +134,7 @@
  * it does in light. Same Archivo, same red-and-green pair, same shapes; only
  * values change. `data-theme` on <html> is set by the app (applyTheme) and,
  * before the app mounts, by the boot script in build.py — never by a media
- * query here, so the 설정 choice (자동 / 밝게 / 어둡게) is the one place that
+ * query here, so the 설정 choice (자동 / 라이트 / 다크) is the one place that
  * decides and there is one copy of every rule.
  *
  * The ramp keeps its *meaning*, not its direction: neutral-100..200 are still
@@ -178,6 +184,7 @@
   --color-mark-100: #2a4232;
 
   --color-absent: #8f8c8a;
+  --color-raised: #4a4847;
   --color-on-absent: #201e1d;
 
   --shadow-card: 0 1px 2px rgba(0, 0, 0, .25), 0 4px 12px rgba(0, 0, 0, .22);
