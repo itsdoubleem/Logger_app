@@ -18,14 +18,41 @@ final class PunchViewController: UIViewController, WKNavigationDelegate, WKUIDel
     private var web: WKWebView!
     private var bridge: Bridge!
 
-    /// #f3f2f2 — the app's ground. Set on every layer the worker can see behind
-    /// the page (the window, the web view, its scroll view) so a rubber-band
-    /// scroll or the area beside the notch never flashes white or black.
-    private static let ground = UIColor(red: 0xf3/255, green: 0xf2/255, blue: 0xf2/255, alpha: 1)
+    /// The app's ground — #f3f2f2 light, #2b2a29 graphite dark. Set on every
+    /// layer the worker can see behind the page (the window, the web view, its
+    /// scroll view) so a rubber-band scroll or the area beside the notch never
+    /// flashes white or black.
+    private static let groundLight = UIColor(red: 0xf3/255, green: 0xf2/255, blue: 0xf2/255, alpha: 1)
+    private static let groundDark = UIColor(red: 0x2b/255, green: 0x2a/255, blue: 0x29/255, alpha: 1)
+
+    /// 화면 · the theme the page chose (설정 › 화면), reported through
+    /// WorkLogNative.setDarkBars. Until the page reports, follow the iPhone —
+    /// which is what 자동 does anyway, so the first frame is usually right.
+    /// The page can choose 라이트 on a dark iPhone or 다크 on a light one, and
+    /// no trait collection knows about that, so this value wins once it is set.
+    var pageDark: Bool? {
+        didSet { paintGround() }
+    }
+    private var isDark: Bool { pageDark ?? (traitCollection.userInterfaceStyle == .dark) }
+
+    private func paintGround() {
+        let g = isDark ? Self.groundDark : Self.groundLight
+        view.backgroundColor = g
+        web?.backgroundColor = g
+        web?.scrollView.backgroundColor = g
+        setNeedsStatusBarAppearanceUpdate()
+    }
+
+    override func traitCollectionDidChange(_ previous: UITraitCollection?) {
+        super.traitCollectionDidChange(previous)
+        // only matters before the page has spoken; after that it repaints itself
+        // through setDarkBars when 자동 follows the change
+        if pageDark == nil { paintGround() }
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = Self.ground
+        view.backgroundColor = isDark ? Self.groundDark : Self.groundLight
 
         let www = Bundle.main.url(forResource: "www", withExtension: nil)!
         server = LocalServer(root: www)
@@ -45,7 +72,7 @@ final class PunchViewController: UIViewController, WKNavigationDelegate, WKUIDel
         ucc.addScriptMessageHandler(bridge, contentWorld: .page, name: "worklog")
         // Must run before the page's own scripts, or the page has already
         // decided there is no share sheet by the time we install one.
-        for source in [Shims.files] {
+        for source in [Shims.files, Shims.theme] {
             ucc.addUserScript(WKUserScript(source: source,
                                            injectionTime: .atDocumentStart,
                                            forMainFrameOnly: true))
@@ -56,8 +83,8 @@ final class PunchViewController: UIViewController, WKNavigationDelegate, WKUIDel
         web.navigationDelegate = self
         web.uiDelegate = self
         web.isOpaque = false
-        web.backgroundColor = Self.ground
-        web.scrollView.backgroundColor = Self.ground
+        web.backgroundColor = isDark ? Self.groundDark : Self.groundLight
+        web.scrollView.backgroundColor = web.backgroundColor
         web.scrollView.contentInsetAdjustmentBehavior = .never
         // The layout is fixed and the page does its own scrolling; a bounce at
         // the top drags the punch pad out from under the finger.
@@ -125,5 +152,7 @@ final class PunchViewController: UIViewController, WKNavigationDelegate, WKUIDel
         view.addSubview(label)
     }
 
-    override var preferredStatusBarStyle: UIStatusBarStyle { .darkContent }
+    /// Light text on the graphite ground, dark text on the light one — fixed at
+    /// .darkContent, 다크 left the clock and battery invisible.
+    override var preferredStatusBarStyle: UIStatusBarStyle { isDark ? .lightContent : .darkContent }
 }

@@ -11094,6 +11094,23 @@ console.log('\n== 밤에 출퇴근을 찍는 사람에게 흰 화면은 손전�
     && /android:theme="@style\/AppTheme"/.test(fs.readFileSync(A + 'AndroidManifest.xml', 'utf8')));
   ok('상태 표시줄 아이콘은 화면을 따라갑니다', /@JavascriptInterface\s+public void setDarkBars/.test(java)
     && /setAppearanceLightStatusBars\(!dark\)/.test(java));
+  // 아이폰 (리뷰 S3) — Info.plist가 밝은 화면에 묶여 있으면 WKWebView는 언제나 light라고 말합니다
+  {
+    const I = __dirname + '/../ios/WorkLog/';
+    const plist = fs.readFileSync(I + 'Info.plist', 'utf8').replace(/<!--[\s\S]*?-->/g, '');
+    const shims = fs.readFileSync(I + 'Shims.swift', 'utf8');
+    const bridgeSw = fs.readFileSync(I + 'Bridge.swift', 'utf8');
+    const vc = fs.readFileSync(I + 'PunchViewController.swift', 'utf8');
+    ok('아이폰 앱은 밝은 화면에 묶여 있지 않습니다', plist.indexOf('UIUserInterfaceStyle') < 0);
+    ok('아이폰에도 같은 이름의 다리가 있습니다',
+      /window\.WorkLogNative\.setDarkBars = function \(dark\)/.test(shims) && /\[Shims\.files, Shims\.theme\]/.test(vc)
+      && /case "setDarkBars":[\s\S]*?host\?\.pageDark = dark/.test(bridgeSw));
+    ok('아이폰의 상태 표시줄 글자는 화면을 따라갑니다',
+      /preferredStatusBarStyle: UIStatusBarStyle \{ isDark \? \.lightContent : \.darkContent \}/.test(vc)
+      && /setNeedsStatusBarAppearanceUpdate\(\)/.test(vc));
+    ok('튕김 영역과 노치 옆도 같은 바탕입니다',
+      /web\?\.scrollView\.backgroundColor = g/.test(vc) && /groundDark = UIColor\(red: 0x2b\/255, green: 0x2a\/255, blue: 0x29\/255/.test(vc));
+  }
   ok('폰의 다크 모드가 바뀌면 열린 화면에 알립니다', /onConfigurationChanged[\s\S]*?worklogsystemtheme/.test(java)
     && /window\.addEventListener\('worklogsystemtheme'/.test(code));
 }

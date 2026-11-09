@@ -41,6 +41,24 @@ enum Shims {
     /// Restoring needs nothing here — <input type="file"> opens the document
     /// picker in WKWebView without any host code, which is the one thing iOS
     /// gives for free that Android charged for.
+    /// 화면 · the page tells the host its theme, exactly as on Android, where
+    /// MainActivity exposes `WorkLogNative.setDarkBars(bool)` through
+    /// addJavascriptInterface. Same name here, so applyTheme() in the app has
+    /// one call for both platforms and does not know which one it is on. The
+    /// host paints the status bar and the strips around the page from it.
+    /// There is no `__worklogSystemDark` on iOS: with the plist no longer pinned
+    /// to Light, WKWebView's prefers-color-scheme follows the iPhone live.
+    static var theme: String { """
+    (function () {
+    \(bridge)
+      if (window.WorkLogNative && window.WorkLogNative.setDarkBars) return;
+      window.WorkLogNative = window.WorkLogNative || {};
+      window.WorkLogNative.setDarkBars = function (dark) {
+        nativeCall('setDarkBars', { dark: !!dark }).catch(function () { /* older host: nothing to paint */ });
+      };
+    })();
+    """ }
+
     static var files: String { """
     (function () {
     \(bridge)
