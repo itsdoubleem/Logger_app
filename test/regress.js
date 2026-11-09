@@ -3805,7 +3805,7 @@ console.log('\n== 접혀 있어도 이름이 있는지 없는지가 보입니다
   // ! 가 같은 회색이면 근로자가 글리프를 하나씩 알아봐야 합니다. 정해진 줄은
   // 이제 지문과 같은 초록입니다 — 굵기는 그대로 두었습니다(예순째).
   const v2src = require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
-  const green = (v2src.match(/padIconInk:[^\n]*'(oklch\([^']+\))'/) || [])[1];
+  const green = (v2src.match(/padIconInk:[^\n]*'(var\(--color-mark\))'/) || [])[1];
   ok('첫 층을 다 정하면 그 세 줄이 초록입니다',
     V.gPaySumInk===green && V.gShiftSumInk===green && V.gPeriodSumInk===green,
     V.gPaySumInk + ' / ' + V.gShiftSumInk + ' / ' + V.gPeriodSumInk);
@@ -3972,13 +3972,15 @@ console.log('\n== 이름 한가운데의 O는 앱의 시계입니다 ==');
   ok('글자로 찍히던 LOGGER는 남아 있지 않습니다', count(/>근무기록 LOGGER</g)===0,
     String(count(/>근무기록 LOGGER</g)));
   // 초록은 출퇴근 패드의 지문과 같은 값이어야 합니다 — 다르면 두 초록이 됩니다
-  const pad = (src.match(/padIconInk:[^\n]*'(oklch\([^']+\))'/)||[])[1];
+  const pad = (src.match(/padIconInk:[^\n]*'(var\(--color-mark\))'/)||[])[1];
   ok('패드의 초록을 읽어 왔습니다', !!pad, String(pad));
   ok('로고의 초록이 패드와 같습니다',
-    count(new RegExp('<svg viewBox="13 18\\.15 61\\.4 61\\.4" fill="'+pad.replace(/[().]/g,'\\$&')+'"','g'))===3, pad);
+    // 어두운 화면(아흔넷째)부터 그림은 currentColor이고, 색은 svg의 color가 줍니다 —
+    // SVG의 fill 속성은 var()를 읽지 못하기 때문입니다
+    count(new RegExp('<svg viewBox="13 18\\.15 61\\.4 61\\.4" fill="currentColor" aria-hidden="true" focusable="false" style="color:'+pad.replace(/[().-]/g,'\\$&')+';','g'))===3, pad);
   ok('근무기록의 등도 패드와 같은 초록입니다',
-    (src.match(/liveInk: '(oklch\([^']+\))'/) || [])[1] === pad,
-    String((src.match(/liveInk: '(oklch\([^']+\))'/) || [])[1]));
+    (src.match(/liveInk: '(var\(--color-mark\))'/) || [])[1] === pad,
+    String((src.match(/liveInk: '(var\(--color-mark\))'/) || [])[1]));
   // 그림은 글자가 아니므로, 이름은 aria-label이 말해 줍니다
   ok('세 자리 모두 읽을 수 있는 이름이 붙어 있습니다',
     count(/aria-label="근무기록 LOGGER/g)===3);
@@ -3991,7 +3993,7 @@ console.log('\n== 이름 한가운데의 O는 앱의 시계입니다 ==');
   // 색은 앱에서는 oklch, 원본 파일에서는 hex라 '잉크'로 맞춰 놓고 견줍니다
   const shapes = x => (x.match(/<(?:circle|path) [^>]*?\/?>/g) || [])
     .map(e => e.replace(/\s*\/?>$/, '').replace(/\s+/g, ' ')
-      .replace(/oklch\(0\.52 0\.14 149\)|#127e38/g, 'INK'));
+      .replace(/oklch\(0\.52 0\.14 149\)|#127e38|currentColor/g, 'INK'));
   ok('그 그림은 docs/design의 시계 원본입니다',
     marks.length > 0 && JSON.stringify(shapes(marks[0])) === JSON.stringify(shapes(art)),
     JSON.stringify(shapes(marks[0] || '')) + ' vs ' + JSON.stringify(shapes(art)));
@@ -5326,7 +5328,8 @@ console.log('\n== 오늘이 어떤 날인지는 알약 두 개가 말합니다 =
 
   ok('주간 알약은 근무기록 배지와 같은 노랑입니다',
     vd.detectShiftBg === 'oklch(0.84 0.16 92)', vd.detectShiftBg);
-  ok('주간 알약의 글씨는 어둡습니다', vd.detectShiftInk === 'var(--color-text)');
+  // 어두운 화면(아흔넷째)에서는 --color-text가 밝아집니다. 노랑은 그대로라 글씨는 바뀌지 않는 잉크입니다.
+  ok('주간 알약의 글씨는 어둡습니다 — 어두운 화면에서도', vd.detectShiftInk === 'var(--color-on-fill)', vd.detectShiftInk);
   ok('평일에는 특근 알약이 없습니다', vd.detectHol === false, String(vd.detectHol));
 
   // 야간 — 근무기록 줄의 배지와 같은 검정
@@ -5562,7 +5565,7 @@ console.log('\n== 나는 다 한 것입니까 ==');
   {
     const fs2 = require('fs');
     const src2 = fs2.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
-    const pad = (src2.match(/padIconInk:[^\n]*'(oklch\([^']+\))'/) || [])[1];
+    const pad = (src2.match(/padIconInk:[^\n]*'(var\(--color-mark\))'/) || [])[1];
     ok('다 되면 초록 테두리가 섭니다', Va.setupStatusEdge === pad, Va.setupStatusEdge);
     ok('그 초록은 지문과 같은 값입니다', !!pad && Va.setupStatusEdge === pad, String(pad));
     // 두 상태가 같은 두께라야 화면이 흔들리지 않습니다
@@ -6217,7 +6220,7 @@ console.log('\n== 필요해지는 그 자리에서 묻습니다 ==');
     ok('삼각형의 선은 앱의 빨강입니다', head.indexOf('stroke="var(--color-accent)"') > 0);
     ok('삼각형은 읽히지 않습니다', head.indexOf('aria-hidden="true"') > 0);
     // 제목 글자는 지문과 같은 초록입니다 — 두 초록이 되지 않도록 값을 읽어 옵니다
-    const pad = (src.match(/padIconInk:[^\n]*'(oklch\([^']+\))'/) || [])[1];
+    const pad = (src.match(/padIconInk:[^\n]*'(var\(--color-mark\))'/) || [])[1];
     const open = tpl.slice(tpl.lastIndexOf('<div', tpl.indexOf('{{ L.askDedTitle }}')),
                            tpl.indexOf('{{ L.askDedTitle }}'));
     ok('제목은 지문과 같은 초록입니다', open.indexOf('color:' + pad) > 0, String(pad));
@@ -6248,7 +6251,7 @@ console.log('\n== 필요해지는 그 자리에서 묻습니다 ==');
     // 그 회색이 초록 글자 옆에서 지워진 것처럼 보였습니다. 두께는 셋 다 2px 그대로
     // 두었습니다 — 3px는 규칙 2가 잡지 못해 모서리가 각지게 됩니다.
     ok('적어 넣는 칸 셋의 테두리도 초록입니다',
-      (box.match(/border:2px solid oklch\(0\.52 0\.14 149\)/g) || []).length === 3);
+      (box.match(/border:2px solid var\(--color-mark\)/g) || []).length === 3);
     ok('그 칸들은 옛 옷을 벗었습니다',
       box.indexOf('border:2px solid var(--color-text)') < 0
       && box.indexOf('border:2px solid var(--color-neutral-300)') < 0);
@@ -7023,8 +7026,9 @@ console.log('\n== 열리는 것과 열리지 않는 것 ==');
   // 아홉은 묶음 줄의 것이고, 열째는 조퇴 사유 시트의 것입니다 — 쉰아홉째가
   // 이 동그라미를 그 시트에도 붙였습니다. 열한째가 생기면 이 수가 늘고, 그때
   // 그것이 정말 접히는 것을 여는 단추인지 눈으로 보게 됩니다.
-  ok('동그라미는 열 개 — 묶음 줄 아홉과 사유 시트 하나입니다',
-    (tplQ.split(circle).length - 1) === 10, 'got ' + (tplQ.split(circle).length - 1));
+  // 아흔넷째가 화면(밝게·어둡게) 묶음을 더해 묶음 줄은 열입니다.
+  ok('동그라미는 열한 개 — 묶음 줄 열과 사유 시트 하나입니다',
+    (tplQ.split(circle).length - 1) === 11, 'got ' + (tplQ.split(circle).length - 1));
   ok('그 열째가 사유 시트의 것입니다',
     tplQ.indexOf(circle, tplQ.indexOf('{{ rsnToggle }}')) > 0
     && tplQ.indexOf(circle, tplQ.indexOf('{{ rsnToggle }}'))
@@ -7078,8 +7082,8 @@ console.log('\n== 열리는 것과 열리지 않는 것 ==');
 
   // ── 5 · 줄과 줄 사이는 1px, 카드와 카드 사이의 2px가 아닙니다 ──
   // 층마다 첫 줄에는 줄이 없어야 합니다(카드의 위 가장자리가 이미 끝입니다).
-  ok('줄 사이 실선은 여섯입니다 (아홉 줄 - 층 셋)',
-    (tplQ.split('min-height:44px;border-top:1px solid var(--color-neutral-300);cursor:pointer').length - 1) === 6);
+  ok('줄 사이 실선은 일곱입니다 (열 줄 - 층 셋)',
+    (tplQ.split('min-height:44px;border-top:1px solid var(--color-neutral-300);cursor:pointer').length - 1) === 7);
   ok('묶음 줄에 2px 구역선이 남아 있지 않습니다',
     tplQ.indexOf('min-height:44px;border-top:2px solid var(--color-divider);cursor:pointer') < 0);
 
@@ -7845,8 +7849,8 @@ console.log('\n== 펴진 것이 어디서 끝나는지 화면이 말하지 않�
     .forEach(t => ok('칸이 살아 있습니다 ' + t, tplQ.indexOf(t) > 0));
   // 동그라미와 요약 줄도 그대로입니다 — 이번에 더한 것은 본문의 바탕 하나입니다
   // 쉰아홉째가 사유 시트에 열째를 붙였습니다 — 묶음 줄의 아홉은 그대로입니다
-  ok('묶음 줄의 동그라미는 여전히 아홉 개입니다',
-    (tplQ.match(/background:\{\{ g\w+ChevBg \}\}/g) || []).length === 9);
+  ok('묶음 줄의 동그라미는 열 개입니다 (아흔넷째의 화면 묶음까지)',
+    (tplQ.match(/background:\{\{ g\w+ChevBg \}\}/g) || []).length === 10);
 }
 
 // ══ 조퇴 사유 창만 앞 시대의 모양으로 남아 있었습니다 ══════════════════════
@@ -8028,7 +8032,7 @@ console.log('\n== 사유 창의 접는 표시가 앱의 다른 접는 표시와 
   const SETUP_CIRCLE = 'flex:none;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:13px;background:';
   ok('머리에 30px 동그라미가 섰습니다', head.indexOf(SETUP_CIRCLE) > 0, head.slice(-140));
   ok('그 상자가 설정 묶음 줄의 것과 같은 셈입니다',
-    (tpl.split(SETUP_CIRCLE).length - 1) === 10);
+    (tpl.split(SETUP_CIRCLE).length - 1) === 11);
   // 모양은 층이, 색은 renderVals가 — 인라인에 모서리를 적으면 그 요소만
   // 조용히 층 바깥으로 나갑니다(마흔째)
   ok('동그라미의 색은 홀이고 마크업에 박혀 있지 않습니다',
@@ -8174,7 +8178,7 @@ console.log('\n== 백업을 펴면 띠와 본문 사이에 흰 줄이 그어졌�
   // 아홉 묶음의 줄과 본문 판이 같은 홀(g…Bg)을 나눠 씁니다 — 판만 골라냅니다.
   const tags = tpl.match(/<div style="[^"]*background:\{\{ g[A-Za-z]+Bg \}\}"[^>]*>/g) || [];
   const bodies = tags.filter(t => t.indexOf('cursor:pointer') < 0);
-  ok('열리는 묶음의 본문 판이 아홉입니다 (' + bodies.length + ')', bodies.length === 9);
+  ok('열리는 묶음의 본문 판이 열입니다 (' + bodies.length + ')', bodies.length === 10);
   bodies.forEach(t => {
     const name = (t.match(/g([A-Za-z]+)Bg/) || [0, '?'])[1];
     const first = tpl.slice(tpl.indexOf(t) + t.length).match(/<div style="([^"]*)"/);
@@ -8351,8 +8355,9 @@ console.log('\n== 지문은 필요 없었습니다 — 한 번 누르면 출근,
   // 그대로. 크기는 17–20px: 단추를 92px(320px 폰에서 78px)로 줄이며 글자도 함께 줄였습니다.
   // ▶·■ 그림은 없습니다.
   const padAll = tpl.slice(tpl.indexOf('{{ padTap }}') - 20, tpl.indexOf('{{ padBig }}') + 20);
-  ok('START/STOP은 17–20px 600, 진한 잉크',
-    /font-weight:600;font-size:clamp\(17px, 5vw, 20px\);[^"]*color:var\(--color-text\)">\{\{ padTitle \}\}/.test(padAll));
+  // 진한 잉크는 --color-on-fill — 어두운 화면에서 --color-text는 밝아지는데 단추는 그대로라(아흔넷째)
+  ok('START/STOP은 17–20px 600, 진한 잉크 — 어두운 화면에서도',
+    /font-weight:600;font-size:clamp\(17px, 5vw, 20px\);[^"]*color:var\(--color-on-fill\)">\{\{ padTitle \}\}/.test(padAll));
   ok('시각의 크기는 renderVals가 정합니다', /font-size:\{\{ padBigFs \}\};[^"]*">\{\{ padBig \}\}/.test(padAll));
   ok('단추에 ▶·■ 그림이 없습니다', padAll.length > 100 && !/<svg/.test(padAll));
 }
@@ -8438,7 +8443,7 @@ console.log('\n== 출퇴근 카드의 양옆이 비어 있었습니다 — 넓�
     ok('근무 외 글자: neutral-600 on 흰 카드 ≥ 4.5', cr('747372', 'ffffff') >= 4.5 && /color:var\(--color-neutral-600\)[^"]*">\s*<div style="width:8px/.test(head.replace(/\n/g, '')));
     const c0 = mk(V2, '2026-10-26T08:50:00');
     let R0 = c0.renderVals();
-    ok('출근 전 알약은 옅은 초록 바탕', R0.padChipBg === 'var(--color-mark-100)' && /^oklch/.test(R0.padChipInk));
+    ok('출근 전 알약은 옅은 초록 바탕', R0.padChipBg === 'var(--color-mark-100)' && R0.padChipInk === 'var(--color-mark)');
     c0.state.session = { inIso: new Date('2026-10-26T06:00:00').toISOString() };
     R0 = c0.renderVals();
     ok('근무 중 알약은 옅은 빨강 바탕에 accent-700', R0.padChipBg === 'var(--color-accent-100)' && R0.padChipInk === 'var(--color-accent-700)');
@@ -10969,6 +10974,94 @@ console.log('\n== 네팔어와 크메르어만 제 글자의 숫자를 썼습니
   ok('법조문의 항 표시는 그대로입니다', /§56②/.test(fs.readFileSync(__dirname + '/../lang/ne.json', 'utf8')));
   ok('check_lang.py가 다음 번을 잡습니다', /unicodedata\.category\(c\) == 'Nd' and not c\.isascii\(\)/.test(
     fs.readFileSync(__dirname + '/../tools/check_lang.py', 'utf8')));
+}
+
+console.log('\n== 밤에 출퇴근을 찍는 사람에게 흰 화면은 손전등이었습니다 — 어두운 화면 (아흔넷째) ==');
+// 근로자가 고른 것은 세 안 중 '그래파이트'입니다(docs/design/preview-dark.html): 검정이 아니라
+// 짙은 회색이라 카드가 그림자를 지키고, 화면은 밝을 때와 똑같이 읽힙니다. 값만 바뀝니다.
+// 여기 붙들어 두는 것은 조용히 틀리는 자리들입니다 — 어두운 토큰이 빠진 색, 테마를 따라
+// 뒤집히는 잉크가 뒤집히지 않는 바탕 위에 선 자리, 그리고 증거 문서의 흰 바탕.
+{
+  const fs = require('fs');
+  const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const code = src.split('\n').filter(l => l.indexOf('"en":') < 0).join('\n');
+  const css = fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
+  const root = (css.match(/^:root \{([\s\S]*?)^\}/m) || ['', ''])[1];
+  const dark = (css.match(/^:root\[data-theme="dark"\] \{([\s\S]*?)^\}/m) || ['', ''])[1];
+  ok('어두운 토큰 묶음이 있습니다', dark.length > 200 && /color-scheme: dark/.test(dark));
+  // 소스가 쓰는 색 토큰마다 어두운 값이 있어야 합니다 — 빠지면 그 자리만 밝은 색으로
+  // 남는데, 아무것도 던지지 않습니다. 바뀌지 않아야 하는 것은 이름으로 따로 둡니다.
+  const FIXED = ['--color-on-fill', '--color-on-dark-fill', '--color-punch-start', '--color-punch-stop'];
+  const used = [...new Set((code.match(/var\(--color-[a-z0-9-]+/g) || []).map(v => v.slice(4)))];
+  const missing = used.filter(v => FIXED.indexOf(v) < 0 && dark.indexOf(v + ':') < 0);
+  ok('소스가 쓰는 색 토큰은 모두 어두운 값을 가집니다', used.length > 15 && missing.length === 0, missing.join(' '));
+  ok('바뀌지 않는 잉크 둘은 밝은 묶음에만 있습니다',
+    /--color-on-fill: #201e1d;/.test(root) && /--color-on-dark-fill: #f3f2f2;/.test(root)
+    && dark.indexOf('--color-on-fill') < 0 && dark.indexOf('--color-on-dark-fill') < 0);
+  // 초록은 하나 — 이제 토큰입니다. 어두운 화면에서만 밝아집니다(#127e38은 어두운 바탕에서 3.0:1).
+  ok('마크 초록 리터럴이 소스에 남아 있지 않습니다', code.indexOf('oklch(0.52 0.14 149)') < 0);
+  ok('마크 초록은 토큰 하나입니다', /--color-mark: oklch\(0\.52 0\.14 149\);/.test(root) && /--color-mark: #6fcf8a;/.test(dark));
+  // SVG의 fill 속성은 var()를 읽지 못합니다 — 그림은 currentColor, 색은 svg의 color입니다
+  ok('로고 시계는 currentColor로 그립니다',
+    (code.match(/<svg viewBox="13 18\.15 61\.4 61\.4" fill="currentColor"[^>]*style="color:var\(--color-mark\);/g) || []).length === 3
+    && !/fill="var\(|stroke="var\(--color-mark/.test(code));
+  // 노랑·주황·회색 채움은 테마를 따라 바뀌지 않습니다. 그 위의 글씨가 --color-text / --color-bg를
+  // 쓰면 어두운 화면에서 노랑 위의 흰 글씨(1.4:1)가 됩니다.
+  const c = mk(V2, '2026-08-03T07:03:00');
+  ok('주간 알약의 글씨는 바뀌지 않는 잉크입니다', c.shiftChipInk('day') === 'var(--color-on-fill)', c.shiftChipInk('day'));
+  ok('야간 알약은 바탕과 글씨가 함께 뒤집힙니다',
+    c.shiftChipBg('night') === 'var(--color-text)' && c.shiftChipInk('night') === 'var(--color-bg)');
+  ok('결근·휴업·휴가 배지의 글씨는 바뀌지 않는 밝은 잉크입니다',
+    /tagBg: 'oklch\(0\.45 0\.02 0\)', tagInk: 'var\(--color-on-dark-fill\)'/.test(code)
+    && /tagBg: 'oklch\(0\.72 0\.15 30\)', tagInk: 'var\(--color-on-dark-fill\)'/.test(code)
+    && /'var\(--color-neutral-700\)' : 'var\(--color-on-dark-fill\)'/.test(code));
+  ok('주간 노랑 위의 글씨가 --color-text인 자리가 남아 있지 않습니다',
+    !/: 'oklch\(0\.84 0\.16 92\)'\),\s*\n\s*tagInk:[^\n]*'var\(--color-text\)'/.test(code));
+  // 고르는 자리와 정하는 자리
+  ok('기본은 자동입니다', c.themePref() === 'auto');
+  c.setS({ theme: 'dark' }); ok('어둡게를 고르면 어둡게', c.themePref() === 'dark' && c.themeNow() === 'dark');
+  c.setS({ theme: 'light' }); ok('밝게를 고르면 밝게', c.themeNow() === 'light');
+  c.setS({ theme: 'purple' }); ok('모르는 값은 자동입니다', c.themePref() === 'auto');
+  {
+    const prev = global.window;
+    c.setS({ theme: 'auto' });
+    global.window = { __worklogSystemDark: true, matchMedia: () => ({ matches: false }) };
+    ok('자동은 안드로이드가 알려 준 폰의 설정을 먼저 봅니다', c.themeNow() === 'dark');
+    global.window = { matchMedia: () => ({ matches: true }) };
+    ok('알려 준 값이 없으면 prefers-color-scheme을', c.themeNow() === 'dark');
+    global.window = { __worklogSystemDark: false, matchMedia: () => ({ matches: true }) };
+    ok('알려 준 값이 밝음이면 밝게 — WebView의 옛 값보다 폰이 먼저입니다', c.themeNow() === 'light');
+    c.setS({ theme: 'light' });
+    ok('밝게를 고른 사람에게 폰의 설정은 상관없습니다', c.themeNow() === 'light');
+    global.window = prev;
+  }
+  const V = c.renderVals();
+  ok('화면 묶음에 단추 셋이 있습니다', V.themeOpts.length === 3 && V.themeOpts.filter(o => o.on).length === 1
+    && V.themeOpts[1].on && V.themeOpts[1].bg === 'var(--color-text)', JSON.stringify(V.themeOpts.map(o => o.code)));
+  ok('화면 묶음의 요약은 고른 값입니다', V.gThemeSum === c.T('theme_light'), V.gThemeSum);
+  ok('단추의 이름은 pair()를 거칩니다', V.themeOpts.every(o => o.ko && o.en && o.ko !== o.en), V.themeOpts.map(o => o.ko + '/' + o.en).join(' '));
+  ok('여덟 언어 모두 화면 낱말이 있습니다', ['grp_theme', 'theme_auto', 'theme_light', 'theme_dark', 'theme_note']
+    .every(k => V2.STR[k] && ['ko', 'en', 'vi', 'zh', 'th', 'id', 'ne', 'km'].every(l => V2.STR[k][l])));
+  // 증거 문서는 화면의 취향을 따르지 않습니다 — 언제나 흰 종이에 검은 글씨
+  const at = code.indexOf("'<style>body{font-family:-apple-system");
+  const doc = code.slice(at, at + 1500);
+  ok('근무내역서의 스타일은 토큰을 읽지 않습니다', at > 0 && doc.indexOf('var(--') < 0 && /color:#111/.test(doc));
+  // 앱이 뜨기 전 프레임
+  const build = fs.readFileSync(__dirname + '/../build.py', 'utf8');
+  ok('부팅 스크립트가 로더와 앱 문서 양쪽에 들어갑니다',
+    /\+ THEME_BOOT \+ """/.test(build) && /shell\[:head_end\] \+ THEME_BOOT \+ LOADER_CSS/.test(build));
+  ok('부팅 스크립트는 기록 전체가 아니라 작은 키를 읽습니다',
+    /localStorage\.getItem\('worklog\.theme'\)/.test(build) && !/getItem\('worklog\.v2'\)/.test(build));
+  ok('앱이 그 키를 씁니다', /localStorage\.setItem\('worklog\.theme', pref\)/.test(code));
+  // 안드로이드
+  const A = __dirname + '/../android/app/src/main/';
+  const java = fs.readFileSync(A + 'java/app/worklog/punch/MainActivity.java', 'utf8');
+  ok('밤 테마의 창 바탕은 어둡습니다', /#2b2a29/.test(fs.readFileSync(A + 'res/values-night/themes.xml', 'utf8'))
+    && /android:theme="@style\/AppTheme"/.test(fs.readFileSync(A + 'AndroidManifest.xml', 'utf8')));
+  ok('상태 표시줄 아이콘은 화면을 따라갑니다', /@JavascriptInterface\s+public void setDarkBars/.test(java)
+    && /setAppearanceLightStatusBars\(!dark\)/.test(java));
+  ok('폰의 다크 모드가 바뀌면 열린 화면에 알립니다', /onConfigurationChanged[\s\S]*?worklogsystemtheme/.test(java)
+    && /window\.addEventListener\('worklogsystemtheme'/.test(code));
 }
 
 Promise.all(later).then(()=>{

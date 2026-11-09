@@ -3278,5 +3278,41 @@
   "pension_on_truncated_base": {
     "en": "국민연금 {p0} is worked out on {p1}: 기준소득월액 drops anything under 1,000원 from your 보수월액 {p2}. 건강보험 still uses {p2}. Whether 공단 has the same figure is worth checking at 4insure.or.kr.",
     "ko": "국민연금 {p0}은 {p1} 기준입니다 — 기준소득월액은 보수월액 {p2}에서 천원 미만을 버립니다. 건강보험은 {p2} 그대로입니다. 같은 값이 공단에 신고되어 있는지는 4insure.or.kr에서 확인해 볼 만합니다."
+  },
+  "grp_theme": {
+    "en": "Display",
+    "ko": "화면"
+  },
+  "theme_auto": {
+    "en": "Auto",
+    "ko": "자동"
+  },
+  "theme_light": {
+    "en": "Light",
+    "ko": "밝게"
+  },
+  "theme_dark": {
+    "en": "Dark",
+    "ko": "어둡게"
+  },
+  "theme_note": {
+    "en": "Auto follows your phone's dark mode setting. A 근무내역서 you print or save is always on white.",
+    "ko": "자동은 휴대폰의 다크 모드 설정을 따릅니다. 인쇄하거나 저장하는 근무내역서는 언제나 흰 바탕입니다."
+  },
+  "grp_theme__en": {
+    "en": "DISPLAY",
+    "ko": "DISPLAY"
+  },
+  "theme_auto__en": {
+    "en": "AUTO",
+    "ko": "AUTO"
+  },
+  "theme_light__en": {
+    "en": "LIGHT",
+    "ko": "LIGHT"
+  },
+  "theme_dark__en": {
+    "en": "DARK",
+    "ko": "DARK"
   }
 }

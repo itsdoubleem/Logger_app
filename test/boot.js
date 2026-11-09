@@ -385,7 +385,8 @@ console.log('\n== 설정 · 열리는 것과 열리지 않는 것 ==');
   ok('층이 동그라미의 모양을 정합니다', /--radius-pill/.test(circleRule), circleRule.slice(0, 60));
   ok('그 규칙에 #tabScroll이 없습니다', circleRule.indexOf('#tabScroll') < 0);
   const circles = (src.match(/width:30px;height:30px/g) || []).length;
-  ok('30px 상자는 열뿐입니다 (' + circles + '개)', circles === 10);
+  // 아흔넷째가 설정에 화면 묶음을 더해 열하나입니다
+  ok('30px 상자는 열하나뿐입니다 (' + circles + '개)', circles === 11);
   // 그 열째가 사유 시트의 것입니다 — 색은 홀이고 마크업에 박혀 있지 않습니다
   ok('사유 시트의 동그라미도 색이 홀입니다',
     /background:\{\{ rsnChevBg \}\};color:\{\{ rsnChevInk \}\}/.test(src));
@@ -395,7 +396,7 @@ console.log('\n== 설정 · 열리는 것과 열리지 않는 것 ==');
   // 모양은 층이, 색은 setGroupVals가 — 인라인에 모서리를 적으면 그 요소만
   // 조용히 층 바깥으로 나갑니다(마흔째)
   ok('동그라미의 색은 홀이고 마크업에 박혀 있지 않습니다',
-    (src.match(/background:\{\{ g\w+ChevBg \}\};color:\{\{ g\w+ChevInk \}\}/g) || []).length === 9);
+    (src.match(/background:\{\{ g\w+ChevBg \}\};color:\{\{ g\w+ChevInk \}\}/g) || []).length === 10);
 
   // ── 3 · 묶음 줄은 줄이지 단추가 아닙니다 ──
   // 규칙 2c는 '누를 수 있고 44px 이상'인 것을 둥글게 합니다. 홀로 선 단추에는
@@ -409,7 +410,7 @@ console.log('\n== 설정 · 열리는 것과 열리지 않는 것 ==');
   const btnAt = css.indexOf('[style*="cursor: pointer"][style*="min-height: 44px"],');
   ok('그 규칙이 단추 규칙보다 뒤에 있습니다', rowRule && css.indexOf(rowRule) > btnAt && btnAt > 0);
   const rows = (src.match(/padding:13px 18px;min-height:44px/g) || []).length;
-  ok('그 선택자가 가리키는 줄은 아홉뿐입니다 (' + rows + '개)', rows === 9);
+  ok('그 선택자가 가리키는 줄은 열뿐입니다 (' + rows + '개)', rows === 10);
 
   // ── 4 · 정규화된 형태로 적었는지 ──
   // 소스는 `padding:0 18px 7px`인데 React는 `padding: 0px 18px 7px`로 다시
@@ -435,8 +436,12 @@ console.log('\n== 굴림판은 파묻힌 통이고 띠는 그 위에 뜹니다 =
   // ── 1 · 통은 페이지 안으로 파여 있습니다 ──
   // 그림자가 **inset**이고 위아래에만 있는 것이 요점입니다 — 진짜 드럼이
   // 제 통 속으로 사라지는 자리가 거기입니다.
+  // 그림자 값은 토큰입니다(아흔넷째 — 어두운 화면에서 더 짙어집니다). 규칙이 토큰을 쓰고,
+  // 토큰은 밝은 화면에서도 어두운 화면에서도 inset 둘입니다.
   const well = (css.match(/\[style\*="height: 132px"\]\s*\{[^}]*\}/) || [''])[0];
-  ok('층이 통을 파묻습니다', /inset/.test(well) && (well.match(/inset/g) || []).length === 2, well.slice(0, 70));
+  const wellTok = css.match(/--shadow-well:[^;]*;/g) || [];
+  ok('층이 통을 파묻습니다', /var\(--shadow-well\)/.test(well) && wellTok.length === 2
+    && wellTok.every(v => (v.match(/inset/g) || []).length === 2), well.slice(0, 70));
   ok('띠는 반대로 떠 있습니다',
     /\[style\*="top: 44px"\]\[style\*="height: 44px"\]\s*\{[^}]*box-shadow:[^}]*\}/.test(css)
     && !/\[style\*="top: 44px"\]\[style\*="height: 44px"\]\s*\{[^}]*inset/.test(css));
@@ -578,8 +583,12 @@ console.log('\n== 조퇴 사유 창도 카드입니다 ==');
     /\[style\*="z-index: 30"\] \[style\*="cursor: pointer"\]\[style\*="min-height:"\](:not\(\[role="switch"\]\))?:active/.test(css));
   ok('검은 것은 시트에서도 반대로 갑니다',
     /\[style\*="z-index: 30"\] \[style\*="cursor: pointer"\]\[style\*="min-height:"\]\[style\*="background: var\(--color-text\)"\](:not\(\[role="switch"\]\))?:active/.test(css));
+  // 어두운 화면(아흔넷째)에서는 검은 채움이 밝아져 1.9 대신 .86으로 돌아갑니다 — 그 한 벌은
+  // :root[data-theme="dark"] 아래에만 있습니다. 그것 말고는 여전히 한 벌입니다.
+  const darkAct = (css.match(/:root\[data-theme="dark"\] \[style\*="z-index: 22"\][^{]*\{\s*filter: brightness\(\.86\);\s*\}/) || [''])[0];
   ok('두 오버레이가 규칙 한 벌을 나눠 씁니다 — 복사본이 아닙니다',
-    (css.match(/filter: brightness\(\.86\)/g) || []).length === 1
+    (css.match(/filter: brightness\(\.86\)/g) || []).length === 2 && !!darkAct
+    && /:root\[data-theme="dark"\] \[style\*="z-index: 30"\]/.test(darkAct)
     && (css.match(/filter: brightness\(1\.9\)/g) || []).length === 1);
 }
 
