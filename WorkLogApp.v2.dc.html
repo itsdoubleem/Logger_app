@@ -2578,8 +2578,10 @@ class Component extends DCLogic {
       + w.net.toFixed(1) + '시간, 연장 ' + w.ot.toFixed(1) + '시간 '
       + (w.net > 52 ? '(주 52시간 초과)' : '(연장 12시간 초과)') + '</li>').join('');
     const gapTotal = this.periodRecords(P).reduce((a, r) => a + this.legalGap(r, W), 0);
-    return '<!doctype html><meta charset="utf-8"><title>근무내역서 ' + P.label + '</title>'
-      + '<style>body{font-family:-apple-system,system-ui,"Malgun Gothic",sans-serif;margin:24px;color:#111;font-size:13px}'
+    // 증거는 흰 종이에 검은 글씨입니다 — 앱의 어두운 화면도, 브라우저의 자동 어둡게(삼성 인터넷,
+    // Chrome의 auto-dark)도 이 문서를 칠하지 못하게 'light only'와 흰 바탕을 적어 둡니다(아흔넷째, 리뷰 S5)
+    return '<!doctype html><meta charset="utf-8"><meta name="color-scheme" content="light only"><title>근무내역서 ' + P.label + '</title>'
+      + '<style>:root{color-scheme:light only}body{font-family:-apple-system,system-ui,"Malgun Gothic",sans-serif;margin:24px;color:#111;background:#fff;font-size:13px}'
       + 'h1{font-size:19px;margin:0 0 2px}h2{font-size:13px;margin:22px 0 6px;letter-spacing:.04em}'
       + 'table{border-collapse:collapse;width:100%;margin-top:4px}'
       + 'th,td{border:1px solid #bbb;padding:4px 6px;text-align:left}th{background:#eee;font-weight:600}'
@@ -3764,7 +3766,7 @@ class Component extends DCLogic {
     annual: 'oklch(0.60 0.15 150)',       // 연차 — 초록
     vacation: 'oklch(0.55 0.16 250)',     // 휴가 — 파랑
     redday: 'var(--color-neutral-600)',   // 공휴일·주말, 차감 없음 — 회색
-    absent: 'oklch(0.45 0.02 0)',         // 결근 — 무급, 짙은 회색
+    absent: 'var(--color-absent)',        // 결근 — 무급, 짙은 회색 (어두운 화면에서는 밝아집니다)
     shutdown: 'oklch(0.72 0.15 30)',      // 휴업 — 사업주 귀책, 주황
     review: 'var(--color-accent-700)',    // 확인 필요
   };
@@ -6613,7 +6615,7 @@ class Component extends DCLogic {
         return {
           date: pad2(s.m) + '.' + pad2(s.day),
           tag: '결', showTag: true, isSun: false, isMoon: false,
-          tagBg: 'oklch(0.45 0.02 0)', tagInk: 'var(--color-on-dark-fill)',
+          tagBg: 'var(--color-absent)', tagInk: 'var(--color-on-absent)',
           io: this.T('absent_unpaid_this_day_is_taken_off_yo'),
           net: '−' + this.won(this.absentDeduct(this.wageOn(this.recDate(s)))),
           open, rowBg: open ? 'var(--color-accent-100)' : 'transparent', dim: '1',

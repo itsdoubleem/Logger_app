@@ -11012,7 +11012,7 @@ console.log('\n== 밤에 출퇴근을 찍는 사람에게 흰 화면은 손전�
   ok('야간 알약은 바탕과 글씨가 함께 뒤집힙니다',
     c.shiftChipBg('night') === 'var(--color-text)' && c.shiftChipInk('night') === 'var(--color-bg)');
   ok('결근·휴업·휴가 배지의 글씨는 바뀌지 않는 밝은 잉크입니다',
-    /tagBg: 'oklch\(0\.45 0\.02 0\)', tagInk: 'var\(--color-on-dark-fill\)'/.test(code)
+    /tagBg: 'var\(--color-absent\)', tagInk: 'var\(--color-on-absent\)'/.test(code)
     && /tagBg: 'oklch\(0\.72 0\.15 30\)', tagInk: 'var\(--color-on-dark-fill\)'/.test(code)
     && /'var\(--color-neutral-700\)' : 'var\(--color-on-dark-fill\)'/.test(code));
   ok('주간 노랑 위의 글씨가 --color-text인 자리가 남아 있지 않습니다',
@@ -11043,9 +11043,27 @@ console.log('\n== 밤에 출퇴근을 찍는 사람에게 흰 화면은 손전�
   ok('여덟 언어 모두 화면 낱말이 있습니다', ['grp_theme', 'theme_auto', 'theme_light', 'theme_dark', 'theme_note']
     .every(k => V2.STR[k] && ['ko', 'en', 'vi', 'zh', 'th', 'id', 'ne', 'km'].every(l => V2.STR[k][l])));
   // 증거 문서는 화면의 취향을 따르지 않습니다 — 언제나 흰 종이에 검은 글씨
-  const at = code.indexOf("'<style>body{font-family:-apple-system");
+  const at = code.indexOf("'<style>:root{color-scheme:light only}body{font-family:-apple-system");
   const doc = code.slice(at, at + 1500);
-  ok('근무내역서의 스타일은 토큰을 읽지 않습니다', at > 0 && doc.indexOf('var(--') < 0 && /color:#111/.test(doc));
+  ok('근무내역서의 스타일은 토큰을 읽지 않습니다', at > 0 && doc.indexOf('var(--') < 0 && /color:#111;background:#fff/.test(doc));
+  // 브라우저의 자동 어둡게(삼성 인터넷, Chrome auto-dark)도 칠하지 못합니다 (리뷰 S5)
+  ok('근무내역서는 밝은 바탕만 허락합니다', /<meta name="color-scheme" content="light only">/.test(code));
+  // 결근 회색은 바뀌지 않는 채움이 아니었습니다 — 어두운 판에서 1.7:1이라 달력 막대가 사라졌습니다 (리뷰 S4)
+  ok('결근 회색은 어두운 화면에서 밝아지고, 글씨도 함께 바뀝니다',
+    /--color-absent: oklch\(0\.45 0\.02 0\);/.test(root) && /--color-on-absent: #f3f2f2;/.test(root)
+    && /--color-absent: #8f8c8a;/.test(dark) && /--color-on-absent: #201e1d;/.test(dark)
+    && /absent: 'var\(--color-absent\)'/.test(code) && code.indexOf("oklch(0.45 0.02 0)") < 0);
+  // 아래 단 아이콘과 막대는 함께 칠합니다 — API 35 아래에서는 막대가 제 색을 가집니다 (리뷰 M1)
+  {
+    const j = fs.readFileSync(__dirname + '/../android/app/src/main/java/app/worklog/punch/MainActivity.java', 'utf8');
+    const pb = j.slice(j.indexOf('private void paintBars'), j.indexOf('private void paintBars') + 900);
+    ok('API 35 아래에서는 상태 표시줄의 색을 아이콘과 함께 바꿉니다',
+      /SDK_INT < 35\) getWindow\(\)\.setStatusBarColor\(ground\)/.test(pb) && /setAppearanceLightStatusBars\(!dark\)/.test(pb));
+    ok('아래 단도 함께 — 어두운 아이콘을 그릴 수 없는 API 24–25는 그대로 둡니다',
+      /SDK_INT >= 26\) \{\s*if \(Build\.VERSION\.SDK_INT < 35\) getWindow\(\)\.setNavigationBarColor\(ground\);\s*c\.setAppearanceLightNavigationBars\(!dark\);/.test(pb));
+    ok('WebView는 첫 프레임 전에도 흰색이 아닙니다 (리뷰 S2)',
+      /web\.setBackgroundColor\(systemDark\(\) \? GROUND_DARK : GROUND_LIGHT\)/.test(j));
+  }
   // 앱이 뜨기 전 프레임
   const build = fs.readFileSync(__dirname + '/../build.py', 'utf8');
   ok('부팅 스크립트가 로더와 앱 문서 양쪽에 들어갑니다',
