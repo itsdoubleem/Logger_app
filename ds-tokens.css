@@ -75,6 +75,22 @@
      (--color-text) on them is 6.9:1 and 6.2:1. */
   --color-punch-start: #60b973;
   --color-punch-stop: #e9806f;
+  /* the mark green as ink — the 출근 pill, the 근무중 lamp, the wordmark O, the
+     ✓ beside a settled group. Light: the mark itself. Dark: lifted (see below). */
+  --color-mark: oklch(0.52 0.14 149);
+  /* Ink on a fill that does not change with the theme (dark mode, 2026-11-09).
+     The yellow 주간 chip, the START / STOP button and the orange and grey day
+     tags keep their colour in both themes, so the letters on them must not
+     follow --color-text / --color-bg, which swap. These two never move. */
+  --color-on-fill: #201e1d;       /* dark ink on a light fixed fill */
+  --color-on-dark-fill: #f3f2f2;  /* light ink on a dark fixed fill */
+
+  /* small shadows the layer draws (knob, drum, tab bar) — tokens so dark can
+     deepen them; a warm-ink shadow is invisible on a dark ground */
+  --shadow-knob: 0 1px 2px rgba(32, 30, 29, .28);
+  --shadow-tabbar: 0 -1px 14px rgba(32, 30, 29, .07);
+  --shadow-well: inset 0 7px 9px -7px rgba(32, 30, 29, .30), inset 0 -7px 9px -7px rgba(32, 30, 29, .30);
+  --shadow-band: 0 1px 3px rgba(32, 30, 29, .10), 0 -1px 3px rgba(32, 30, 29, .06);
 
   /* ── shape · added 2026-08-30 ─────────────────────────────────────────
    * The flat era set no border-radius and no box-shadow anywhere, so these
@@ -95,6 +111,71 @@
 
   --card-inset: 8px;   /* card margin from the screen edge */
   --card-gap: 9px;     /* space between two cards */
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * DARK · graphite — 2026-11-09 (ninety-fourth entry)
+ *
+ * Chosen from three options (docs/design/preview-dark.html): a mid-dark warm
+ * grey, not black, so cards keep a real shadow and every screen reads the way
+ * it does in light. Same Archivo, same red-and-green pair, same shapes; only
+ * values change. `data-theme` on <html> is set by the app (applyTheme) and,
+ * before the app mounts, by the boot script in build.py — never by a media
+ * query here, so the 설정 choice (자동 / 밝게 / 어둡게) is the one place that
+ * decides and there is one copy of every rule.
+ *
+ * The ramp keeps its *meaning*, not its direction: neutral-100..200 are still
+ * "a step off the card", 300 the hairline, 600 the secondary label, 700 body
+ * ink on a tinted panel — each a step lighter here where it was a step darker.
+ * Contrast, WCAG, measured on the card #363433: text 11.4, neutral-700 8.0,
+ * neutral-600 5.1, accent 4.6, accent-700 on accent-100 6.2, mark on card 6.5,
+ * mark on mark-100 5.7. START / STOP keep the worker's fills and dark ink.
+ *
+ * Printed and saved documents (근무내역서, the payslip comparison) do not read
+ * these tokens at all — they are built from their own fixed stylesheet and are
+ * always black on white. They are evidence; the screen theme is a preference.
+ * ══════════════════════════════════════════════════════════════════════════ */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-bg: #2b2a29;
+  --color-surface: #363433;
+  --color-card: #363433;
+  --color-text: #f6f5f4;
+
+  /* the open SETUP accordion must still be a visible step off the card
+     *and* off the ground, and still darker than the hairline (see light) —
+     here: card #363433 → panel #3d3b3a → hairline #524f4d */
+  --color-neutral-100: #403e3d;
+  --color-neutral-150: #3d3b3a;
+  --color-neutral-200: #474544;
+  --color-neutral-300: #524f4d;
+  --color-neutral-400: #6a6765;
+  --color-neutral-500: #858280;
+  --color-neutral-600: #a9a6a4;
+  --color-neutral-700: #d2cfcd;
+  --color-neutral-800: #e6e3e1;
+  --color-divider: #6f6c6a;
+
+  --color-accent: #ff7059;
+  --color-accent-50: #40322f;   /* open accordion: a warm step off the card */
+  --color-accent-100: #4a2a24;  /* tinted panel */
+  --color-accent-300: #7a3a2f;  /* in-range calendar fill, panel ring */
+  --color-accent-600: #ff8d79;  /* pressed / hover on accent — lighter here */
+  --color-accent-700: #ff9a86;  /* accent ink on a tinted panel */
+
+  /* the mark green #127e38 is 3.0:1 on a dark ground; ink lifts to the same
+     hue at L 0.78, the tint darkens. The launcher icon is not affected — it
+     always sits on its own white disc. */
+  --color-mark: #6fcf8a;
+  --color-mark-100: #2a4232;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, .25), 0 4px 12px rgba(0, 0, 0, .22);
+  --shadow-bar: 0 1px 14px rgba(0, 0, 0, .30);
+  --shadow-knob: 0 1px 2px rgba(0, 0, 0, .45);
+  --shadow-tabbar: 0 -1px 14px rgba(0, 0, 0, .30);
+  --shadow-well: inset 0 7px 9px -7px rgba(0, 0, 0, .55), inset 0 -7px 9px -7px rgba(0, 0, 0, .55);
+  --shadow-band: 0 1px 3px rgba(0, 0, 0, .35), 0 -1px 3px rgba(0, 0, 0, .25);
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -314,11 +395,10 @@
    fifth 132px box ever appears it will quietly become a well, which is why
    the count is a test and not a comment. */
 [style*="height: 132px"] {
-  box-shadow: inset 0 7px 9px -7px rgba(32, 30, 29, .30),
-              inset 0 -7px 9px -7px rgba(32, 30, 29, .30);
+  box-shadow: var(--shadow-well);
 }
 [style*="top: 44px"][style*="height: 44px"] {
-  box-shadow: 0 1px 3px rgba(32, 30, 29, .10), 0 -1px 3px rgba(32, 30, 29, .06);
+  box-shadow: var(--shadow-band);
 }
 
 /* ── 2e · the 급여기간 stepper ──────────────────────────────────────────── */
@@ -403,6 +483,14 @@
 [style*="z-index: 30"] [style*="cursor: pointer"][style*="min-height:"][style*="background: var(--color-text)"]:not([role="switch"]):active {
   filter: brightness(1.9);
 }
+/* Dark mode turns those black fills light (--color-text is #f6f5f4 there), and
+   a light fill cannot get lighter — brightness(1.9) on it is the same nothing
+   the rule above was written to cure. In dark the two directions swap back:
+   the lifted fills press darker, like every other light control. */
+:root[data-theme="dark"] [style*="z-index: 22"] [style*="cursor: pointer"][style*="min-height:"][style*="background: var(--color-text)"]:not([role="switch"]):active,
+:root[data-theme="dark"] [style*="z-index: 30"] [style*="cursor: pointer"][style*="min-height:"][style*="background: var(--color-text)"]:not([role="switch"]):active {
+  filter: brightness(.86);
+}
 
 /* ── 2k · SETUP · an on/off setting is a switch ─────────────────────────── */
 /* The three yes/no rules in 회사 규칙 were a box whose *word* changed —
@@ -422,7 +510,7 @@
 }
 [style*="width: 19px"][style*="height: 19px"] {
   border-radius: var(--radius-pill);
-  box-shadow: 0 1px 2px rgba(32, 30, 29, .28);
+  box-shadow: var(--shadow-knob);
   transition: transform .15s ease;
 }
 
@@ -537,7 +625,7 @@
   z-index: 3;
   background: var(--color-card) !important;   /* inline sets --color-bg */
   border-top-color: var(--color-neutral-200) !important;
-  box-shadow: 0 -1px 14px rgba(32, 30, 29, .07);
+  box-shadow: var(--shadow-tabbar);
   padding: 6px 6px 8px !important;            /* inline sets padding-bottom */
   gap: 3px;
 }

@@ -43,9 +43,37 @@ DS_CSS_ID = '_ds/modernist-5ce80c01-ca67-4380-af11-739c06a783bc/styles.css'
 DS_JS_ID = '_ds/modernist-5ce80c01-ca67-4380-af11-739c06a783bc/_ds_bundle.js'
 DS_CSS_UUID = 'd5000000-0000-4000-8000-000000000001'
 
+# ── Dark mode before the app mounts (2026-11-09, ninety-fourth entry) ───────
+# The app decides the theme in applyTheme() and puts it on <html data-theme>.
+# That runs only once the component mounts, so a dark-mode phone would see the
+# loader and the first frames in light — a white flash every launch. This makes
+# the same decision first: the 설정 choice from the small 'worklog.theme' key
+# (applyTheme writes it; reading it never parses the multi-MB record blob),
+# else the phone's dark-mode setting. It runs twice — in the loader page and in
+# the template the loader swaps in — because the swap replaces <html>.
+THEME_BOOT = """<script>
+(function () {
+  try {
+    var t = null;
+    try { t = localStorage.getItem('worklog.theme'); } catch (e) {}
+    if (t !== 'light' && t !== 'dark') {
+      t = typeof window.__worklogSystemDark === 'boolean' ? (window.__worklogSystemDark ? 'dark' : 'light')
+        : window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', t);
+    if (t === 'dark') {
+      var m = document.querySelectorAll('meta[name="theme-color"]');
+      for (var i = 0; i < m.length; i++) m[i].setAttribute('content', '#2b2a29');
+    }
+  } catch (e) { /* no storage, no matchMedia: light, as before */ }
+})();
+</script>
+"""
+
 PWA_HEAD = """
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#f3f2f2">
+""" + THEME_BOOT + """
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="근무기록">
@@ -86,6 +114,8 @@ LOADER_CSS = """
 <style>
 /* 앱이 뜨기 전의 화면도 앱의 바탕색입니다 — 부팅이 눈에 띄지 않도록. */
 body { background: #f3f2f2; }
+/* 어둡게 — THEME_BOOT가 이 문서의 <html>에 먼저 붙입니다. 토큰이 아직 없어 값을 적습니다. */
+html[data-theme="dark"] body { background: #2b2a29; }
 /* 번들러의 섬네일: viewBox가 없어 왼쪽 위에 작게 얹힙니다. 이 앱의 화면이
    아니고, 켤 때마다 스치듯 보였습니다. */
 #__bundler_thumbnail { display: none; }
@@ -169,7 +199,7 @@ def main():
     head_end = shell.find('</head>')
     if head_end < 0 or head_end > shell.find('<body>'):
         sys.exit('could not find the loader head to place LOADER_CSS')
-    shell = shell[:head_end] + LOADER_CSS + shell[head_end:]
+    shell = shell[:head_end] + THEME_BOOT + LOADER_CSS + shell[head_end:]
 
     man_m = island(shell, 'manifest')
     ext_m = island(shell, 'ext_resources')
