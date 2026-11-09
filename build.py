@@ -231,6 +231,15 @@ def main():
             1)
     if '<link rel="manifest"' not in template:
         sys.exit('could not place the PWA head tags in the template')
+    # The handoff template carries its own html/body rule with a literal light
+    # ground. At the swap that rule — not the tokens — paints body, so a dark
+    # phone saw two light frames at launch (~140ms at 6x CPU throttle) even
+    # though data-theme was already dark (dark-mode review S1). Let it read the token.
+    BODY_LIGHT = 'html, body { height: 100%; margin: 0; background: #f3f2f2;'
+    if template.count(BODY_LIGHT) != 1:
+        sys.exit('the template html/body rule moved — recheck BODY_LIGHT')
+    template = template.replace(BODY_LIGHT,
+                                'html, body { height: 100%; margin: 0; background: var(--color-bg, #f3f2f2);')
     # The tokens have to reach the head *before* anything the app draws, or the
     # welcome overlay paints transparent for a frame — see tokens_style().
     if '--color-bg:' not in template.split('<body')[0]:

@@ -592,5 +592,23 @@ console.log('\n== 조퇴 사유 창도 카드입니다 ==');
     && (css.match(/filter: brightness\(1\.9\)/g) || []).length === 1);
 }
 
+console.log('\n== 어두운 화면은 첫 프레임부터 어둡습니다 (아흔넷째, 리뷰 S1) ==');
+{
+  const built = fs.readFileSync(path.join(ROOT, 'dist-v2', 'index.html'), 'utf8');
+  const tm = built.match(/<script type="__bundler\/template">([\s\S]*?)<\/script>/);
+  const head = tm ? JSON.parse(tm[1]).split('<body')[0] : '';
+  const shellHead = built.split('<body')[0];
+  // 템플릿의 html/body 규칙이 밝은 리터럴이면, 갈아 끼우는 순간 data-theme이 이미 dark여도
+  // body가 #f3f2f2로 칠해졌습니다 — 6배 느린 CPU에서 140ms의 흰 번쩍임.
+  // 그 규칙은 head가 아니라 템플릿 자신의 <helmet>(body 안)에 있습니다 — 템플릿 전체를 봅니다
+  const whole = tm ? JSON.parse(tm[1]) : '';
+  ok('갈아 끼운 문서의 html/body 바탕은 토큰을 읽습니다',
+    /html, body \{ height: 100%; margin: 0; background: var\(--color-bg, #f3f2f2\);/.test(whole)
+    && !/html, body \{[^}]*background: #f3f2f2/.test(whole));
+  ok('두 문서 모두 앱보다 먼저 data-theme을 정합니다',
+    /setAttribute\('data-theme', t\)/.test(head) && /setAttribute\('data-theme', t\)/.test(shellHead));
+  ok('로더 페이지의 바탕도 어두워질 수 있습니다', /html\[data-theme="dark"\] body \{ background: #2b2a29; \}/.test(shellHead));
+}
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);
