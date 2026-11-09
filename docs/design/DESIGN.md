@@ -54,6 +54,8 @@ entry).
 | accent ink on tint `--color-accent-700` on `-100` | `#ae1800` on `#f2dbd7` | `#ff9a86` on `#4a2a24` | 6.2 : 1 |
 | mark ink `--color-mark` | `oklch(0.52 0.14 149)` | `#6fcf8a` | 6.5 : 1 |
 | mark tint `--color-mark-100` | `#ebf5ee` | `#2a4232` | 5.7 : 1 under the ink |
+| absence `--color-absent` (결근 bar, 결 badge) | `oklch(0.45 0.02 0)` | `#8f8c8a` | 3.7 : 1 (badge ink 5.0) |
+| drum band `--color-raised` | `#ffffff` | `#4a4847` | one step above the well |
 | START / STOP | `#60b973` / `#e9806f` | unchanged | dark ink 6.9 / 6.2 |
 
 - **Who decides.** 설정 › 화면: 자동 (default, follows the phone) / 라이트 /

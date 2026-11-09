@@ -92,7 +92,7 @@
   --color-raised: #ffffff;
   /* 결근 — the unpaid-absence grey (calendar bar and the 결 badge). Not a fixed
      fill after all: at oklch(0.45 0.02 0) it is 1.7:1 on the dark panel and the
-     bar all but vanished (dark-mode review S4). Dark lifts it to #8f8c8a — 3.3:1
+     bar all but vanished (dark-mode review S4). Dark lifts it to #8f8c8a — 3.8:1
      on the open panel, still a step darker than the 공휴일 grey (neutral-600)
      beside it, as in light — and the badge letter turns dark with it (5.0:1). */
   --color-absent: oklch(0.45 0.02 0);
