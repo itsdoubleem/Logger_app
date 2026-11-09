@@ -8384,7 +8384,11 @@ console.log('\n== 출퇴근 카드의 양옆이 비어 있었습니다 — 넓�
     i0 > 0 && !!bar && pad.indexOf(bar) < pad.indexOf('{{ padStamp }}')
     && head.indexOf('{{ padBig }}') > head.indexOf('{{ padStamp }}')
     && /display:flex;align-items:center;/.test(tpl.slice(i0 - 120, i0)) && !/flex-direction:column/.test(tpl.slice(i0 - 120, i0)));
-  ok('알약 줄은 글자 칸의 왼쪽 끝에서 시작합니다', /flex-direction:column;align-items:flex-start/.test(head));
+  // 같은 날 또 한 번: 한국어·중국어에서는 알약 줄(120px)이 시계의 최소 폭 칸(146px)보다 짧아, 왼쪽에 붙은
+  // 알약 줄 밑에서 시계가 오른쪽으로 12–13px 쏠려 보였습니다(근로자의 화면, 헤드리스에서 재어서).
+  // 알약 줄도 칸의 가운데에 — 칸을 꽉 채우는 언어에서는 왼쪽 끝에서 시작하는 것과 같습니다.
+  ok('알약 줄과 시계는 같은 가운데에 섭니다 — 알약 줄이 시계보다 짧은 언어에서도',
+    /flex-direction:column;align-items:center/.test(head) && !/flex-direction:column;align-items:flex-start/.test(head));
   // 같은 날 다시(아흔셋째): 영어의 '○ OFF SHIFT' 줄이 시계보다 길어 시계가 왼쪽에 쏠려 보였습니다.
   // 근로자가 고른 답은 시계를 글자 칸의 가운데에 — 칸 안에서도, 최소 폭 안의 숫자도 가운데.
   ok('시계는 글자 칸의 가운데에 섭니다',
@@ -8393,7 +8397,7 @@ console.log('\n== 출퇴근 카드의 양옆이 비어 있었습니다 — 넓�
   // 카드 가운데에. 글자 칸이 늘어나면(flex-grow) 가운데 맞춤이 아무 일도 하지 않습니다.
   ok('단추와 글자 묶음은 카드 가운데에 섭니다',
     /display:flex;align-items:center;justify-content:center;gap:clamp\(14px, 5vw, 20px\);padding:18px 20px;/.test(tpl)
-    && /<div style="flex:0 1 auto;display:flex;flex-direction:column;align-items:flex-start/.test(head));
+    && /<div style="flex:0 1 auto;display:flex;flex-direction:column;align-items:center/.test(head));
   // 가운데에 세우자 새 문제가 생겼습니다: 묶음의 폭이 상태마다 달라 START를 누르는 순간 단추가
   // 옆으로 13–15px 미끄러졌습니다(헤드리스에서 재어서). 두 군데가 폭을 바꿨습니다 —
   // 시계(03:14 → 3h 42m)와 표시등 글자(근무 외 → 근무중). 시계에는 '3h 42m'의 폭을 최소로

@@ -521,11 +521,16 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
              단추가 12px쯤 옮겨 갑니다 — 누르는 순간이 아니라 근무 중에.
              같은 날 한 번 더: 영어의 '○ OFF SHIFT' 줄이 시계보다 길어 시계가 왼쪽에 쏠려 보였습니다.
              시계를 글자 칸의 가운데에 세웁니다(align-self:center, 칸 안의 숫자도 text-align:center).
+             같은 날 또 한 번: 한국어·중국어에서는 반대로 '출근 ○ 근무 외' 줄(120px)이 시계의 최소 폭
+             칸(3.46em, 146px)보다 짧아, 왼쪽에 붙은 알약 줄 밑에서 시계가 오른쪽으로 12–13px 쏠려
+             보였습니다. 알약 줄도 칸의 가운데에 세웁니다(align-items:center). 칸 폭은 그대로라 START에
+             단추가 미끄러지지 않고, 알약 줄이 칸을 꽉 채우는 언어(영어 등)에서는 아무것도 움직이지 않습니다 —
+             다만 근무 10시간을 넘겨 시계가 칸보다 넓어지면 영어 등에서도 알약 줄이 가운데로 몇 px 옵니다.
              지난 모양(여든일곱째, 2026-10-26): 알약 · 가운데 시계 · 카드 너비의 ▶ START 막대가
              한 가운데 줄에 섰고, 막대는 height 60px으로 잡혔으며 양옆 여백은 48px이었습니다. -->
         <div style="position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:clamp(14px, 5vw, 20px);padding:18px 20px;border-bottom:2px solid var(--color-divider);user-select:none">
           <div onClick="{{ padTap }}" style="flex:none;width:clamp(78px, 24vw, 92px);height:clamp(78px, 24vw, 92px);display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:manipulation;background:{{ padBtnBg }};font-family:var(--font-heading);font-weight:600;font-size:clamp(17px, 5vw, 20px);line-height:1;letter-spacing:0.02em;color:var(--color-text)">{{ padTitle }}</div>
-          <div style="flex:0 1 auto;display:flex;flex-direction:column;align-items:flex-start;gap:10px;min-width:0">
+          <div style="flex:0 1 auto;display:flex;flex-direction:column;align-items:center;gap:10px;min-width:0">
             <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px;min-width:0">
               <div style="flex:none;white-space:nowrap;padding:6px 14px;background:{{ padChipBg }};font-family:var(--font-heading);font-weight:800;font-size:14px;line-height:1;letter-spacing:0.02em;color:{{ padChipInk }}">{{ padStamp }}</div>
               <!-- 두 표시등을 한 칸에 겹쳐 두고 지금 아닌 쪽만 감춥니다(visibility). 칸은 언제나 둘 중
