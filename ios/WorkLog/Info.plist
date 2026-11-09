@@ -51,7 +51,8 @@
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 	</array>
-	<key>UIUserInterfaceStyle</key>
-	<string>Light</string>
+	<!-- No UIUserInterfaceStyle: the app used to pin itself to Light, which made
+	     WKWebView report prefers-color-scheme: light forever, so 설정 › 화면 ›
+	     자동 could never follow the iPhone (2026-11-09, ninety-fourth entry). -->
 </dict>
 </plist>

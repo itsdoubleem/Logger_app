@@ -149,7 +149,15 @@ your hand before deciding anything about hosting. Differences that matter:
 - Until 2026-10-26 a `BioShim` answered `navigator.credentials` with Android's
   `BiometricPrompt` for the fingerprint punch. Punching is one tap now, so the
   shim, the `USE_BIOMETRIC` permission and `androidx.biometric` are gone
-  (CHANGELOG, eighty-eighth entry). The only bridge left is `FileShim`.
+  (CHANGELOG, eighty-eighth entry). `FileShim` is the backup bridge.
+- **화면 (dark mode, 2026-11-09, ninety-fourth entry).** `setDarkBars(bool)` on
+  the `WorkLogNative` interface lets the page tell the host its theme; the host
+  paints the system bars and the WebView ground to match (below API 35 the bars
+  keep their own colour, so it sets that too). The phone's own dark-mode state
+  reaches the page as `window.__worklogSystemDark` — a document-start script,
+  replaced on every `onConfigurationChanged` — because `uiMode` is in
+  `configChanges` and the WebView's `prefers-color-scheme` can stay stale.
+  A `values-night` theme darkens the window before the first paint.
 - The APK holds **no INTERNET permission**, and cloud backup and device
   transfer are both switched off in the manifest. The 백업 export is the only
   way data leaves the phone, and the worker picks where it goes.
@@ -395,6 +403,15 @@ whole pending-map-and-`settle()` half of the Android shim is simply absent.
   Restoring needs no host code at all: `<input type="file">` opens the document
   picker in WKWebView on its own, the one thing iOS gives free that Android
   charged for.
+- **화면 (dark mode, 2026-11-09, ninety-fourth entry).** `Shims.theme` defines
+  `window.WorkLogNative.setDarkBars` — the same name the Android interface
+  uses, so the page has one call for both — and `Bridge` hands it to
+  `PunchViewController.pageDark`, which repaints the three grounds (view, web
+  view, scroll view) and the status-bar style. Until the page reports, the host
+  follows the iPhone's appearance. `Info.plist` no longer pins
+  `UIUserInterfaceStyle` to Light; with the pin, WKWebView reported
+  `prefers-color-scheme: light` forever and 자동 could never go dark. The debug
+  build logs `[worklog] theme dark|light` for each call, beside the origin line.
 
 `navigator.serviceWorker` does not exist in WKWebView. That costs nothing —
 the site is served from the bundle, so it is already offline — and the

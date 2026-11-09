@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The window behind the WebView, before the page paints. Light here; the
+     values-night copy is dark, so a phone in dark mode does not flash white at
+     launch (2026-11-09, ninety-fourth entry). The page itself decides its
+     theme — see MainActivity.systemDark() and applyTheme() in the app. -->
+<resources>
+    <style name="AppTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/app_ground</item>
+    </style>
+    <color name="app_ground">#f3f2f2</color>
+</resources>

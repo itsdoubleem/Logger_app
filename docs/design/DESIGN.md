@@ -22,13 +22,59 @@ punch-button fills — the rest are the app's:
 | card | `#ffffff` | the launcher icon's disc |
 
 The mark green on white is 5.2 : 1 and on the app grey 4.6 : 1 (WCAG AA for
-text). On a dark ground it falls to 3.0 : 1 — the mark is never placed on dark.
+text). On a dark ground it falls to 3.0 : 1, so the mark itself is never placed
+on dark. In dark mode the app's green *ink* (`--color-mark`) lifts to `#6fcf8a`
+at the same hue instead — see "Dark mode" below. The launcher icon always keeps
+its own white disc.
 
 The two button fills are a pair: the salmon is the worker's pick, and the green
 has its exact OKLCH lightness and chroma (L 0.71, C 0.13) at the mark's hue
 (149), so neither shouts over the other and START still reads as the app's
 green. Both carry dark text (`--color-text`): 6.9 : 1 on the green, 6.2 : 1 on
 the salmon.
+
+## Dark mode — graphite
+
+Chosen 2026-11-09 from three options drawn side by side in
+`preview-dark.html` (inverted, OLED night shift, graphite). Graphite is a
+mid-dark warm grey rather than black, so cards keep a real shadow and every
+screen reads exactly as it does in light. Same Archivo, same red and green,
+same corners and pills — only token values change (CHANGELOG, ninety-fourth
+entry).
+
+| Role | Light | Dark | Dark contrast on card |
+|---|---|---|---|
+| ground `--color-bg` | `#f3f2f2` | `#2b2a29` | — |
+| card `--color-card` | `#ffffff` | `#363433` | — |
+| text `--color-text` | `#201e1d` | `#f6f5f4` | 11.4 : 1 |
+| secondary `--color-neutral-600` | `#747372` | `#a9a6a4` | 5.1 : 1 |
+| body on tint `--color-neutral-700` | `#555352` | `#d2cfcd` | 8.0 : 1 |
+| hairline `--color-neutral-300` | `#e0dddd` | `#524f4d` | — |
+| accent `--color-accent` | `#ec3013` | `#ff7059` | 4.6 : 1 |
+| accent ink on tint `--color-accent-700` on `-100` | `#ae1800` on `#f2dbd7` | `#ff9a86` on `#4a2a24` | 6.2 : 1 |
+| mark ink `--color-mark` | `oklch(0.52 0.14 149)` | `#6fcf8a` | 6.5 : 1 |
+| mark tint `--color-mark-100` | `#ebf5ee` | `#2a4232` | 5.7 : 1 under the ink |
+| absence `--color-absent` (결근 bar, 결 badge) | `oklch(0.45 0.02 0)` | `#8f8c8a` | 3.7 : 1 (badge ink 5.0) |
+| drum band `--color-raised` | `#ffffff` | `#4a4847` | one step above the well |
+| START / STOP | `#60b973` / `#e9806f` | unchanged | dark ink 6.9 / 6.2 |
+
+- **Who decides.** 설정 › 화면: 자동 (default, follows the phone) / 라이트 /
+  다크. The app puts the result on `<html data-theme>`; the dark tokens hang
+  on that attribute only, never on a media query, so there is one copy of
+  every rule.
+- **Fixed fills keep fixed ink.** The yellow 주간 chip, START / STOP and the
+  orange and grey day badges do not change colour with the theme, so the
+  letters on them use `--color-on-fill` (`#201e1d`) or `--color-on-dark-fill`
+  (`#f3f2f2`), never `--color-text` / `--color-bg`, which swap.
+- **Black things turn light.** Anything drawn as `background: var(--color-text)`
+  with `color: var(--color-bg)` — the period chip, the night badge, a picked
+  option — inverts as a pair and becomes a light chip with dark ink. Pressed,
+  it darkens (`brightness(.86)`) instead of lifting.
+- **Shadows** are tokens (`--shadow-card`, `--shadow-bar`, `--shadow-knob`,
+  `--shadow-tabbar`, `--shadow-well`, `--shadow-band`) and deepen to black
+  alphas in dark; a warm-ink shadow is invisible on a dark ground.
+- **Documents stay on white.** The 근무내역서 and the payslip comparison use
+  their own fixed stylesheet. They are evidence, not a screen preference.
 
 ## The mark — clock and folder
 
@@ -137,6 +183,12 @@ the pill and a lamp on one line beside it, and the clock under them.
 - **Do** change every copy of the clock at once — three wordmarks plus the
   launcher icon. A test reads them.
 - **Don't** put the mark on a dark ground, restyle it, or add a second green.
+  The dark-mode lift of `--color-mark` is the same green as a token value, not
+  a second green: write `var(--color-mark)`, never a literal.
+- **Don't** write `var()` in an SVG `fill` or `stroke` attribute — attributes
+  do not read custom properties. Draw with `currentColor` and set `color`.
+- **Do** ask of every colour pair whether both halves move with the theme. A
+  fixed fill under a swapping ink is perfect in light and unreadable in dark.
 - **Don't** bring back a hold or a confirmation step to stop pocket taps.
   Part of that is already caught after the fact — a repeat within 1.5 s is the
   same tap, and a second tap within 30 minutes offers to cancel the clock-in.

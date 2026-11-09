@@ -12,14 +12,14 @@ import UniformTypeIdentifiers
 /// can rethrow it unchanged.
 final class Bridge: NSObject, WKScriptMessageHandlerWithReply {
 
-    private weak var host: UIViewController?
+    private weak var host: PunchViewController?
 
     /// 내보내기, waiting on the document picker: the bytes on disk and the
     /// promise that must not be answered until they are somewhere permanent.
     private var pendingSave: ((Any?, String?) -> Void)?
     private var pendingURL: URL?
 
-    init(host: UIViewController) {
+    init(host: PunchViewController) {
         self.host = host
         super.init()
     }
@@ -33,6 +33,15 @@ final class Bridge: NSObject, WKScriptMessageHandlerWithReply {
 
         switch op {
         case "saveFile": saveFile(arg: arg, reply: replyHandler)
+        case "setDarkBars":
+            let dark = arg["dark"] as? Bool ?? false
+            #if DEBUG
+            NSLog("[worklog] theme %@", dark ? "dark" : "light")   // the debug build proves the call lands
+            #endif
+            DispatchQueue.main.async { [weak self] in
+                self?.host?.pageDark = dark
+                replyHandler(true, nil)
+            }
         default:         replyHandler(nil, "NotSupportedError")
         }
     }
