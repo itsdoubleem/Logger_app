@@ -1,6 +1,6 @@
 # 근무기록 LOGGER — change log beyond V2.md
 
-One hundred entries, newest first — ninety-three carry an ordinal (first … ninety-third),
+One hundred and one entries, newest first — ninety-four carry an ordinal (first … ninety-fourth),
 the seven oldest predate the numbering. Each one is a bug found by **actually using the app on
 shift**, what changed, and — the part worth reading — *why it was that and not the
 obvious fix*. Most entries end with a **다음 사람에게** paragraph: the rule the bug
@@ -18,7 +18,8 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 
 ## Index
 
-- 2026-11-09 (latest, ninety-third) — 근로자가 그린 출퇴근 카드, 그리고 근무중의 반대
+- 2026-11-09 (latest, ninety-fourth) — 어두운 화면: 그래파이트, 그리고 뒤집히면 안 되는 잉크
+- 2026-11-09 (ninety-third) — 근로자가 그린 출퇴근 카드, 그리고 근무중의 반대
 - 2026-11-09 (ninety-second) — 홈 화면에서 폴더 오른쪽이 잘려 있었습니다
 - 2026-10-27 (ninety-first) — 제대로 퇴근했는데 '너무 이른 퇴근' 카드가 남았습니다, 그리고 320px의 잘린 칩과 탭
 - 2026-10-27 (ninetieth) — 30분을 잃는 '지우고 지금 출근', 말없이 실패하던 백업, 초록인 채로 실패하던 빌드
@@ -119,7 +120,58 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 - 2026-08-13 — the service worker was hiding every update
 - 2026-08-13 (earlier) — 조퇴 사유 became a popup with a dropdown
 
-### 2026-11-09 (latest, ninety-third) — 근로자가 그린 출퇴근 카드, 그리고 근무중의 반대
+### 2026-11-09 (latest, ninety-fourth) — 어두운 화면: 그래파이트, 그리고 뒤집히면 안 되는 잉크
+
+야간조는 새벽 6시에 어두운 기숙사에서 퇴근을 찍고, 흰 화면은 그때 손전등입니다. 다크 모드를
+만들어 달라는 요청에 세 안을 같은 카드로 그려 견주었고(`docs/design/preview-dark.html` — 반전,
+OLED 검정, 그래파이트), 고른 것은 **그래파이트**입니다: 검정이 아닌 짙은 따뜻한 회색(바탕 `#2b2a29`,
+카드 `#363433`)이라 카드가 그림자를 지키고 화면이 밝을 때와 똑같이 읽힙니다. Archivo, 빨강과 초록,
+모서리와 알약은 그대로이고 값만 바뀝니다.
+
+- **설정 › 화면: 자동 / 밝게 / 어둡게.** 기본은 자동 — 폰의 다크 모드를 따릅니다. 근로자의 폰은
+  밝은 모드라, 고르기 전에는 아무것도 바뀌지 않습니다. 언어 바로 아래, 언어 단추와 같은 모양입니다.
+- **토큰 한 벌.** `ds-tokens.css`의 `:root[data-theme="dark"]`가 모든 색 토큰의 어두운 값을 줍니다.
+  미디어 질의가 아니라 속성 하나에 걸어서, 정하는 곳은 앱의 `themePref()` 하나이고 규칙은 한 벌입니다.
+  카드 위 대비(WCAG): 글자 11.4, neutral-700 8.0, neutral-600 5.1, 빨강 4.6, 퇴근 알약 6.2, 초록 6.5.
+- **뒤집히면 안 되는 잉크.** 소스의 색은 이미 거의 전부 토큰이었습니다(약 1,050번 대 하드코딩 15개).
+  위험한 것은 그 반대편 — **테마를 따라 바뀌는 잉크가 바뀌지 않는 바탕 위에 선 자리**입니다. 노랑
+  주간 알약과 배지는 `--color-text`를 글씨로 써서, 어두운 화면에서는 노랑 위 흰 글씨(1.4 : 1)가 될
+  참이었습니다. START / STOP 글씨(2.2 : 1), 결근·휴업·휴가 배지도 같습니다. 바뀌지 않는 잉크 둘을
+  만들었습니다: `--color-on-fill`(#201e1d)과 `--color-on-dark-fill`(#f3f2f2). 밝은 화면에서는 값이
+  같아 한 픽셀도 바뀌지 않습니다.
+- **초록은 하나 — 이제 토큰.** 마크 초록 `oklch(0.52 0.14 149)`는 어두운 바탕에서 3.0 : 1이라
+  `--color-mark`가 되었고, 어두운 화면에서만 같은 색상의 `#6fcf8a`로 밝아집니다. 리터럴 14곳이 모두
+  토큰으로 갔습니다. 로고 시계 셋은 `fill="currentColor"`에 svg의 `color`로 칠합니다 — SVG의 fill
+  **속성**은 `var()`를 읽지 못하므로, 토큰을 속성에 적으면 조용히 검정이 됩니다. 앱 아이콘은 자기
+  흰 원판 위라 그대로입니다.
+- **누름의 방향.** 검은 단추는 누르면 밝아집니다(brightness 1.9, 쉰째). 어두운 화면에서 그 단추는
+  밝은 색이라 밝아질 데가 없습니다 — 어두운 화면에서만 .86으로 돌아갑니다.
+- **켜는 순간의 흰 번쩍임.** 앱은 마운트된 뒤에야 테마를 정하는데, 로더는 그 전에 두 번(로더 페이지,
+  바꿔 끼운 문서) 그립니다. `build.py`의 `THEME_BOOT`가 양쪽 머리에서 같은 결정을 먼저 내립니다. 그
+  스크립트는 수 MB가 될 수 있는 기록 전체가 아니라 작은 키 `worklog.theme`만 읽고, 그 키는 앱이 씁니다.
+  안드로이드 창 바탕도 `values-night` 테마로 어둡습니다.
+- **안드로이드의 '자동'.** 매니페스트는 `configChanges`에 `uiMode`를 두어, 폰의 다크 모드를 바꿔도
+  앱을 다시 만들지 않습니다 — 그러면 WebView의 `prefers-color-scheme`이 옛 값에 남을 수 있습니다. 그래서
+  `MainActivity`가 폰의 설정을 직접 알려 줍니다(`window.__worklogSystemDark`, 문서 시작 스크립트로, 그리고
+  `onConfigurationChanged`에서 열린 화면에 이벤트로). 상태 표시줄 아이콘은 새 다리 `setDarkBars`로 화면을
+  따라갑니다 — 그 전에는 밝은 머리 위에 흰 아이콘이라 거의 보이지 않았습니다.
+- **문서는 언제나 흰 바탕.** 근무내역서와 명세서 대조는 자기 고정 스타일로 만들어져 토큰을 읽지 않습니다.
+  증거이고, 화면의 취향을 따라가면 안 됩니다. 설정의 안내 문장도 그렇게 말합니다.
+
+헤드리스 크롬 384px, 다섯 탭 모두에서 글자마다 실제로 겹친 바탕과의 대비를 재었습니다(캔버스로 색을
+풀어서). 밝은 화면은 main과 픽셀이 같습니다(근무기록·급여·내 권리; 출퇴근은 아흔셋째의 가운데 맞춤,
+설정은 새 줄만 다름). 어두운 화면의 기준 미달은 밝은 화면보다 적고, 남은 것은 모두 밝은 화면에서도 미달인
+옛것입니다 — 주황 메모 '1일'(3.2), 흐린 ‹ › 화살표(일부러), 주황 위 흰 '휴'(2.4–2.5). 환영 화면, 설정 흐름,
+근무 중 카드, 화면 묶음도 어두운 화면에서 보았습니다. 조퇴 사유 시트와 기간 고르기는 헤드리스로 띄우지
+못해 보지 못했습니다 — 같은 토큰을 씁니다. 29 new assertions (3726 total).
+
+**다음 사람에게.** 테마를 더할 때 위험한 것은 토큰이 빠진 색이 아니라, **한쪽만 뒤집히는 짝**입니다.
+바탕은 그대로인데 글씨만 뒤집히거나 그 반대인 자리 — 노랑 위의 `--color-text`처럼 — 는 밝은 화면에서는
+완벽하고 어두운 화면에서만 읽히지 않으며, 아무것도 던지지 않습니다. 색을 하나 쓸 때마다 그 짝이 무엇이고
+둘이 같이 움직이는지 물으십시오. 바뀌지 않아야 하는 채움 위에는 `--color-on-fill`을 쓰십시오. 그리고
+SVG의 fill·stroke 속성에 `var()`를 적지 마십시오.
+
+### 2026-11-09 (ninety-third) — 근로자가 그린 출퇴근 카드, 그리고 근무중의 반대
 
 근로자가 출퇴근 카드를 직접 그려 왔습니다: 왼쪽에 연어색 동그라미 START(진한 글자), 오른쪽에
 출근 알약과 큰 시계. 알약 옆에는 빨간 띠에 'TAP START TO START SHIFT'를 넣었는데, 그 줄은
