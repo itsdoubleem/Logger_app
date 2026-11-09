@@ -2,6 +2,7 @@ package app.worklog.punch;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Base64;
@@ -17,7 +18,10 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.fragment.app.FragmentActivity;
+import androidx.webkit.ScriptHandler;
 import androidx.webkit.WebViewAssetLoader;
 import androidx.webkit.WebViewClientCompat;
 import androidx.webkit.WebViewCompat;
@@ -56,6 +60,14 @@ public class MainActivity extends FragmentActivity {
     private static final String START = ORIGIN + "/assets/www/index.html";
 
     private WebView web;
+
+    // 화면 · the phone's dark-mode setting, handed to the page (2026-11-09,
+    // ninety-fourth entry). The manifest keeps uiMode in configChanges, so the
+    // activity is not recreated when the worker flips dark mode, and the
+    // WebView's own prefers-color-scheme can be left on the value it started
+    // with. The page reads window.__worklogSystemDark first instead: set at
+    // document start, and updated in place by onConfigurationChanged.
+    private ScriptHandler darkScript;
 
     // 불러오기 · the page's <input type="file"> waiting on a picked document
     private ValueCallback<Uri[]> fileCallback;
@@ -189,10 +201,35 @@ public class MainActivity extends FragmentActivity {
             Set<String> origins = Collections.singleton(ORIGIN);
             WebViewCompat.addDocumentStartJavaScript(web, FileShim.SOURCE, origins);
         }
+        setSystemDarkScript();
 
         setContentView(web);
         if (saved == null) web.loadUrl(START);
         else web.restoreState(saved);
+    }
+
+    /** Is the phone in dark mode right now? */
+    private boolean systemDark() {
+        return (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
+                == Configuration.UI_MODE_NIGHT_YES;
+    }
+
+    /** The value every future page load starts with — replaced on each change. */
+    private void setSystemDarkScript() {
+        if (!WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) return;
+        if (darkScript != null) darkScript.remove();
+        darkScript = WebViewCompat.addDocumentStartJavaScript(web,
+                "window.__worklogSystemDark=" + systemDark() + ";", Collections.singleton(ORIGIN));
+    }
+
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration c) {
+        super.onConfigurationChanged(c);
+        if (web == null) return;
+        setSystemDarkScript();
+        // and the page that is open now: it re-decides only if it is on 자동
+        web.evaluateJavascript("window.__worklogSystemDark=" + systemDark()
+                + ";window.dispatchEvent(new Event('worklogsystemtheme'));", null);
     }
 
     @Override
@@ -252,6 +289,22 @@ public class MainActivity extends FragmentActivity {
     }
 
     private class NativeBridge {
+
+        /**
+         * 화면 · the status bar and navigation bar icons follow the page's theme:
+         * dark icons on the light ground, light icons on the dark one. The page
+         * calls this whenever its theme changes — including when the worker picks
+         * 어둡게 on a phone that is in light mode, which no resource qualifier sees.
+         */
+        @JavascriptInterface
+        public void setDarkBars(final boolean dark) {
+            runOnUiThread(() -> {
+                WindowInsetsControllerCompat c =
+                        WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+                c.setAppearanceLightStatusBars(!dark);
+                c.setAppearanceLightNavigationBars(!dark);
+            });
+        }
 
         /**
          * 백업 파일 저장 · the page hands over the finished backup as a data:
