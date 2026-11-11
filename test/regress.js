@@ -8517,7 +8517,7 @@ console.log('\n== 출근 전 알약 옆이 비어 있었습니다 — 근무중�
 // 자리에 숨 쉬는 초록 등과 '근무중'이 섭니다 — 비어 있던 것은 출근 전의 짝이었습니다.
 // 그래서 같은 자리, 같은 글꼴에 근무중의 반대를 세웠습니다: 불 꺼진 회색 고리와 '근무 외'.
 // 켜짐/꺼짐이 채움과 움직임 두 가지로 동시에 달라, 한눈에 갈립니다. 단추는 근로자가 고른
-// 연어색(STOP)과, 그 색과 OKLCH 밝기·채도가 같은 초록(START, #60b973)입니다.
+// 연어색(STOP)과, 그 색과 OKLCH 밝기·채도가 같은 초록(START, #60b973)이었습니다 — F14부터는 시계의 선 색이고 START는 #3c9d55.
 //
 // 다음 사람에게: 빈자리를 채우려고 문장을 넣고 싶어지면, 그 자리에 다른 상태에서는 무엇이
 // 서 있는지 먼저 보십시오. 대개 빠진 것은 문장이 아니라 그 짝입니다.
@@ -11229,6 +11229,28 @@ console.log('\n== F13 · 잘못 누른 START는 누른 다음 9초 동안 그 �
     ok('보인 뒤 9초 동안은 서 있습니다 — 출근 10초 뒤에도', g3.renderVals().inUndoShow === true && g3.renderVals().inUndoVis === 'visible');
     g3.base = new Date(g3.base.getTime() + 600);
     ok('출근 10.5초 뒤에는 사라집니다', g3.renderVals().inUndoShow === false);
+
+    // 출시 리뷰 M1 — 줄을 두 번 톡: 취소하면 패드가 62px 내려와 같은 자리가 다시 START입니다. 두 번째 손가락이
+    // 새 출근을 찍었습니다(지은 화면에서 180ms 간격의 진짜 터치로). 취소한 순간도 '방금 누른 손가락'입니다.
+    const dd = mk(V2, '2026-11-11T08:58:00'); dd.state.setupDone = true;
+    dd.padTap(); dd.base = new Date(dd.base.getTime() + 2000); dd.lastTap = performance.now() - 2000;
+    dd.renderVals().undoInStrip();
+    const cancelled = dd.state.session === null;
+    dd.renderVals().padTap();
+    ok('줄을 두 번 톡 쳐도 다시 출근이 찍히지 않습니다', cancelled && dd.state.session === null, JSON.stringify(dd.state.session));
+    dd.lastTap = performance.now() - 1600; dd.renderVals().padTap();
+    ok('1.5초 뒤의 START는 평소대로 출근입니다', !!dd.state.session);
+    // 출시 리뷰 S1 — 근무조를 정하지 않은 사람: 취소한 뒤의 두 번째 손가락이 '맞습니다'·'고치기'에 떨어졌습니다(320px)
+    const sc = mk(V2, '2026-11-11T08:58:00'); sc.state.setupDone = true; sc.state.settings.shiftConfirmed = false;
+    sc.padTap(); sc.base = new Date(sc.base.getTime() + 2000); sc.lastTap = performance.now() - 2000;
+    sc.renderVals().undoInStrip();
+    const tabBefore = sc.state.tab;
+    sc.renderVals().confirmShift();
+    ok('취소 직후의 두 번째 손가락은 근무조를 확정하지 않습니다', sc.state.session === null && !sc.state.settings.shiftConfirmed);
+    sc.renderVals().goShiftSetup();
+    ok('취소 직후의 두 번째 손가락은 설정을 열지 않습니다', sc.state.tab === tabBefore, sc.state.tab);
+    sc.lastTap = performance.now() - 1600; sc.renderVals().confirmShift();
+    ok('조금 뒤의 맞습니다는 평소대로 저장됩니다', sc.state.settings.shiftConfirmed === true);
   } finally { global.setTimeout = realST; }
   {
     const fs2 = require('fs');

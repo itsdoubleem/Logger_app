@@ -5850,6 +5850,9 @@ class Component extends DCLogic {
     return this.now().getTime() - new Date(S.inIso).getTime();
   }
   static UNDO_IN_ARM = 1500;
+  // 방금(1.5초 안에) 출퇴근 패드나 출근 취소 줄을 누른 손가락인가 — 그 뒤 화면이 움직여 같은 자리에 온 단추는
+  // 두 번째 손가락을 받지 않습니다(출시 리뷰 M1·S1)
+  tapShielded() { return this.lastTap != null && performance.now() - this.lastTap < Component.UNDO_IN_ARM; }
   // 출근 취소 줄을 거둡니다(F13) — 출근 10.5초가 지났거나(보인 지 9초), STOP을 눌렀거나, 탭을 옮겼을 때
   endInUndo() {
     clearTimeout(this.inUndoT); this.inUndoT = null; clearTimeout(this.inUndoArmT); this.inUndoArmT = null;
@@ -6210,7 +6213,7 @@ class Component extends DCLogic {
   padTap = () => {
     const t = performance.now();
     // 아직 누른 적이 없으면 null입니다 — 0이면 앱을 연 지 1.5초 안의 첫 누름이 삼켜집니다
-    if (this.lastTap != null && t - this.lastTap < 1500) return;
+    if (this.lastTap != null && t - this.lastTap < Component.UNDO_IN_ARM) return;   // tapShielded()와 같은 1.5초
     this.lastTap = t;
     this.punch();
   };
@@ -6228,6 +6231,7 @@ class Component extends DCLogic {
       // '출근 취소' 줄(F13): 1.5초 동안 자리만, 그 뒤 9초 동안 보입니다 — 저장한 뒤의 되돌리기 막대와 같은 9초.
       clearTimeout(this.inUndoT); clearTimeout(this.inUndoArmT);
       this.inUndoArmT = setTimeout(() => { if (!this.gone && this.state.inUndo) this.setState({ inUndoArmedAt: Date.now() }); }, Component.UNDO_IN_ARM + 50);
+      // inUndoArmedAt은 읽는 곳이 없습니다 — 1.5초에 화면을 다시 그리게 하려는 값입니다. 지우면 줄이 다음 1초 시계까지 늦게 나타납니다.
       // +50ms: 정확히 1500ms에 불리면 1ms 일찍 깨어난 타이머가 아직 숨김으로 판단해, 다음 1초 시계까지 줄이 숨어 있었습니다(리뷰 N1)
       this.inUndoT = setTimeout(() => this.endInUndo(), Component.UNDO_IN_ARM + 9000);
     } else {
@@ -6946,8 +6950,11 @@ class Component extends DCLogic {
       toggleWhy: () => this.setState({ whyOpen: !this.state.whyOpen }),
       // 근무중에는 묻지 않습니다 — 이미 찍은 사람에게 설정을 물을 자리가 아닙니다
       shiftAsk: shiftAssumed && !S,
-      confirmShift: () => this.setS({ shiftConfirmed: true }),
+      // 출시 리뷰 S1: 근무조를 아직 정하지 않은 사람은 START로 패드가 184px 움직여, 출근 취소 줄의 두 번 톡이
+      // 이 두 단추에 떨어졌습니다(320px) — 말없이 '맞습니다'가 저장되거나 설정이 열렸습니다. 같은 1.5초 가드.
+      confirmShift: () => { if (this.tapShielded()) return; this.setS({ shiftConfirmed: true }); },
       goShiftSetup: () => {
+        if (this.tapShielded()) return;
         this.setState({ setOpen: Object.assign({}, this.state.setOpen || {}, { grp_shift: true }) });
         this.goTab('set');
       },
@@ -8644,9 +8651,13 @@ class Component extends DCLogic {
       // padTap과 같은 1.5초 동안은 줄도 손가락을 받지 않습니다. 가드는 여기에만 — cancelClockIn()은
       // '너무 이른 퇴근' 카드도 씁니다.
       // 같은 날 다시: 줄이 보이는데 가드 때문에 첫 누름이 삼켜졌습니다 — 이제 가드 동안 줄은 보이지 않습니다.
+      // 출시 리뷰 M1: 취소하면 패드가 62px 내려와 같은 자리가 다시 START입니다. 두 번 톡의 두 번째가 새 출근을
+      // 찍었습니다 — 취소한 순간도 '방금 누른 손가락'으로 적어, padTap의 1.5초 가드가 그 두 번째를 삼킵니다.
+      // cancelClockIn()에 두지 않습니다 — '너무 이른 퇴근' 카드도 그것을 씁니다.
       undoInStrip: () => {
         if (!this.inUndoArmed()) return;
         this.cancelClockIn();
+        this.lastTap = performance.now();
       },
       backInShut: !S && !this.state.backIn,
       backInOpen: !S && !!this.state.backIn,
