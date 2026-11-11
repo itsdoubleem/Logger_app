@@ -8289,7 +8289,8 @@ console.log('\n== 지문은 필요 없었습니다 — 한 번 누르면 출근,
   ok('출근 전: 아래에는 START', R.padTitle === 'START', R.padTitle);
   ok('출근 전: 근무 외 표시가 서고 근무중은 숨습니다', R.padOff === true && R.padLive === false);
   // (2026-11-09, 아흔셋째) 단추가 둥글어지며 글자 대신 바탕이 상태를 말합니다.
-  ok('출근 전 단추는 초록 바탕입니다', R.padBtnBg === 'var(--color-punch-start)', R.padBtnBg);
+  // (2026-11-11, F14) 단추가 로고의 시계가 되며 그 초록은 바탕이 아니라 링과 글자의 잉크입니다.
+  ok('출근 전 단추는 초록 잉크입니다', R.padBtnInk === 'var(--color-punch-start)', R.padBtnInk);
   ok('패드에 지문 안내 문장이 없습니다', !('padSub' in R));
 
   R.padTap();
@@ -8301,7 +8302,7 @@ console.log('\n== 지문은 필요 없었습니다 — 한 번 누르면 출근,
   R = c.renderVals();
   ok('근무 중: 위에는 퇴근, 아래에는 STOP', R.padStamp === '퇴근' && R.padTitle === 'STOP');
   ok('근무 중: 근무중 표시가 서고 근무 외는 숨습니다', R.padLive === true && R.padOff === false);
-  ok('근무 중 단추는 연어색 바탕입니다', R.padBtnBg === 'var(--color-punch-stop)', R.padBtnBg);
+  ok('근무 중 단추는 연어색 잉크입니다', R.padBtnInk === 'var(--color-punch-stop)', R.padBtnInk);
 
   // 2초 뒤의 두 번째 누름은 진짜 누름입니다 — 다만 30분이 안 됐으니 퇴근이 되지 않고
   // 출근을 취소할 길을 내밉니다. 주머니 속 실수를 받는 것은 이쪽입니다.
@@ -8355,11 +8356,12 @@ console.log('\n== 지문은 필요 없었습니다 — 한 번 누르면 출근,
   // 그대로. 크기는 17–20px: 단추를 92px(320px 폰에서 78px)로 줄이며 글자도 함께 줄였습니다.
   // ▶·■ 그림은 없습니다.
   const padAll = tpl.slice(tpl.indexOf('{{ padTap }}') - 20, tpl.indexOf('{{ padBig }}') + 20);
-  // 진한 잉크는 --color-on-fill — 어두운 화면에서 --color-text는 밝아지는데 단추는 그대로라(아흔넷째)
-  ok('START/STOP은 17–20px 600, 진한 잉크 — 어두운 화면에서도',
-    /font-weight:600;font-size:clamp\(17px, 5vw, 20px\);[^"]*color:var\(--color-on-fill\)">\{\{ padTitle \}\}/.test(padAll));
+  // (2026-11-11, F14) 단추가 시계가 되며 글자는 링 안에 — 800, 14–16.5px(78–92px 링), 잉크는 단추의 color를 물려받습니다.
+  ok('START/STOP은 링 안의 14–16.5px 800 글자입니다',
+    /font-weight:800;font-size:clamp\(14px, 4\.3vw, 16\.5px\);[^"]*">\{\{ padTitle \}\}/.test(padAll) && !/color-on-fill/.test(padAll));
   ok('시각의 크기는 renderVals가 정합니다', /font-size:\{\{ padBigFs \}\};[^"]*">\{\{ padBig \}\}/.test(padAll));
-  ok('단추에 ▶·■ 그림이 없습니다', padAll.length > 100 && !/<svg/.test(padAll));
+  ok('단추에 ▶·■ 그림이 없습니다 — 그림은 시계 하나뿐', padAll.length > 100 && (padAll.match(/<svg/g) || []).length === 1
+    && padAll.indexOf('viewBox="13.05 18.15 61.3 61.3"') >= 0);
 }
 
 console.log('\n== 출퇴근 카드의 양옆이 비어 있었습니다 — 넓은 단추로 ==');
@@ -8436,9 +8438,11 @@ console.log('\n== 출퇴근 카드의 양옆이 비어 있었습니다 — 넓�
     const tok = n => ((dsx.match(new RegExp('--' + n + ':\\s*#([0-9a-fA-F]{6})')) || [])[1] || '');
     ok('초록 알약: #127e38 on --color-mark-100 ≥ 4.5', cr('127e38', tok('color-mark-100')) >= 4.5, tok('color-mark-100'));
     ok('빨강 알약: accent-700 on accent-100 ≥ 4.5', cr(tok('color-accent-700'), tok('color-accent-100')) >= 4.5);
-    // 둥근 단추의 START/STOP은 22px 600 진한 잉크 — 두 바탕 위에서 모두 4.5:1을 넘습니다.
-    ok('START: 진한 잉크 on --color-punch-start ≥ 4.5', cr(tok('color-text'), tok('color-punch-start')) >= 4.5, tok('color-punch-start'));
-    ok('STOP: 진한 잉크 on --color-punch-stop ≥ 4.5', cr(tok('color-text'), tok('color-punch-stop')) >= 4.5, tok('color-punch-stop'));
+    // (2026-11-11, F14) 단추는 이제 바탕이 아니라 선입니다. 흰 카드 위의 두 색은 2.4 / 2.7:1 — 근로자가
+    // 지금 단추의 색을 그대로 쓰자고 했고, 더 진한 퇴근 알약 빨강(#ae1800)은 보여 주었으나 고르지 않았습니다
+    // (DESIGN.md). 어두운 카드(#363433) 위에서는 둘 다 4.5:1을 넘습니다 — 그 값은 지킵니다.
+    ok('START 링: --color-punch-start on 어두운 카드 ≥ 4.5', cr(tok('color-punch-start'), '363433') >= 4.5, tok('color-punch-start'));
+    ok('STOP 링: --color-punch-stop on 어두운 카드 ≥ 4.5', cr(tok('color-punch-stop'), '363433') >= 4.5, tok('color-punch-stop'));
     // '근무 외' 글자(neutral-600)는 흰 카드 위에서 4.5:1
     ok('근무 외 글자: neutral-600 on 흰 카드 ≥ 4.5', cr('747372', 'ffffff') >= 4.5 && /color:var\(--color-neutral-600\)[^"]*">\s*<div style="width:8px/.test(head.replace(/\n/g, '')));
     const c0 = mk(V2, '2026-10-26T08:50:00');
@@ -8451,7 +8455,7 @@ console.log('\n== 출퇴근 카드의 양옆이 비어 있었습니다 — 넓�
   ok('단추는 둥근 정사각입니다 — 폭과 높이가 같은 clamp', /width:clamp\(78px, 24vw, 92px\);height:clamp\(78px, 24vw, 92px\)/.test(bar), bar);
   // 같은 날 다시: 근로자가 동그라미를 조금 작게 해 달라고 했습니다 — 104 → 92px(320px에서 78px).
   ok('단추는 가장 커도 92px입니다', /width:clamp\(78px, 24vw, 92px\)/.test(bar) && !/104px/.test(bar), bar);
-  ok('단추의 바탕은 renderVals가 상태마다 정합니다', /background:\{\{ padBtnBg \}\}/.test(bar), bar);
+  ok('단추의 잉크는 renderVals가 상태마다 정합니다 — 바탕은 없습니다', /color:\{\{ padBtnInk \}\}/.test(bar) && !/background/.test(bar), bar);
   ok('단추는 글자와 시각을 덮지 않습니다', head.indexOf('padTap') < 0 && (tpl.match(/\{\{ padTap \}\}/g) || []).length === 1);
   ok('단추에 min-height가 없습니다 — 규칙 2c가 모서리를 가로채지 않게', !/min-height/.test(bar));
   ok('단추에 테두리가 없습니다 — 규칙 2가 모서리를 가로채지 않게', !/border:/.test(bar));
@@ -8459,8 +8463,14 @@ console.log('\n== 출퇴근 카드의 양옆이 비어 있었습니다 — 넓�
   const ds = fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
   const r5 = ds.slice(ds.indexOf("── 5 · the punch pad's START / STOP button"), ds.indexOf('── 5b ·'));
   ok('규칙 5가 단추를 둥글게 합니다', /border-radius: 50%/.test(r5));
-  ok('눌린 단추는 그 자리에서 답합니다 — 밝은 바탕이라 어둡게', /:active\s*\{[^}]*filter: brightness\(\.9\)/.test(r5));
-  ok('규칙 5는 바탕을 정하지 않습니다 — 상태 색은 소스에서 옵니다', !/background/.test(r5.slice(r5.indexOf('[style*='))));
+  // (2026-11-11, F14) 선 그림을 어둡게 해도 흰 카드 위에서는 거의 보이지 않습니다 — 누르면 안이 그 상태의
+  // 옅은 색으로 차고, 조금 가라앉는 것은 그대로입니다.
+  ok('눌린 단추는 그 자리에서 답합니다 — 조금 가라앉고', /:active\s*\{[^}]*transform: scale\(\.97\)/.test(r5) && !/brightness/.test(r5.slice(r5.indexOf('[style*='))));
+  ok('눌린 START는 안이 옅은 초록, STOP은 옅은 빨강으로 찹니다',
+    /\[style\*="color: var\(--color-punch-start\)"\]:active \{\s*background: var\(--color-mark-100\);/.test(r5)
+    && /\[style\*="color: var\(--color-punch-stop\)"\]:active \{\s*background: var\(--color-accent-100\);/.test(r5));
+  ok('규칙 5의 바탕은 눌렸을 때뿐입니다', (r5.slice(r5.indexOf('[style*=')).match(/background:/g) || []).length === 2
+    && (r5.slice(r5.indexOf('[style*=')).match(/:active \{\s*background:/g) || []).length === 2);
   // 리뷰 S2(여든일곱째): 규칙 5의 두 값은 단추 하나에만 있어야 합니다 — 둘 다 붙은 요소는
   // 조용히 이 단추의 모서리와 눌림을 받습니다.
   const full = src.slice(0, src.indexOf('</x-dc>'));
@@ -11204,6 +11214,48 @@ console.log('\n== F13 · 잘못 누른 START는 누른 다음 9초 동안 그 �
   ok('여덟 언어 모두 출근 취소를 말합니다', !!base.undo_in_strip.en && !!base.undo_in_strip.ko
     && langs.every(l => { const v = JSON.parse(fs.readFileSync(__dirname + '/../lang/' + l + '.json', 'utf8')).undo_in_strip; return v && v !== base.undo_in_strip.en; }));
   ok('누르기 전에 묻는 창은 여전히 없습니다(여든여섯째)', !/proceed|진행하시겠/i.test(JSON.stringify(base.undo_in_strip) + JSON.stringify(base.k_undo_in)));
+}
+
+console.log('\n== F14 · 출퇴근 단추는 로고의 시계입니다 ==');
+// 2026-11-11. 근로자가 초록 동그라미 안의 START 대신 로고의 시계를 단추로 써 달라고 했습니다 — 지금
+// 동그라미만큼 크게, 바늘은 빼서 START가 들어갈 자리를 만들고, 글자는 시계와 같은 색으로. 눈금은 넷을
+// 그려 보았다가(START가 3·9시 눈금에 닿아 글자를 줄여야 했습니다) 둘(12·6시)로 정했고, 색은 처음 그린
+// 로고 초록(#127e38)이 아니라 지금 단추의 색 그대로입니다.
+//
+// 다음 사람에게: 이 시계는 로고의 '사본'이 아니라 일부러 다른 그림입니다(docs/design/logo/punch-clock.svg).
+// 로고를 다시 그리더라도 이 단추에 바늘이나 3·9시 눈금을 되돌리지 마십시오 — 글자가 눈금에 닿습니다.
+{
+  const fs = require('fs');
+  const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tpl = src.slice(0, src.indexOf('</x-dc>')).replace(/<!--[\s\S]*?-->/g, '');
+  const btn = tpl.slice(tpl.indexOf('{{ padTap }}'), tpl.indexOf('{{ padTitle }}') + 20);
+  const svg = (btn.match(/<svg viewBox="13\.05 18\.15 61\.3 61\.3"[\s\S]*?<\/svg>/) || [''])[0];
+  const art = fs.readFileSync(__dirname + '/../docs/design/logo/punch-clock.svg', 'utf8');
+  const shapes = x => (x.match(/<(?:circle|path) [^>]*?\/?>/g) || []).map(e => e.replace(/\s*\/?>$/, '').replace(/\s+/g, ' '));
+  ok('단추의 그림은 docs/design의 단추 시계 원본입니다', !!svg && JSON.stringify(shapes(svg)) === JSON.stringify(shapes(art)),
+    JSON.stringify(shapes(svg)) + ' vs ' + JSON.stringify(shapes(art)));
+  const logo = fs.readFileSync(__dirname + '/../docs/design/logo/clock-mark.svg', 'utf8');
+  ok('링과 호는 로고의 시계와 같은 선입니다', svg.indexOf('cx="43.7" cy="48.8" r="28.5"') >= 0
+    && svg.indexOf('M10.88 27.73A39 39 0 0 1 26.48 13.81L28.38 17.67A34.7 34.7 0 0 0 14.5 30.05Z') >= 0
+    && logo.indexOf('M10.88 27.73A39 39 0 0 1 26.48 13.81L28.38 17.67A34.7 34.7 0 0 0 14.5 30.05Z') >= 0);
+  ok('바늘과 중심은 없습니다', svg.indexOf('M40.16 48.56') < 0 && svg.indexOf('M44.37 45.26') < 0
+    && svg.indexOf('M40 48.8a3.7') < 0 && svg.indexOf('30.09 64.79') < 0);
+  ok('눈금은 12시와 6시 둘뿐입니다 — 3·9시 눈금은 START에 닿습니다',
+    (svg.match(/h2\.9a0\.6/g) || []).length === 2 && svg.indexOf('M42.25 24.65') >= 0 && svg.indexOf('M42.25 68.85') >= 0
+    && svg.indexOf('M20.15 46.75') < 0 && svg.indexOf('M64.35 46.75') < 0);
+  ok('그림은 단추의 잉크로 그려집니다', /fill="currentColor"/.test(svg) && /stroke="currentColor"/.test(svg));
+  // 리뷰 S1: border-radius 50%는 자식을 둥글게 하지 않습니다. 그림과 글자가 손가락을 받으면 네모의 귀퉁이까지
+  // 출근이 찍혔습니다(384px에서 귀퉁이 3·8·12px 안쪽 — 예전에는 빗나갔고, 이 그림으로는 맞았습니다).
+  const label = (btn.match(/<div style="[^"]*">\{\{ padTitle \}\}/) || [''])[0];
+  ok('그림과 글자는 손가락을 받지 않습니다 — 둥근 단추만 받습니다', /pointer-events:none/.test(svg) && /pointer-events:none/.test(label), label);
+  ok('그림은 화면 읽기에서 빠지고 START/STOP 글자가 이름입니다', /aria-hidden="true"/.test(svg) && btn.indexOf('{{ padTitle }}') > btn.indexOf('</svg>'));
+  ok('호는 단추 밖으로 나갑니다 — 잘리지 않게', /overflow:visible/.test(svg));
+  const ds = fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
+  ok('색은 지금 단추의 두 토큰 그대로입니다 — 새 색이 없습니다',
+    /--color-punch-start: #60b973;/.test(ds) && /--color-punch-stop: #e9806f;/.test(ds) && !/#127e38/.test(btn));
+  const c = mk(V2, '2026-11-11T08:58:00'); c.state.setupDone = true;
+  const before = c.renderVals().padBtnInk; c.punch();
+  ok('START를 누르면 시계가 초록에서 연어색으로 바뀝니다', before === 'var(--color-punch-start)' && c.renderVals().padBtnInk === 'var(--color-punch-stop)');
 }
 
 Promise.all(later).then(()=>{

@@ -1,6 +1,6 @@
 # 근무기록 LOGGER — change log beyond V2.md
 
-One hundred and two entries, newest first — ninety-five carry an ordinal (first … ninety-fifth),
+One hundred and three entries, newest first — ninety-six carry an ordinal (first … ninety-sixth),
 the seven oldest predate the numbering. Each one is a bug found by **actually using the app on
 shift**, what changed, and — the part worth reading — *why it was that and not the
 obvious fix*. Most entries end with a **다음 사람에게** paragraph: the rule the bug
@@ -18,7 +18,8 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 
 ## Index
 
-- 2026-11-11 (latest, ninety-fifth) — 누르기 전에 묻지 않고, 누른 다음 9초 동안 되돌립니다: 초록 출근 취소 줄
+- 2026-11-11 (latest, ninety-sixth) — 출퇴근 단추가 로고의 시계가 되었습니다: 바늘을 빼고 START를 안에
+- 2026-11-11 (ninety-fifth) — 누르기 전에 묻지 않고, 누른 다음 9초 동안 되돌립니다: 초록 출근 취소 줄
 - 2026-11-09 (ninety-fourth) — 어두운 화면: 그래파이트, 그리고 뒤집히면 안 되는 잉크
 - 2026-11-09 (ninety-third) — 근로자가 그린 출퇴근 카드, 그리고 근무중의 반대
 - 2026-11-09 (ninety-second) — 홈 화면에서 폴더 오른쪽이 잘려 있었습니다
@@ -121,7 +122,54 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 - 2026-08-13 — the service worker was hiding every update
 - 2026-08-13 (earlier) — 조퇴 사유 became a popup with a dropdown
 
-### 2026-11-11 (latest, ninety-fifth) — 누르기 전에 묻지 않고, 누른 다음 9초 동안 되돌립니다: 초록 출근 취소 줄
+### 2026-11-11 (latest, ninety-sixth) — 출퇴근 단추가 로고의 시계가 되었습니다: 바늘을 빼고 START를 안에
+
+**초록 동그라미 안의 검은 START 대신, 로고의 시계를 단추로 — 지금 동그라미만큼 크게, 바늘은 빼서 START가
+들어갈 자리를 만들고, 글자는 시계와 같은 색으로.** 근로자의 요청이고(F14), 모양은 네 번 오가며 정했습니다.
+
+#### 바뀐 것
+
+- **단추는 링 · 호 · 12시와 6시 눈금입니다.** 로고 시계(`docs/design/logo/clock-mark.svg`)에서 시침·분침·
+  중심·초침을 뺐습니다. 원본은 `docs/design/logo/punch-clock.svg`. 링의 바깥 가장자리가 곧 예전 동그라미라
+  92px(320px 폰에서 78px), 폭 문자열과 `touch-action`(규칙 5의 열쇠), 손가락 칸(빈 가운데까지 원 전체)이
+  그대로입니다. 호는 왼쪽 위로 단추 밖에 나갑니다(`overflow: visible`).
+- **바탕이 없고, 링과 글자가 같은 색입니다** — 예전 동그라미의 바탕색 그대로: START `--color-punch-start`
+  #60b973, STOP `--color-punch-stop` #e9806f. 글자는 Archivo 800, 92px 링에서 16.5px, 78px 링에서 14px,
+  SVG 위에 겹친 HTML입니다 — 템플릿은 SVG `<text>` 안의 `{{ }}`를 그리지 않습니다(시안에서 글자가 사라져서
+  알았습니다).
+- **누르면 안이 옅은 색으로 찹니다**(규칙 5): START는 `--color-mark-100`, STOP은 `--color-accent-100`.
+  예전의 `brightness(.9)`는 흰 카드 위의 선 그림에서 거의 보이지 않습니다 — 하루 두 번 누르는 단추가 눌린
+  티를 내지 않으면 한 번 더 눌립니다. 조금 가라앉는 `scale(.97)`은 그대로입니다.
+
+#### 오간 것 — 다음 사람이 되돌리지 않게
+
+1. **처음 시안은 로고 초록(#127e38)으로 그렸습니다** — '시계와 같은 색'이라는 말대로. 근로자가 색을 재어
+   보고 지금 단추의 초록과 다르다며 **지금 색 그대로**를 골랐습니다. STOP은 처음부터 #e9806f였는데도 달라
+   보였습니다: 가는 선은 같은 색의 채운 원보다 옅어 보입니다. 픽셀은 같습니다(재어서).
+2. **더 진한 퇴근 알약 빨강(#ae1800, 7.2:1)을 보였고, 고르지 않았습니다.** 흰 카드 위의 두 선은 2.4:1,
+   2.7:1 — 부드러운 한 쌍으로 받아들인 값입니다. 어두운 카드 위에서는 5.1:1, 4.6:1이고, 시험은 그 값을
+   지킵니다.
+3. **눈금 넷을 그려 보고 둘로 정했습니다.** 넷이면 START가 3·9시 눈금에 1.5px 안으로 닿아(24.2 → 63.2,
+   눈금 안쪽 23.65 / 64.35, SVG 단위) 글자를 15px로 줄여야 했습니다. 근로자가 둘이 낫다고 했습니다.
+
+**리뷰가 잡은 것.** 둥근 모서리(규칙 5)는 단추 자신만 둥글게 하고 그 안의 그림과 글자는 둥글게 하지 않습니다.
+그림과 글자가 단추를 덮고 손가락을 받자 **네모의 귀퉁이까지 출근이 찍혔습니다** — 384px에서 귀퉁이 3·8·12px
+안쪽이 예전에는 빗나갔고 이 그림으로는 맞았습니다(27% 더 넓은 손잡이). 그림과 글자에 `pointer-events: none`을
+주어 다시 원만 받습니다. 길게 누르기도 확인도 없는 단추라(여든여섯째) 손잡이는 좁아야 합니다.
+
+헤드리스에서 지은 화면을 재었습니다: 링과 글자 색이 토큰과 같은 값(384·320px, 밝은·어두운 화면), 원은 92 /
+78px, 글자 16.5 / 14px, 눌린 안은 상태의 옅은 색(`CSS.forcePseudoState`로), 가로 스크롤 없음.
+
+11 new assertions (3776 total) under F14, and the punch-pad assertions that pinned the filled circle rewritten: 단추 그림이 원본 SVG와 같은
+선인지, 바늘·중심이 없는지, 눈금이 12·6시 둘뿐인지, 잉크가 두 토큰인지, 눌린 안이 상태의 옅은 색인지, 규칙 5의
+바탕이 눌렸을 때뿐인지, 어두운 카드 위에서 4.5:1을 넘는지.
+
+**다음 사람에게.** 이 시계는 로고의 사본이 아니라 일부러 다른 그림입니다 — 로고 사본 셋을 견주는 시험이
+viewBox(`13 18.15 61.4 61.4`)로 찾으므로 이 단추(`13.05 18.15 61.3 61.3`)는 그 셋에 섞이지 않습니다.
+로고를 다시 그리더라도 단추에 바늘이나 3·9시 눈금을 되돌리지 마십시오. 그리고 '같은 색'이라는 말을 들으면
+어느 것과 같은 색인지 물으십시오 — 이번에는 로고와 단추, 두 초록이 있었습니다.
+
+### 2026-11-11 (ninety-fifth) — 누르기 전에 묻지 않고, 누른 다음 9초 동안 되돌립니다: 초록 출근 취소 줄
 
 **START를 누르면 '진행을 누르면 출근이 시작됩니다' 같은 창이 먼저 뜨면 좋겠다는 말이었습니다.**
 여든여섯째가 이미 답한 물음입니다. 하루 두 번 누르는 단추에 붙인 확인 창은 매일 두 번 내는 세금이고,
