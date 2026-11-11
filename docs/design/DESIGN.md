@@ -149,11 +149,15 @@ the pill and a lamp on one line beside it, and the clock under them.
   - **Size:** the ring's outer edge *is* the old circle — the same
     `clamp(78px, 24vw, 92px)` box, so rule 5's selector, the layout and the tap
     area (the whole circle, empty middle included) stay as they are.
-  - **Ink, no fill:** START ring and word in `--color-mark` (#127e38, 5.2 : 1 on
-    the card; #6fcf8a in dark, 6.5 : 1). STOP ring and word in
-    `--color-punch-stop` (#e9806f) — the worker's pick. As a line on the white
-    card it is 2.7 : 1, fainter than START; the darker 퇴근-pill red (#ae1800,
-    7.2 : 1) was shown and declined. In dark mode the salmon is 4.6 : 1.
+  - **Ink, no fill — the circles' own colours.** START ring and word in
+    `--color-punch-start` (#60b973), STOP ring and word in `--color-punch-stop`
+    (#e9806f): exactly the fills the button has today, in both themes. The
+    worker checked the first mockup's START, drawn in the logo green #127e38, and
+    asked for the current colours instead; the darker 퇴근-pill red (#ae1800) was
+    also shown and declined. As lines on the white card they are 2.4 : 1 and
+    2.7 : 1 — a soft pair, accepted; on the dark card 5.1 : 1 and 4.6 : 1. A thin
+    ring reads lighter than the filled disc in the same colour; the pixels are
+    the same (measured).
   - **Word:** START / STOP inside the ring, Archivo 800,
     `clamp(14px, 4.3vw, 16.5px)`, `letter-spacing: 0.02em`, centred, HTML laid
     over the SVG (the template runtime drops a `{{ hole }}` inside SVG `<text>`).
@@ -162,7 +166,7 @@ the pill and a lamp on one line beside it, and the clock under them.
   - **Pressed:** rule 5's `brightness(.9)` barely shows on a line drawing; keep
     the `scale(.97)` and give the inside a tint while pressed
     (`--color-mark-100` / `--color-accent-100`).
-  - No new tokens. `--color-punch-start` (#60b973) loses its only use.
+  - No new tokens and no colour changes: both punch tokens keep their values.
 - **The button** is a circle, `clamp(78px, 24vw, 92px)` across — 92px at
   384, 78px at 320 (made smaller at the worker's request; it was 104 / 88) — filled with `--color-punch-start` before a shift and
   `--color-punch-stop` during one, with START / STOP in dark ink and no icon.
