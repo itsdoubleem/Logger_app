@@ -500,7 +500,7 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
         <!-- 출퇴근 패드 — 근로자가 그린 둥근 단추 (2026-11-09, 아흔셋째).
              지금 모양: 왼쪽에 둥근 START / STOP 단추(clamp(78px, 24vw, 92px)), 오른쪽에
              출근/퇴근 알약과 표시등 한 줄, 그 아래 큰 시계. 단추는 로고의 시계(F14,
-             아흔여섯째) — 출근 전 로고 시계의 초록(--color-mark), 근무 중 연어색(--color-punch-stop)의
+             아흔여섯째) — 출근 전 초록(--color-punch-start #3c9d55), 근무 중 연어색(--color-punch-stop)의
              링과 글자, 바탕 없음. 그 전에는 같은 색으로 채운 원에 진한 글자였습니다. 표시등은 두 상태 모두 섭니다: 근무 중에는 숨 쉬는 초록 등과
              '근무중'(규칙 8, 9px), 출근 전에는 그 반대인 불 꺼진 회색 고리와 '근무 외'(규칙 8c,
              8px — 9px이면 규칙 8이 잡아 꺼진 등이 숨을 쉽니다). 모양과 눌림은 ds-tokens.css
@@ -531,8 +531,8 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
         <div style="position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:clamp(14px, 5vw, 20px);padding:18px 20px;border-bottom:2px solid var(--color-divider);user-select:none">
           <!-- 단추는 로고의 시계입니다(F14, 2026-11-11, 아흔여섯째) — 바늘과 3·9시 눈금을 뺀 링, 호, 12·6시 눈금.
                원본은 docs/design/logo/punch-clock.svg. 바탕은 없고, 링과 글자가 지금까지의 단추 색
-               START는 이름 L◷GGER의 시계와 같은 --color-mark, STOP은 예전 단추의 --color-punch-stop입니다
-               (같은 날 근로자가 고쳐 골랐습니다). 링의 바깥 가장자리가 곧 예전 원이라
+               START는 이름 L◷GGER의 작은 시계가 눈에 보이는 초록(#3c9d55), STOP은 예전 단추의 연어색입니다
+               (같은 날 근로자가 세 번 고쳐 골랐습니다). 링의 바깥 가장자리가 곧 예전 원이라
                폭 문자열과 touch-action(규칙 5의 열쇠)과 손가락 칸은 그대로입니다. 글자는 SVG <text>가 아니라
                위에 겹친 HTML입니다 — 템플릿은 SVG <text> 안의 {{ }}를 그리지 않습니다.
                그림과 글자에는 pointer-events:none — 규칙 5의 둥근 모서리는 자식을 둥글게 하지
@@ -6951,8 +6951,9 @@ class Component extends DCLogic {
       padLiveVis: S ? 'visible' : 'hidden',
       padOffVis: S ? 'hidden' : 'visible',
       // 단추(로고의 시계)의 링과 글자 색 — 예전 둥근 단추의 바탕색 그대로(F14)
-      // START는 로고 시계와 같은 --color-mark(밝은 화면 #127e38, 어두운 화면 #6fcf8a — 이름의 O와 함께 바뀝니다)
-      padBtnInk: S ? 'var(--color-punch-stop)' : 'var(--color-mark)',
+      // START는 --color-punch-start #3c9d55 — 이름의 작은 시계 O가 눈에 보이는 초록(어두운 화면 #6fcf8a).
+      // 같은 토큰(--color-mark)을 쓰니 굵은 링이 가는 O보다 진해 보였습니다(같은 날, 근로자의 말).
+      padBtnInk: S ? 'var(--color-punch-stop)' : 'var(--color-punch-start)',
       padIconInk: 'var(--color-mark)',
       // 시계 크기 — 폭에 따라 32–44px. 몇 주째 열린 근무의 '45d 13h 59m'처럼 두 자리
       // 날 수가 붙으면 한 단계 작게: 그 길이는 320–360px 폰에서 44px 시계의 칸을 넘어
