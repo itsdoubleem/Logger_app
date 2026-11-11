@@ -11245,9 +11245,10 @@ console.log('\n== F13 · 잘못 누른 START는 누른 다음 9초 동안 그 �
     sc.padTap(); sc.base = new Date(sc.base.getTime() + 2000); sc.lastTap = performance.now() - 2000;
     sc.renderVals().undoInStrip();
     const tabBefore = sc.state.tab;
-    sc.renderVals().confirmShift(); sc.renderVals().goShiftSetup();
-    ok('취소 직후의 두 번째 손가락은 근무조를 확정하지도, 설정을 열지도 않습니다',
-      sc.state.session === null && !sc.state.settings.shiftConfirmed && sc.state.tab === tabBefore);
+    sc.renderVals().confirmShift();
+    ok('취소 직후의 두 번째 손가락은 근무조를 확정하지 않습니다', sc.state.session === null && !sc.state.settings.shiftConfirmed);
+    sc.renderVals().goShiftSetup();
+    ok('취소 직후의 두 번째 손가락은 설정을 열지 않습니다', sc.state.tab === tabBefore, sc.state.tab);
     sc.lastTap = performance.now() - 1600; sc.renderVals().confirmShift();
     ok('조금 뒤의 맞습니다는 평소대로 저장됩니다', sc.state.settings.shiftConfirmed === true);
   } finally { global.setTimeout = realST; }

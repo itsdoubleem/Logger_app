@@ -242,7 +242,11 @@ the pill and a lamp on one line beside it, and the clock under them.
   **invisible** (`visibility: hidden` — untappable, nothing moves), then shows
   for 9 s and works on the first tap; it is gone 10.5 s after START, on STOP, or
   when the tab changes (ninety-seventh entry: visible-but-guarded made the
-  worker tap twice). There is no confirmation
+  worker tap twice). Cancelling moves the card back down, so START (or, before
+  the shift is confirmed, 맞습니다 / 고치기) comes back under the finger: for
+  1.5 s after the undo those ignore a tap (`tapShielded()`). Accepted on
+  purpose — a deliberate tap in that second and a half is rare and costs one
+  more tap, while a double tap landing there used to clock the worker back in. There is no confirmation
   *before* the tap (the eighty-sixth entry): the way back comes after it.
 - `preview-punch-circle.html` is the approved preview (option 1, the matched
   green). `mockup-punch.png` is the bar design it replaced, and

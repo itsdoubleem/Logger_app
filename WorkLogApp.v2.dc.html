@@ -6213,7 +6213,7 @@ class Component extends DCLogic {
   padTap = () => {
     const t = performance.now();
     // 아직 누른 적이 없으면 null입니다 — 0이면 앱을 연 지 1.5초 안의 첫 누름이 삼켜집니다
-    if (this.lastTap != null && t - this.lastTap < 1500) return;
+    if (this.lastTap != null && t - this.lastTap < Component.UNDO_IN_ARM) return;   // tapShielded()와 같은 1.5초
     this.lastTap = t;
     this.punch();
   };
