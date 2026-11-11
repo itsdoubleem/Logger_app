@@ -11162,9 +11162,13 @@ console.log('\n== F13 · 잘못 누른 START는 누른 다음 9초 동안 그 �
     ok('보조 줄은 한국어 낱말입니다 — 종이에서 찾을 수 있는 말', c.renderVals().L.undoInK === '출근 취소');
     // (같은 날 다시) 처음 1.5초는 자리만 차지하고 보이지 않으며, 그 뒤 9초 동안 보입니다 — 끝나는 타이머는 10.5초
     ok('끝내는 타이머는 10.5초 하나, 보이게 하는 타이머는 1.5초 하나입니다',
-      timers.filter(t => t.ms === 10500).length === 1 && timers.filter(t => t.ms === 1500).length === 1, JSON.stringify(timers.map(t => t.ms)));
+      timers.filter(t => t.ms === 10500).length === 1 && timers.filter(t => t.ms === 1550).length === 1, JSON.stringify(timers.map(t => t.ms)));
+    // 리뷰 S1: 보이게 하는 타이머가 실제로 다시 그리는지 — 고장 나도 1초 시계가 늦게나마 그리므로 시험이 조용했습니다
+    const armAt0 = c.state.inUndoArmedAt;
+    timers.filter(t => t.ms === 1550).forEach(t => t.fn());
+    ok('1.55초 타이머는 화면을 다시 그립니다', c.state.inUndoArmedAt != null && c.state.inUndoArmedAt !== armAt0);
     timers.filter(t => t.ms === 10500).forEach(t => t.fn());
-    ok('9초가 지나면 줄은 사라지고 출근은 그대로입니다', c.renderVals().inUndoShow === false && !!c.state.session);
+    ok('출근 10.5초(보인 지 9초)가 지나면 줄은 사라지고 출근은 그대로입니다', c.renderVals().inUndoShow === false && !!c.state.session);
 
     // 줄을 누르면 출근이 없던 일이 됩니다
     timers = [];
@@ -11173,8 +11177,10 @@ console.log('\n== F13 · 잘못 누른 START는 누른 다음 9초 동안 그 �
     ok('줄을 누르면 출근이 취소됩니다', u.state.session === null && u.renderVals().inUndoShow === false);
     ok('취소하면 분홍 줄이 돌아옵니다 — 다시 START를 누를 수 있는 처음 화면', u.renderVals().backInShut === true);
     ok('기록에는 아무것도 남지 않습니다', (u.state.extra || []).length === 0);
+    const armU = u.state.inUndoArmedAt;
     timers.forEach(t => t.fn());
     ok('취소한 뒤 남은 타이머가 불려도 아무것도 되살아나지 않습니다', u.state.session === null && u.state.inUndo === false);
+    ok('취소한 뒤의 보이게 하는 타이머는 다시 그리지도 않습니다', u.state.inUndoArmedAt === armU);
 
     // 곧바로 STOP — 30분 안이라 '너무 이른 퇴근' 카드가 같은 길을 줍니다. 줄이 둘씩 서지 않습니다
     const s2 = mk(V2, '2026-11-11T08:58:00'); s2.state.setupDone = true;

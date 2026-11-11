@@ -592,7 +592,7 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
           </div>
         </sc-if>
 
-        <!-- 출근 취소 줄 (F13, 2026-11-11). START 뒤 9초 동안만, '이미 출근했습니다' 줄이 있던 그 자리에
+        <!-- 출근 취소 줄 (F13, 2026-11-11). START 뒤 1.5초는 보이지 않게 자리만, 그 뒤 9초 동안, '이미 출근했습니다' 줄이 있던 그 자리에
              같은 크기(9px 18px, 16px 줄, 36px)로 섭니다. 그 줄은 출근하면 어차피 사라지므로 누르는 순간
              아래의 칸들이 움직이지 않습니다. 바탕은 출근 알약의 초록(--color-mark-100). 줄 전체가 단추이고
              손가락 칸 44px은 층 규칙 1d가 같은 열쇠(cursor:pointer + padding 9px 18px)로 줍니다.
@@ -5850,7 +5850,7 @@ class Component extends DCLogic {
     return this.now().getTime() - new Date(S.inIso).getTime();
   }
   static UNDO_IN_ARM = 1500;
-  // 출근 취소 줄을 거둡니다(F13) — 9초가 지났거나, STOP을 눌렀거나, 탭을 옮겼을 때
+  // 출근 취소 줄을 거둡니다(F13) — 출근 10.5초가 지났거나(보인 지 9초), STOP을 눌렀거나, 탭을 옮겼을 때
   endInUndo() {
     clearTimeout(this.inUndoT); this.inUndoT = null; clearTimeout(this.inUndoArmT); this.inUndoArmT = null;
     if (this.state.inUndo && !this.gone) this.setState({ inUndo: false });
@@ -6227,7 +6227,8 @@ class Component extends DCLogic {
       this.setState({ session: { inIso: n.toISOString() }, oddOut: false, oddAt: null, shortOut: false, staleOut: false, inUndo: true });
       // '출근 취소' 줄(F13): 1.5초 동안 자리만, 그 뒤 9초 동안 보입니다 — 저장한 뒤의 되돌리기 막대와 같은 9초.
       clearTimeout(this.inUndoT); clearTimeout(this.inUndoArmT);
-      this.inUndoArmT = setTimeout(() => { if (!this.gone && this.state.inUndo) this.setState({ inUndoArmedAt: Date.now() }); }, Component.UNDO_IN_ARM);
+      this.inUndoArmT = setTimeout(() => { if (!this.gone && this.state.inUndo) this.setState({ inUndoArmedAt: Date.now() }); }, Component.UNDO_IN_ARM + 50);
+      // +50ms: 정확히 1500ms에 불리면 1ms 일찍 깨어난 타이머가 아직 숨김으로 판단해, 다음 1초 시계까지 줄이 숨어 있었습니다(리뷰 N1)
       this.inUndoT = setTimeout(() => this.endInUndo(), Component.UNDO_IN_ARM + 9000);
     } else {
       // STOP을 누르면 출근 취소 줄은 끝납니다 — 30분 안의 STOP은 '너무 이른 퇴근' 카드가 같은 길을 줍니다
