@@ -11229,6 +11229,27 @@ console.log('\n== F13 · 잘못 누른 START는 누른 다음 9초 동안 그 �
     ok('보인 뒤 9초 동안은 서 있습니다 — 출근 10초 뒤에도', g3.renderVals().inUndoShow === true && g3.renderVals().inUndoVis === 'visible');
     g3.base = new Date(g3.base.getTime() + 600);
     ok('출근 10.5초 뒤에는 사라집니다', g3.renderVals().inUndoShow === false);
+
+    // 출시 리뷰 M1 — 줄을 두 번 톡: 취소하면 패드가 62px 내려와 같은 자리가 다시 START입니다. 두 번째 손가락이
+    // 새 출근을 찍었습니다(지은 화면에서 180ms 간격의 진짜 터치로). 취소한 순간도 '방금 누른 손가락'입니다.
+    const dd = mk(V2, '2026-11-11T08:58:00'); dd.state.setupDone = true;
+    dd.padTap(); dd.base = new Date(dd.base.getTime() + 2000); dd.lastTap = performance.now() - 2000;
+    dd.renderVals().undoInStrip();
+    const cancelled = dd.state.session === null;
+    dd.renderVals().padTap();
+    ok('줄을 두 번 톡 쳐도 다시 출근이 찍히지 않습니다', cancelled && dd.state.session === null, JSON.stringify(dd.state.session));
+    dd.lastTap = performance.now() - 1600; dd.renderVals().padTap();
+    ok('1.5초 뒤의 START는 평소대로 출근입니다', !!dd.state.session);
+    // 출시 리뷰 S1 — 근무조를 정하지 않은 사람: 취소한 뒤의 두 번째 손가락이 '맞습니다'·'고치기'에 떨어졌습니다(320px)
+    const sc = mk(V2, '2026-11-11T08:58:00'); sc.state.setupDone = true; sc.state.settings.shiftConfirmed = false;
+    sc.padTap(); sc.base = new Date(sc.base.getTime() + 2000); sc.lastTap = performance.now() - 2000;
+    sc.renderVals().undoInStrip();
+    const tabBefore = sc.state.tab;
+    sc.renderVals().confirmShift(); sc.renderVals().goShiftSetup();
+    ok('취소 직후의 두 번째 손가락은 근무조를 확정하지도, 설정을 열지도 않습니다',
+      sc.state.session === null && !sc.state.settings.shiftConfirmed && sc.state.tab === tabBefore);
+    sc.lastTap = performance.now() - 1600; sc.renderVals().confirmShift();
+    ok('조금 뒤의 맞습니다는 평소대로 저장됩니다', sc.state.settings.shiftConfirmed === true);
   } finally { global.setTimeout = realST; }
   {
     const fs2 = require('fs');
