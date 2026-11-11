@@ -5831,29 +5831,45 @@ class Component extends DCLogic {
     return { inD, inH, outH, el, min: Math.round(el * 60) };
   }
   cancelClockIn() { clearTimeout(this.inUndoT); clearTimeout(this.inUndoArmT); this.setState({ session: null, shortOut: false, staleOut: false, oddOut: false, oddAt: null, inUndo: false }); }
-  // 출근 취소 줄이 지금 자리를 차지하는가(F13) — 깃발과 함께, 출근한 지 10.5초가 안 되었을 때만.
-  // 처음 1.5초(두 번 톡 가드)는 자리만 차지하고 보이지 않습니다(inUndoArmed). 보이는 동안은 9초.
+  // 출근 취소 줄이 지금 자리를 차지하는가(F13) — 깃발과 함께, 출근한 지 9.5초가 안 되었을 때만.
+  // 처음 0.5초는 자리만 차지하고 보이지 않습니다(inUndoArmed). 보이는 동안은 9초.
   inUndoLive() {
     const el = this.inUndoAge();
-    return el != null && el >= 0 && el < Component.UNDO_IN_ARM + 9000;
+    return el != null && el >= 0 && el < Component.STRIP_ARM + 9000;
   }
-  // 줄이 보이고 손가락을 받는가 — 가드 1.5초가 지났을 때만(근로자가 찾은 것, 같은 날: 보이는데 첫 누름이
-  // 아무 일도 하지 않아 두 번 눌러야 했습니다). 보이지 않는 동안은 누를 것이 없습니다.
+  // 줄이 보이고 손가락을 받는가 — 출근 0.5초 뒤부터(근로자가 고른 값, 같은 날 세 번째). 보이는 것과 받는 것은
+  // 언제나 이 하나로 정합니다 — 보이는데 받지 않는 줄은 두 번 누르게 만들었습니다(아흔일곱째).
+  // 0.5초면 두 번 톡의 두 번째(0.2–0.4초)는 아직 숨은 줄에 떨어집니다.
   inUndoArmed() {
     const el = this.inUndoAge();
-    return this.inUndoLive() && el >= Component.UNDO_IN_ARM
-      && !(this.lastTap != null && performance.now() - this.lastTap < Component.UNDO_IN_ARM);
+    return this.inUndoLive() && el >= Component.STRIP_ARM
+      && !(this.lastTap != null && performance.now() - this.lastTap < Component.STRIP_ARM);
+  }
+  // 0.5초가 되는 순간 줄을 그립니다. 타이머가 몇 ms 일찍 깨어나면 아직 숨김이라 남은 만큼 다시 겁니다 — 예전처럼
+  // +50ms로 늦추면 줄이 보이는 순간이 그만큼 늦습니다. 보이는 순간과 받는 순간은 같은 inUndoArmed()입니다.
+  // inUndoArmedAt은 읽는 곳이 없습니다 — 화면을 다시 그리게 하려는 값입니다. 지우면 줄이 다음 1초 시계까지 늦습니다.
+  armInUndo(ms) {
+    this.inUndoArmT = setTimeout(() => {
+      if (this.gone || !this.state.inUndo || !this.inUndoLive()) return;
+      if (this.inUndoArmed()) { this.setState({ inUndoArmedAt: Date.now() }); return; }
+      const el = this.inUndoAge() || 0;
+      const sinceTap = this.lastTap != null ? performance.now() - this.lastTap : Component.STRIP_ARM;
+      this.armInUndo(Math.max(1, Component.STRIP_ARM - el, Component.STRIP_ARM - sinceTap) + 1);
+    }, ms);
   }
   inUndoAge() {
     const S = this.state.session;
     if (!S || !this.state.inUndo) return null;
     return this.now().getTime() - new Date(S.inIso).getTime();
   }
-  static UNDO_IN_ARM = 1500;
+  // 두 시간: 줄이 나타나는 0.5초(STRIP_ARM)와, 패드·근무조 단추가 두 번째 손가락을 받지 않는 1.5초(TAP_GUARD).
+  // 줄만 빨라졌습니다 — 출근 직후 START의 가드와 취소 뒤의 가드는 기록을 지키므로 그대로 1.5초입니다.
+  static STRIP_ARM = 500;
+  static TAP_GUARD = 1500;
   // 방금(1.5초 안에) 출퇴근 패드나 출근 취소 줄을 누른 손가락인가 — 그 뒤 화면이 움직여 같은 자리에 온 단추는
   // 두 번째 손가락을 받지 않습니다(출시 리뷰 M1·S1)
-  tapShielded() { return this.lastTap != null && performance.now() - this.lastTap < Component.UNDO_IN_ARM; }
-  // 출근 취소 줄을 거둡니다(F13) — 출근 10.5초가 지났거나(보인 지 9초), STOP을 눌렀거나, 탭을 옮겼을 때
+  tapShielded() { return this.lastTap != null && performance.now() - this.lastTap < Component.TAP_GUARD; }
+  // 출근 취소 줄을 거둡니다(F13) — 출근 9.5초가 지났거나(보인 지 9초), STOP을 눌렀거나, 탭을 옮겼을 때
   endInUndo() {
     clearTimeout(this.inUndoT); this.inUndoT = null; clearTimeout(this.inUndoArmT); this.inUndoArmT = null;
     if (this.state.inUndo && !this.gone) this.setState({ inUndo: false });
@@ -6213,7 +6229,7 @@ class Component extends DCLogic {
   padTap = () => {
     const t = performance.now();
     // 아직 누른 적이 없으면 null입니다 — 0이면 앱을 연 지 1.5초 안의 첫 누름이 삼켜집니다
-    if (this.lastTap != null && t - this.lastTap < Component.UNDO_IN_ARM) return;   // tapShielded()와 같은 1.5초
+    if (this.lastTap != null && t - this.lastTap < Component.TAP_GUARD) return;   // tapShielded()와 같은 1.5초
     this.lastTap = t;
     this.punch();
   };
@@ -6228,12 +6244,10 @@ class Component extends DCLogic {
     if (!this.state.session) {
       // 새 근무에는 지난 근무의 카드가 따라오지 않습니다(리뷰 3회차 S1)
       this.setState({ session: { inIso: n.toISOString() }, oddOut: false, oddAt: null, shortOut: false, staleOut: false, inUndo: true });
-      // '출근 취소' 줄(F13): 1.5초 동안 자리만, 그 뒤 9초 동안 보입니다 — 저장한 뒤의 되돌리기 막대와 같은 9초.
+      // '출근 취소' 줄(F13): 0.5초 동안 자리만, 그 뒤 9초 동안 보입니다 — 저장한 뒤의 되돌리기 막대와 같은 9초.
       clearTimeout(this.inUndoT); clearTimeout(this.inUndoArmT);
-      this.inUndoArmT = setTimeout(() => { if (!this.gone && this.state.inUndo) this.setState({ inUndoArmedAt: Date.now() }); }, Component.UNDO_IN_ARM + 50);
-      // inUndoArmedAt은 읽는 곳이 없습니다 — 1.5초에 화면을 다시 그리게 하려는 값입니다. 지우면 줄이 다음 1초 시계까지 늦게 나타납니다.
-      // +50ms: 정확히 1500ms에 불리면 1ms 일찍 깨어난 타이머가 아직 숨김으로 판단해, 다음 1초 시계까지 줄이 숨어 있었습니다(리뷰 N1)
-      this.inUndoT = setTimeout(() => this.endInUndo(), Component.UNDO_IN_ARM + 9000);
+      this.armInUndo(Component.STRIP_ARM);
+      this.inUndoT = setTimeout(() => this.endInUndo(), Component.STRIP_ARM + 9000);
     } else {
       // STOP을 누르면 출근 취소 줄은 끝납니다 — 30분 안의 STOP은 '너무 이른 퇴근' 카드가 같은 길을 줍니다
       this.endInUndo();
