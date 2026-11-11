@@ -238,11 +238,14 @@ the pill and a lamp on one line beside it, and the clock under them.
   empties the slot and the green one takes it over without pushing anything at
   the tap (the tiles below rise 45px when it leaves). START lifts the pad 62px
   (the today card shortens), so the strip lands under the finger that just
-  pressed START: for the pad's 1.5 s double-tap guard it holds its slot but is
-  **invisible** (`visibility: hidden` — untappable, nothing moves), then shows
-  for 9 s and works on the first tap; it is gone 10.5 s after START, on STOP, or
-  when the tab changes (ninety-seventh entry: visible-but-guarded made the
-  worker tap twice). Cancelling moves the card back down, so START (or, before
+  pressed START: for its first **0.5 s** it holds its slot but is **invisible**
+  (`visibility: hidden` — untappable, nothing moves), then shows for 9 s and
+  works on the first tap; it is gone 9.5 s after START, on STOP, or when the
+  tab changes. 0.5 s still covers a double tap's second tap (0.2–0.4 s); it was
+  1.5 s, the pad's own guard, and the worker asked for it sooner. Showing and
+  accepting are one check (`inUndoArmed()`), so a tap the instant it appears
+  works (ninety-seventh entry: visible-but-guarded made the worker tap twice).
+  START's own 1.5 s double-tap guard is unchanged. Cancelling moves the card back down, so START (or, before
   the shift is confirmed, 맞습니다 / 고치기) comes back under the finger: for
   1.5 s after the undo those ignore a tap (`tapShielded()`). Accepted on
   purpose — a deliberate tap in that second and a half is rare and costs one
