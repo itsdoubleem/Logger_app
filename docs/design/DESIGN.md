@@ -149,7 +149,9 @@ the pill and a lamp on one line beside it, and the clock under them.
     sixth copy of the mark to keep in sync.
   - **Size:** the ring's outer edge *is* the old circle — the same
     `clamp(78px, 24vw, 92px)` box, so rule 5's selector, the layout and the tap
-    area (the whole circle, empty middle included) stay as they are.
+    area (the whole circle, empty middle included) stay as they are. The drawing
+    and the word carry `pointer-events: none`: the round corner shapes only the
+    button itself, so without it the square's corners punched too (review S1).
   - **Ink, no fill — the circles' own colours.** START ring and word in
     `--color-punch-start` (#60b973), STOP ring and word in `--color-punch-stop`
     (#e9806f): exactly the fills the button has today, in both themes. The

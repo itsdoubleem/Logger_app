@@ -152,10 +152,15 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 3. **눈금 넷을 그려 보고 둘로 정했습니다.** 넷이면 START가 3·9시 눈금에 1.5px 안으로 닿아(24.2 → 63.2,
    눈금 안쪽 23.65 / 64.35, SVG 단위) 글자를 15px로 줄여야 했습니다. 근로자가 둘이 낫다고 했습니다.
 
+**리뷰가 잡은 것.** 둥근 모서리(규칙 5)는 단추 자신만 둥글게 하고 그 안의 그림과 글자는 둥글게 하지 않습니다.
+그림과 글자가 단추를 덮고 손가락을 받자 **네모의 귀퉁이까지 출근이 찍혔습니다** — 384px에서 귀퉁이 3·8·12px
+안쪽이 예전에는 빗나갔고 이 그림으로는 맞았습니다(27% 더 넓은 손잡이). 그림과 글자에 `pointer-events: none`을
+주어 다시 원만 받습니다. 길게 누르기도 확인도 없는 단추라(여든여섯째) 손잡이는 좁아야 합니다.
+
 헤드리스에서 지은 화면을 재었습니다: 링과 글자 색이 토큰과 같은 값(384·320px, 밝은·어두운 화면), 원은 92 /
 78px, 글자 16.5 / 14px, 눌린 안은 상태의 옅은 색(`CSS.forcePseudoState`로), 가로 스크롤 없음.
 
-10 new assertions (3775 total) under F14, and the punch-pad assertions that pinned the filled circle rewritten: 단추 그림이 원본 SVG와 같은
+11 new assertions (3776 total) under F14, and the punch-pad assertions that pinned the filled circle rewritten: 단추 그림이 원본 SVG와 같은
 선인지, 바늘·중심이 없는지, 눈금이 12·6시 둘뿐인지, 잉크가 두 토큰인지, 눌린 안이 상태의 옅은 색인지, 규칙 5의
 바탕이 눌렸을 때뿐인지, 어두운 카드 위에서 4.5:1을 넘는지.
 
