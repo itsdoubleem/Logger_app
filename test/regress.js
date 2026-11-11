@@ -11207,9 +11207,9 @@ console.log('\n== F13 · 잘못 누른 START는 누른 다음 9초 동안 그 �
     // 두 번째 손가락이 그 줄에 떨어져도 출근은 남아야 합니다
     const dt = mk(V2, '2026-11-11T08:58:00'); dt.state.setupDone = true;
     dt.padTap(); dt.renderVals().undoInStrip();
-    ok('START 직후 1.5초 안에 줄에 떨어진 손가락은 출근을 취소하지 않습니다', !!dt.state.session && dt.renderVals().inUndoShow === true);
+    ok('START 직후(0.5초 안) 줄에 떨어진 손가락은 출근을 취소하지 않습니다', !!dt.state.session && dt.renderVals().inUndoShow === true);
     dt.lastTap = performance.now() - 2000; dt.base = new Date(dt.base.getTime() + 2000); dt.renderVals().undoInStrip();
-    ok('1.5초가 지난 뒤의 누름은 취소합니다', dt.state.session === null);
+    ok('줄이 보인 뒤(여기서는 2초)의 누름은 취소합니다', dt.state.session === null);
     // 리뷰 S1 — 화면이 꺼져 타이머가 멈췄어도, 9초가 지난 출근의 줄은 서지 않고 누름도 받지 않습니다
     const sl = mk(V2, '2026-11-11T08:58:00'); sl.state.setupDone = true;
     sl.punch(); sl.base = new Date(sl.base.getTime() + 3 * 3600000);

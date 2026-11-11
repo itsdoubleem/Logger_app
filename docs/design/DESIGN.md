@@ -229,8 +229,8 @@ the pill and a lamp on one line beside it, and the clock under them.
   hours the clock widens once and the button shifts about 12px, mid-shift.
 - Card height 116px at 320 and 130px at 384 (Indonesian 134px), against 188px
   for the bar design.
-- **The undo strip** (F13, ninety-fifth entry). For 9 seconds after START, the
-  slot under the card holds a green strip: `✓ 09:34 · Undo clock-in` with
+- **The undo strip** (F13, ninety-fifth entry). Shortly after START, the
+  slot under the card holds a green strip for 9 seconds: `✓ 09:34 · Undo clock-in` with
   `출근 취소` as its small grey second line. It is the "I clocked in earlier today"
   strip's own box — `padding: 9px 18px`, 16px line, 36px, pill corners, whole
   strip is the button, 44px tap area from rule 1d — on `--color-mark-100`
@@ -245,7 +245,10 @@ the pill and a lamp on one line beside it, and the clock under them.
   1.5 s, the pad's own guard, and the worker asked for it sooner. Showing and
   accepting are one check (`inUndoArmed()`), so a tap the instant it appears
   works (ninety-seventh entry: visible-but-guarded made the worker tap twice).
-  START's own 1.5 s double-tap guard is unchanged. Cancelling moves the card back down, so START (or, before
+  START's own 1.5 s double-tap guard is unchanged. Accepted trade-off: a
+  re-press of START (or a triple tap) between 0.5 and 1.5 s lands on the
+  freshly shown strip and cancels the clock-in; the button visibly turns back
+  to START and "I clocked in earlier today" can put the time back. Cancelling moves the card back down, so START (or, before
   the shift is confirmed, 맞습니다 / 고치기) comes back under the finger: for
   1.5 s after the undo those ignore a tap (`tapShielded()`). Accepted on
   purpose — a deliberate tap in that second and a half is rare and costs one
