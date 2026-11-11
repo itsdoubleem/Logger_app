@@ -3314,5 +3314,13 @@
   "theme_dark__en": {
     "en": "DARK",
     "ko": "DARK"
+  },
+  "undo_in_strip": {
+    "en": "Undo clock-in",
+    "ko": "출근 취소"
+  },
+  "k_undo_in": {
+    "en": "출근 취소",
+    "ko": "UNDO CLOCK-IN"
   }
 }

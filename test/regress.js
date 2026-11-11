@@ -8568,8 +8568,13 @@ console.log('\n== 이미 출근했습니다 줄은 빨간 기간 띠와 같은 �
   ok('분홍 줄의 여백은 빨간 띠와 같은 9px 18px입니다', /padding:9px 18px;/.test(row) && /padding:9px 18px;/.test(band), row);
   ok('분홍 줄은 16px 줄 — 빨간 띠의 13px × 1.25와 같은 높이', /line-height:16px;/.test(row) && /font-size:13px;line-height:1\.25;/.test(band), band);
   ok('분홍 줄에 min-height가 없습니다 — 있으면 규칙 2c가 잡고 높이가 다시 커집니다', !/min-height/.test(row));
-  ok('cursor:pointer와 padding:9px 18px을 함께 가진 것은 분홍 줄 하나뿐입니다',
-    (tpl.match(/style="[^"]*"/g) || []).filter(x => /cursor:pointer/.test(x) && /padding:9px 18px/.test(x)).length === 1);
+  // F13(2026-11-11)부터 둘입니다: 분홍 줄과, START 뒤 9초 동안 그 자리에 서는 초록 '출근 취소' 줄.
+  // 둘 다 같은 크기의 단추라 층 규칙 1d가 같은 열쇠로 44px 손가락 칸을 줍니다.
+  ok('cursor:pointer와 padding:9px 18px을 함께 가진 것은 분홍 줄과 초록 출근 취소 줄, 둘뿐입니다',
+    (tpl.match(/<div onClick="\{\{ (\w+) \}\}" style="[^"]*"/g) || [])
+      .filter(x => /cursor:pointer/.test(x) && /padding:9px 18px/.test(x))
+      .map(x => x.match(/\{\{ (\w+) \}\}/)[1]).sort().join() === 'openBackIn,undoInStrip'
+    && (tpl.match(/style="[^"]*"/g) || []).filter(x => /cursor:pointer/.test(x) && /padding:9px 18px/.test(x)).length === 2);
   // 같은 날 다시: 한국어에서는 제목과 영어 보조 줄이 한 줄에 들어가지 않아 '입 / 력'으로 쪼개지고 52px이
   // 됐습니다. 넘치는 언어만 글자를 줄여 한 줄로 — 384px 폰의 한국어는 제목 11.4px, 보조 줄 8.5px.
   {
@@ -11113,6 +11118,78 @@ console.log('\n== 밤에 출퇴근을 찍는 사람에게 흰 화면은 손전�
   }
   ok('폰의 다크 모드가 바뀌면 열린 화면에 알립니다', /onConfigurationChanged[\s\S]*?worklogsystemtheme/.test(java)
     && /window\.addEventListener\('worklogsystemtheme'/.test(code));
+}
+
+console.log('\n== F13 · 잘못 누른 START는 누른 다음 9초 동안 그 자리에서 취소합니다 ==');
+// 2026-11-11. 근로자는 처음에 START를 누르기 전에 '진행하시겠습니까?' 창을 원했습니다. 여든여섯째가 이미
+// 답한 물음입니다 — 하루 두 번 누르는 단추에 붙인 확인은 일주일이면 손이 외워 눌러 버리고, 주머니는 '진행'도
+// 누릅니다. 빠져 있던 것은 묻는 창이 아니라 '방금 잘못 눌렀다'를 되돌리는 눈에 보이는 길이었습니다 — 그때까지는
+// 30분 안에 한 번 더 눌러야 나오는 '너무 이른 퇴근' 카드의 출근 취소가 유일한 길이었습니다.
+// 그래서 START 뒤 9초 동안, 출근하면 어차피 사라지는 '이미 출근했습니다' 줄의 자리에 같은 크기의 초록 줄이
+// 섭니다. 누르는 순간 아래 칸이 움직이지 않습니다.
+{
+  const fs = require('fs');
+  const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tpl = src.slice(0, src.indexOf('</x-dc>')).replace(/<!--[\s\S]*?-->/g, '');
+  // 9초 타이머는 진짜로 기다리지 않습니다 — setTimeout을 잠시 바꿔 무엇이 몇 ms로 걸렸는지 받아 둡니다
+  const realST = global.setTimeout;
+  let timers = [];
+  global.setTimeout = (fn, ms) => { timers.push({ fn, ms }); return timers.length; };
+  try {
+    const c = mk(V2, '2026-11-11T08:58:00'); c.state.setupDone = true; c.state.settings.lang = 'en';
+    ok('누르기 전에는 줄이 없습니다', c.renderVals().inUndoShow === false && c.renderVals().backInShut === true);
+    c.punch();
+    let V = c.renderVals();
+    ok('START 한 번이면 바로 출근입니다 — 묻는 창이 없습니다', !!c.state.session && !V.oddOut && !V.shortOut);
+    ok('START 뒤에는 출근 취소 줄이 섭니다', V.inUndoShow === true);
+    ok('같은 자리의 분홍 줄은 출근과 함께 사라집니다 — 둘이 함께 서지 않습니다', V.backInShut === false);
+    const d = new Date(c.state.session.inIso);
+    const hm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    ok('줄은 저장된 출근 시각과 할 일을 말합니다', V.inUndoTitle === '✓ ' + hm + ' · Undo clock-in', V.inUndoTitle);
+    ok('보조 줄은 한국어 낱말입니다 — 종이에서 찾을 수 있는 말', c.renderVals().L.undoInK === '출근 취소');
+    ok('9초 타이머가 하나 걸립니다 — 저장 뒤 되돌리기 막대와 같은 9초', timers.filter(t => t.ms === 9000).length === 1);
+    timers.filter(t => t.ms === 9000).forEach(t => t.fn());
+    ok('9초가 지나면 줄은 사라지고 출근은 그대로입니다', c.renderVals().inUndoShow === false && !!c.state.session);
+
+    // 줄을 누르면 출근이 없던 일이 됩니다
+    timers = [];
+    const u = mk(V2, '2026-11-11T08:58:00'); u.state.setupDone = true;
+    u.punch(); u.renderVals().undoInStrip();
+    ok('줄을 누르면 출근이 취소됩니다', u.state.session === null && u.renderVals().inUndoShow === false);
+    ok('취소하면 분홍 줄이 돌아옵니다 — 다시 START를 누를 수 있는 처음 화면', u.renderVals().backInShut === true);
+    ok('기록에는 아무것도 남지 않습니다', (u.state.extra || []).length === 0);
+    timers.forEach(t => t.fn());
+    ok('취소한 뒤 남은 타이머가 불려도 아무것도 되살아나지 않습니다', u.state.session === null && u.state.inUndo === false);
+
+    // 곧바로 STOP — 30분 안이라 '너무 이른 퇴근' 카드가 같은 길을 줍니다. 줄이 둘씩 서지 않습니다
+    const s2 = mk(V2, '2026-11-11T08:58:00'); s2.state.setupDone = true;
+    s2.punch(); s2.punch();
+    ok('STOP을 누르면 줄은 거두고 너무 이른 퇴근 카드가 뜹니다', s2.renderVals().inUndoShow === false && s2.state.shortOut === true);
+
+    // 탭을 옮기면 끝납니다 — 돌아왔을 때 몇 분 전 출근의 취소 줄이 서 있으면 안 됩니다
+    const g = mk(V2, '2026-11-11T08:58:00'); g.state.setupDone = true;
+    g.punch(); g.goTab('logs'); g.goTab('punch');
+    ok('탭을 옮기면 줄은 끝납니다', g.renderVals().inUndoShow === false && !!g.state.session);
+
+    // '이미 출근했습니다'로 손으로 넣은 출근은 START가 아닙니다 — 방금 직접 적은 시각을 되묻지 않습니다
+    const b = mk(V2, '2026-11-11T10:00:00'); b.state.setupDone = true;
+    b.startAt('09:00');
+    ok('손으로 넣은 출근에는 줄이 서지 않습니다', !!b.state.session && b.renderVals().inUndoShow === false);
+  } finally { global.setTimeout = realST; }
+
+  // 모양 — 분홍 줄과 같은 상자, 초록 바탕
+  const strip = (tpl.match(/<div onClick="\{\{ undoInStrip \}\}" style="[^"]*"/) || [''])[0];
+  ok('출근 취소 줄은 분홍 줄과 같은 9px 18px, 16px 줄입니다', /padding:9px 18px;/.test(strip) && /line-height:16px;/.test(strip), strip);
+  ok('min-height가 없습니다 — 있으면 규칙 2c가 잡고 높이가 커집니다', strip && !/min-height/.test(strip));
+  ok('바탕은 출근 알약의 초록입니다', /background:var\(--color-mark-100\)/.test(strip));
+  ok('분홍 줄 바로 앞, 패드 아래 같은 자리에 섭니다',
+    tpl.indexOf('{{ undoInStrip }}') > tpl.indexOf('{{ padTap }}') && tpl.indexOf('{{ undoInStrip }}') < tpl.indexOf('{{ openBackIn }}'));
+  const base = JSON.parse(fs.readFileSync(__dirname + '/../lang/base.json', 'utf8'));
+  ok('보조 줄 키는 영어 화면에서도 한국어입니다', base.k_undo_in.en === '출근 취소' && base.k_undo_in.ko === 'UNDO CLOCK-IN');
+  const langs = ['vi', 'id', 'zh', 'th', 'km', 'ne'];
+  ok('여덟 언어 모두 출근 취소를 말합니다', !!base.undo_in_strip.en && !!base.undo_in_strip.ko
+    && langs.every(l => { const v = JSON.parse(fs.readFileSync(__dirname + '/../lang/' + l + '.json', 'utf8')).undo_in_strip; return v && v !== base.undo_in_strip.en; }));
+  ok('누르기 전에 묻는 창은 여전히 없습니다(여든여섯째)', !/proceed|진행하시겠/i.test(JSON.stringify(base.undo_in_strip) + JSON.stringify(base.k_undo_in)));
 }
 
 Promise.all(later).then(()=>{
