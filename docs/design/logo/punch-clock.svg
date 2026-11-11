@@ -1,0 +1,7 @@
+<!-- The punch button (approved 2026-11-11): the logo's clock with its hands and hub removed,
+     and only the 12 and 6 o'clock ticks kept, so START / STOP has room in the middle.
+     The ring is closed, as in the wordmark O. It is drawn in currentColor: --color-mark
+     for START, --color-punch-stop for STOP. The viewBox is the ring's outer edge, so the
+     ring is exactly the button's size; the arc reaches past it at the upper left
+     (overflow: visible). A deliberate variant of clock-mark.svg, not a copy to keep in sync. -->
+<svg viewBox="13.05 18.15 61.3 61.3" fill="currentColor" overflow="visible" xmlns="http://www.w3.org/2000/svg"><circle cx="43.7" cy="48.8" r="28.5" fill="none" stroke="currentColor" stroke-width="4.3"/><path d="M10.88 27.73A39 39 0 0 1 26.48 13.81L28.38 17.67A34.7 34.7 0 0 0 14.5 30.05Z"/><path d="M42.25 24.65h2.9a0.6 0.6 0 0 1 0.6 0.6v2.9a0.6 0.6 0 0 1-0.6 0.6h-2.9a0.6 0.6 0 0 1-0.6-0.6v-2.9a0.6 0.6 0 0 1 0.6-0.6ZM42.25 68.85h2.9a0.6 0.6 0 0 1 0.6 0.6v2.9a0.6 0.6 0 0 1-0.6 0.6h-2.9a0.6 0.6 0 0 1-0.6-0.6v-2.9a0.6 0.6 0 0 1 0.6-0.6Z"/></svg>

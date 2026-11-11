@@ -136,6 +136,33 @@ the pill and a lamp on one line beside it, and the clock under them.
   ╰──────╯   3h 42m
 ```
 
+- **Approved 2026-11-11, not yet built — the button becomes the logo's clock.**
+  The worker asked for the plain filled circle to be replaced by the clock from
+  the mark (`mockup-punch-clock.png`, light / dark at 384px and Korean at 320px).
+  - **Drawing:** `logo/punch-clock.svg` — the clock of `clock-mark.svg` with the
+    hands, hub and second hand removed and **only the 12 and 6 o'clock ticks
+    kept**. With all four, START touched the 3 and 9 ticks (under 1.5px clear);
+    shrinking the word to clear them was tried and the worker chose two ticks.
+    The ring is closed, as in the wordmark O; the arc reaches past the button at
+    the upper left (`overflow: visible`). This is a deliberate variant, not a
+    sixth copy of the mark to keep in sync.
+  - **Size:** the ring's outer edge *is* the old circle — the same
+    `clamp(78px, 24vw, 92px)` box, so rule 5's selector, the layout and the tap
+    area (the whole circle, empty middle included) stay as they are.
+  - **Ink, no fill:** START ring and word in `--color-mark` (#127e38, 5.2 : 1 on
+    the card; #6fcf8a in dark, 6.5 : 1). STOP ring and word in
+    `--color-punch-stop` (#e9806f) — the worker's pick. As a line on the white
+    card it is 2.7 : 1, fainter than START; the darker 퇴근-pill red (#ae1800,
+    7.2 : 1) was shown and declined. In dark mode the salmon is 4.6 : 1.
+  - **Word:** START / STOP inside the ring, Archivo 800,
+    `clamp(14px, 4.3vw, 16.5px)`, `letter-spacing: 0.02em`, centred, HTML laid
+    over the SVG (the template runtime drops a `{{ hole }}` inside SVG `<text>`).
+    Measured: 16.5px in the 92px ring, 14px in the 78px ring, the same word in
+    every language.
+  - **Pressed:** rule 5's `brightness(.9)` barely shows on a line drawing; keep
+    the `scale(.97)` and give the inside a tint while pressed
+    (`--color-mark-100` / `--color-accent-100`).
+  - No new tokens. `--color-punch-start` (#60b973) loses its only use.
 - **The button** is a circle, `clamp(78px, 24vw, 92px)` across — 92px at
   384, 78px at 320 (made smaller at the worker's request; it was 104 / 88) — filled with `--color-punch-start` before a shift and
   `--color-punch-stop` during one, with START / STOP in dark ink and no icon.
