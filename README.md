@@ -91,15 +91,18 @@ Every interactive target is >= 44px. Do not round corners, do not center button 
 
 ### 1. The punch pad — one tap, no fingerprint
 The pad was a WebAuthn fingerprint prompt (with press-and-hold as the fallback) until
-2026-10-26. It is now a round START / STOP button beside the clock: a green START, a clock-in
-label and a still grey OFF SHIFT ring when the worker is off shift; a salmon STOP, a clock-out
-label and the breathing ON SHIFT lamp while on shift. Only the button punches. The app counts hours; it does
+2026-10-26. It is now a START / STOP button beside the clock, drawn as the app's clock icon
+without hands (since 2026-11-11): a green ring with START, a clock-in label and a still grey
+OFF SHIFT ring when the worker is off shift; a salmon ring with STOP, a clock-out label and the
+breathing ON SHIFT lamp while on shift. Only the circle punches. The app counts hours; it does
 not need to verify who pressed, and with no server there was never anything to check a
 signature against. `CHANGELOG.md` (eighty-sixth entry) has the reasoning.
 
-Some accidental taps are handled after the fact: a second tap within 1.5 s is the same tap,
-and a second tap within 30 minutes of clocking in does not clock out — it offers to cancel the
-clock-in. At clock-out, a shift over 14 hours or one whose clock-in is more than 6 hours
+Some accidental taps are handled after the fact: a second tap within 1.5 s is the same tap.
+From 0.5 s to 9.5 s after START a green strip under the pad undoes the clock-in with one tap
+(ninety-fifth and ninety-seventh entries); for 1.5 s after that undo, START and the shift
+buttons ignore a tap, so a double tap cannot clock back in. A second tap within 30 minutes of
+clocking in does not clock out — it offers to cancel the clock-in. At clock-out, a shift over 14 hours or one whose clock-in is more than 6 hours
 from the shift start opens a card before anything is saved: record it, delete the stray
 clock-in and clock in now, or close. A night-shift-shaped stray (20:00 → 07:50 for a night
 worker) looks like a real shift and is not caught, and a stray STOP after 30 minutes records
