@@ -8290,7 +8290,7 @@ console.log('\n== 지문은 필요 없었습니다 — 한 번 누르면 출근,
   ok('출근 전: 근무 외 표시가 서고 근무중은 숨습니다', R.padOff === true && R.padLive === false);
   // (2026-11-09, 아흔셋째) 단추가 둥글어지며 글자 대신 바탕이 상태를 말합니다.
   // (2026-11-11, F14) 단추가 로고의 시계가 되며 그 초록은 바탕이 아니라 링과 글자의 잉크입니다.
-  ok('출근 전 단추는 로고 시계의 초록 잉크입니다', R.padBtnInk === 'var(--color-mark)', R.padBtnInk);
+  ok('출근 전 단추는 초록 잉크입니다', R.padBtnInk === 'var(--color-punch-start)', R.padBtnInk);
   ok('패드에 지문 안내 문장이 없습니다', !('padSub' in R));
 
   R.padTap();
@@ -8441,9 +8441,9 @@ console.log('\n== 출퇴근 카드의 양옆이 비어 있었습니다 — 넓�
     // (2026-11-11, F14) 단추는 이제 바탕이 아니라 선입니다. 흰 카드 위의 두 색은 2.4 / 2.7:1 — 근로자가
     // 지금 단추의 색을 그대로 쓰자고 했고, 더 진한 퇴근 알약 빨강(#ae1800)은 보여 주었으나 고르지 않았습니다
     // (DESIGN.md). 어두운 카드(#363433) 위에서는 둘 다 4.5:1을 넘습니다 — 그 값은 지킵니다.
-    // START는 같은 날 로고 시계의 초록(--color-mark)으로 바뀌었습니다 — 흰 카드 위 5.2:1, 어두운 카드 위 #6fcf8a 6.5:1
-    ok('START 링: --color-mark on 흰 카드 ≥ 4.5', cr('127e38', 'ffffff') >= 4.5);
-    ok('START 링: 어두운 --color-mark on 어두운 카드 ≥ 4.5', cr(tok('color-mark'), '363433') >= 4.5, tok('color-mark'));
+    // START는 #3c9d55(흰 카드 위 3.4:1, 근로자가 고른 값)이고 어두운 화면에서는 #6fcf8a로 밝아집니다
+    const darkStart = ((dsx.match(/^:root\[data-theme="dark"\] \{([\s\S]*?)^\}/m) || ['', ''])[1].match(/--color-punch-start: #([0-9a-f]{6})/) || [])[1] || '';
+    ok('START 링: 어두운 화면의 --color-punch-start on 어두운 카드 ≥ 4.5', cr(darkStart, '363433') >= 4.5, darkStart);
     ok('STOP 링: --color-punch-stop on 어두운 카드 ≥ 4.5', cr(tok('color-punch-stop'), '363433') >= 4.5, tok('color-punch-stop'));
     // '근무 외' 글자(neutral-600)는 흰 카드 위에서 4.5:1
     ok('근무 외 글자: neutral-600 on 흰 카드 ≥ 4.5', cr('747372', 'ffffff') >= 4.5 && /color:var\(--color-neutral-600\)[^"]*">\s*<div style="width:8px/.test(head.replace(/\n/g, '')));
@@ -8469,7 +8469,7 @@ console.log('\n== 출퇴근 카드의 양옆이 비어 있었습니다 — 넓�
   // 옅은 색으로 차고, 조금 가라앉는 것은 그대로입니다.
   ok('눌린 단추는 그 자리에서 답합니다 — 조금 가라앉고', /:active\s*\{[^}]*transform: scale\(\.97\)/.test(r5) && !/brightness/.test(r5.slice(r5.indexOf('[style*='))));
   ok('눌린 START는 안이 옅은 초록, STOP은 옅은 빨강으로 찹니다',
-    /\[style\*="color: var\(--color-mark\)"\]:active \{\s*background: var\(--color-mark-100\);/.test(r5)
+    /\[style\*="color: var\(--color-punch-start\)"\]:active \{\s*background: var\(--color-mark-100\);/.test(r5)
     && /\[style\*="color: var\(--color-punch-stop\)"\]:active \{\s*background: var\(--color-accent-100\);/.test(r5));
   ok('규칙 5의 바탕은 눌렸을 때뿐입니다', (r5.slice(r5.indexOf('[style*=')).match(/background:/g) || []).length === 2
     && (r5.slice(r5.indexOf('[style*=')).match(/:active \{\s*background:/g) || []).length === 2);
@@ -8559,7 +8559,7 @@ console.log('\n== 출근 전 알약 옆이 비어 있었습니다 — 근무중�
   // 약 60번 다시 그림). 감춘 등은 움직이지 않습니다.
   ok('감춘 근무중 등은 숨 쉬지 않습니다', ds.indexOf('[style*="visibility: hidden"] > [style*="width: 9px"][style*="height: 9px"] { animation: none; }') >= 0);
   ok('규칙 8(숨 쉬는 등)은 여전히 9px만 잡습니다', ds.indexOf('[style*="width: 8px"][style*="height: 8px"] {') > ds.indexOf('@keyframes onshift-lamp-sm'));
-  ok('두 단추 색은 토큰입니다', /--color-punch-start: #60b973;/.test(ds) && /--color-punch-stop: #e9806f;/.test(ds));
+  ok('두 단추 색은 토큰입니다', /--color-punch-start: #3c9d55;/.test(ds) && /--color-punch-stop: #e9806f;/.test(ds));
 }
 
 console.log('\n== 이미 출근했습니다 줄은 빨간 기간 띠와 같은 크기입니다 ==');
@@ -11008,7 +11008,8 @@ console.log('\n== 밤에 출퇴근을 찍는 사람에게 흰 화면은 손전�
   ok('어두운 토큰 묶음이 있습니다', dark.length > 200 && /color-scheme: dark/.test(dark));
   // 소스가 쓰는 색 토큰마다 어두운 값이 있어야 합니다 — 빠지면 그 자리만 밝은 색으로
   // 남는데, 아무것도 던지지 않습니다. 바뀌지 않아야 하는 것은 이름으로 따로 둡니다.
-  const FIXED = ['--color-on-fill', '--color-on-dark-fill', '--color-punch-start', '--color-punch-stop'];
+  // --color-punch-start는 F14부터 바탕이 아니라 선이라 어두운 값을 가집니다(#6fcf8a). 연어색은 그대로 하나.
+  const FIXED = ['--color-on-fill', '--color-on-dark-fill', '--color-punch-stop'];
   const used = [...new Set((code.match(/var\(--color-[a-z0-9-]+/g) || []).map(v => v.slice(4)))];
   const missing = used.filter(v => FIXED.indexOf(v) < 0 && dark.indexOf(v + ':') < 0);
   ok('소스가 쓰는 색 토큰은 모두 어두운 값을 가집니다', used.length > 15 && missing.length === 0, missing.join(' '));
@@ -11255,14 +11256,23 @@ console.log('\n== F14 · 출퇴근 단추는 로고의 시계입니다 ==');
   const ds = fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
   ok('색은 지금 단추의 두 토큰 그대로입니다 — 새 색이 없습니다',
     /--color-punch-stop: #e9806f;/.test(ds) && !/#[0-9a-f]{6}/i.test(btn));
-  // 같은 날 다시: 근로자가 START를 이름 L◷GGER의 시계와 같은 초록으로 해 달라고 했습니다. 이름의 O가 쓰는
-  // 그 토큰 하나를 같이 써서, 어두운 화면에서도 둘이 같이 밝아집니다.
-  ok('START 시계는 이름의 시계 O와 같은 색 토큰입니다',
-    /<svg viewBox="13 18\.15 61\.4 61\.4"[^>]*fill="var\(--color-mark\)"|color:var\(--color-mark\)[^"]*"[^>]*>\s*<svg viewBox="13 18\.15 61\.4 61\.4"|<svg viewBox="13 18\.15 61\.4 61\.4"[^>]*color:var\(--color-mark\)/.test(tpl)
-    && mk(V2, '2026-11-11T08:58:00').renderVals().padBtnInk === 'var(--color-mark)');
+  // 같은 날 두 번 더: START를 이름의 시계와 같은 토큰(--color-mark #127e38)으로 했더니, 굵은 링이 가는 O보다
+  // 진해 보였습니다. 27px의 O는 픽셀 10개 중 4개가 흰 바탕과 섞인 가장자리라 눈에는 #3c955b쯤으로
+  // 보입니다(지은 화면에서 재어서). START는 그 보이는 초록 #3c9d55 — 로고보다 밝고 예전 #60b973보다 진합니다.
+  {
+    const lum = h => { const c = [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16) / 255)
+      .map(v => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
+    const v = (ds.match(/^:root \{[\s\S]*?--color-punch-start: #([0-9a-f]{6});/m) || [])[1] || '';
+    ok('START 초록은 로고 초록보다 밝고 예전 단추 초록보다 진합니다',
+      v === '3c9d55' && lum(v) > lum('127e38') && lum(v) < lum('60b973'), v);
+    const dk = (ds.match(/^:root\[data-theme="dark"\] \{([\s\S]*?)^\}/m) || ['', ''])[1];
+    ok('어두운 화면의 START는 이름의 O와 같이 #6fcf8a로 밝아집니다',
+      /--color-punch-start: #6fcf8a;/.test(dk) && /--color-mark: #6fcf8a;/.test(dk));
+    ok('START 단추는 이름의 시계 토큰을 쓰지 않습니다 — 로고는 그대로', mk(V2, '2026-11-11T08:58:00').renderVals().padBtnInk === 'var(--color-punch-start)');
+  }
   const c = mk(V2, '2026-11-11T08:58:00'); c.state.setupDone = true;
   const before = c.renderVals().padBtnInk; c.punch();
-  ok('START를 누르면 시계가 초록에서 연어색으로 바뀝니다', before === 'var(--color-mark)' && c.renderVals().padBtnInk === 'var(--color-punch-stop)');
+  ok('START를 누르면 시계가 초록에서 연어색으로 바뀝니다', before === 'var(--color-punch-start)' && c.renderVals().padBtnInk === 'var(--color-punch-stop)');
 }
 
 Promise.all(later).then(()=>{

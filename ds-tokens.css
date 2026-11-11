@@ -73,9 +73,14 @@
      worker's own pick; the green has its OKLCH lightness and chroma (L 0.71,
      C 0.13) at the mark's hue 149, so the two read as one pair. Dark text
      (--color-text) on them is 6.9:1 and 6.2:1. */
-  /* Since F14 the START clock is drawn in --color-mark; this green has no use on
-     screen now and is kept as the pair's recorded value. */
-  --color-punch-start: #60b973;
+  /* Since F14 (ninety-sixth entry) both are the clock button's ink, not a fill.
+     START was the mark itself for one build, and on the phone the thick ring read
+     darker than the wordmark's thin O: at ~27px, 4 pixels in 10 of the O are edges
+     blended with white, so the eye averages it to about #3c955b. This green is that:
+     oklch(0.62 0.14 149), halfway between the mark (L 0.52) and the old #60b973
+     (L 0.71) — the worker's pick of three. 3.4 : 1 on white, accepted. Dark mode
+     lifts it to the mark's dark value (below). */
+  --color-punch-start: #3c9d55;
   --color-punch-stop: #e9806f;
   /* the mark green as ink — the 출근 pill, the 근무중 lamp, the wordmark O, the
      ✓ beside a settled group. Light: the mark itself. Dark: lifted (see below). */
@@ -184,6 +189,7 @@
      hue at L 0.78, the tint darkens. The launcher icon is not affected — it
      always sits on its own white disc. */
   --color-mark: #6fcf8a;
+  --color-punch-start: #6fcf8a;   /* the START clock: same lift as the mark */
   --color-mark-100: #2a4232;
 
   --color-absent: #8f8c8a;
@@ -610,7 +616,7 @@
    `touch-action: manipulation` — so that string lives in three places: the
    source, this selector and test/regress.js. Change all three together or the
    button goes square, silently.
-   The colour is NOT set here: --color-mark (START) / --color-punch-stop come
+   The colour is NOT set here: --color-punch-start / --color-punch-stop come
    inline per state, as the clock's `color:` (until F14 they were the fill,
    and pressing darkened it). The pressed state matters because this is the
    button the worker presses twice a day, and a tap with no answer gets
@@ -621,8 +627,8 @@
    Before it (2026-10-26, eighty-seventh entry) this was a full-width bar under
    the 출근/퇴근 line, caught by `height: 60px`; before that, a 64px tile.
    Since F14 (2026-11-11, ninety-sixth entry) the button is the logo's clock, drawn
-   as a line with no fill — START in --color-mark, the wordmark clock's own green
-   (the worker's pick, same day), STOP in --color-punch-stop. Darkening a
+   as a line with no fill — START in --color-punch-start (#3c9d55, the green the
+   wordmark clock *looks*), STOP in --color-punch-stop. Darkening a
    line on white barely shows, so pressing now fills the inside with the state's
    own tint instead — picked by the inline `color:` the source sets per state —
    and keeps the small sink. The radius is what makes that tint a circle. */
@@ -633,7 +639,7 @@
 [style*="clamp(78px, 24vw, 92px)"][style*="touch-action: manipulation"]:active {
   transform: scale(.97);
 }
-[style*="clamp(78px, 24vw, 92px)"][style*="touch-action: manipulation"][style*="color: var(--color-mark)"]:active {
+[style*="clamp(78px, 24vw, 92px)"][style*="touch-action: manipulation"][style*="color: var(--color-punch-start)"]:active {
   background: var(--color-mark-100);
 }
 [style*="clamp(78px, 24vw, 92px)"][style*="touch-action: manipulation"][style*="color: var(--color-punch-stop)"]:active {
