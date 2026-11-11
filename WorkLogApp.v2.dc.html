@@ -6231,6 +6231,7 @@ class Component extends DCLogic {
       // '출근 취소' 줄(F13): 1.5초 동안 자리만, 그 뒤 9초 동안 보입니다 — 저장한 뒤의 되돌리기 막대와 같은 9초.
       clearTimeout(this.inUndoT); clearTimeout(this.inUndoArmT);
       this.inUndoArmT = setTimeout(() => { if (!this.gone && this.state.inUndo) this.setState({ inUndoArmedAt: Date.now() }); }, Component.UNDO_IN_ARM + 50);
+      // inUndoArmedAt은 읽는 곳이 없습니다 — 1.5초에 화면을 다시 그리게 하려는 값입니다. 지우면 줄이 다음 1초 시계까지 늦게 나타납니다.
       // +50ms: 정확히 1500ms에 불리면 1ms 일찍 깨어난 타이머가 아직 숨김으로 판단해, 다음 1초 시계까지 줄이 숨어 있었습니다(리뷰 N1)
       this.inUndoT = setTimeout(() => this.endInUndo(), Component.UNDO_IN_ARM + 9000);
     } else {
