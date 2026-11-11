@@ -129,7 +129,7 @@ the pill and a lamp on one line beside it, and the clock under them.
   ╭──────╮   ( 출근 )  ○ 근무 외            ← pill 14px 800 · lamp 13px 800
   │START │                                   (ring: grey, unlit, still)
   ╰──────╯   02:59                       ← clock, clamp(32px, 11vw, 48px)
-  78–92px clock ring in #60b973, START inside, 800 14–16.5px
+  78–92px clock ring in --color-mark, START inside, 800 14–16.5px
 
   ╭──────╮   ( 퇴근 )  ● 근무중              (on shift: salmon #e9806f,
   │ STOP │                                   red pill, green lamp breathing)
@@ -152,15 +152,16 @@ the pill and a lamp on one line beside it, and the clock under them.
     area (the whole circle, empty middle included) stay as they are. The drawing
     and the word carry `pointer-events: none`: the round corner shapes only the
     button itself, so without it the square's corners punched too (review S1).
-  - **Ink, no fill — the circles' own colours.** START ring and word in
-    `--color-punch-start` (#60b973), STOP ring and word in `--color-punch-stop`
-    (#e9806f): exactly the fills the button has today, in both themes. The
-    worker checked the first mockup's START, drawn in the logo green #127e38, and
-    asked for the current colours instead; the darker 퇴근-pill red (#ae1800) was
-    also shown and declined. As lines on the white card they are 2.4 : 1 and
-    2.7 : 1 — a soft pair, accepted; on the dark card 5.1 : 1 and 4.6 : 1. A thin
-    ring reads lighter than the filled disc in the same colour; the pixels are
-    the same (measured).
+  - **Ink, no fill.** START ring and word in **`--color-mark`** — the green of
+    the clock in 근무기록 L◷GGER, the same token, so the two move together in dark
+    mode (#127e38 → #6fcf8a; 5.2 : 1 on the white card, 6.5 : 1 on the dark one).
+    STOP ring and word in `--color-punch-stop` (#e9806f, the old circle's salmon;
+    2.7 : 1 on white, 4.6 : 1 on dark — the worker's pick). How it got here, all
+    on 2026-11-11: first drawn in the logo green; the worker asked for the
+    circles' current colours (#60b973 / #e9806f) and that shipped (#47); then,
+    seeing it on the phone, asked for the START clock to match the LOGGER clock.
+    The darker 퇴근-pill red (#ae1800) was shown for STOP and declined.
+    `--color-punch-start` is no longer drawn anywhere.
   - **Word:** START / STOP inside the ring, Archivo 800,
     `clamp(14px, 4.3vw, 16.5px)`, `letter-spacing: 0.02em`, centred, HTML laid
     over the SVG (the template runtime drops a `{{ hole }}` inside SVG `<text>`).
@@ -168,9 +169,10 @@ the pill and a lamp on one line beside it, and the clock under them.
     every language.
   - **Pressed:** `brightness(.9)` barely shows on a line drawing, so rule 5 now
     fills the inside with the state's tint while pressed (`--color-mark-100` for
-    START, `--color-accent-100` for STOP, picked by the inline `color:`) and keeps
+    START, `--color-accent-100` for STOP, picked by the inline `color:` —
+    `var(--color-mark)` / `var(--color-punch-stop)`) and keeps
     the `scale(.97)` sink.
-  - No new tokens and no colour changes: both punch tokens keep their values.
+  - No new tokens and no token values changed.
 - *Before F14* the button was a filled circle — `--color-punch-start` /
   `--color-punch-stop` behind START / STOP in dark ink, 600, 17–20px, darkened by
   `brightness(.9)` when pressed. The box, the selector and "only the circle
