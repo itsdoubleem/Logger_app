@@ -617,14 +617,24 @@
    would hand the button --radius-md instead of a circle. No border either,
    for rule 2.
    Before it (2026-10-26, eighty-seventh entry) this was a full-width bar under
-   the 출근/퇴근 line, caught by `height: 60px`; before that, a 64px tile. */
+   the 출근/퇴근 line, caught by `height: 60px`; before that, a 64px tile.
+   Since F14 (2026-11-11, ninety-sixth entry) the button is the logo's clock, drawn
+   as a line in --color-punch-start / --color-punch-stop with no fill. Darkening a
+   line on white barely shows, so pressing now fills the inside with the state's
+   own tint instead — picked by the inline `color:` the source sets per state —
+   and keeps the small sink. The radius is what makes that tint a circle. */
 [style*="clamp(78px, 24vw, 92px)"][style*="touch-action: manipulation"] {
   border-radius: 50%;
-  transition: filter .12s ease, transform .12s ease;
+  transition: background-color .12s ease, transform .12s ease;
 }
 [style*="clamp(78px, 24vw, 92px)"][style*="touch-action: manipulation"]:active {
-  filter: brightness(.9);
   transform: scale(.97);
+}
+[style*="clamp(78px, 24vw, 92px)"][style*="touch-action: manipulation"][style*="color: var(--color-punch-start)"]:active {
+  background: var(--color-mark-100);
+}
+[style*="clamp(78px, 24vw, 92px)"][style*="touch-action: manipulation"][style*="color: var(--color-punch-stop)"]:active {
+  background: var(--color-accent-100);
 }
 
 /* ── 5b · the 출근 / 퇴근 pill above the punch clock ────────────────────── */

@@ -529,7 +529,15 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
              지난 모양(여든일곱째, 2026-10-26): 알약 · 가운데 시계 · 카드 너비의 ▶ START 막대가
              한 가운데 줄에 섰고, 막대는 height 60px으로 잡혔으며 양옆 여백은 48px이었습니다. -->
         <div style="position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:clamp(14px, 5vw, 20px);padding:18px 20px;border-bottom:2px solid var(--color-divider);user-select:none">
-          <div onClick="{{ padTap }}" style="flex:none;width:clamp(78px, 24vw, 92px);height:clamp(78px, 24vw, 92px);display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:manipulation;background:{{ padBtnBg }};font-family:var(--font-heading);font-weight:600;font-size:clamp(17px, 5vw, 20px);line-height:1;letter-spacing:0.02em;color:var(--color-on-fill)">{{ padTitle }}</div>
+          <!-- 단추는 로고의 시계입니다(F14, 2026-11-11, 아흔여섯째) — 바늘과 3·9시 눈금을 뺀 링, 호, 12·6시 눈금.
+               원본은 docs/design/logo/punch-clock.svg. 바탕은 없고, 링과 글자가 지금까지의 단추 색
+               (--color-punch-start / --color-punch-stop)을 씁니다. 링의 바깥 가장자리가 곧 예전 원이라
+               폭 문자열과 touch-action(규칙 5의 열쇠)과 손가락 칸은 그대로입니다. 글자는 SVG <text>가 아니라
+               위에 겹친 HTML입니다 — 템플릿은 SVG <text> 안의 {{ }}를 그리지 않습니다. -->
+          <div onClick="{{ padTap }}" style="flex:none;width:clamp(78px, 24vw, 92px);height:clamp(78px, 24vw, 92px);position:relative;cursor:pointer;touch-action:manipulation;color:{{ padBtnInk }}">
+            <svg viewBox="13.05 18.15 61.3 61.3" width="100%" height="100%" fill="currentColor" aria-hidden="true" style="position:absolute;left:0;top:0;display:block;overflow:visible"><circle cx="43.7" cy="48.8" r="28.5" fill="none" stroke="currentColor" stroke-width="4.3"></circle><path d="M10.88 27.73A39 39 0 0 1 26.48 13.81L28.38 17.67A34.7 34.7 0 0 0 14.5 30.05Z"></path><path d="M42.25 24.65h2.9a0.6 0.6 0 0 1 0.6 0.6v2.9a0.6 0.6 0 0 1-0.6 0.6h-2.9a0.6 0.6 0 0 1-0.6-0.6v-2.9a0.6 0.6 0 0 1 0.6-0.6ZM42.25 68.85h2.9a0.6 0.6 0 0 1 0.6 0.6v2.9a0.6 0.6 0 0 1-0.6 0.6h-2.9a0.6 0.6 0 0 1-0.6-0.6v-2.9a0.6 0.6 0 0 1 0.6-0.6Z"></path></svg>
+            <div style="position:absolute;left:0;top:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:var(--font-heading);font-weight:800;font-size:clamp(14px, 4.3vw, 16.5px);line-height:1;letter-spacing:0.02em">{{ padTitle }}</div>
+          </div>
           <div style="flex:0 1 auto;display:flex;flex-direction:column;align-items:center;gap:10px;min-width:0">
             <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px;min-width:0">
               <div style="flex:none;white-space:nowrap;padding:6px 14px;background:{{ padChipBg }};font-family:var(--font-heading);font-weight:800;font-size:14px;line-height:1;letter-spacing:0.02em;color:{{ padChipInk }}">{{ padStamp }}</div>
@@ -6931,7 +6939,7 @@ class Component extends DCLogic {
       detectBg: S ? 'var(--color-accent-100)' : 'var(--color-surface)',
       padStamp, padTitle, padBig,
       // 근무 중이라는 표시 — 지금까지 일한 시간 바로 아래, 앱의 초록(padIconInk).
-      // 출근 알약도 그 초록이고, 퇴근 알약은 빨강입니다. 단추는 아래 padBtnBg.
+      // 출근 알약도 그 초록이고, 퇴근 알약은 빨강입니다. 단추는 아래 padBtnInk.
       padLive: !!S,
       padOff: !S,
       padLiveMsg: todayHol ? this.T('on_shift') : this.T('on_shift_2'),
@@ -6941,7 +6949,8 @@ class Component extends DCLogic {
       padOffVis: S ? 'hidden' : 'visible',
       // 둥근 단추의 바탕: 출근 전 초록, 근무 중 연어색. 둘은 OKLCH 밝기가 같아(0.71) 한 쌍으로
       // 읽히고, 그 위의 진한 글자는 6.2:1 이상입니다.
-      padBtnBg: S ? 'var(--color-punch-stop)' : 'var(--color-punch-start)',
+      // 단추(로고의 시계)의 링과 글자 색 — 예전 둥근 단추의 바탕색 그대로(F14)
+      padBtnInk: S ? 'var(--color-punch-stop)' : 'var(--color-punch-start)',
       padIconInk: 'var(--color-mark)',
       // 시계 크기 — 폭에 따라 32–44px. 몇 주째 열린 근무의 '45d 13h 59m'처럼 두 자리
       // 날 수가 붙으면 한 단계 작게: 그 길이는 320–360px 폰에서 44px 시계의 칸을 넘어
