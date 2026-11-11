@@ -9,13 +9,13 @@ and again on 2026-11-09, when it took the shape the worker drew.
 ## Palette
 
 Three colours of the pad's own — `--color-mark-100` for the 출근 pill and the two
-punch-button fills — the rest are the app's:
+punch-clock inks — the rest are the app's:
 
 | Role | Value | Where |
 |---|---|---|
 | mark | `oklch(0.52 0.14 149)` ≈ `#127E38` | logo, wordmark O, 출근, the 근무중 lamp |
-| START button | `#60b973` (`--color-punch-start`) | the round button before a shift |
-| STOP button | `#e9806f` (`--color-punch-stop`) | the round button during a shift |
+| START clock | `#3c9d55` (`--color-punch-start`) | the clock button's ring and word before a shift |
+| STOP clock | `#e9806f` (`--color-punch-stop`) | the clock button's ring and word during a shift |
 | accent | `#ec3013` (`--color-accent`), ink `--color-accent-700` | the 퇴근 pill (accent-700 on accent-100) |
 | ground | `#f3f2f2` (`--color-bg`) | the launcher icon's corners |
 | mark tint | `#ebf5ee` (`--color-mark-100`) | the 출근 pill |
@@ -27,11 +27,12 @@ on dark. In dark mode the app's green *ink* (`--color-mark`) lifts to `#6fcf8a`
 at the same hue instead — see "Dark mode" below. The launcher icon always keeps
 its own white disc.
 
-The two button fills are a pair: the salmon is the worker's pick, and the green
-has its exact OKLCH lightness and chroma (L 0.71, C 0.13) at the mark's hue
-(149), so neither shouts over the other and START still reads as the app's
-green. Both carry dark text (`--color-text`): 6.9 : 1 on the green, 6.2 : 1 on
-the salmon.
+The two punch colours are inks, not fills, since the button became the logo's
+clock (F14, ninety-sixth entry): each draws the ring and the word, on no fill.
+The salmon is the worker's pick and kept its old value; the green is
+`oklch(0.62 0.14 149)` — the colour the small wordmark clock *looks* on screen,
+between the mark (L 0.52) and the old fill (#60b973, L 0.71). On the white card
+they are 3.4 : 1 and 2.7 : 1, accepted by the worker; see "The punch pad".
 
 ## Dark mode — graphite
 
@@ -56,16 +57,17 @@ entry).
 | mark tint `--color-mark-100` | `#ebf5ee` | `#2a4232` | 5.7 : 1 under the ink |
 | absence `--color-absent` (결근 bar, 결 badge) | `oklch(0.45 0.02 0)` | `#8f8c8a` | 3.7 : 1 (badge ink 5.0) |
 | drum band `--color-raised` | `#ffffff` | `#4a4847` | one step above the well |
-| START / STOP | `#60b973` / `#e9806f` | unchanged | dark ink 6.9 / 6.2 |
+| START / STOP clock | `#3c9d55` / `#e9806f` | `#6fcf8a` / unchanged | 6.5 / 4.6 on the card |
 
 - **Who decides.** 설정 › 화면: 자동 (default, follows the phone) / 라이트 /
   다크. The app puts the result on `<html data-theme>`; the dark tokens hang
   on that attribute only, never on a media query, so there is one copy of
   every rule.
-- **Fixed fills keep fixed ink.** The yellow 주간 chip, START / STOP and the
-  orange and grey day badges do not change colour with the theme, so the
-  letters on them use `--color-on-fill` (`#201e1d`) or `--color-on-dark-fill`
-  (`#f3f2f2`), never `--color-text` / `--color-bg`, which swap.
+- **Fixed fills keep fixed ink.** The yellow 주간 chip and the orange and grey
+  day badges do not change colour with the theme, so the letters on them use
+  `--color-on-fill` (`#201e1d`) or `--color-on-dark-fill` (`#f3f2f2`), never
+  `--color-text` / `--color-bg`, which swap. (START / STOP were fills until F14;
+  now they are inks — the green lifts in dark like the mark, the salmon stays.)
 - **Black things turn light.** Anything drawn as `background: var(--color-text)`
   with `color: var(--color-bg)` — the period chip, the night badge, a picked
   option — inverts as a pair and becomes a light chip with dark ink. Pressed,

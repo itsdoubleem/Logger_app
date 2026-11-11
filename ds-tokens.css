@@ -69,10 +69,9 @@
   /* the mark green's own tint — the 출근 pill on the punch card. #127e38 on it
      is 4.63:1 (AA for 14px text); the tint is the green mixed ~8% into white */
   --color-mark-100: #ebf5ee;
-  /* the round punch button (2026-11-09, ninety-third entry). The salmon is the
-     worker's own pick; the green has its OKLCH lightness and chroma (L 0.71,
-     C 0.13) at the mark's hue 149, so the two read as one pair. Dark text
-     (--color-text) on them is 6.9:1 and 6.2:1. */
+  /* the punch button's two colours. Until F14 (2026-11-09, ninety-third entry)
+     they were the round button's fills under dark text; the salmon is the
+     worker's own pick and kept its value. */
   /* Since F14 (ninety-sixth entry) both are the clock button's ink, not a fill.
      START was the mark itself for one build, and on the phone the thick ring read
      darker than the wordmark's thin O: at ~27px, 4 pixels in 10 of the O are edges
@@ -149,8 +148,8 @@
  * ink on a tinted panel — each a step lighter here where it was a step darker.
  * Contrast, WCAG, measured on the card #363433: text 11.4, neutral-700 8.0,
  * neutral-600 5.1, accent 4.6, accent-700 on accent-100 6.2, mark on card 6.5,
- * mark on mark-100 5.7. START / STOP keep the worker's two colours as the clock's
- * ring and word (F14): 5.1 and 4.6 on this card.
+ * mark on mark-100 5.7. The START / STOP clock's ring and word: 6.5 (START lifts
+ * to #6fcf8a like the mark) and 4.6 (the salmon is the same in both themes).
  *
  * Printed and saved documents (근무내역서, the payslip comparison) do not read
  * these tokens at all — they are built from their own fixed stylesheet and are
