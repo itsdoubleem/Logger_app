@@ -180,8 +180,11 @@ the pill and a lamp on one line beside it, and the clock under them.
   strip's own box — `padding: 9px 18px`, 16px line, 36px, pill corners, whole
   strip is the button, 44px tap area from rule 1d — on `--color-mark-100`
   instead of `--color-accent-100`. That strip only shows off shift, so START
-  empties the slot and the green one takes it over without pushing anything. It
-  goes after 9 s, on STOP, or when the tab changes. There is no confirmation
+  empties the slot and the green one takes it over without pushing anything at
+  the tap (the tiles below rise 45px when it leaves). It goes after 9 s — by the
+  clock, not only the timer — on STOP, or when the tab changes. START lifts the
+  pad 62px (the today card shortens), so the strip lands under the finger that
+  just pressed START: it ignores taps for the same 1.5 s as the pad. There is no confirmation
   *before* the tap (the eighty-sixth entry): the way back comes after it.
 - `preview-punch-circle.html` is the approved preview (option 1, the matched
   green). `mockup-punch.png` is the bar design it replaced, and
