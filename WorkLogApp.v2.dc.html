@@ -5819,6 +5819,13 @@ class Component extends DCLogic {
     return { inD, inH, outH, el, min: Math.round(el * 60) };
   }
   cancelClockIn() { clearTimeout(this.inUndoT); this.setState({ session: null, shortOut: false, staleOut: false, oddOut: false, oddAt: null, inUndo: false }); }
+  // 출근 취소 줄이 지금 서 있는가(F13) — 깃발과 함께, 출근한 지 9초가 안 되었을 때만
+  inUndoLive() {
+    const S = this.state.session;
+    if (!S || !this.state.inUndo) return false;
+    const el = this.now().getTime() - new Date(S.inIso).getTime();
+    return el >= 0 && el < 9000;
+  }
   // 출근 취소 줄을 거둡니다(F13) — 9초가 지났거나, STOP을 눌렀거나, 탭을 옮겼을 때
   endInUndo() {
     clearTimeout(this.inUndoT); this.inUndoT = null;
@@ -8596,12 +8603,22 @@ class Component extends DCLogic {
       finishSetup: () => this.setState({ setupDone: true }),
       // 이미 출근한 뒤에 앱을 연 경우 — 첫날이든 그 뒤로든 여기 하나로 처리합니다
       // 출근 취소 줄(F13): 시각은 세션에 저장된 그 누름의 시각입니다
-      inUndoShow: !!S && !!this.state.inUndo,
+      // 시각으로도 끝납니다(리뷰 S1): 화면이 꺼진 동안 WKWebView는 타이머를 멈추므로, 타이머만 믿으면
+      // 몇 시간 뒤 잠금을 풀었을 때 그 출근의 취소 줄이 다시 서 있을 수 있습니다. 1초 시계가 다시 그립니다.
+      inUndoShow: this.inUndoLive(),
       inUndoTitle: S && this.state.inUndo ? (() => {
         const d = new Date(S.inIso);
         return '✓ ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ' · ' + this.T('undo_in_strip');
       })() : '',
-      undoInStrip: () => this.cancelClockIn(),
+      // 두 번 톡 친 손가락의 두 번째가 줄에 떨어지면 출근이 취소됐습니다(리뷰 M1): START를 누르면 위의
+      // 오늘 카드가 62px 짧아져 패드가 올라가고, 초록 줄이 방금 단추가 있던 자리의 아래쪽 40%에 섭니다.
+      // padTap과 같은 1.5초 동안은 줄도 손가락을 받지 않습니다. 가드는 여기에만 — cancelClockIn()은
+      // '너무 이른 퇴근' 카드도 씁니다.
+      undoInStrip: () => {
+        if (!this.inUndoLive()) return;
+        if (this.lastTap != null && performance.now() - this.lastTap < 1500) return;
+        this.cancelClockIn();
+      },
       backInShut: !S && !this.state.backIn,
       backInOpen: !S && !!this.state.backIn,
       // '이미 출근했습니다' 줄은 한 줄이어야 합니다(2026-11-09, 근로자의 말). 한국어는 제목과 영어 보조
