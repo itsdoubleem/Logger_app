@@ -234,10 +234,13 @@ the pill and a lamp on one line beside it, and the clock under them.
   strip is the button, 44px tap area from rule 1d — on `--color-mark-100`
   instead of `--color-accent-100`. That strip only shows off shift, so START
   empties the slot and the green one takes it over without pushing anything at
-  the tap (the tiles below rise 45px when it leaves). It goes after 9 s — by the
-  clock, not only the timer — on STOP, or when the tab changes. START lifts the
-  pad 62px (the today card shortens), so the strip lands under the finger that
-  just pressed START: it ignores taps for the same 1.5 s as the pad. There is no confirmation
+  the tap (the tiles below rise 45px when it leaves). START lifts the pad 62px
+  (the today card shortens), so the strip lands under the finger that just
+  pressed START: for the pad's 1.5 s double-tap guard it holds its slot but is
+  **invisible** (`visibility: hidden` — untappable, nothing moves), then shows
+  for 9 s and works on the first tap; it is gone 10.5 s after START, on STOP, or
+  when the tab changes (ninety-seventh entry: visible-but-guarded made the
+  worker tap twice). There is no confirmation
   *before* the tap (the eighty-sixth entry): the way back comes after it.
 - `preview-punch-circle.html` is the approved preview (option 1, the matched
   green). `mockup-punch.png` is the bar design it replaced, and
