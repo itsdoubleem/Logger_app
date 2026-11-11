@@ -174,6 +174,15 @@ the pill and a lamp on one line beside it, and the clock under them.
   hours the clock widens once and the button shifts about 12px, mid-shift.
 - Card height 116px at 320 and 130px at 384 (Indonesian 134px), against 188px
   for the bar design.
+- **The undo strip** (F13, ninety-fifth entry). For 9 seconds after START, the
+  slot under the card holds a green strip: `✓ 09:34 · Undo clock-in` with
+  `출근 취소` as its small grey second line. It is the "I clocked in earlier today"
+  strip's own box — `padding: 9px 18px`, 16px line, 36px, pill corners, whole
+  strip is the button, 44px tap area from rule 1d — on `--color-mark-100`
+  instead of `--color-accent-100`. That strip only shows off shift, so START
+  empties the slot and the green one takes it over without pushing anything. It
+  goes after 9 s, on STOP, or when the tab changes. There is no confirmation
+  *before* the tap (the eighty-sixth entry): the way back comes after it.
 - `preview-punch-circle.html` is the approved preview (option 1, the matched
   green). `mockup-punch.png` is the bar design it replaced, and
   `mockup-punch-tile.png` the centred tile before that — kept for the record.
