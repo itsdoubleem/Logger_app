@@ -11238,14 +11238,22 @@ console.log('\n== F14 · 출퇴근 단추는 로고의 시계입니다 ==');
   ok('단추의 그림은 docs/design의 단추 시계 원본입니다', !!svg && JSON.stringify(shapes(svg)) === JSON.stringify(shapes(art)),
     JSON.stringify(shapes(svg)) + ' vs ' + JSON.stringify(shapes(art)));
   const logo = fs.readFileSync(__dirname + '/../docs/design/logo/clock-mark.svg', 'utf8');
-  ok('링과 호는 로고의 시계와 같은 선입니다', svg.indexOf('cx="43.7" cy="48.8" r="28.5"') >= 0
-    && svg.indexOf('M10.88 27.73A39 39 0 0 1 26.48 13.81L28.38 17.67A34.7 34.7 0 0 0 14.5 30.05Z') >= 0
-    && logo.indexOf('M10.88 27.73A39 39 0 0 1 26.48 13.81L28.38 17.67A34.7 34.7 0 0 0 14.5 30.05Z') >= 0);
+  // 같은 날 다시(B): 로고의 비율(선 4.3단위)은 92px 단추에서 6.5px라 무거웠습니다 — 선은 2.5단위(3.75px).
+  // 링의 바깥 가장자리(단추의 크기)와 호의 각도, 링과 호 사이의 틈은 로고 그대로입니다.
+  const ringM = svg.match(/<circle cx="43\.7" cy="48\.8" r="([\d.]+)" fill="none" stroke="currentColor" stroke-width="([\d.]+)"/) || [];
+  ok('링은 로고와 같은 가운데, 같은 바깥 가장자리 — 선만 2.5단위입니다',
+    ringM.length === 3 && +ringM[2] === 2.5 && Math.abs(+ringM[1] + ringM[2] / 2 - 30.65) < 0.01 && logo.indexOf('r="28.5"') >= 0, ringM.join(' '));
+  const arcM = svg.match(/<path d="M([\d.]+) ([\d.]+)A([\d.]+) [\d.]+ 0 0 1 ([\d.]+) ([\d.]+)" fill="none" stroke="currentColor" stroke-width="([\d.]+)"/) || [];
+  const ang = (x, y) => Math.atan2(y - 48.8, x - 43.7);
+  ok('호는 로고의 호와 같은 각도, 같은 굵기의 선입니다 — 링과의 틈도 그대로',
+    arcM.length === 7 && +arcM[6] === 2.5 && Math.abs(+arcM[3] - 2.5 / 2 - 34.7) < 0.01
+    && Math.abs(ang(+arcM[1], +arcM[2]) - ang(10.88, 27.73)) < 0.002 && Math.abs(ang(+arcM[4], +arcM[5]) - ang(26.48, 13.81)) < 0.002
+    && logo.indexOf('M10.88 27.73A39 39 0 0 1 26.48 13.81') >= 0, arcM.join(' '));
   ok('바늘과 중심은 없습니다', svg.indexOf('M40.16 48.56') < 0 && svg.indexOf('M44.37 45.26') < 0
     && svg.indexOf('M40 48.8a3.7') < 0 && svg.indexOf('30.09 64.79') < 0);
+  const ticks = [...svg.matchAll(/M([\d.]+) ([\d.]+)h([\d.]+)a0\.6 0\.6 0 0 1 0\.6 0\.6v/g)].map(m => ({ cx: +m[1] - 0.6 + (+m[3] + 1.2) / 2, y: +m[2] }));
   ok('눈금은 12시와 6시 둘뿐입니다 — 3·9시 눈금은 START에 닿습니다',
-    (svg.match(/h2\.9a0\.6/g) || []).length === 2 && svg.indexOf('M42.25 24.65') >= 0 && svg.indexOf('M42.25 68.85') >= 0
-    && svg.indexOf('M20.15 46.75') < 0 && svg.indexOf('M64.35 46.75') < 0);
+    ticks.length === 2 && ticks.every(k => Math.abs(k.cx - 43.7) < 0.01) && ticks[0].y < 48.8 - 20 && ticks[1].y > 48.8 + 20, JSON.stringify(ticks));
   ok('그림은 단추의 잉크로 그려집니다', /fill="currentColor"/.test(svg) && /stroke="currentColor"/.test(svg));
   // 리뷰 S1: border-radius 50%는 자식을 둥글게 하지 않습니다. 그림과 글자가 손가락을 받으면 네모의 귀퉁이까지
   // 출근이 찍혔습니다(384px에서 귀퉁이 3·8·12px 안쪽 — 예전에는 빗나갔고, 이 그림으로는 맞았습니다).
