@@ -129,14 +129,15 @@ the pill and a lamp on one line beside it, and the clock under them.
   ╭──────╮   ( 출근 )  ○ 근무 외            ← pill 14px 800 · lamp 13px 800
   │START │                                   (ring: grey, unlit, still)
   ╰──────╯   02:59                       ← clock, clamp(32px, 11vw, 48px)
-  78–92px circle, #60b973, dark text 17–20px 600
+  78–92px clock ring in #60b973, START inside, 800 14–16.5px
 
   ╭──────╮   ( 퇴근 )  ● 근무중              (on shift: salmon #e9806f,
   │ STOP │                                   red pill, green lamp breathing)
   ╰──────╯   3h 42m
 ```
+(The boxes stand for the round clock — `mockup-punch-clock.png` shows it.)
 
-- **Approved 2026-11-11, not yet built — the button becomes the logo's clock.**
+- **The button is the logo's clock** (F14, built 2026-11-11, ninety-sixth entry).
   The worker asked for the plain filled circle to be replaced by the clock from
   the mark (`mockup-punch-clock.png`, light / dark at 384px and Korean at 320px).
   - **Drawing:** `logo/punch-clock.svg` — the clock of `clock-mark.svg` with the
@@ -163,18 +164,23 @@ the pill and a lamp on one line beside it, and the clock under them.
     over the SVG (the template runtime drops a `{{ hole }}` inside SVG `<text>`).
     Measured: 16.5px in the 92px ring, 14px in the 78px ring, the same word in
     every language.
-  - **Pressed:** rule 5's `brightness(.9)` barely shows on a line drawing; keep
-    the `scale(.97)` and give the inside a tint while pressed
-    (`--color-mark-100` / `--color-accent-100`).
+  - **Pressed:** `brightness(.9)` barely shows on a line drawing, so rule 5 now
+    fills the inside with the state's tint while pressed (`--color-mark-100` for
+    START, `--color-accent-100` for STOP, picked by the inline `color:`) and keeps
+    the `scale(.97)` sink.
   - No new tokens and no colour changes: both punch tokens keep their values.
-- **The button** is a circle, `clamp(78px, 24vw, 92px)` across — 92px at
-  384, 78px at 320 (made smaller at the worker's request; it was 104 / 88) — filled with `--color-punch-start` before a shift and
-  `--color-punch-stop` during one, with START / STOP in dark ink and no icon.
-  The label scales 17–20px with it. Shaped and
-  pressed (a step darker, slightly sunk) by `ds-tokens.css` rule 5, which
-  catches it by that width string plus `touch-action: manipulation`.
-  **Only the circle punches**: it covers neither the pill nor the clock (the
-  sixty-third entry), and the page still scrolls over it.
+- *Before F14* the button was a filled circle — `--color-punch-start` /
+  `--color-punch-stop` behind START / STOP in dark ink, 600, 17–20px, darkened by
+  `brightness(.9)` when pressed. The box, the selector and "only the circle
+  punches" carried over unchanged:
+  - **The button** is a circle, `clamp(78px, 24vw, 92px)` across — 92px at
+    384, 78px at 320 (made smaller at the worker's request; it was 104 / 88) — filled with `--color-punch-start` before a shift and
+    `--color-punch-stop` during one, with START / STOP in dark ink and no icon.
+    The label scales 17–20px with it. Shaped and
+    pressed (a step darker, slightly sunk) by `ds-tokens.css` rule 5, which
+    catches it by that width string plus `touch-action: manipulation`.
+    **Only the circle punches**: it covers neither the pill nor the clock (the
+    sixty-third entry), and the page still scrolls over it.
 - **The lamp beside the pill has two states.** On shift: the green dot whose
   halo breathes (rule 8), with 근무중 / ON SHIFT. Off shift: its opposite — an
   empty grey ring that does not move (rule 8c, 8px so rule 8 cannot catch it),
