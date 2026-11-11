@@ -535,10 +535,11 @@ input, textarea { font-size: 16px; } /* stop Android zooming a focused field */
                (같은 날 근로자가 세 번 고쳐 골랐습니다). 링의 바깥 가장자리가 곧 예전 원이라
                폭 문자열과 touch-action(규칙 5의 열쇠)과 손가락 칸은 그대로입니다. 글자는 SVG <text>가 아니라
                위에 겹친 HTML입니다 — 템플릿은 SVG <text> 안의 {{ }}를 그리지 않습니다.
+               선은 로고보다 가늘게(2.5단위, 92px에서 3.75px — 같은 날 근로자가 고른 B).
                그림과 글자에는 pointer-events:none — 규칙 5의 둥근 모서리는 자식을 둥글게 하지
                않으므로, 없으면 네모의 귀퉁이까지 출근을 찍습니다(리뷰 S1: 27% 더 넓은 손잡이). -->
           <div onClick="{{ padTap }}" style="flex:none;width:clamp(78px, 24vw, 92px);height:clamp(78px, 24vw, 92px);position:relative;cursor:pointer;touch-action:manipulation;color:{{ padBtnInk }}">
-            <svg viewBox="13.05 18.15 61.3 61.3" width="100%" height="100%" fill="currentColor" aria-hidden="true" style="position:absolute;left:0;top:0;display:block;overflow:visible;pointer-events:none"><circle cx="43.7" cy="48.8" r="28.5" fill="none" stroke="currentColor" stroke-width="4.3"></circle><path d="M10.88 27.73A39 39 0 0 1 26.48 13.81L28.38 17.67A34.7 34.7 0 0 0 14.5 30.05Z"></path><path d="M42.25 24.65h2.9a0.6 0.6 0 0 1 0.6 0.6v2.9a0.6 0.6 0 0 1-0.6 0.6h-2.9a0.6 0.6 0 0 1-0.6-0.6v-2.9a0.6 0.6 0 0 1 0.6-0.6ZM42.25 68.85h2.9a0.6 0.6 0 0 1 0.6 0.6v2.9a0.6 0.6 0 0 1-0.6 0.6h-2.9a0.6 0.6 0 0 1-0.6-0.6v-2.9a0.6 0.6 0 0 1 0.6-0.6Z"></path></svg>
+            <svg viewBox="13.05 18.15 61.3 61.3" width="100%" height="100%" fill="currentColor" aria-hidden="true" style="position:absolute;left:0;top:0;display:block;overflow:visible;pointer-events:none"><circle cx="43.7" cy="48.8" r="29.40" fill="none" stroke="currentColor" stroke-width="2.5"></circle><path d="M13.45 29.38A35.95 35.95 0 0 1 27.83 16.54" fill="none" stroke="currentColor" stroke-width="2.5"></path><path d="M43.00 22.25h1.40a0.6 0.6 0 0 1 0.6 0.6v1.40a0.6 0.6 0 0 1-0.6 0.6h-1.40a0.6 0.6 0 0 1-0.6-0.6v-1.40a0.6 0.6 0 0 1 0.6-0.6ZM43.00 72.75h1.40a0.6 0.6 0 0 1 0.6 0.6v1.40a0.6 0.6 0 0 1-0.6 0.6h-1.40a0.6 0.6 0 0 1-0.6-0.6v-1.40a0.6 0.6 0 0 1 0.6-0.6Z"></path></svg>
             <div style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;display:flex;align-items:center;justify-content:center;font-family:var(--font-heading);font-weight:800;font-size:clamp(14px, 4.3vw, 16.5px);line-height:1;letter-spacing:0.02em">{{ padTitle }}</div>
           </div>
           <div style="flex:0 1 auto;display:flex;flex-direction:column;align-items:center;gap:10px;min-width:0">

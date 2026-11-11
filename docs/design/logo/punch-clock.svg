@@ -1,7 +1,11 @@
-<!-- The punch button (approved 2026-11-11): the logo's clock with its hands and hub removed,
+<!-- The punch button (2026-11-11): the logo's clock with its hands and hub removed,
      and only the 12 and 6 o'clock ticks kept, so START / STOP has room in the middle.
-     The ring is closed, as in the wordmark O. It is drawn in currentColor: --color-mark
-     for START, --color-punch-stop for STOP. The viewBox is the ring's outer edge, so the
-     ring is exactly the button's size; the arc reaches past it at the upper left
-     (overflow: visible). A deliberate variant of clock-mark.svg, not a copy to keep in sync. -->
-<svg viewBox="13.05 18.15 61.3 61.3" fill="currentColor" overflow="visible" xmlns="http://www.w3.org/2000/svg"><circle cx="43.7" cy="48.8" r="28.5" fill="none" stroke="currentColor" stroke-width="4.3"/><path d="M10.88 27.73A39 39 0 0 1 26.48 13.81L28.38 17.67A34.7 34.7 0 0 0 14.5 30.05Z"/><path d="M42.25 24.65h2.9a0.6 0.6 0 0 1 0.6 0.6v2.9a0.6 0.6 0 0 1-0.6 0.6h-2.9a0.6 0.6 0 0 1-0.6-0.6v-2.9a0.6 0.6 0 0 1 0.6-0.6ZM42.25 68.85h2.9a0.6 0.6 0 0 1 0.6 0.6v2.9a0.6 0.6 0 0 1-0.6 0.6h-2.9a0.6 0.6 0 0 1-0.6-0.6v-2.9a0.6 0.6 0 0 1 0.6-0.6Z"/></svg>
+     Thinner than the logo: the ring and arc are 2.5 units (3.75px at the 92px button)
+     instead of the logo's 4.3, so the ring weighs about what the bold START letters do
+     — at button size the logo's proportions read heavy (the worker's pick, option B).
+     The ring's outer edge is still the viewBox edge (the button's size), the arc keeps
+     its gap to the ring and its angles, and the ticks are 2.6 units. Drawn in
+     currentColor: --color-punch-start for START, --color-punch-stop for STOP; the arc
+     reaches past the button at the upper left (overflow: visible). A deliberate
+     variant of clock-mark.svg, not a copy to keep in sync. -->
+<svg viewBox="13.05 18.15 61.3 61.3" fill="currentColor" overflow="visible" xmlns="http://www.w3.org/2000/svg"><circle cx="43.7" cy="48.8" r="29.40" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M13.45 29.38A35.95 35.95 0 0 1 27.83 16.54" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M43.00 22.25h1.40a0.6 0.6 0 0 1 0.6 0.6v1.40a0.6 0.6 0 0 1-0.6 0.6h-1.40a0.6 0.6 0 0 1-0.6-0.6v-1.40a0.6 0.6 0 0 1 0.6-0.6ZM43.00 72.75h1.40a0.6 0.6 0 0 1 0.6 0.6v1.40a0.6 0.6 0 0 1-0.6 0.6h-1.40a0.6 0.6 0 0 1-0.6-0.6v-1.40a0.6 0.6 0 0 1 0.6-0.6Z"/></svg>

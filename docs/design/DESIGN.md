@@ -147,6 +147,13 @@ the pill and a lamp on one line beside it, and the clock under them.
     The ring is closed, as in the wordmark O; the arc reaches past the button at
     the upper left (`overflow: visible`). This is a deliberate variant, not a
     sixth copy of the mark to keep in sync.
+  - **Line: 2.5 units, 3.75px at 92px** — thinner than the logo's 4.3 (6.5px at
+    this size), which read heavy on a button: the ring now weighs about what the
+    bold START letters do. The ring's outer edge, the arc's angles and its gap to
+    the ring are the logo's; the arc is a stroked path of the same weight, and the
+    ticks are 2.6 units (3.9px). Four weights were rendered (6.5 / 5 / 3.75 /
+    2.85px) and the worker picked 3.75 (B); a thinner line also reads lighter,
+    which is part of why the colour question went away.
   - **Size:** the ring's outer edge *is* the old circle — the same
     `clamp(78px, 24vw, 92px)` box, so rule 5's selector, the layout and the tap
     area (the whole circle, empty middle included) stay as they are. The drawing
