@@ -11160,15 +11160,21 @@ console.log('\n== F13 · 잘못 누른 START는 누른 다음 9초 동안 그 �
     const hm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
     ok('줄은 저장된 출근 시각과 할 일을 말합니다', V.inUndoTitle === '✓ ' + hm + ' · Undo clock-in', V.inUndoTitle);
     ok('보조 줄은 한국어 낱말입니다 — 종이에서 찾을 수 있는 말', c.renderVals().L.undoInK === '출근 취소');
-    // (같은 날 다시) 처음 1.5초는 자리만 차지하고 보이지 않으며, 그 뒤 9초 동안 보입니다 — 끝나는 타이머는 10.5초
-    ok('끝내는 타이머는 10.5초 하나, 보이게 하는 타이머는 1.5초 하나입니다',
-      timers.filter(t => t.ms === 10500).length === 1 && timers.filter(t => t.ms === 1550).length === 1, JSON.stringify(timers.map(t => t.ms)));
+    // (같은 날 세 번째) 처음 0.5초는 자리만 차지하고 보이지 않으며, 그 뒤 9초 동안 보입니다 — 끝나는 타이머는 9.5초
+    ok('끝내는 타이머는 9.5초 하나, 보이게 하는 타이머는 0.5초 하나입니다',
+      timers.filter(t => t.ms === 9500).length === 1 && timers.filter(t => t.ms === 500).length === 1, JSON.stringify(timers.map(t => t.ms)));
     // 리뷰 S1: 보이게 하는 타이머가 실제로 다시 그리는지 — 고장 나도 1초 시계가 늦게나마 그리므로 시험이 조용했습니다
     const armAt0 = c.state.inUndoArmedAt;
-    timers.filter(t => t.ms === 1550).forEach(t => t.fn());
-    ok('1.55초 타이머는 화면을 다시 그립니다', c.state.inUndoArmedAt != null && c.state.inUndoArmedAt !== armAt0);
-    timers.filter(t => t.ms === 10500).forEach(t => t.fn());
-    ok('출근 10.5초(보인 지 9초)가 지나면 줄은 사라지고 출근은 그대로입니다', c.renderVals().inUndoShow === false && !!c.state.session);
+    const armT = timers.find(t => t.ms === 500);
+    // 타이머가 일찍 깨어났을 때(아직 0.5초 전): 그리지 않고 남은 만큼 다시 겁니다 — 예전처럼 +50ms로 늦추지 않습니다
+    const nBefore = timers.length; armT.fn();
+    const again = timers.slice(nBefore);
+    ok('일찍 깨어난 타이머는 남은 시간만큼 다시 겁니다', c.state.inUndoArmedAt === armAt0 && again.length === 1 && again[0].ms >= 1 && again[0].ms <= 501,
+      JSON.stringify(again.map(t => t.ms)));
+    c.base = new Date(c.base.getTime() + 520); again[0].fn();
+    ok('0.5초가 되면 그 타이머가 화면을 다시 그립니다', c.state.inUndoArmedAt != null && c.state.inUndoArmedAt !== armAt0 && c.renderVals().inUndoVis === 'visible');
+    timers.filter(t => t.ms === 9500).forEach(t => t.fn());
+    ok('출근 9.5초(보인 지 9초)가 지나면 줄은 사라지고 출근은 그대로입니다', c.renderVals().inUndoShow === false && !!c.state.session);
 
     // 줄을 누르면 출근이 없던 일이 됩니다
     timers = [];
@@ -11220,15 +11226,23 @@ console.log('\n== F13 · 잘못 누른 START는 누른 다음 9초 동안 그 �
     ok('START 직후에는 줄이 자리만 차지하고 보이지 않습니다', V2v.inUndoShow === true && V2v.inUndoVis === 'hidden' && V2v.backInShut === false);
     V2v.undoInStrip();
     ok('보이지 않는 동안의 누름은 아무것도 하지 않습니다', !!g2.state.session);
-    g2.base = new Date(g2.base.getTime() + 1600); g2.lastTap = performance.now() - 1600; V2v = g2.renderVals();
-    ok('1.5초가 지나면 줄이 보입니다', V2v.inUndoShow === true && V2v.inUndoVis === 'visible');
+    g2.base = new Date(g2.base.getTime() + 300); g2.lastTap = performance.now() - 300; V2v = g2.renderVals();
+    ok('0.3초에는 아직 숨어 있습니다 — 두 번 톡의 두 번째가 떨어지는 때', V2v.inUndoVis === 'hidden');
+    V2v.undoInStrip();
+    ok('0.3초의 누름은 출근을 지우지 않습니다', !!g2.state.session);
+    g2.base = new Date(g2.base.getTime() + 210); g2.lastTap = performance.now() - 510; V2v = g2.renderVals();
+    ok('0.5초가 지나면 줄이 보입니다', V2v.inUndoShow === true && V2v.inUndoVis === 'visible');
     V2v.undoInStrip();
     ok('보이는 줄은 한 번 누르면 출근을 취소합니다 — 두 번 누를 일이 없습니다', g2.state.session === null);
     const g3 = mk(V2, '2026-11-11T08:58:00'); g3.state.setupDone = true; g3.punch();
-    g3.base = new Date(g3.base.getTime() + 10000);
-    ok('보인 뒤 9초 동안은 서 있습니다 — 출근 10초 뒤에도', g3.renderVals().inUndoShow === true && g3.renderVals().inUndoVis === 'visible');
+    g3.base = new Date(g3.base.getTime() + 9000);
+    ok('보인 뒤 9초 동안은 서 있습니다 — 출근 9초 뒤에도', g3.renderVals().inUndoShow === true && g3.renderVals().inUndoVis === 'visible');
     g3.base = new Date(g3.base.getTime() + 600);
-    ok('출근 10.5초 뒤에는 사라집니다', g3.renderVals().inUndoShow === false);
+    ok('출근 9.5초 뒤에는 사라집니다', g3.renderVals().inUndoShow === false);
+    // 줄만 빨라졌습니다 — 출근 직후 START의 두 번 톡 가드는 그대로 1.5초
+    const pg = mk(V2, '2026-11-11T08:58:00'); pg.state.setupDone = true; pg.padTap(); const in0 = pg.state.session && pg.state.session.inIso;
+    pg.lastTap = performance.now() - 1000; pg.renderVals().padTap();
+    ok('START 1초 뒤의 두 번째 누름은 여전히 같은 누름입니다(1.5초 가드)', !!pg.state.session && pg.state.session.inIso === in0 && !pg.state.shortOut);
 
     // 출시 리뷰 M1 — 줄을 두 번 톡: 취소하면 패드가 62px 내려와 같은 자리가 다시 START입니다. 두 번째 손가락이
     // 새 출근을 찍었습니다(지은 화면에서 180ms 간격의 진짜 터치로). 취소한 순간도 '방금 누른 손가락'입니다.
