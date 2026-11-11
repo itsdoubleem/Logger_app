@@ -142,7 +142,8 @@
  * ink on a tinted panel — each a step lighter here where it was a step darker.
  * Contrast, WCAG, measured on the card #363433: text 11.4, neutral-700 8.0,
  * neutral-600 5.1, accent 4.6, accent-700 on accent-100 6.2, mark on card 6.5,
- * mark on mark-100 5.7. START / STOP keep the worker's fills and dark ink.
+ * mark on mark-100 5.7. START / STOP keep the worker's two colours as the clock's
+ * ring and word (F14): 5.1 and 4.6 on this card.
  *
  * Printed and saved documents (근무내역서, the payslip comparison) do not read
  * these tokens at all — they are built from their own fixed stylesheet and are
@@ -607,10 +608,9 @@
    `touch-action: manipulation` — so that string lives in three places: the
    source, this selector and test/regress.js. Change all three together or the
    button goes square, silently.
-   The fill is NOT set here: --color-punch-start / --color-punch-stop come
-   inline per state. Pressed, it darkens a step and sinks slightly: a light
-   fill under dark text, so brightness goes *down* (fiftieth entry: a dark
-   control would need up). The pressed state matters because this is the
+   The colour is NOT set here: --color-punch-start / --color-punch-stop come
+   inline per state, as the clock's `color:` (until F14 they were the fill,
+   and pressing darkened it). The pressed state matters because this is the
    button the worker presses twice a day, and a tap with no answer gets
    pressed again.
    No `min-height`, on purpose: rule 2c rounds anything tappable with one and

@@ -8356,7 +8356,6 @@ console.log('\n== 지문은 필요 없었습니다 — 한 번 누르면 출근,
   // 그대로. 크기는 17–20px: 단추를 92px(320px 폰에서 78px)로 줄이며 글자도 함께 줄였습니다.
   // ▶·■ 그림은 없습니다.
   const padAll = tpl.slice(tpl.indexOf('{{ padTap }}') - 20, tpl.indexOf('{{ padBig }}') + 20);
-  // 진한 잉크는 --color-on-fill — 어두운 화면에서 --color-text는 밝아지는데 단추는 그대로라(아흔넷째)
   // (2026-11-11, F14) 단추가 시계가 되며 글자는 링 안에 — 800, 14–16.5px(78–92px 링), 잉크는 단추의 color를 물려받습니다.
   ok('START/STOP은 링 안의 14–16.5px 800 글자입니다',
     /font-weight:800;font-size:clamp\(14px, 4\.3vw, 16\.5px\);[^"]*">\{\{ padTitle \}\}/.test(padAll) && !/color-on-fill/.test(padAll));
@@ -8439,7 +8438,6 @@ console.log('\n== 출퇴근 카드의 양옆이 비어 있었습니다 — 넓�
     const tok = n => ((dsx.match(new RegExp('--' + n + ':\\s*#([0-9a-fA-F]{6})')) || [])[1] || '');
     ok('초록 알약: #127e38 on --color-mark-100 ≥ 4.5', cr('127e38', tok('color-mark-100')) >= 4.5, tok('color-mark-100'));
     ok('빨강 알약: accent-700 on accent-100 ≥ 4.5', cr(tok('color-accent-700'), tok('color-accent-100')) >= 4.5);
-    // 둥근 단추의 START/STOP은 22px 600 진한 잉크 — 두 바탕 위에서 모두 4.5:1을 넘습니다.
     // (2026-11-11, F14) 단추는 이제 바탕이 아니라 선입니다. 흰 카드 위의 두 색은 2.4 / 2.7:1 — 근로자가
     // 지금 단추의 색을 그대로 쓰자고 했고, 더 진한 퇴근 알약 빨강(#ae1800)은 보여 주었으나 고르지 않았습니다
     // (DESIGN.md). 어두운 카드(#363433) 위에서는 둘 다 4.5:1을 넘습니다 — 그 값은 지킵니다.
@@ -11246,6 +11244,10 @@ console.log('\n== F14 · 출퇴근 단추는 로고의 시계입니다 ==');
     (svg.match(/h2\.9a0\.6/g) || []).length === 2 && svg.indexOf('M42.25 24.65') >= 0 && svg.indexOf('M42.25 68.85') >= 0
     && svg.indexOf('M20.15 46.75') < 0 && svg.indexOf('M64.35 46.75') < 0);
   ok('그림은 단추의 잉크로 그려집니다', /fill="currentColor"/.test(svg) && /stroke="currentColor"/.test(svg));
+  // 리뷰 S1: border-radius 50%는 자식을 둥글게 하지 않습니다. 그림과 글자가 손가락을 받으면 네모의 귀퉁이까지
+  // 출근이 찍혔습니다(384px에서 귀퉁이 3·8·12px 안쪽 — 예전에는 빗나갔고, 이 그림으로는 맞았습니다).
+  const label = (btn.match(/<div style="[^"]*">\{\{ padTitle \}\}/) || [''])[0];
+  ok('그림과 글자는 손가락을 받지 않습니다 — 둥근 단추만 받습니다', /pointer-events:none/.test(svg) && /pointer-events:none/.test(label), label);
   ok('그림은 화면 읽기에서 빠지고 START/STOP 글자가 이름입니다', /aria-hidden="true"/.test(svg) && btn.indexOf('{{ padTitle }}') > btn.indexOf('</svg>'));
   ok('호는 단추 밖으로 나갑니다 — 잘리지 않게', /overflow:visible/.test(svg));
   const ds = fs.readFileSync(__dirname + '/../ds-tokens.css', 'utf8');
