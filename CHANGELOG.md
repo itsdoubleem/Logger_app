@@ -1,6 +1,6 @@
 # 근무기록 LOGGER — change log beyond V2.md
 
-One hundred and three entries, newest first — ninety-six carry an ordinal (first … ninety-sixth),
+One hundred and four entries, newest first — ninety-seven carry an ordinal (first … ninety-seventh),
 the seven oldest predate the numbering. Each one is a bug found by **actually using the app on
 shift**, what changed, and — the part worth reading — *why it was that and not the
 obvious fix*. Most entries end with a **다음 사람에게** paragraph: the rule the bug
@@ -18,7 +18,8 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 
 ## Index
 
-- 2026-11-11 (latest, ninety-sixth) — 출퇴근 단추가 로고의 시계가 되었습니다: 바늘을 빼고 START를 안에
+- 2026-11-11 (latest, ninety-seventh) — 출근 취소 줄을 두 번 눌러야 했습니다: 가드 동안에는 보이지 않게
+- 2026-11-11 (ninety-sixth) — 출퇴근 단추가 로고의 시계가 되었습니다: 바늘을 빼고 START를 안에
 - 2026-11-11 (ninety-fifth) — 누르기 전에 묻지 않고, 누른 다음 9초 동안 되돌립니다: 초록 출근 취소 줄
 - 2026-11-09 (ninety-fourth) — 어두운 화면: 그래파이트, 그리고 뒤집히면 안 되는 잉크
 - 2026-11-09 (ninety-third) — 근로자가 그린 출퇴근 카드, 그리고 근무중의 반대
@@ -122,7 +123,28 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 - 2026-08-13 — the service worker was hiding every update
 - 2026-08-13 (earlier) — 조퇴 사유 became a popup with a dropdown
 
-### 2026-11-11 (latest, ninety-sixth) — 출퇴근 단추가 로고의 시계가 되었습니다: 바늘을 빼고 START를 안에
+### 2026-11-11 (latest, ninety-seventh) — 출근 취소 줄을 두 번 눌러야 했습니다: 가드 동안에는 보이지 않게
+
+**START를 누르고 곧바로 초록 줄을 누르면 두 번 눌러야 취소됐습니다** — 근로자가 폰에서 찾았습니다. 아흔다섯째의
+리뷰 M1이 넣은 두 번 톡 가드(START 뒤 1.5초 동안 줄이 손가락을 받지 않음)가 일을 하고 있었는데, 그동안 줄은
+**보이고 있었습니다.** 지은 화면에서 재현했습니다: 줄은 0.25초에 서 있고, 0.6초에 누르면 세 번, 1.0·1.3초에
+누르면 두 번, 1.8초에 누르면 한 번. 보이는데 아무 일도 하지 않는 단추는 고장으로 읽힙니다(그 리뷰의 2회차가
+R2-N1로 미리 적어 둔 일입니다 — '가드를 줄이지 말고, 1.5초가 지날 때까지 줄을 그리지 말 것').
+
+- **가드 동안 줄은 자리만 차지하고 보이지 않습니다**(`visibility: hidden` — `inUndoVis`). 숨은 것은 손가락을 받지
+  않으니 두 번 톡의 두 번째는 여전히 아무것도 취소하지 못하고, 자리를 지키니 아래 칸은 START 순간에도, 줄이
+  나타날 때도 움직이지 않습니다(384·320px에서 재어 411 → 411, 296 → 296). `sc-if`로 빼면 1.5초 뒤에 칸이 36px
+  밀립니다.
+- **보이는 순간부터 한 번에 됩니다.** 1.5초에 나타나 9초 동안 보이고 출근 10.5초 뒤에 사라집니다 — 보이는
+  시간은 예전과 같은 9초. 보이게 하는 타이머(1.5초 + 50ms — 1ms 일찍 깨어나 숨김으로 남으면 다음 1초 시계까지 늦어서, 리뷰 N1)가 한 번 다시 그리고, 타이머가 멈춰도(화면이 꺼진 동안)
+  1초 시계가 그립니다. 판단은 언제나 출근 시각에서 지난 시간으로 합니다(`inUndoArmed()`).
+- 9 new assertions (3789 total), and the F13 assertions that assumed an instant strip moved to the new timing.
+  지은 화면에서: 0.6초의 누름은 출근을 지우지 않고, 줄은 약 1.5초에 보이며, 보인 줄은 한 번 누르면 취소됩니다.
+
+**다음 사람에게.** 손가락을 막는 가드를 넣었으면 그동안 그 단추가 어떻게 보이는지도 정하십시오. 보이는데 받지
+않는 단추는 사람을 두 번 누르게 만들고, 그것은 버그로 보고됩니다 — 이번처럼.
+
+### 2026-11-11 (ninety-sixth) — 출퇴근 단추가 로고의 시계가 되었습니다: 바늘을 빼고 START를 안에
 
 **초록 동그라미 안의 검은 START 대신, 로고의 시계를 단추로 — 지금 동그라미만큼 크게, 바늘은 빼서 START가
 들어갈 자리를 만들고, 글자는 시계와 같은 색으로.** 근로자의 요청이고(F14), 모양은 네 번 오가며 정했습니다.

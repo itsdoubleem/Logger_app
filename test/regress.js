@@ -11160,19 +11160,27 @@ console.log('\n== F13 · 잘못 누른 START는 누른 다음 9초 동안 그 �
     const hm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
     ok('줄은 저장된 출근 시각과 할 일을 말합니다', V.inUndoTitle === '✓ ' + hm + ' · Undo clock-in', V.inUndoTitle);
     ok('보조 줄은 한국어 낱말입니다 — 종이에서 찾을 수 있는 말', c.renderVals().L.undoInK === '출근 취소');
-    ok('9초 타이머가 하나 걸립니다 — 저장 뒤 되돌리기 막대와 같은 9초', timers.filter(t => t.ms === 9000).length === 1);
-    timers.filter(t => t.ms === 9000).forEach(t => t.fn());
-    ok('9초가 지나면 줄은 사라지고 출근은 그대로입니다', c.renderVals().inUndoShow === false && !!c.state.session);
+    // (같은 날 다시) 처음 1.5초는 자리만 차지하고 보이지 않으며, 그 뒤 9초 동안 보입니다 — 끝나는 타이머는 10.5초
+    ok('끝내는 타이머는 10.5초 하나, 보이게 하는 타이머는 1.5초 하나입니다',
+      timers.filter(t => t.ms === 10500).length === 1 && timers.filter(t => t.ms === 1550).length === 1, JSON.stringify(timers.map(t => t.ms)));
+    // 리뷰 S1: 보이게 하는 타이머가 실제로 다시 그리는지 — 고장 나도 1초 시계가 늦게나마 그리므로 시험이 조용했습니다
+    const armAt0 = c.state.inUndoArmedAt;
+    timers.filter(t => t.ms === 1550).forEach(t => t.fn());
+    ok('1.55초 타이머는 화면을 다시 그립니다', c.state.inUndoArmedAt != null && c.state.inUndoArmedAt !== armAt0);
+    timers.filter(t => t.ms === 10500).forEach(t => t.fn());
+    ok('출근 10.5초(보인 지 9초)가 지나면 줄은 사라지고 출근은 그대로입니다', c.renderVals().inUndoShow === false && !!c.state.session);
 
     // 줄을 누르면 출근이 없던 일이 됩니다
     timers = [];
     const u = mk(V2, '2026-11-11T08:58:00'); u.state.setupDone = true;
-    u.punch(); u.renderVals().undoInStrip();
+    u.punch(); u.base = new Date(u.base.getTime() + 1600); u.renderVals().undoInStrip();
     ok('줄을 누르면 출근이 취소됩니다', u.state.session === null && u.renderVals().inUndoShow === false);
     ok('취소하면 분홍 줄이 돌아옵니다 — 다시 START를 누를 수 있는 처음 화면', u.renderVals().backInShut === true);
     ok('기록에는 아무것도 남지 않습니다', (u.state.extra || []).length === 0);
+    const armU = u.state.inUndoArmedAt;
     timers.forEach(t => t.fn());
     ok('취소한 뒤 남은 타이머가 불려도 아무것도 되살아나지 않습니다', u.state.session === null && u.state.inUndo === false);
+    ok('취소한 뒤의 보이게 하는 타이머는 다시 그리지도 않습니다', u.state.inUndoArmedAt === armU);
 
     // 곧바로 STOP — 30분 안이라 '너무 이른 퇴근' 카드가 같은 길을 줍니다. 줄이 둘씩 서지 않습니다
     const s2 = mk(V2, '2026-11-11T08:58:00'); s2.state.setupDone = true;
@@ -11194,7 +11202,7 @@ console.log('\n== F13 · 잘못 누른 START는 누른 다음 9초 동안 그 �
     const dt = mk(V2, '2026-11-11T08:58:00'); dt.state.setupDone = true;
     dt.padTap(); dt.renderVals().undoInStrip();
     ok('START 직후 1.5초 안에 줄에 떨어진 손가락은 출근을 취소하지 않습니다', !!dt.state.session && dt.renderVals().inUndoShow === true);
-    dt.lastTap = performance.now() - 2000; dt.renderVals().undoInStrip();
+    dt.lastTap = performance.now() - 2000; dt.base = new Date(dt.base.getTime() + 2000); dt.renderVals().undoInStrip();
     ok('1.5초가 지난 뒤의 누름은 취소합니다', dt.state.session === null);
     // 리뷰 S1 — 화면이 꺼져 타이머가 멈췄어도, 9초가 지난 출근의 줄은 서지 않고 누름도 받지 않습니다
     const sl = mk(V2, '2026-11-11T08:58:00'); sl.state.setupDone = true;
@@ -11202,7 +11210,32 @@ console.log('\n== F13 · 잘못 누른 START는 누른 다음 9초 동안 그 �
     ok('타이머가 불리지 않아도 9초가 지나면 줄은 서지 않습니다', sl.state.inUndo === true && sl.renderVals().inUndoShow === false);
     sl.renderVals().undoInStrip();
     ok('그 줄의 손잡이도 몇 시간 전 출근을 취소하지 않습니다', !!sl.state.session);
+
+    // 같은 날 다시 — 근로자가 찾은 것: START 직후 줄을 누르면 두 번 눌러야 했습니다. 줄은 보이는데 두 번 톡
+    // 가드(1.5초)가 첫 누름을 말없이 삼켰습니다(지은 화면에서: 0.6초에 세 번, 1.0·1.3초에 두 번). 이제 가드
+    // 동안 줄은 자리만 차지하고 보이지 않으며(visibility:hidden — 아래 칸은 움직이지 않고 손가락도 받지 않습니다),
+    // 보이는 순간부터 한 번에 됩니다. 보이는 시간은 그대로 9초.
+    const g2 = mk(V2, '2026-11-11T08:58:00'); g2.state.setupDone = true;
+    g2.padTap(); let V2v = g2.renderVals();
+    ok('START 직후에는 줄이 자리만 차지하고 보이지 않습니다', V2v.inUndoShow === true && V2v.inUndoVis === 'hidden' && V2v.backInShut === false);
+    V2v.undoInStrip();
+    ok('보이지 않는 동안의 누름은 아무것도 하지 않습니다', !!g2.state.session);
+    g2.base = new Date(g2.base.getTime() + 1600); g2.lastTap = performance.now() - 1600; V2v = g2.renderVals();
+    ok('1.5초가 지나면 줄이 보입니다', V2v.inUndoShow === true && V2v.inUndoVis === 'visible');
+    V2v.undoInStrip();
+    ok('보이는 줄은 한 번 누르면 출근을 취소합니다 — 두 번 누를 일이 없습니다', g2.state.session === null);
+    const g3 = mk(V2, '2026-11-11T08:58:00'); g3.state.setupDone = true; g3.punch();
+    g3.base = new Date(g3.base.getTime() + 10000);
+    ok('보인 뒤 9초 동안은 서 있습니다 — 출근 10초 뒤에도', g3.renderVals().inUndoShow === true && g3.renderVals().inUndoVis === 'visible');
+    g3.base = new Date(g3.base.getTime() + 600);
+    ok('출근 10.5초 뒤에는 사라집니다', g3.renderVals().inUndoShow === false);
   } finally { global.setTimeout = realST; }
+  {
+    const fs2 = require('fs');
+    const src2 = fs2.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+    ok('줄은 보임/숨김을 visibility로 정합니다 — sc-if로 빼면 아래 칸이 움직입니다',
+      /<div onClick="\{\{ undoInStrip \}\}" style="visibility:\{\{ inUndoVis \}\};/.test(src2));
+  }
 
   // 모양 — 분홍 줄과 같은 상자, 초록 바탕
   const strip = (tpl.match(/<div onClick="\{\{ undoInStrip \}\}" style="[^"]*"/) || [''])[0];
