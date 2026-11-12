@@ -11424,11 +11424,19 @@ console.log('\n== F15 · 퇴근의 되돌리기는 STOP을 누른 그 자리에 
     const g = day('2026-11-12T08:30:00'); g.punch(); at(g, '2026-11-12T18:02:00'); g.punch();
     g.goTab('logs'); g.goTab('punch');
     ok('탭을 옮기면 줄은 끝납니다', g.renderVals().outUndoShow === false && g.state.outUndo === null);
+    // 리뷰 S1: 줄만 걷히고 검은 막대가 돌아와 기록만 지우던 길 — 출근도 기록도 없는 날
+    ok('돌아와도 검은 막대는 없습니다 — 기록만 지우는 되돌리기가 남지 않습니다', g.renderVals().undoMsg === '' && g.state.undoKeys.length === 0);
+    g.renderVals().undo();
+    ok('남은 되돌리기 손잡이도 기록을 건드리지 않습니다', g.state.extra.length === 1 && !g.state.session);
 
     // 다시 START를 누르면 끝납니다
     const r = day('2026-11-12T08:30:00'); r.punch(); at(r, '2026-11-12T18:02:00'); r.punch();
     at(r, '2026-11-12T18:02:03'); r.lastTap = null; r.punch();
     ok('다시 출근하면 퇴근 취소 줄은 비키고 출근 취소 줄이 섭니다', r.renderVals().outUndoShow === false && r.renderVals().inUndoShow === true);
+    // 리뷰 S1: 새 근무가 도는 동안 검은 막대가 방금 끝낸 근무를 지웠습니다
+    ok('다시 출근한 뒤 검은 막대는 없습니다', r.renderVals().undoMsg === '' && r.state.undoKeys.length === 0);
+    r.renderVals().undo();
+    ok('방금 끝낸 근무는 그대로 남고 새 근무도 그대로입니다', r.state.extra.length === 1 && !!r.state.session);
 
     // 다른 저장이 오면 그 저장이 '되돌릴 것'입니다 — 같은 날 키의 조퇴 사유 저장이라도
     const sh = day('2026-11-12T08:30:00'); sh.punch(); at(sh, '2026-11-12T12:00:00'); sh.punch();

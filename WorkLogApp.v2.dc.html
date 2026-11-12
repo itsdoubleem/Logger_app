@@ -5924,9 +5924,17 @@ class Component extends DCLogic {
       this.armOutUndo(Math.max(1, Component.STRIP_ARM - el, Component.STRIP_ARM - sinceTap) + 1);
     }, ms);
   }
+  // 줄이 끝나면 그 줄이 맡던 되돌리기도 함께 끝납니다(리뷰 S1). 예전에는 탭을 옮기거나 다시 START를 누르면 줄만
+  // 걷히고 undoKeys는 9.5초까지 남아, 검은 막대가 돌아와 기록만 지웠습니다 — 출근도 기록도 없는 날, START 뒤라면
+  // 새 근무가 도는 동안 방금 끝낸 근무가 지워졌습니다. STOP의 되돌리기는 '다시 근무 중' 하나뿐입니다.
   endOutUndo() {
     clearTimeout(this.outUndoT); this.outUndoT = null; clearTimeout(this.outUndoArmT); this.outUndoArmT = null;
-    if (this.state.outUndo && !this.gone) this.setState({ outUndo: null });
+    const O = this.state.outUndo, ks = this.state.undoKeys || [];
+    if (!O || this.gone) return;
+    if (ks.length === 1 && ks[0] === O.k) {
+      clearTimeout(this.addT);
+      this.setState({ outUndo: null, undoKeys: [], editedKeys: [], undoPrev: null, undoRm: [] });
+    } else this.setState({ outUndo: null });
   }
   // 퇴근을 없던 일로 — 기록은 STOP 전 그대로 돌아가고(미리 잡아 둔 특근 날이면 그 날로), 출근 시각 그대로 다시
   // 근무 중입니다. 근로자가 고른 것입니다(2026-11-12): 패드 바로 아래의 '퇴근 취소'는 '아직 근무 중'을 약속합니다.
