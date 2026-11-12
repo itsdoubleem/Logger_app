@@ -1,6 +1,6 @@
 # 근무기록 LOGGER — change log beyond V2.md
 
-One hundred and four entries, newest first — ninety-seven carry an ordinal (first … ninety-seventh),
+One hundred and five entries, newest first — ninety-eight carry an ordinal (first … ninety-eighth),
 the seven oldest predate the numbering. Each one is a bug found by **actually using the app on
 shift**, what changed, and — the part worth reading — *why it was that and not the
 obvious fix*. Most entries end with a **다음 사람에게** paragraph: the rule the bug
@@ -18,7 +18,8 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 
 ## Index
 
-- 2026-11-11 (latest, ninety-seventh) — 출근 취소 줄을 두 번 눌러야 했습니다: 가드 동안에는 보이지 않게
+- 2026-11-12 (latest, ninety-eighth) — 퇴근의 되돌리기는 여섯 칸 아래였습니다: 패드 아래 분홍 퇴근 취소 줄, 누르면 다시 근무 중
+- 2026-11-11 (ninety-seventh) — 출근 취소 줄을 두 번 눌러야 했습니다: 가드 동안에는 보이지 않게
 - 2026-11-11 (ninety-sixth) — 출퇴근 단추가 로고의 시계가 되었습니다: 바늘을 빼고 START를 안에
 - 2026-11-11 (ninety-fifth) — 누르기 전에 묻지 않고, 누른 다음 9초 동안 되돌립니다: 초록 출근 취소 줄
 - 2026-11-09 (ninety-fourth) — 어두운 화면: 그래파이트, 그리고 뒤집히면 안 되는 잉크
@@ -123,7 +124,41 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 - 2026-08-13 — the service worker was hiding every update
 - 2026-08-13 (earlier) — 조퇴 사유 became a popup with a dropdown
 
-### 2026-11-11 (latest, ninety-seventh) — 출근 취소 줄을 두 번 눌러야 했습니다: 가드 동안에는 보이지 않게
+### 2026-11-12 (latest, ninety-eighth) — 퇴근의 되돌리기는 여섯 칸 아래였습니다: 패드 아래 분홍 퇴근 취소 줄, 누르면 다시 근무 중
+
+**STOP을 누르면 되돌리기 막대가 근무 종류 여섯 칸 아래에 떴습니다** — 근로자의 말입니다. 폰에서 그 자리는 STOP을
+누른 손가락과 눈이 있는 패드에서 화면 하나 아래입니다. 아흔다섯째가 START의 되돌리기를 패드 바로 아래, '이미
+출근했습니다' 줄의 자리에 세운 뒤로는 START와 STOP이 서로 다르게 굴기도 했습니다. 근로자는 '출근할 때 그 자리에,
+한동안 그것을 대신해서'를 원했습니다(F15).
+
+- **STOP 뒤 9초 동안 같은 자리에 분홍 줄이 섭니다**: `✓ 18:02 · 퇴근 취소`, 보조 줄 `UNDO CLOCK-OUT`(영어 화면에서는
+  `퇴근 취소`). 출근 취소 줄과 같은 상자(9px 18px, 16px 줄, 36px, 줄 전체가 단추, 규칙 1d의 44px 손가락 칸)와 같은
+  시계(처음 0.5초 숨김, 9초 보임, 보이는 것과 받는 것은 `outUndoArmed()` 하나). 바탕은 퇴근 알약의 분홍
+  `--color-accent-100` — 초록이 START의 것이듯. 서 있는 동안 '이미 출근했습니다' 줄과 검은 막대는 비킵니다. 한 기록에
+  되돌리기가 둘이면 안 됩니다. 9.5초 뒤 분홍 '이미 출근했습니다' 줄이 같은 자리에 돌아오므로, 줄이 서고 사라질 때
+  아래 칸은 움직이지 않습니다.
+- **누르면 다시 근무 중입니다.** 근로자가 고른 것입니다. 예전의 되돌리기는 기록만 걷어 냈습니다. 근무 도중 주머니에서
+  눌린 STOP을 되돌리면 **기록도 출근도 없는 날**이 남았고, 근로자는 그것을 모른 채 일을 계속합니다. 이제 기록은 STOP
+  전 그대로 돌아가고(미리 잡아 둔 특근 날이면 그 날로), 출근은 처음 찍은 시각 그대로입니다(`undoClockOut()`). 조퇴
+  사유 시트가 열려 있었으면 닫습니다. 없는 기록에 사유를 묻지 않습니다.
+- **줄을 세우는 것은 `punch()`의 STOP 하나뿐입니다**(이상한 근무 카드의 '맞습니다' 포함 — 줄의 9초는 카드를 읽은 뒤부터).
+  '너무 이른 퇴근' 카드의 길과 근무 종류 칸으로 넣은 기록은 그대로 검은 막대입니다. 그때 손가락은 그 카드에 있습니다.
+- **다른 저장이 오면 줄은 끝납니다.** `undoState()`가 `outUndo`를 지웁니다. 조퇴 사유 저장은 같은 날 키라, 이게
+  없으면 줄이 남아 사유 저장을 '퇴근 취소'로 되돌리고 근무 중까지 되살렸습니다. 다시 START, 탭 옮기기, 9.5초도 끝냅니다.
+  되돌릴 기록의 타이머도 STOP에서는 9.5초입니다(다른 저장은 그대로 9초). 줄이 서 있는데 되돌릴 것이 없는 순간이 없습니다.
+- **두 번 톡.** 되돌리면 오늘 카드가 46px 짧아지고 줄이 빠져, 여섯 칸이 82px 올라옵니다. 384px에서 줄이 있던 자리에
+  `근무` 칸이 섭니다(헤드리스에서 `elementFromPoint`로 재어서). 되돌린 순간을 `lastTap`으로 적고, 여섯 칸의
+  `togglePending()`도 `tapShielded()`를 봅니다. 두 번째 손가락은 다시 STOP이 된 패드에도, 그 칸에도 아무 일을 하지 않습니다.
+  알고 받아들인 값: START·STOP·줄을 누른 뒤 1.5초 동안 여섯 칸은 일부러 누른 손가락도 받지 않습니다.
+- 39 new assertions (3837 total). 지은 화면에서(384px, 한국어 밝은·영어 어두운·베트남어): STOP 뒤 줄이 패드 아래
+  36px 자리에 서고, 누르면 저장소의 기록이 0개, 세션은 처음 출근 시각, 화면은 근무중 8h 30m입니다.
+
+**다음 사람에게:** 되돌리기는 그 행동을 한 자리에 섭니다. 그리고 그 자리가 약속하는 것을 합니다. 패드 바로 아래의
+'퇴근 취소'는 '아직 근무 중'을 약속합니다. 기록만 지우는 되돌리기를 거기 두었다면, 문구는 맞고 결과는 틀린 화면이
+되었을 것입니다. 되돌리기가 하나 더 생기면, 같은 기록을 노리는 다른 저장(여기서는 같은 날 키의 사유 저장)이 그것을
+끝내는지 먼저 물으십시오.
+
+### 2026-11-11 (ninety-seventh) — 출근 취소 줄을 두 번 눌러야 했습니다: 가드 동안에는 보이지 않게
 
 **START를 누르고 곧바로 초록 줄을 누르면 두 번 눌러야 취소됐습니다** — 근로자가 폰에서 찾았습니다. 아흔다섯째의
 리뷰 M1이 넣은 두 번 톡 가드(START 뒤 1.5초 동안 줄이 손가락을 받지 않음)가 일을 하고 있었는데, 그동안 줄은
