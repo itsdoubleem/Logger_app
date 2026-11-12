@@ -7981,9 +7981,9 @@ console.log('\n== 조퇴 사유 창이 앞 시대의 모양으로 남아 있었�
     .map(t => t.slice(0, t.indexOf('"')))
     .filter(t => t.indexOf('cursor:pointer') >= 0)
     .map(t => (t.match(/min-height:(\d+)px/) || [0, 0])[1] * 1);
-  // 마크업에서 일곱 자리입니다 — 머리 하나, 사유 줄을 짓는 자리 셋(무리마다
-  // 한 벌), 누구 사정 칩, 저장, 취소.
-  ok('시트 안에서 누를 것이 일곱 자리입니다 (' + taps.join(',') + ')', taps.length === 7);
+  // 마크업에서 여덟 자리입니다 — 머리 하나, 사유 줄을 짓는 자리 셋(무리마다
+  // 한 벌), 누구 사정 칩, 저장, 취소, 그리고 STOP이 연 시트에만 서는 퇴근 취소(F15 리뷰 M1).
+  ok('시트 안에서 누를 것이 여덟 자리입니다 (' + taps.join(',') + ')', taps.length === 8);
   ok('44px 밑으로 내려간 것이 없습니다', taps.every(h => h >= 44));
 
   // ── 7 · 사라진 칸이 없습니다 ───────────────────────────────────────────
@@ -8129,12 +8129,12 @@ console.log('\n== 사유 창의 접는 표시가 앱의 다른 접는 표시와 
     || sheet.indexOf('{{ f.label }}') > 0);
   ok('취소도 검은 테두리 그대로입니다',
     /<div onClick="\{\{ skipEarly \}\}" style="min-height:44px;[^"]*border:2px solid var\(--color-text\)/.test(sheet));
-  // 44px은 이 앱에서 누를 것의 바닥입니다(마흔한째) — 자리 수도 그대로 일곱
+  // 44px은 이 앱에서 누를 것의 바닥입니다(마흔한째) — 자리 수는 여덟(F15 리뷰 M1의 퇴근 취소)
   const taps = sheet.split('style="').slice(1)
     .map(t => t.slice(0, t.indexOf('"')))
     .filter(t => t.indexOf('cursor:pointer') >= 0)
     .map(t => (t.match(/min-height:(\d+)px/) || [0, 0])[1] * 1);
-  ok('시트 안에서 누를 것이 일곱 자리 그대로입니다 (' + taps.join(',') + ')', taps.length === 7);
+  ok('시트 안에서 누를 것이 여덟 자리입니다 (' + taps.join(',') + ')', taps.length === 8);
   ok('44px 밑으로 내려간 것이 없습니다', taps.every(h => h >= 44));
 
   // ── 7 · 하던 일은 그대로입니다 ─────────────────────────────────────────
@@ -11432,7 +11432,9 @@ console.log('\n== F15 · 퇴근의 되돌리기는 STOP을 누른 그 자리에 
 
     // 다른 저장이 오면 그 저장이 '되돌릴 것'입니다 — 같은 날 키의 조퇴 사유 저장이라도
     const sh = day('2026-11-12T08:30:00'); sh.punch(); at(sh, '2026-11-12T12:00:00'); sh.punch();
-    ok('조퇴한 날도 줄이 섭니다(사유 시트 아래)', sh.state.reasonFor != null && sh.renderVals().outUndoShow === true);
+    // 리뷰 M1: 짧은 날은 조퇴 사유 시트가 곧바로 덮습니다 — 그 뒤에서 줄의 9초가 흐르면 되돌릴 길이 없었습니다
+    ok('조퇴한 날은 시트가 덮으므로 줄은 서지 않고, 시트 안에 퇴근 취소가 섭니다',
+      sh.state.reasonFor != null && sh.renderVals().outUndoShow === false && sh.renderVals().rsnUndoOutShow === true);
     sh.setState({ earlyPick: 'no_work' }); sh.saveReason();
     V = sh.renderVals();
     ok('사유를 저장하면 줄은 끝나고, 그 저장의 되돌리기는 검은 막대입니다', V.outUndoShow === false && V.undoMsg !== '' && !sh.state.session);
@@ -11440,9 +11442,39 @@ console.log('\n== F15 · 퇴근의 되돌리기는 STOP을 누른 그 자리에 
     const sl = day('2026-11-12T08:30:00'); sl.punch(); at(sl, '2026-11-12T12:00:00'); sl.punch(); sl.closeReason();
     at(sl, '2026-11-12T12:00:02'); sl.lastTap = null; sl.renderVals().undoOutStrip();
     ok('조퇴로 기록된 STOP도 되돌리면 근무 중입니다', !!sl.state.session && sl.state.extra.length === 0 && sl.state.reasonFor == null);
-    const so = day('2026-11-12T08:30:00'); so.punch(); at(so, '2026-11-12T12:00:00'); so.punch();
-    at(so, '2026-11-12T12:00:02'); so.lastTap = null; so.renderVals().undoOutStrip();
-    ok('사유 시트가 열린 채 되돌려도 시트는 닫힙니다 — 없는 기록에 사유를 묻지 않습니다', !!so.state.session && so.state.reasonFor == null);
+    // 리뷰 M1 (근로자가 고른 A): 시트 안의 '퇴근 취소 — 아직 근무 중'. 시트를 읽는 데 30초가 걸려도 됩니다 —
+    // 시트가 열려 있는 동안 되돌릴 기록은 남아 있습니다
+    const so = day('2026-11-12T08:30:00'); so.punch(); at(so, '2026-11-12T12:00:00'); timers = []; so.punch();
+    ok('시트가 덮은 STOP은 9.5초 타이머를 걸지 않습니다', !timers.some(t => t.ms === 9500), JSON.stringify(timers.map(t => t.ms)));
+    timers.forEach(t => t.fn());
+    at(so, '2026-11-12T12:00:30');
+    let SV = so.renderVals();
+    ok('시트를 30초 읽어도 퇴근 취소는 남아 있습니다', SV.rsnUndoOutShow === true && SV.L.rsnUndoOut === "Undo clock-out — I'm still working");
+    SV.undoOutStrip();
+    ok('시트 뒤의 줄은 손가락을 받지 않습니다', !so.state.session && so.state.extra.length === 1);
+    SV.rsnUndoOut();
+    ok('시트의 퇴근 취소: 기록은 걷히고 출근 시각 그대로 근무 중, 시트는 닫힙니다',
+      !!so.state.session && so.state.session.inIso === new Date('2026-11-12T08:30:00').toISOString() && so.state.extra.length === 0 && so.state.reasonFor == null);
+    SV = so.renderVals();
+    ok('되돌린 뒤 줄도 검은 막대도 없습니다', !SV.outUndoShow && SV.undoMsg === '' && !SV.rsnUndoOutShow);
+    SV.padTap();
+    ok('시트의 퇴근 취소를 두 번 톡 쳐도 다시 STOP이 찍히지 않습니다', !!so.state.session && so.state.extra.length === 0);
+    // 시트를 '나중에'로 닫으면 그때부터 패드 아래 줄이 9초
+    const sk = day('2026-11-12T08:30:00'); sk.punch(); at(sk, '2026-11-12T12:00:00'); sk.punch();
+    at(sk, '2026-11-12T12:00:40'); timers = []; sk.renderVals().skipEarly();
+    ok('나중에로 닫으면 줄의 시계가 그때 시작합니다 — 0.5초 숨김, 9.5초 끝',
+      sk.renderVals().outUndoShow === true && sk.renderVals().outUndoVis === 'hidden'
+      && timers.filter(t => t.ms === 9500).length === 2 && timers.filter(t => t.ms === 500).length === 1, JSON.stringify(timers.map(t => t.ms)));
+    at(sk, '2026-11-12T12:00:50');
+    ok('닫은 지 10초 뒤에는 줄도 없고 분홍 줄이 돌아옵니다', sk.renderVals().outUndoShow === false && sk.renderVals().backInShut === true);
+    // 사유를 저장하면 시트의 퇴근 취소도 끝납니다 — 그 저장의 되돌리기는 검은 막대
+    const sv = day('2026-11-12T08:30:00'); sv.punch(); at(sv, '2026-11-12T12:00:00'); sv.punch();
+    sv.setState({ earlyPick: 'no_work' }); sv.saveReason();
+    ok('사유를 저장한 시트는 퇴근 취소를 쥐지 않습니다', sv.sheetHoldsOutUndo() === false && sv.state.reasonFor == null && sv.state.outUndo === null);
+    // 기록 탭에서 지난 날의 사유를 고치려고 연 시트에는 퇴근 취소가 없습니다
+    const ed = day('2026-11-12T08:30:00'); ed.punch(); at(ed, '2026-11-12T18:02:00'); ed.punch();
+    ed.setState({ reasonFor: 20261112, reasonFresh: false });
+    ok('사유 고치기로 연 시트에는 퇴근 취소가 없습니다', ed.renderVals().rsnUndoOutShow === false);
 
     // 미리 잡아 둔 특근 날의 STOP을 되돌리면, 그 날은 미리 잡은 대로 돌아오고 근무 중입니다
     const tk = day('2026-11-14T08:30:00');

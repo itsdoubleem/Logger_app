@@ -265,6 +265,10 @@ the pill and a lamp on one line beside it, and the clock under them.
   cards or the too-soon card keep the black bar under the cards. The six cards
   ignore a tap within 1.5 s of a pad or strip tap, because after the undo one of
   them rises into the strip's place.
+  A STOP that counts as a short day opens the 조퇴 사유 sheet over everything, so
+  that sheet carries the same undo as a black-outlined 44px button right under
+  "your clock-out is already saved": `퇴근 취소 — 아직 근무 중`. The strip's clock
+  waits while the sheet is open and starts when it is closed with 나중에.
 - `preview-punch-circle.html` is the approved preview (option 1, the matched
   green). `mockup-punch.png` is the bar design it replaced, and
   `mockup-punch-tile.png` the centred tile before that — kept for the record.

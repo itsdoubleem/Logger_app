@@ -776,5 +776,6 @@
   "theme_dark": "Gelap",
   "theme_note": "Otomatis mengikuti pengaturan mode gelap ponsel Anda. 근무내역서 yang Anda cetak atau simpan selalu berlatar putih.",
   "undo_in_strip": "Batalkan jam masuk",
-  "undo_out_strip": "Batalkan jam pulang"
+  "undo_out_strip": "Batalkan jam pulang",
+  "rsn_undo_out": "Batalkan jam pulang — saya masih bekerja"
 }
