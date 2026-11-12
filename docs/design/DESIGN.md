@@ -268,7 +268,10 @@ the pill and a lamp on one line beside it, and the clock under them.
   A STOP that counts as a short day opens the 조퇴 사유 sheet over everything, so
   that sheet carries the same undo as a black-outlined 44px button right under
   "your clock-out is already saved": `퇴근 취소 — 아직 근무 중`. The strip's clock
-  waits while the sheet is open and starts when it is closed with 나중에.
+  waits while the sheet is open and starts when it is closed with 나중에. Like the
+  strip, the button is invisible and untappable for 0.5 s after the tap that opened
+  the sheet (a double tap on STOP lands on it on narrow phones), and it is held only
+  until the restored shift would pass 14 hours from clock-in.
 - `preview-punch-circle.html` is the approved preview (option 1, the matched
   green). `mockup-punch.png` is the bar design it replaced, and
   `mockup-punch-tile.png` the centred tile before that — kept for the record.
