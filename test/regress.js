@@ -11475,10 +11475,21 @@ console.log('\n== F15 · 퇴근의 되돌리기는 STOP을 누른 그 자리에 
     ok('STOP 직후 시트의 퇴근 취소는 자리만 차지하고 보이지 않습니다', M2.rsnUndoOutShow === true && M2.rsnUndoOutVis === 'hidden');
     M2.rsnUndoOut();
     ok('두 번 톡의 두 번째는 퇴근을 되돌리지 않습니다', !m2.state.session && m2.state.extra.length === 1 && m2.state.reasonFor != null);
-    ok('0.5초 뒤에 다시 그리는 타이머가 하나 걸립니다', timers.filter(t => t.ms === 501).length === 1, JSON.stringify(timers.map(t => t.ms)));
-    m2.lastTap = performance.now() - 510; const a0 = m2.state.outUndoArmedAt; timers.find(t => t.ms === 501).fn();
+    // 리뷰 3회차 S3 — 0.5초였을 때 0.56–0.8초 뒤의 두 번째 누름이 좁은 폰에서 이 단추에 떨어져 퇴근을 되돌렸습니다.
+    // 패드의 '같은 누름'과 같은 1.5초입니다.
+    ok('1.5초 뒤에 다시 그리는 타이머가 하나 걸립니다', timers.filter(t => t.ms === 1501).length === 1 && !timers.some(t => t.ms === 501), JSON.stringify(timers.map(t => t.ms)));
+    for (const ms of [560, 800, 1400]) {
+      m2.lastTap = performance.now() - ms; M2 = m2.renderVals(); M2.rsnUndoOut();
+      ok('STOP ' + ms + 'ms 뒤의 두 번째 누름은 아직 숨은 단추에 떨어집니다 — 퇴근은 그대로', M2.rsnUndoOutVis === 'hidden' && !m2.state.session && m2.state.extra.length === 1);
+    }
+    // 타이머가 일찍 깨어나면 그리지 않고 남은 만큼 다시 겁니다
+    const a0 = m2.state.outUndoArmedAt; let nT = timers.length;
+    m2.lastTap = performance.now() - 1400; timers.find(t => t.ms === 1501).fn();
+    const re = timers.slice(nT);
+    ok('일찍 깨어난 타이머는 남은 시간만큼 다시 겁니다', m2.state.outUndoArmedAt === a0 && re.length === 1 && re[0].ms >= 1 && re[0].ms <= 102, JSON.stringify(re.map(t => t.ms)));
+    m2.lastTap = performance.now() - 1510; re[0].fn();
     M2 = m2.renderVals();
-    ok('0.5초가 지나면 보이고, 그 타이머가 화면을 다시 그립니다', M2.rsnUndoOutVis === 'visible' && m2.state.outUndoArmedAt !== a0);
+    ok('1.5초가 지나면 보이고, 그 타이머가 화면을 다시 그립니다', M2.rsnUndoOutVis === 'visible' && m2.state.outUndoArmedAt !== a0);
     M2.rsnUndoOut();
     ok('보이는 단추는 한 번 누르면 됩니다', !!m2.state.session && m2.state.extra.length === 0);
     // 리뷰 N3 — 이상한 근무 카드의 '맞습니다'도 방금 누른 손가락입니다
