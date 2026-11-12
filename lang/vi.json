@@ -775,5 +775,6 @@
   "theme_light": "Sáng",
   "theme_dark": "Tối",
   "theme_note": "Tự động sẽ theo cài đặt chế độ tối của điện thoại. 근무내역서 bạn in hoặc lưu luôn có nền trắng.",
-  "undo_in_strip": "Huỷ giờ vào ca"
+  "undo_in_strip": "Huỷ giờ vào ca",
+  "undo_out_strip": "Huỷ giờ tan ca"
 }

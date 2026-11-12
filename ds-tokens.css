@@ -309,7 +309,9 @@
    top-level card clips its own content (rule 1, overflow: hidden), which
    would cut the strip off, so this one card lets it out; it has no inner
    hairlines to clip. Caught by `cursor: pointer` + `padding: 9px 18px`, which
-   no other element carries together (a test holds that). */
+   no other element carries together (a test holds that). The green undo-clock-in
+   strip (F13) and the pink undo-clock-out strip (F15) take this slot in turn and
+   wear the same key, so they get the same tap area. */
 #tabScroll > div > div[style*="cursor: pointer"][style*="padding: 9px 18px"] { overflow: visible; }
 /* bottom is -6px, not -4px: an absolute box is placed from the padding edge,
    and the pill has a 2px bottom border, so -4px reached only 2px past it

@@ -2963,6 +2963,10 @@ console.log('\n== 퇴근 알림이 202608.20이라고 말했습니다 ==');
   c.setS({ periodStart:21, payday:25 });
   c.state.session={inIso:new Date('2026-08-25T09:00:00').toISOString()};
   c.punch();
+  // F15부터 STOP의 되돌리기는 패드 아래 분홍 줄이고, 그동안 검은 막대는 비킵니다. 막대의 문구는 그대로이므로
+  // (조퇴 카드나 근무 종류 칸에서 넣은 기록이 씁니다) 줄을 걷고 막대를 읽습니다.
+  ok('STOP 직후 검은 막대는 비킵니다 — 되돌리기는 줄 하나', c.renderVals().undoMsg === '' && c.renderVals().outUndoShow === true);
+  c.setState({ outUndo:null });
   const m=c.renderVals().undoMsg;
   ok('월.일만 적습니다', m.indexOf('08.25')>=0, m);
   ok('연도가 섞여 들어가지 않습니다', m.indexOf('202608')<0, m);
@@ -8582,11 +8586,12 @@ console.log('\n== 이미 출근했습니다 줄은 빨간 기간 띠와 같은 �
   ok('분홍 줄에 min-height가 없습니다 — 있으면 규칙 2c가 잡고 높이가 다시 커집니다', !/min-height/.test(row));
   // F13(2026-11-11)부터 둘입니다: 분홍 줄과, START 뒤 9초 동안 그 자리에 서는 초록 '출근 취소' 줄.
   // 둘 다 같은 크기의 단추라 층 규칙 1d가 같은 열쇠로 44px 손가락 칸을 줍니다.
-  ok('cursor:pointer와 padding:9px 18px을 함께 가진 것은 분홍 줄과 초록 출근 취소 줄, 둘뿐입니다',
+  // F15(2026-11-12)부터 셋: STOP 뒤 같은 자리의 분홍 '퇴근 취소' 줄.
+  ok('cursor:pointer와 padding:9px 18px을 함께 가진 것은 분홍 줄, 초록 출근 취소 줄, 분홍 퇴근 취소 줄, 셋뿐입니다',
     (tpl.match(/<div onClick="\{\{ (\w+) \}\}" style="[^"]*"/g) || [])
       .filter(x => /cursor:pointer/.test(x) && /padding:9px 18px/.test(x))
-      .map(x => x.match(/\{\{ (\w+) \}\}/)[1]).sort().join() === 'openBackIn,undoInStrip'
-    && (tpl.match(/style="[^"]*"/g) || []).filter(x => /cursor:pointer/.test(x) && /padding:9px 18px/.test(x)).length === 2);
+      .map(x => x.match(/\{\{ (\w+) \}\}/)[1]).sort().join() === 'openBackIn,undoInStrip,undoOutStrip'
+    && (tpl.match(/style="[^"]*"/g) || []).filter(x => /cursor:pointer/.test(x) && /padding:9px 18px/.test(x)).length === 3);
   // 같은 날 다시: 한국어에서는 제목과 영어 보조 줄이 한 줄에 들어가지 않아 '입 / 력'으로 쪼개지고 52px이
   // 됐습니다. 넘치는 언어만 글자를 줄여 한 줄로 — 384px 폰의 한국어는 제목 11.4px, 보조 줄 8.5px.
   {
@@ -10517,7 +10522,7 @@ console.log('\n== 급여 탭의 \'지난 기간 · 앱 계산\'이 그 기간의
   ok('남은 undoRm이 있어도 되돌릴 키가 없으면 그대로', c.state.extra.filter(x=>x.day===11).length===1 && c.state.removed.indexOf(k)<0);
   const src=require('fs').readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
   ok('9초 타이머가 모두 undoRm도 비웁니다', (src.match(/undoKeys: \[\], editedKeys: \[\], undoPrev: null \}\), 9000/g)||[]).length===0
-    && (src.match(/undoKeys: \[\], editedKeys: \[\], undoPrev: null, undoRm: \[\] \}\), 9000/g)||[]).length===5);
+    && (src.match(/undoKeys: \[\], editedKeys: \[\], undoPrev: null, undoRm: \[\] \}\), (9000|life)/g)||[]).length===5);
 }
 
 // ── 연차 범위 안의 일한 평일도 그대로 남고, 미리보기가 그것을 말합니다 (리뷰 S2·S3, 2026-10-12) ──
@@ -11350,6 +11355,137 @@ console.log('\n== F14 · 출퇴근 단추는 로고의 시계입니다 ==');
   const c = mk(V2, '2026-11-11T08:58:00'); c.state.setupDone = true;
   const before = c.renderVals().padBtnInk; c.punch();
   ok('START를 누르면 시계가 초록에서 연어색으로 바뀝니다', before === 'var(--color-punch-start)' && c.renderVals().padBtnInk === 'var(--color-punch-stop)');
+}
+
+console.log('\n== F15 · 퇴근의 되돌리기는 STOP을 누른 그 자리에 섭니다 ==');
+// 2026-11-12. 근로자의 말: STOP을 누르면 되돌리기 막대가 근무 종류 여섯 칸 아래에 뜹니다 — 폰에서는 손가락과 눈이
+// 있는 패드에서 화면 하나 아래입니다. 출근 취소 줄(F13)이 서는 그 자리에 서 달라고 했습니다. 그리고 되돌리기가
+// 기록만 지우던 것을 근로자가 바로잡았습니다: 근무 도중 잘못 눌린 STOP을 되돌리면 기록도 출근도 없는 날이
+// 남았습니다. 이제 '퇴근 취소'는 출근 시각 그대로 다시 근무 중으로 돌려놓습니다.
+{
+  const fs = require('fs');
+  const src = fs.readFileSync(__dirname + '/../WorkLogApp.v2.dc.html', 'utf8');
+  const tpl = src.slice(0, src.indexOf('</x-dc>')).replace(/<!--[\s\S]*?-->/g, '');
+  const realST = global.setTimeout;
+  let timers = [];
+  global.setTimeout = (fn, ms) => { timers.push({ fn, ms }); return timers.length; };
+  const day = (iso) => { const c = mk(V2, iso); c.state.setupDone = true; c.state.settings.lang = 'en'; return c; };
+  const at = (c, iso) => { c.base = new Date(iso); c.t0 = Date.now(); };
+  try {
+    const c = day('2026-11-12T08:30:00');
+    c.punch(); const in0 = c.state.session.inIso;
+    at(c, '2026-11-12T18:02:00'); timers = []; c.lastTap = null;
+    c.punch();
+    let V = c.renderVals();
+    ok('STOP은 평소대로 기록합니다', !c.state.session && c.state.extra.length === 1);
+    ok('STOP 뒤에는 퇴근 취소 줄이 섭니다 — 처음 0.5초는 자리만', V.outUndoShow === true && V.outUndoVis === 'hidden');
+    ok('그동안 분홍 이미 출근했습니다 줄은 비킵니다', V.backInShut === false);
+    ok('검은 되돌리기 막대는 뜨지 않습니다 — 한 기록에 되돌리기는 하나', V.undoMsg === '');
+    ok('줄은 기록된 퇴근 시각과 할 일을 말합니다', V.outUndoTitle === '✓ 18:02 · Undo clock-out', V.outUndoTitle);
+    ok('보조 줄은 한국어 낱말입니다', V.L.undoOutK === '퇴근 취소');
+    ok('보이게 하는 타이머 0.5초, 끝내는 타이머와 되돌릴 기록의 타이머는 9.5초',
+      timers.filter(t => t.ms === 500).length === 1 && timers.filter(t => t.ms === 9500).length === 2, JSON.stringify(timers.map(t => t.ms)));
+    V.undoOutStrip();
+    ok('숨어 있는 동안의 누름은 아무것도 하지 않습니다', !c.state.session && c.state.extra.length === 1);
+    const armT = timers.find(t => t.ms === 500);
+    at(c, '2026-11-12T18:02:00.520'); armT.fn();
+    V = c.renderVals();
+    ok('0.5초가 되면 보입니다', V.outUndoVis === 'visible' && c.state.outUndoArmedAt != null);
+    V.undoOutStrip();
+    ok('누르면 기록이 걷힙니다', c.state.extra.length === 0);
+    ok('그리고 출근 시각 그대로 다시 근무 중입니다', !!c.state.session && c.state.session.inIso === in0);
+    V = c.renderVals();
+    ok('줄은 사라지고, 근무 중이라 분홍 줄도 검은 막대도 없습니다', !V.outUndoShow && !V.backInShut && V.undoMsg === '' && !V.inUndoShow);
+    V.padTap();
+    ok('되돌린 손가락의 두 번째 톡은 다시 STOP을 찍지 않습니다(1.5초 가드)', !!c.state.session && c.state.extra.length === 0);
+    // 되돌리면 오늘 카드가 짧아지고 줄이 빠져, 줄이 있던 자리에 근무 종류 칸 하나가 섭니다(384px, 헤드리스에서 재어서)
+    c.renderVals().dayTypeBtns[1].add();
+    ok('되돌린 손가락의 두 번째 톡은 그 자리에 올라온 근무 종류 칸도 열지 않습니다', !c.state.pending, String(c.state.pending));
+    c.lastTap = performance.now() - 1600; c.renderVals().dayTypeBtns[1].add();
+    ok('조금 뒤의 누름은 평소대로 칸을 엽니다', c.state.pending === 'annual', String(c.state.pending));
+    c.cancelPending();
+    timers.forEach(t => t.fn());
+    ok('남은 타이머가 불려도 근무 중은 그대로입니다', !!c.state.session && c.state.session.inIso === in0 && c.state.extra.length === 0);
+    at(c, '2026-11-12T18:10:00'); c.lastTap = null; c.punch();
+    ok('조금 뒤 다시 STOP은 평소대로 하나의 근무입니다', !c.state.session && c.state.extra.length === 1
+      && c.state.extra[0].inH === 8.5 && Math.abs(c.state.extra[0].outH - (18 + 10 / 60)) < 1e-9);
+
+    // 9.5초가 지나면 줄은 끝나고 처음 화면 — 타이머 없이 시각만으로도(화면이 꺼져 타이머가 멈춘 폰)
+    const e = day('2026-11-12T08:30:00'); e.punch(); at(e, '2026-11-12T18:02:00'); e.punch();
+    at(e, '2026-11-12T18:02:09.400');
+    ok('9.4초에는 아직 서 있습니다', e.renderVals().outUndoShow === true && e.renderVals().outUndoVis === 'visible');
+    at(e, '2026-11-12T18:02:09.600');
+    V = e.renderVals();
+    ok('9.5초가 지나면 줄은 서지 않고 분홍 줄이 돌아옵니다', V.outUndoShow === false && V.backInShut === true);
+    V.undoOutStrip();
+    ok('그 줄의 손잡이도 기록을 건드리지 않습니다', !e.state.session && e.state.extra.length === 1);
+
+    // 탭을 옮기면 끝납니다
+    const g = day('2026-11-12T08:30:00'); g.punch(); at(g, '2026-11-12T18:02:00'); g.punch();
+    g.goTab('logs'); g.goTab('punch');
+    ok('탭을 옮기면 줄은 끝납니다', g.renderVals().outUndoShow === false && g.state.outUndo === null);
+
+    // 다시 START를 누르면 끝납니다
+    const r = day('2026-11-12T08:30:00'); r.punch(); at(r, '2026-11-12T18:02:00'); r.punch();
+    at(r, '2026-11-12T18:02:03'); r.lastTap = null; r.punch();
+    ok('다시 출근하면 퇴근 취소 줄은 비키고 출근 취소 줄이 섭니다', r.renderVals().outUndoShow === false && r.renderVals().inUndoShow === true);
+
+    // 다른 저장이 오면 그 저장이 '되돌릴 것'입니다 — 같은 날 키의 조퇴 사유 저장이라도
+    const sh = day('2026-11-12T08:30:00'); sh.punch(); at(sh, '2026-11-12T12:00:00'); sh.punch();
+    ok('조퇴한 날도 줄이 섭니다(사유 시트 아래)', sh.state.reasonFor != null && sh.renderVals().outUndoShow === true);
+    sh.setState({ earlyPick: 'no_work' }); sh.saveReason();
+    V = sh.renderVals();
+    ok('사유를 저장하면 줄은 끝나고, 그 저장의 되돌리기는 검은 막대입니다', V.outUndoShow === false && V.undoMsg !== '' && !sh.state.session);
+    // 사유 시트를 '나중에'로 닫고 줄을 누르면 시트는 다시 뜨지 않고 근무 중입니다
+    const sl = day('2026-11-12T08:30:00'); sl.punch(); at(sl, '2026-11-12T12:00:00'); sl.punch(); sl.closeReason();
+    at(sl, '2026-11-12T12:00:02'); sl.lastTap = null; sl.renderVals().undoOutStrip();
+    ok('조퇴로 기록된 STOP도 되돌리면 근무 중입니다', !!sl.state.session && sl.state.extra.length === 0 && sl.state.reasonFor == null);
+    const so = day('2026-11-12T08:30:00'); so.punch(); at(so, '2026-11-12T12:00:00'); so.punch();
+    at(so, '2026-11-12T12:00:02'); so.lastTap = null; so.renderVals().undoOutStrip();
+    ok('사유 시트가 열린 채 되돌려도 시트는 닫힙니다 — 없는 기록에 사유를 묻지 않습니다', !!so.state.session && so.state.reasonFor == null);
+
+    // 미리 잡아 둔 특근 날의 STOP을 되돌리면, 그 날은 미리 잡은 대로 돌아오고 근무 중입니다
+    const tk = day('2026-11-14T08:30:00');
+    tk.state.extra = [{ y: 2026, m: 11, day: 14, kind: 'day', type: 'shift', holiday: true, inH: 9, outH: 18, c: tk.calc(9, 18, 'day', true) }];
+    tk.punch(); at(tk, '2026-11-14T17:00:00'); tk.punch();
+    at(tk, '2026-11-14T17:00:02'); tk.lastTap = null; tk.renderVals().undoOutStrip();
+    ok('미리 잡은 특근 날은 그대로 돌아옵니다', tk.state.extra.length === 1 && tk.state.extra[0].inH === 9 && tk.state.extra[0].outH === 18 && !!tk.state.session);
+
+    // 야간 — 다음 날 아침의 퇴근 시각
+    // (기본 근무조가 주간이라 20:40 출근은 이상한 근무 카드가 먼저 묻습니다 — 맞다고 합니다)
+    const n = day('2026-11-11T20:40:00'); n.punch(); at(n, '2026-11-12T08:50:00'); n.punch();
+    if (n.state.oddOut) n.confirmOddOut();
+    ok('야간 근무의 줄은 아침 퇴근 시각을 말합니다', n.renderVals().outUndoTitle === '✓ 08:50 · Undo clock-out', n.renderVals().outUndoTitle);
+
+    // 이상한 근무 카드의 '맞습니다'도 STOP입니다 — 줄의 9초는 카드를 읽은 뒤부터
+    const od = day('2026-11-12T01:00:00'); od.punch(); at(od, '2026-11-12T18:00:00'); od.punch();
+    const isOdd = od.state.oddOut;
+    at(od, '2026-11-12T18:02:00'); od.renderVals().confirmOddOut && od.renderVals().confirmOddOut();
+    ok('이상한 근무를 맞다고 한 뒤에도 줄이 섭니다', !isOdd || (od.renderVals().outUndoShow === true && !od.state.session), String(isOdd));
+
+    // 너무 이른 퇴근 카드의 길(돌려보내짐·그래도 퇴근)은 그대로 검은 막대입니다 — 손가락이 그 카드에 있습니다
+    const sh2 = day('2026-11-12T08:30:00'); sh2.punch(); at(sh2, '2026-11-12T08:40:00'); sh2.punch();
+    sh2.sentHome();
+    V = sh2.renderVals();
+    ok('돌려보내짐으로 넣은 날은 줄 대신 검은 막대입니다', V.outUndoShow === false && V.undoMsg !== '');
+    // 근무 종류 칸으로 넣은 날도 그대로
+    const lv = day('2026-11-12T08:30:00');
+    lv.undoState && lv.setState(Object.assign(lv.undoState([20261112]), { extra: [{ y: 2026, m: 11, day: 12, type: 'annual', kind: 'day', c: { gross: 0, bk: 0, net: 8, reg: 8, ot: 0, night: 0, hol: 0, pay: 0 } }] }));
+    ok('근무 종류 칸으로 넣은 날의 되돌리기도 검은 막대입니다', lv.renderVals().outUndoShow === false && lv.renderVals().undoMsg !== '');
+  } finally { global.setTimeout = realST; }
+
+  const strip = (tpl.match(/<div onClick="\{\{ undoOutStrip \}\}" style="[^"]*"/) || [''])[0];
+  ok('퇴근 취소 줄은 출근 취소 줄과 같은 9px 18px, 16px 줄입니다', /padding:9px 18px;/.test(strip) && /line-height:16px;/.test(strip), strip);
+  ok('min-height가 없습니다', strip && !/min-height/.test(strip));
+  ok('바탕은 퇴근 알약의 분홍입니다', /background:var\(--color-accent-100\)/.test(strip));
+  ok('보임/숨김은 visibility로 — 아래 칸이 움직이지 않습니다', /style="visibility:\{\{ outUndoVis \}\};/.test(strip));
+  ok('패드 아래, 출근 취소 줄과 분홍 줄 사이 같은 자리에 섭니다',
+    tpl.indexOf('{{ undoOutStrip }}') > tpl.indexOf('{{ undoInStrip }}') && tpl.indexOf('{{ undoOutStrip }}') < tpl.indexOf('{{ openBackIn }}'));
+  const base = JSON.parse(fs.readFileSync(__dirname + '/../lang/base.json', 'utf8'));
+  ok('보조 줄 키는 영어 화면에서도 한국어입니다', base.k_undo_out.en === '퇴근 취소' && base.k_undo_out.ko === 'UNDO CLOCK-OUT');
+  const langs = ['vi', 'id', 'zh', 'th', 'km', 'ne'];
+  ok('여덟 언어 모두 퇴근 취소를 말합니다 — 출근 취소와 다른 말로', !!base.undo_out_strip.en && !!base.undo_out_strip.ko
+    && langs.every(l => { const d = JSON.parse(fs.readFileSync(__dirname + '/../lang/' + l + '.json', 'utf8')); return d.undo_out_strip && d.undo_out_strip !== base.undo_out_strip.en && d.undo_out_strip !== d.undo_in_strip; }));
 }
 
 Promise.all(later).then(()=>{
