@@ -106,7 +106,9 @@ clocking in does not clock out — it offers to cancel the clock-in. At clock-ou
 from the shift start opens a card before anything is saved: record it, delete the stray
 clock-in and clock in now, or close. A night-shift-shaped stray (20:00 → 07:50 for a night
 worker) looks like a real shift and is not caught, and a stray STOP after 30 minutes records
-a wrong clock-out (undoable for 9 s, then by editing the day). **Do not add a hold or a
+a wrong clock-out. That one is undone the same way as START: from 0.5 s to 9.5 s after STOP a
+pink strip under the pad removes the record and puts the worker back on shift from the original
+clock-in (ninety-eighth entry); after that, fix it by editing the day. **Do not add a hold or a
 confirmation step before the punch.**
 
 There is **no server and no account**. Do not add a backend, do not upload anything. That is

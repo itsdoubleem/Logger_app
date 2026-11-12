@@ -3322,5 +3322,17 @@
   "k_undo_in": {
     "en": "출근 취소",
     "ko": "UNDO CLOCK-IN"
+  },
+  "undo_out_strip": {
+    "en": "Undo clock-out",
+    "ko": "퇴근 취소"
+  },
+  "k_undo_out": {
+    "en": "퇴근 취소",
+    "ko": "UNDO CLOCK-OUT"
+  },
+  "rsn_undo_out": {
+    "en": "Undo clock-out — I'm still working",
+    "ko": "퇴근 취소 — 아직 근무 중"
   }
 }

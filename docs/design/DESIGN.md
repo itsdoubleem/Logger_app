@@ -254,6 +254,24 @@ the pill and a lamp on one line beside it, and the clock under them.
   purpose — a deliberate tap in that second and a half is rare and costs one
   more tap, while a double tap landing there used to clock the worker back in. There is no confirmation
   *before* the tap (the eighty-sixth entry): the way back comes after it.
+- **The undo-clock-out strip** (F15, ninety-eighth entry). The same strip after
+  STOP: `✓ 18:02 · Undo clock-out` with `퇴근 취소` as its second line, on
+  `--color-accent-100` (the 퇴근 pill's pink, as green is START's), same box, same
+  0.5 s hidden + 9 s shown clock (`outUndoArmed()`). It replaces the "I clocked in
+  earlier today" strip in that slot and pushes the black undo bar aside, so a STOP
+  has one undo, where the finger is. Tapping it removes the record **and puts the
+  worker back on shift from the original clock-in**. Only a STOP from the pad (or
+  the odd-shift card's confirm) raises it; records added from the six day-type
+  cards or the too-soon card keep the black bar under the cards. The six cards
+  ignore a tap within 1.5 s of a pad or strip tap, because after the undo one of
+  them rises into the strip's place.
+  A STOP that counts as a short day opens the 조퇴 사유 sheet over everything, so
+  that sheet carries the same undo as a black-outlined 44px button right under
+  "your clock-out is already saved": `퇴근 취소 — 아직 근무 중`. The strip's clock
+  waits while the sheet is open and starts when it is closed with 나중에. Like the
+  strip, the button is invisible and untappable for 0.5 s after the tap that opened
+  the sheet (a double tap on STOP lands on it on narrow phones), and it is held only
+  until the restored shift would pass 14 hours from clock-in.
 - `preview-punch-circle.html` is the approved preview (option 1, the matched
   green). `mockup-punch.png` is the bar design it replaced, and
   `mockup-punch-tile.png` the centred tile before that — kept for the record.

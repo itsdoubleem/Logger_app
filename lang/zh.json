@@ -775,5 +775,7 @@
   "theme_light": "浅色",
   "theme_dark": "深色",
   "theme_note": "自动会跟随手机的深色模式设置。打印或保存的 근무내역서 始终是白底。",
-  "undo_in_strip": "取消上班打卡"
+  "undo_in_strip": "取消上班打卡",
+  "undo_out_strip": "取消下班打卡",
+  "rsn_undo_out": "取消下班打卡 — 我还在上班"
 }
