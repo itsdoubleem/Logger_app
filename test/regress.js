@@ -11459,6 +11459,26 @@ console.log('\n== F15 · 퇴근의 되돌리기는 STOP을 누른 그 자리에 
     ok('되돌린 뒤 줄도 검은 막대도 없습니다', !SV.outUndoShow && SV.undoMsg === '' && !SV.rsnUndoOutShow);
     SV.padTap();
     ok('시트의 퇴근 취소를 두 번 톡 쳐도 다시 STOP이 찍히지 않습니다', !!so.state.session && so.state.extra.length === 0);
+    // 리뷰 2회차 M2 — STOP을 두 번 톡: 두 번째 손가락이 막 올라온 시트의 퇴근 취소에 떨어졌습니다(340px 한국어,
+    // 360px 크메르어, 320px에서 150ms 간격의 진짜 터치). 줄과 같이 0.5초 동안 보이지 않고 받지 않습니다.
+    const m2 = day('2026-11-12T08:30:00'); m2.punch(); at(m2, '2026-11-12T12:00:00'); m2.lastTap = null; timers = [];
+    m2.padTap();
+    let M2 = m2.renderVals();
+    ok('STOP 직후 시트의 퇴근 취소는 자리만 차지하고 보이지 않습니다', M2.rsnUndoOutShow === true && M2.rsnUndoOutVis === 'hidden');
+    M2.rsnUndoOut();
+    ok('두 번 톡의 두 번째는 퇴근을 되돌리지 않습니다', !m2.state.session && m2.state.extra.length === 1 && m2.state.reasonFor != null);
+    ok('0.5초 뒤에 다시 그리는 타이머가 하나 걸립니다', timers.filter(t => t.ms === 501).length === 1, JSON.stringify(timers.map(t => t.ms)));
+    m2.lastTap = performance.now() - 510; const a0 = m2.state.outUndoArmedAt; timers.find(t => t.ms === 501).fn();
+    M2 = m2.renderVals();
+    ok('0.5초가 지나면 보이고, 그 타이머가 화면을 다시 그립니다', M2.rsnUndoOutVis === 'visible' && m2.state.outUndoArmedAt !== a0);
+    M2.rsnUndoOut();
+    ok('보이는 단추는 한 번 누르면 됩니다', !!m2.state.session && m2.state.extra.length === 0);
+    // 리뷰 N3 — 이상한 근무 카드의 '맞습니다'도 방금 누른 손가락입니다
+    const m3 = day('2026-11-12T01:00:00'); m3.punch(); at(m3, '2026-11-12T04:00:00'); m3.punch();
+    ok('(준비) 이 근무는 이상한 근무 카드를 띄웁니다', m3.state.oddOut === true);
+    m3.lastTap = null; m3.renderVals().confirmOddOut();
+    ok('맞습니다 직후의 두 번째 손가락도 시트의 퇴근 취소를 누르지 못합니다',
+      m3.renderVals().rsnUndoOutShow === true && m3.renderVals().rsnUndoOutVis === 'hidden' && !m3.state.session);
     // 시트를 '나중에'로 닫으면 그때부터 패드 아래 줄이 9초
     const sk = day('2026-11-12T08:30:00'); sk.punch(); at(sk, '2026-11-12T12:00:00'); sk.punch();
     at(sk, '2026-11-12T12:00:40'); timers = []; sk.renderVals().skipEarly();
