@@ -6178,6 +6178,10 @@ class Component extends DCLogic {
       this.setState({ outUndo: O });
       clearTimeout(this.addT); clearTimeout(this.outUndoT); clearTimeout(this.outUndoArmT);
       this.startOutUndo(O);
+    } else if (this.state.outUndo && !this.state.outUndo.atIso && this.state.reasonFor === this.state.outUndo.k) {
+      // 쥐고 있던 시간이 지난 시트를 닫으면 되돌리기는 거기서 끝납니다 — 타이머를 건 적이 없으므로, 그냥 두면
+      // 기록만 지우는 검은 막대가 끝없이 서 있습니다(endOutUndo가 undoKeys까지 비웁니다)
+      this.endOutUndo();
     }
     this.setState({ reasonFor: null, reasonFresh: false, earlyPick: null, earlyNote: '', earlyFault: 'employer', rsnOpen: false });
   }
@@ -6430,7 +6434,12 @@ class Component extends DCLogic {
   // 시트가 쥐고 있는 퇴근 취소인가 — 이 STOP이 연 시트이고, 그 STOP의 기록이 아직 되돌릴 저장일 때(리뷰 M1)
   sheetHoldsOutUndo() {
     const O = this.state.outUndo, ks = this.state.undoKeys || [];
-    return !!(O && !O.atIso && this.state.reasonFresh && this.state.reasonFor === O.k && ks.length === 1 && ks[0] === O.k);
+    if (!(O && !O.atIso && this.state.reasonFresh && this.state.reasonFor === O.k && ks.length === 1 && ks[0] === O.k)) return false;
+    // 끝이 있습니다(리뷰 2회차 S2): 시트를 연 채 폰을 두면 다음 날 아침의 '퇴근 취소'가 어제 08:30의 근무를 되살렸습니다.
+    // 되살린 근무가 이상한 근무(출근에서 ODD_LONG 14시간)가 되기 전까지만 쥡니다 — 주머니에서 눌린 STOP을 몇 시간 뒤에
+    // 알아챈 사람은 여전히 되돌릴 수 있고, 다음 날 아침에는 없습니다. 시계가 거꾸로 갔으면 쥐지 않습니다.
+    const el = this.now().getTime() - new Date(O.inIso).getTime();
+    return el >= 0 && el < Component.ODD_LONG * 3600000;
   }
   // ── 조퇴 사유 시트 ──
   // 목록에서 고르면 fault가 따라오고, '직접 입력'을 고르면 근로자가 문장을

@@ -11495,6 +11495,22 @@ console.log('\n== F15 · 퇴근의 되돌리기는 STOP을 누른 그 자리에 
       && timers.filter(t => t.ms === 9500).length === 2 && timers.filter(t => t.ms === 500).length === 1, JSON.stringify(timers.map(t => t.ms)));
     at(sk, '2026-11-12T12:00:50');
     ok('닫은 지 10초 뒤에는 줄도 없고 분홍 줄이 돌아옵니다', sk.renderVals().outUndoShow === false && sk.renderVals().backInShut === true);
+    // 리뷰 2회차 S2 — 시트를 연 채 폰을 두면: 쥐는 것은 되살린 근무가 14시간(ODD_LONG)을 넘기 전까지만
+    const s2 = day('2026-11-12T08:30:00'); s2.punch(); at(s2, '2026-11-12T12:00:00'); s2.punch(); s2.lastTap = null;
+    at(s2, '2026-11-12T15:00:00');
+    ok('세 시간 뒤에 알아챈 주머니 속 STOP은 아직 되돌릴 수 있습니다', s2.renderVals().rsnUndoOutShow === true && s2.renderVals().rsnUndoOutVis === 'visible');
+    at(s2, '2026-11-13T08:00:00');
+    let S2 = s2.renderVals();
+    ok('다음 날 아침의 시트에는 퇴근 취소가 없습니다', S2.rsnUndoOutShow === false);
+    S2.rsnUndoOut();
+    ok('그 손잡이도 어제의 근무를 되살리지 않습니다', !s2.state.session && s2.state.extra.length === 1);
+    timers = []; S2.skipEarly();
+    S2 = s2.renderVals();
+    ok('그 시트를 닫아도 어제 STOP의 줄은 서지 않고, 기록만 지우는 검은 막대도 없습니다',
+      S2.outUndoShow === false && S2.undoMsg === '' && s2.state.outUndo === null && s2.state.undoKeys.length === 0 && s2.state.extra.length === 1);
+    const s2b = day('2026-11-12T08:30:00'); s2b.punch(); at(s2b, '2026-11-12T12:00:00'); s2b.punch(); s2b.lastTap = null;
+    at(s2b, '2026-11-12T07:00:00');
+    ok('시계가 출근보다 앞으로 돌아갔으면 쥐지 않습니다', s2b.renderVals().rsnUndoOutShow === false);
     // 사유를 저장하면 시트의 퇴근 취소도 끝납니다 — 그 저장의 되돌리기는 검은 막대
     const sv = day('2026-11-12T08:30:00'); sv.punch(); at(sv, '2026-11-12T12:00:00'); sv.punch();
     sv.setState({ earlyPick: 'no_work' }); sv.saveReason();
