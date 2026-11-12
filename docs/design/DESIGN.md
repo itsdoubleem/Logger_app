@@ -269,8 +269,9 @@ the pill and a lamp on one line beside it, and the clock under them.
   that sheet carries the same undo as a black-outlined 44px button right under
   "your clock-out is already saved": `퇴근 취소 — 아직 근무 중`. The strip's clock
   waits while the sheet is open and starts when it is closed with 나중에. Like the
-  strip, the button is invisible and untappable for 0.5 s after the tap that opened
-  the sheet (a double tap on STOP lands on it on narrow phones), and it is held only
+  strip, the button starts invisible and untappable, but for the pad's own 1.5 s
+  (`TAP_GUARD`), not the strip's 0.5 s: on narrow phones it rises to where the pad
+  was, so a second press of STOP must not reach it. It is held only
   until the restored shift would pass 14 hours from clock-in.
 - `preview-punch-circle.html` is the approved preview (option 1, the matched
   green). `mockup-punch.png` is the bar design it replaced, and

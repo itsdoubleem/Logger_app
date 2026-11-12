@@ -6413,11 +6413,8 @@ class Component extends DCLogic {
     // 퇴근 취소 줄은 9.5초(0.5초 숨김 + 9초) 서 있으므로, 그 줄이 되돌릴 기록도 그만큼 남깁니다
     clearTimeout(this.outUndoT); clearTimeout(this.outUndoArmT);
     // 시트가 덮은 STOP(atIso: null)은 시트가 열려 있는 동안 되돌릴 기록을 쥐고 있습니다 — 타이머는 시트가 닫힐 때 겁니다.
-    // 걸어 두는 것은 하나: 0.5초 뒤 시트의 퇴근 취소를 보이게 다시 그리기(일찍 깨어나면 1초 시계가 그립니다).
-    if (outUndo && !outUndo.atIso) {
-      this.outUndoArmT = setTimeout(() => { if (!this.gone && this.sheetHoldsOutUndo()) this.setState({ outUndoArmedAt: Date.now() }); }, Component.STRIP_ARM + 1);
-      return;
-    }
+    // 걸어 두는 것은 하나: 두 번 톡 가드(1.5초)가 끝나면 시트의 퇴근 취소를 보이게 다시 그리기.
+    if (outUndo && !outUndo.atIso) { this.armSheetUndo(Component.TAP_GUARD + 1); return; }
     this.startOutUndo(outUndo);
   }
   startOutUndo(outUndo) {
@@ -6428,8 +6425,18 @@ class Component extends DCLogic {
       this.outUndoT = setTimeout(() => this.endOutUndo(), life);
     }
   }
-  sheetUndoArmed() {
-    return this.sheetHoldsOutUndo() && !(this.lastTap != null && performance.now() - this.lastTap < Component.STRIP_ARM);
+  // 줄의 0.5초(STRIP_ARM)가 아니라 패드의 1.5초(TAP_GUARD)입니다(리뷰 3회차 S3). 0.5초였을 때, STOP을 0.56–0.8초 뒤에
+  // 한 번 더 누른 손가락이 좁은 폰(320–360px)에서 이 단추에 떨어져 퇴근을 되돌렸습니다. 패드에게 1.5초 안의 두 번째는
+  // '같은 누름'이고, 이 단추는 패드가 있던 자리에 올라옵니다 — 같은 손가락을 같은 시간 동안 받지 않아야 합니다.
+  // 줄은 패드 아래에 서므로 0.5초 그대로입니다. 시트는 읽을 글이 있어 1.5초 뒤에 나타나도 늦지 않습니다.
+  sheetUndoArmed() { return this.sheetHoldsOutUndo() && !this.tapShielded(); }
+  // 가드가 끝나는 순간 단추를 그립니다. 일찍 깨어나면 남은 만큼 다시 겁니다(armInUndo와 같은 방식, 리뷰 N7).
+  armSheetUndo(ms) {
+    this.outUndoArmT = setTimeout(() => {
+      if (this.gone || !this.sheetHoldsOutUndo()) return;
+      if (this.sheetUndoArmed()) { this.setState({ outUndoArmedAt: Date.now() }); return; }
+      this.armSheetUndo(Math.max(1, Component.TAP_GUARD - (performance.now() - this.lastTap)) + 1);
+    }, ms);
   }
   // 시트가 쥐고 있는 퇴근 취소인가 — 이 STOP이 연 시트이고, 그 STOP의 기록이 아직 되돌릴 저장일 때(리뷰 M1)
   sheetHoldsOutUndo() {
@@ -8818,7 +8825,7 @@ class Component extends DCLogic {
       rsnUndoOutShow: this.sheetHoldsOutUndo(),
       // 리뷰 2회차 M2: STOP을 두 번 톡 치면 두 번째 손가락이 막 올라온 시트의 이 단추에 떨어졌습니다(340px 한국어,
       // 360px 크메르어, 320px — 150ms 간격의 진짜 터치). 기록이 걷히고 근무가 되살아나는데 근로자는 퇴근한 줄 압니다.
-      // 줄과 같은 규칙입니다: 방금 누른 손가락에서 0.5초 동안 자리만 차지하고 보이지 않으며(아흔일곱째 — 보이는데
+      // 줄과 같은 방식, 패드와 같은 시간입니다(S3): 방금 누른 손가락에서 1.5초 동안 자리만 차지하고 보이지 않으며(아흔일곱째 — 보이는데
       // 받지 않는 단추는 고장으로 읽힙니다), 보이는 것과 받는 것은 sheetUndoArmed() 하나입니다.
       rsnUndoOutVis: this.sheetUndoArmed() ? 'visible' : 'hidden',
       // 시트가 닫히며 패드가 보이면 손가락 아래에 STOP(다시 근무 중)이나 근무 종류 칸이 올 수 있습니다 — 같은 1.5초 가드
