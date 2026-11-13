@@ -2239,7 +2239,12 @@ class Component extends DCLogic {
   // 사람은 8시간이 기준이고, 그보다 짧은 사람은 하나도 달라지지 않습니다 — 한
   // 시간의 여유가 남아 있어서, 평소 8시간인 사람이 2분 늦어 7.5시간이 된 날은
   // 묻지 않습니다(출근은 30분 단위로 올림).
+  //
+  // 그 뚜껑은 '잔업 없는 하루'입니다(리뷰 S5, fullDayNet()): 8시간, 또는 근무조 시작부터
+  // 9시간 안에 설정의 휴게가 더 앉아 있는 공장이면 그만큼 적게 — 위의 7.5시간 공장에서
+  // 평소 21:00까지 하던 사람이 18:00에 간 날은 잔업만 빠진 날이지 조퇴가 아닙니다.
   static SHORT_FULL = 8;
+  static SHORT_SPAN = 9;
   static SHORT_FALLBACK = 6;
   static SHORT_MARGIN = 1;
   static SHORT_MIN_SAMPLES = 3;
@@ -4531,10 +4536,20 @@ class Component extends DCLogic {
     const i = Math.floor(xs.length / 2);
     return xs.length % 2 ? xs[i] : (xs[i - 1] + xs[i]) / 2;
   }
+  // ── 잔업 없는 하루의 실근무 · 설정에서 ──
+  // 온전한 하루는 '근무조 시작 + 9시간'입니다 — 8시간에 식사 1시간(제54조: 8시간이면 휴게 1시간 이상).
+  // 08:00이면 17:00, 21:00이면 06:00. 그 아홉 시간 안에 설정의 휴게가 얼마나 앉아 있느냐가 그 공장의
+  // 잔업 없는 하루입니다: 점심 하나면 8시간, 표 없는 저녁 휴게(17:00–17:30)가 더 있으면 7.5시간.
+  // 8시간을 넘지는 않습니다. 설정에 '퇴근 시각'은 여전히 없습니다 — 이것은 기준일 뿐, 계산에 쓰이지 않습니다.
+  fullDayNet(kind) {
+    const s = this.schedStart(kind);
+    return Math.min(Component.SHORT_FULL, this.calc(s, s + Component.SHORT_SPAN, kind, false).net);
+  }
   shortDayLimit(kind) {
     const n = this.normalNet(kind);
-    return n == null ? Component.SHORT_FALLBACK
-      : Math.min(Component.SHORT_FULL, Math.max(Component.SHORT_FALLBACK, n - Component.SHORT_MARGIN));
+    const own = n == null ? Component.SHORT_FALLBACK
+      : Math.max(Component.SHORT_FALLBACK, n - Component.SHORT_MARGIN);
+    return Math.min(this.fullDayNet(kind), own);
   }
   isShortDay(rec) {
     if (!rec || !rec.c || rec.type !== 'shift' || rec.review) return false;

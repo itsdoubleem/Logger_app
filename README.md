@@ -166,8 +166,9 @@ reconstructing hours-of-day. A session left open for days must still read correc
 the app refuses to auto-close and sends the user to the manual entry sheet.
 
 **Why a day was short (v2 only).** A punch-out more than an hour under the worker's own recent median for that shift
-kind — and never above 8 worked hours, so a day with less overtime than usual is not an
-early out — opens a popup offering twelve translated reasons in a dropdown,
+kind opens — but the line never rises above a day without overtime (9 clock hours from
+the shift start less the breaks set there, at most 8 worked hours), so a day with less
+overtime than usual is not an early out. Such a punch-out opens a popup offering twelve translated reasons in a dropdown,
 each carrying a legal classification: `employer` (no materials, a broken mould, no orders and
 the like) puts the day under Labor Standards Act Article 46, `worker` (leaving early by choice)
 does not, `other` routes an injury at work to industrial accident insurance. The

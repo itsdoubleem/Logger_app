@@ -321,7 +321,24 @@ console.log('\n== 조퇴 사유 · 언제 물어보는가 ==');
   // 떴습니다. 평소가 11시간이라 기준이 10시간까지 올라가 있었기 때문입니다. 온전한 하루는
   // 실근무 8시간입니다 — 21:00 출근이면 06:00, 08:00 출근이면 17:00. 그 뒤는 잔업이고,
   // 잔업을 덜 한 날은 조퇴가 아닙니다. 평소가 아무리 길어도 기준은 8시간에서 멈춥니다.
-  ok('평소가 10.5시간이어도 기준은 8시간에서 멈춥니다', c.shortDayLimit('day')===8, 'got '+c.shortDayLimit('day'));
+  // 리뷰 S5: 이 공장(휴게 두 번)에서는 잔업 없는 하루 09:00 → 18:00이 실근무 7.5시간입니다. 기준이 8시간이면
+  // 잔업만 빠진 그 하루를 또 조퇴로 묻습니다 — 고치려던 바로 그 불만입니다. 온전한 하루는 '출근 + 9시간'
+  // (8시간 + 식사 1시간)이고, 그 안의 휴게는 설정대로 빠집니다: 이 공장에서는 7.5시간.
+  ok('평소가 10.5시간이어도 기준은 잔업 없는 하루(7.5시간)에서 멈춥니다', c.shortDayLimit('day')===7.5, 'got '+c.shortDayLimit('day'));
+  ok('잔업 없이 09:00 → 18:00에 퇴근한 날은 묻지 않습니다',
+    !c.isShortDay({type:'shift',kind:'day',c:c.calc(9,18,'day',false)}), 'net='+c.calc(9,18,'day',false).net);
+  c.state.session={inIso:new Date('2026-08-11T09:00:00').toISOString()};
+  c.punch();
+  ok('STOP을 눌러도 시트가 뜨지 않습니다', c.state.session===null && c.state.reasonFor==null, 'reasonFor='+c.state.reasonFor);
+  c.state.extra=c.state.extra.filter(r=>r.day!==11);
+  { // 저녁 휴게에 '연장 시에만' 표가 붙어 있으면 그 하루는 8시간이고, 기준도 8시간입니다
+    const t=mk(V2,'2026-08-11T18:00:00');
+    t.state.settings.breaksDay=[{from:'11:30',to:'12:30'},{from:'17:00',to:'17:30',ot:true}];
+    [3,4,5,6,7].forEach(d=>t.state.extra.push({y:2026,m:8,day:d,kind:'day',type:'shift',c:t.calc(9,21,'day',false)}));
+    ok('표가 붙은 공장의 기준은 8시간', t.shortDayLimit('day')===8, 'got '+t.shortDayLimit('day'));
+    ok('09:00 → 18:00은 8시간, 묻지 않습니다', !t.isShortDay({type:'shift',kind:'day',c:t.calc(9,18,'day',false)}));
+    ok('09:00 → 17:30은 묻습니다', t.isShortDay({type:'shift',kind:'day',c:t.calc(9,17.5,'day',false)}));
+  }
   ok('잔업이 줄어든 8.5시간짜리 하루는 묻지 않습니다',
     !c.isShortDay({type:'shift',kind:'day',c:c.calc(9,19,'day',false)}), 'net='+c.calc(9,19,'day',false).net);
   ok('8시간을 못 채운 7시간짜리 하루는 묻습니다',
