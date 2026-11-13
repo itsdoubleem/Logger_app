@@ -165,8 +165,8 @@ fall back to each month's own last day.
 reconstructing hours-of-day. A session left open for days must still read correctly; over 24h
 the app refuses to auto-close and sends the user to the manual entry sheet.
 
-**Why a day was short (v2 only).** A punch-out below the worker's own recent median
-for that shift kind opens a popup offering twelve translated reasons in a dropdown,
+**Why a day was short (v2 only).** A punch-out short of a full day — 8 worked hours, or the worker's own recent
+median for that shift kind where that is lower; overtime not worked is never an early out — opens a popup offering twelve translated reasons in a dropdown,
 each carrying a legal classification: `employer` (no materials, a broken mould, no orders and
 the like) puts the day under Labor Standards Act Article 46, `worker` (leaving early by choice)
 does not, `other` routes an injury at work to industrial accident insurance. The

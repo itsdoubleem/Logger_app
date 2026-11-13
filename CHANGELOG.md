@@ -1,6 +1,6 @@
 # 근무기록 LOGGER — change log beyond V2.md
 
-One hundred and five entries, newest first — ninety-eight carry an ordinal (first … ninety-eighth),
+One hundred and six entries, newest first — ninety-nine carry an ordinal (first … ninety-ninth),
 the seven oldest predate the numbering. Each one is a bug found by **actually using the app on
 shift**, what changed, and — the part worth reading — *why it was that and not the
 obvious fix*. Most entries end with a **다음 사람에게** paragraph: the rule the bug
@@ -18,7 +18,8 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 
 ## Index
 
-- 2026-11-12 (latest, ninety-eighth) — 퇴근의 되돌리기는 여섯 칸 아래였습니다: 패드 아래 분홍 퇴근 취소 줄, 누르면 다시 근무 중
+- 2026-11-13 (latest, ninety-ninth) — 조퇴가 아닌데 조퇴를 물었습니다: 온전한 하루는 실근무 8시간, 그 뒤는 잔업
+- 2026-11-12 (ninety-eighth) — 퇴근의 되돌리기는 여섯 칸 아래였습니다: 패드 아래 분홍 퇴근 취소 줄, 누르면 다시 근무 중
 - 2026-11-11 (ninety-seventh) — 출근 취소 줄을 두 번 눌러야 했습니다: 가드 동안에는 보이지 않게
 - 2026-11-11 (ninety-sixth) — 출퇴근 단추가 로고의 시계가 되었습니다: 바늘을 빼고 START를 안에
 - 2026-11-11 (ninety-fifth) — 누르기 전에 묻지 않고, 누른 다음 9초 동안 되돌립니다: 초록 출근 취소 줄
@@ -124,7 +125,35 @@ the repo (`the twenty-third entry`), so the index below is keyed by ordinal.
 - 2026-08-13 — the service worker was hiding every update
 - 2026-08-13 (earlier) — 조퇴 사유 became a popup with a dropdown
 
-### 2026-11-12 (latest, ninety-eighth) — 퇴근의 되돌리기는 여섯 칸 아래였습니다: 패드 아래 분홍 퇴근 취소 줄, 누르면 다시 근무 중
+### 2026-11-13 (latest, ninety-ninth) — 조퇴가 아닌데 조퇴를 물었습니다: 온전한 하루는 실근무 8시간, 그 뒤는 잔업
+
+**21:00에 출근해 07:39에 퇴근했는데 '이 날은 근무시간을 다 채우지 못했습니다' 시트가 떴습니다** — 근로자의 말입니다.
+시트에는 `21:00 → 07:30 · 9.5h`라고 적혀 있었습니다. 9.5시간을 일한 사람에게 조퇴 사유를 묻고 있었습니다.
+
+계산은 틀리지 않았습니다. 기준이 틀렸습니다. `shortDayLimit()`은 근로자 자신의 평소(같은 조 최근 근무의 중앙값)에서
+한 시간을 뺀 값이었고, 12시간 2교대를 도는 사람의 평소는 11시간이라 기준이 **10시간**까지 올라가 있었습니다. 8시간을
+고정 기준으로 쓰지 않은 이유(평소가 7.5시간인 공장에서 매일 묻는 앱이 됩니다)는 옳았지만, 그 고침이 반대쪽으로는
+끝이 없었습니다: 평소가 길수록 '온전한 하루'도 같이 길어져서, 잔업을 한 시간 반 덜 한 날이 조퇴가 되었습니다.
+
+- **온전한 하루는 실근무 8시간입니다**(제50조②). 21:00 출근이면 06:00, 08:00 출근이면 17:00, 20:00 출근이면 05:00
+  (휴게 1시간). 그 뒤는 잔업이고, 잔업을 덜 한 날은 하루를 못 채운 날이 아닙니다. 기준은 이제
+  `min(8, 평소)`입니다(`Component.SHORT_FULL`). 8시간을 채운 날은 평소가 몇 시간이든 묻지 않습니다.
+- **한 시간의 여유(`SHORT_MARGIN`)는 없앴습니다.** 그 여유는 잔업 길이가 날마다 흔들리는 것을 받아 주려던 것인데,
+  이제 잔업은 기준 밖입니다. 8시간에 못 미치면 — 7.5시간이어도 — 묻습니다. 근로자가 정한 선입니다.
+- **평소가 8시간에 못 미치는 공장은 그대로입니다.** 휴게 두 번에 실근무 7.5시간인 공장은 7.5시간이 기준이고, 그
+  하루는 묻지 않습니다. 평소를 모르는 처음 세 번의 6시간도 그대로입니다.
+- **제46조 줄도 같은 선을 씁니다**(`isEmployerShort()` → `isShortDay()`). 회사 사정 사유가 붙어 있어도 실근무 8시간을
+  채운 날에는 휴업수당 차액 줄이 서지 않습니다. 소정근로를 다 한 날은 휴업이 아닙니다.
+- 알고 받아들인 값: 근무 도중 잘못 눌린 STOP이 8시간을 넘긴 뒤라면 시트(와 그 안의 퇴근 취소)는 뜨지 않습니다.
+  되돌리기는 패드 아래 분홍 퇴근 취소 줄의 9초가 맡습니다(아흔여덟째).
+- 13 new assertions (3877 total): 그 아침 그대로의 `punch()`(21:00 → 07:39, 시트 없음), 48개 출근 시각 × 주야에서 8시간이
+  경계인지, 08:00/20:00 시작에서 17:00/05:00, 그리고 7.5시간 공장.
+
+**다음 사람에게.** 근로자의 평소에 맞추는 기준은 한쪽 끝만 보고 만들면 다른 쪽 끝에서 샙니다. '평소가 짧은 사람을
+붙잡지 않으려고' 만든 값이 평소가 긴 사람을 붙잡았습니다. 적응하는 값에는 위아래 두 개의 못이 다 있어야 합니다 —
+아래는 6시간, 위는 법이 정한 8시간.
+
+### 2026-11-12 (ninety-eighth) — 퇴근의 되돌리기는 여섯 칸 아래였습니다: 패드 아래 분홍 퇴근 취소 줄, 누르면 다시 근무 중
 
 **STOP을 누르면 되돌리기 막대가 근무 종류 여섯 칸 아래에 떴습니다** — 근로자의 말입니다. 폰에서 그 자리는 STOP을
 누른 손가락과 눈이 있는 패드에서 화면 하나 아래입니다. 아흔다섯째가 START의 되돌리기를 패드 바로 아래, '이미
