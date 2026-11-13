@@ -372,6 +372,29 @@ console.log('\n== 조퇴 사유 · 언제 물어보는가 ==');
   ok('08:00 → 16:30은 묻습니다', d.isShortDay({type:'shift',kind:'day',c:d.calc(8,16.5,'day',false)}));
   ok('20:00 → 04:30은 묻습니다', d.isShortDay({type:'shift',kind:'night',c:d.calc(20,28.5,'night',false)}));
 }
+{ // 리뷰 S4: 하루를 다 채운 날(21:00 → 07:30, 9.5시간)에 근무기록 줄에서 회사 사정 사유를 달면, 시트는
+  // '짧아진 날 · 제46조 70% 보장(금액)'이라고 말하는데 근무기록 줄과 근무내역서에는 제46조 줄이 없었습니다.
+  // 같은 날에 대해 앱이 두 가지를 말하면 안 됩니다 — 시트도 isShortDay()를 봅니다.
+  const c=mk(V2,'2026-11-13T09:00:00');
+  c.state.settings.shifts='both';
+  [2,3,4,5,6,9,10,11].forEach(d=>c.state.extra.push(
+    {y:2026,m:11,day:d,kind:'night',type:'shift',inH:21,outH:33,c:c.calc(21,33,'night',false)}));
+  const full={y:2026,m:11,day:12,kind:'night',type:'shift',inH:21,outH:31.5,c:c.calc(21,31.5,'night',false)};
+  c.state.extra.push(full);
+  c.openReason(full); c.pickReason('machine');
+  const fx=c.renderVals().rsnEffect, amt=c.won(c.shutdownPay(c.reasonDate(), c.wageOn(c.reasonDate())));
+  ok('다 채운 날의 회사 사정 문장은 따로 있습니다', fx===c.T('rsn_fx_employer_full'), fx.slice(0,80));
+  ok('그 문장은 70% 금액을 말하지 않습니다', !fx.includes(amt) && !fx.includes('70'), fx.slice(0,80));
+  ok('근무기록 줄과 같은 말입니다 — 제46조가 걸리지 않는 날', !c.isEmployerShort(Object.assign({},full,{reason:{id:'machine',fault:'employer'}})));
+  c.closeReason();
+  const cut={y:2026,m:11,day:13,kind:'night',type:'shift',inH:21,outH:25,c:c.calc(21,25,'night',false)};
+  c.state.extra.push(cut);
+  c.openReason(cut); c.pickReason('machine');
+  const fx2=c.renderVals().rsnEffect;
+  ok('짧은 날에는 예전 그대로 70% 금액을 말합니다', fx2.includes(amt) && fx2!==c.T('rsn_fx_employer_full'), fx2.slice(0,80));
+  ['ko','en','vi','zh','th','id','ne','km'].forEach(L=>{ const t=V2.STR.rsn_fx_employer_full||{};
+    ok(L+' 다 채운 날 문장이 있고 46을 말합니다', typeof t[L]==='string' && t[L].includes('46') && !t[L].includes('70'), String(t[L]).slice(0,40)); });
+}
 { // 평소 8시간인 사람이 2분 늦은 날(09:02 → 18:00, 7.5시간)은 묻지 않습니다 — 한 시간의 여유는 그대로입니다
   const c=mk(V2,'2026-08-11T18:00:00');
   [3,4,5,6,7].forEach(d=>c.state.extra.push(
