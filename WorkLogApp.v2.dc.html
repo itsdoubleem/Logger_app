@@ -4549,7 +4549,8 @@ class Component extends DCLogic {
     const n = this.normalNet(kind);
     const own = n == null ? Component.SHORT_FALLBACK
       : Math.max(Component.SHORT_FALLBACK, n - Component.SHORT_MARGIN);
-    return Math.min(this.fullDayNet(kind), own);
+    // 잘못 적힌 긴 휴게가 뚜껑을 6시간 아래로 끌어내리지 않게 합니다
+    return Math.min(Math.max(Component.SHORT_FALLBACK, this.fullDayNet(kind)), own);
   }
   isShortDay(rec) {
     if (!rec || !rec.c || rec.type !== 'shift' || rec.review) return false;
@@ -7485,7 +7486,9 @@ class Component extends DCLogic {
           // 하루를 다 채운 날에는 제46조 문장을 쓰지 않습니다 — 근무기록 줄과 근무내역서가 그 날에
           // 제46조 줄을 세우지 않으므로(isEmployerShort), 시트만 70%를 말하면 같은 날에 두 말을 합니다(리뷰 S4).
           const e = this.month().filter(r => this.key(r) === this.state.reasonFor)[0];
-          if (e && e.c && e.type === 'shift' && !e.review && !this.isShortDay(e)) return this.T('rsn_fx_employer_full');
+          // '다 채운 날'은 묻는 선(isShortDay — 평소 − 1시간)이 아니라 잔업 없는 하루를 실제로 채운 날입니다.
+          // 그 사이의 날(평소 8시간에 7시간)은 짧아진 날이므로 예전 문장 그대로입니다(리뷰 2회차 M1).
+          if (e && e.c && e.type === 'shift' && !e.review && e.c.net >= this.fullDayNet(e.kind) - 1e-9) return this.T('rsn_fx_employer_full');
           const d = this.reasonDate(); return this.T('rsn_fx_employer', { p0: this.won(this.shutdownPay(d, this.wageOn(d))) });
         }
         if (f === 'worker') return this.T('rsn_fx_worker');

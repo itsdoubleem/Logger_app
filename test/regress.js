@@ -412,6 +412,38 @@ console.log('\n== 조퇴 사유 · 언제 물어보는가 ==');
   ['ko','en','vi','zh','th','id','ne','km'].forEach(L=>{ const t=V2.STR.rsn_fx_employer_full||{};
     ok(L+' 다 채운 날 문장이 있고 46을 말합니다', typeof t[L]==='string' && t[L].includes('46') && !t[L].includes('70'), String(t[L]).slice(0,40)); });
 }
+{ // 리뷰 2회차 M1: '하루를 다 채운 날' 문장을 isShortDay()로 골랐더니 — 그것은 '묻는 선'(평소 − 1시간, 처음엔
+  // 6시간)이지 온전한 하루가 아닙니다 — 기계 고장으로 일찍 돌려보내진 7시간짜리 하루에 '다 채운 날, 차액 없음'이라고
+  // 말했습니다. 그 문장은 잔업 없는 하루(fullDayNet)를 실제로 채운 날에만 씁니다.
+  const c=mk(V2,'2026-08-11T18:00:00');
+  [3,4,5,6,7].forEach(d=>c.state.extra.push(
+    {y:2026,m:8,day:d,kind:'day',type:'shift',inH:9,outH:18,c:c.calc(9,18,'day',false)}));
+  const fxOf=(day,outH)=>{ const r={y:2026,m:8,day,kind:'day',type:'shift',inH:9,outH,c:c.calc(9,outH,'day',false)};
+    c.state.extra.push(r); c.openReason(r); c.pickReason('machine'); const v=c.renderVals().rsnEffect; c.closeReason(); return v; };
+  ok('평소 8시간 · 7시간짜리 하루에 다 채웠다고 말하지 않습니다', fxOf(10,17)!==c.T('rsn_fx_employer_full'));
+  ok('7.5시간짜리 하루에도', fxOf(11,17.5)!==c.T('rsn_fx_employer_full'));
+  ok('8시간을 채운 날에는 그 문장입니다', fxOf(12,18)===c.T('rsn_fx_employer_full'));
+  const n=mk(V2,'2026-08-11T18:00:00');
+  const r={y:2026,m:8,day:10,kind:'day',type:'shift',inH:9,outH:16,c:n.calc(9,16,'day',false)};
+  n.state.extra.push(r); n.openReason(r); n.pickReason('machine');
+  ok('새로 깐 앱의 6시간짜리 하루에도 다 채웠다고 말하지 않습니다', n.renderVals().rsnEffect!==n.T('rsn_fx_employer_full'));
+  // N12: 잘못 적힌 휴게(13:00–12:00, 12:00–16:00)가 기준을 6시간 아래로 끌어내리지 않습니다
+  n.state.settings.breaksDay=[{from:'12:00',to:'16:00'}];
+  ok('긴 휴게가 있어도 기준은 6시간 아래로 가지 않습니다', n.shortDayLimit('day')===6, 'got '+n.shortDayLimit('day'));
+  // N15: 잔업 없는 하루 — 휴게 없음 8, 30분에 걸치지 않은 시작(08:20)은 반올림 때문에 7.5
+  n.state.settings.breaksDay=[]; ok('휴게가 없으면 8시간', n.fullDayNet('day')===8, 'got '+n.fullDayNet('day'));
+  n.state.settings.breaksDay=[{from:'12:00',to:'13:00'}]; n.state.settings.dayStart='08:20';
+  ok('08:20 시작은 7.5시간(08:30 → 17:00)', n.fullDayNet('day')===7.5, 'got '+n.fullDayNet('day'));
+}
+{ // 리뷰 2회차 S6: 휴게 두 번인 공장에서 회사 사정으로 09:00 → 18:00(7.5시간)에 끝난 날은 이제 잔업 없는 온전한
+  // 하루입니다 — 제46조 줄도 차액도 없습니다. 17:00에 끝난 날(6.5시간)에는 그대로 있습니다.
+  const c=mk(V2,'2026-08-11T18:00:00');
+  c.state.settings.breaksDay=[{from:'11:30',to:'12:30'},{from:'17:00',to:'17:30'}];
+  [3,4,5,6,7].forEach(d=>c.state.extra.push({y:2026,m:8,day:d,kind:'day',type:'shift',c:c.calc(9,21,'day',false)}));
+  const rs={id:'machine',fault:'employer',ko:'기계 고장'};
+  ok('잔업 없는 하루에는 차액이 없습니다', c.partialShort({y:2026,m:8,day:10,kind:'day',type:'shift',c:c.calc(9,18,'day',false),reason:rs})===0);
+  ok('한 시간 일찍 끝난 날에는 제46조가 걸립니다', c.isEmployerShort({y:2026,m:8,day:11,kind:'day',type:'shift',c:c.calc(9,17,'day',false),reason:rs}));
+}
 { // 평소 8시간인 사람이 2분 늦은 날(09:02 → 18:00, 7.5시간)은 묻지 않습니다 — 한 시간의 여유는 그대로입니다
   const c=mk(V2,'2026-08-11T18:00:00');
   [3,4,5,6,7].forEach(d=>c.state.extra.push(
