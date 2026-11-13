@@ -2221,9 +2221,9 @@ class Component extends DCLogic {
   // 지극히 정상인 하루가 8시간에 미달합니다. 소정근로시간은 회사마다 다르므로
   // 고정된 숫자로는 맞출 수 없습니다.
   //
-  // 그래서 기준은 근로자 자신의 평소입니다 — 최근 같은 조 근무의 중앙값.
-  // 매일 7.5시간을 하던 사람에게 4시간짜리 하루는 분명한 사건이고,
-  // 7.5시간짜리 하루는 아무것도 아닙니다.
+  // 그래서 기준은 근로자 자신의 평소입니다. 최근 같은 조 근무의 중앙값보다
+  // 한 시간 넘게 짧으면 묻습니다. 매일 7.5시간을 하던 사람에게 4시간짜리
+  // 하루는 분명한 사건이고, 7.5시간짜리 하루는 아무것도 아닙니다.
   //
   // 기록이 세 번에 못 미쳐 '평소'를 모르는 동안에는 6시간 — 어느 공장에서도
   // 온전한 하루가 아닌 선 — 만 씁니다. 새로 깐 앱이 정상인 하루를 붙잡고
@@ -2235,10 +2235,13 @@ class Component extends DCLogic {
   // 21:00 → 07:30의 9.5시간짜리 야간이 '조퇴'가 되어 사유를 물었습니다. 온전한
   // 하루는 실근무 8시간(제50조②)입니다 — 21:00 출근이면 06:00, 08:00 출근이면
   // 17:00. 그 뒤는 잔업이고, 잔업을 덜 한 날은 하루를 못 채운 날이 아닙니다.
-  // 8시간을 다 채운 날은 묻지 않으므로 한 시간의 여유도 필요 없습니다. 평소가
-  // 8시간에 못 미치는 공장(위의 7.5시간)만 예전처럼 자기 평소가 기준입니다.
+  // 예전 기준(평소 − 1시간)에 8시간짜리 뚜껑만 씌웠습니다: 평소가 9시간을 넘는
+  // 사람은 8시간이 기준이고, 그보다 짧은 사람은 하나도 달라지지 않습니다 — 한
+  // 시간의 여유가 남아 있어서, 평소 8시간인 사람이 2분 늦어 7.5시간이 된 날은
+  // 묻지 않습니다(출근은 30분 단위로 올림).
   static SHORT_FULL = 8;
   static SHORT_FALLBACK = 6;
+  static SHORT_MARGIN = 1;
   static SHORT_MIN_SAMPLES = 3;
   static SHORT_SAMPLE = 10;
 
@@ -4531,7 +4534,7 @@ class Component extends DCLogic {
   shortDayLimit(kind) {
     const n = this.normalNet(kind);
     return n == null ? Component.SHORT_FALLBACK
-      : Math.max(Component.SHORT_FALLBACK, Math.min(Component.SHORT_FULL, n));
+      : Math.min(Component.SHORT_FULL, Math.max(Component.SHORT_FALLBACK, n - Component.SHORT_MARGIN));
   }
   isShortDay(rec) {
     if (!rec || !rec.c || rec.type !== 'shift' || rec.review) return false;
