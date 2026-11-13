@@ -430,6 +430,11 @@ console.log('\n== 조퇴 사유 · 언제 물어보는가 ==');
   // N12: 잘못 적힌 휴게(13:00–12:00, 12:00–16:00)가 기준을 6시간 아래로 끌어내리지 않습니다
   n.state.settings.breaksDay=[{from:'12:00',to:'16:00'}];
   ok('긴 휴게가 있어도 기준은 6시간 아래로 가지 않습니다', n.shortDayLimit('day')===6, 'got '+n.shortDayLimit('day'));
+  // 리뷰 3회차 S8: 시트의 문장도 같은 바닥을 봅니다 — 그 설정의 09:00 → 18:00(5시간)은 다 채운 날이 아닙니다
+  { const r5={y:2026,m:8,day:9,kind:'day',type:'shift',inH:9,outH:18,c:n.calc(9,18,'day',false)};
+    n.state.extra.push(r5); n.openReason(r5); n.pickReason('machine');
+    ok('5시간짜리 하루에 다 채웠다고 말하지 않습니다', r5.c.net===5 && n.renderVals().rsnEffect!==n.T('rsn_fx_employer_full'), 'net='+r5.c.net);
+    n.closeReason(); }
   // N15: 잔업 없는 하루 — 휴게 없음 8, 30분에 걸치지 않은 시작(08:20)은 반올림 때문에 7.5
   n.state.settings.breaksDay=[]; ok('휴게가 없으면 8시간', n.fullDayNet('day')===8, 'got '+n.fullDayNet('day'));
   n.state.settings.breaksDay=[{from:'12:00',to:'13:00'}]; n.state.settings.dayStart='08:20';

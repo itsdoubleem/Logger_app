@@ -4543,14 +4543,14 @@ class Component extends DCLogic {
   // 8시간을 넘지는 않습니다. 설정에 '퇴근 시각'은 여전히 없습니다 — 이것은 기준일 뿐, 계산에 쓰이지 않습니다.
   fullDayNet(kind) {
     const s = this.schedStart(kind);
-    return Math.min(Component.SHORT_FULL, this.calc(s, s + Component.SHORT_SPAN, kind, false).net);
+    // 6시간 아래로는 가지 않습니다 — 잘못 적힌 긴 휴게(12:00–16:00)가 5시간짜리 하루를 '온전한 하루'로 만들지 않게.
+    return Math.max(Component.SHORT_FALLBACK, Math.min(Component.SHORT_FULL, this.calc(s, s + Component.SHORT_SPAN, kind, false).net));
   }
   shortDayLimit(kind) {
     const n = this.normalNet(kind);
     const own = n == null ? Component.SHORT_FALLBACK
       : Math.max(Component.SHORT_FALLBACK, n - Component.SHORT_MARGIN);
-    // 잘못 적힌 긴 휴게가 뚜껑을 6시간 아래로 끌어내리지 않게 합니다
-    return Math.min(Math.max(Component.SHORT_FALLBACK, this.fullDayNet(kind)), own);
+    return Math.min(this.fullDayNet(kind), own);
   }
   isShortDay(rec) {
     if (!rec || !rec.c || rec.type !== 'shift' || rec.review) return false;
