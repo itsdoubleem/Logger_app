@@ -2027,6 +2027,10 @@
     "en": "The company's side made this day short. LSA §46 — an employer-caused shutdown guarantees at least 70% of a day's average wage ({p0}), and this day is not your annual leave.",
     "ko": "회사 사정으로 짧아진 날입니다. 근로기준법 제46조 — 사업주 귀책 휴업은 1일 평균임금의 70% 이상({p0})을 보장하며, 이 날은 연차가 아닙니다."
   },
+  "rsn_fx_employer_full": {
+    "en": "Recorded as the company's side. This day ran its full hours, so it is not counted as an LSA §46 shutdown day and there is no difference to add for this day.",
+    "ko": "회사 사정으로 기록됩니다. 하루를 다 채운 날이라 근로기준법 제46조 휴업으로 계산하지 않으며, 이 날의 차액은 없습니다."
+  },
   "rsn_fx_injury": {
     "en": "An injury at work is an industrial accident — it goes through 산재보험, not the shutdown allowance, and pays medical costs and its own leave benefit. Tell your company.",
     "ko": "업무 중 부상은 산업재해입니다 — 휴업수당이 아니라 산재보험으로 처리되고, 치료비와 휴업급여가 따로 나옵니다. 회사에 반드시 알리세요."

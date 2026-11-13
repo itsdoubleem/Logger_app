@@ -473,6 +473,7 @@
   "rsn_defect": "Produk cacat — produksi berhenti",
   "rsn_edit_title": "Alasan untuk hari ini",
   "rsn_fx_employer": "Hari ini jadi pendek karena pihak perusahaan. Pasal 46 — penghentian kerja yang disebabkan pemberi kerja dijamin minimal 70% upah rata-rata harian ({p0}), dan hari ini bukan cuti tahunan Anda.",
+  "rsn_fx_employer_full": "Dicatat sebagai alasan dari pihak perusahaan. Hari ini jam kerjanya sudah penuh, jadi tidak dihitung sebagai hari penghentian kerja menurut Pasal 46, dan tidak ada selisih untuk hari ini.",
   "rsn_fx_injury": "Cedera saat bekerja adalah kecelakaan kerja — diurus lewat 산재보험, bukan tunjangan penghentian kerja, dan menanggung biaya pengobatan serta tunjangan tersendiri. Wajib laporkan ke perusahaan.",
   "rsn_fx_other": "Hari ini perlu dilihat secara terpisah.",
   "rsn_fx_weather": "Bencana alam mungkin bukan kesalahan pemberi kerja. Tetapi untuk membayar kurang dari tunjangan penghentian kerja, perusahaan harus mendapat persetujuan Komisi Ketenagakerjaan (Pasal 46②).",

@@ -300,7 +300,7 @@ console.log('\n== 8~20세 자녀 추가공제 ==');
 }
 
 console.log('\n== 조퇴 사유 · 언제 물어보는가 ==');
-{ // 하루가 짧은지는 고정된 8시간이 아니라 근로자 자신의 평소로 판단합니다.
+{ // 하루가 짧은지는 근로자 자신의 평소(− 1시간)로 판단하되, 8시간을 넘지 않습니다.
   // 이 공장의 주간조는 09:00-18:00에 휴게가 두 번이라 정상인 하루가 7.5시간입니다 —
   // 8시간을 기준으로 잡으면 매일 물어보는 앱이 됩니다. (앱의 기본 휴게는 점심
   // 하나뿐이므로, 그 공장의 휴게 두 개를 여기서 직접 넣고 시작합니다.)
@@ -313,17 +313,161 @@ console.log('\n== 조퇴 사유 · 언제 물어보는가 ==');
     !c.isShortDay({type:'shift',kind:'day',c:c.calc(9,18,'day',false)}));
   ok('4시간짜리 하루는 기록이 없어도 묻습니다',
     c.isShortDay({type:'shift',kind:'day',c:c.calc(9,14,'day',false)}));
-  // 매일 10.5시간을 하던 사람에게는 기준이 따라 올라갑니다
+  // 매일 10.5시간을 하던 사람에게는 기준이 따라 올라가다가 8시간에서 멈춥니다
   [3,4,5,6,7].forEach(d=>c.state.extra.push(
     {y:2026,m:8,day:d,kind:'day',type:'shift',c:c.calc(9,21,'day',false)}));
   ok('평소 10.5시간이 잡힙니다', c.normalNet('day')===10.5, 'got '+c.normalNet('day'));
-  ok('기준이 9.5시간으로 올라갑니다', c.shortDayLimit('day')===9.5, 'got '+c.shortDayLimit('day'));
-  ok('잔업이 없어진 8.5시간짜리 하루도 묻습니다',
-    c.isShortDay({type:'shift',kind:'day',c:c.calc(9,19,'day',false)}), 'net='+c.calc(9,19,'day',false).net);
+  // 2026-11-13(아흔아홉째): 21:00에 출근해 07:39에 퇴근한 9.5시간짜리 야간에 '조퇴' 시트가
+  // 떴습니다. 평소가 11시간이라 기준이 10시간까지 올라가 있었기 때문입니다. 온전한 하루는
+  // 실근무 8시간입니다 — 21:00 출근이면 06:00, 08:00 출근이면 17:00. 그 뒤는 잔업이고,
+  // 잔업을 덜 한 날은 조퇴가 아닙니다. 평소가 아무리 길어도 기준은 8시간에서 멈춥니다.
+  // 리뷰 S5: 이 공장(휴게 두 번)에서는 잔업 없는 하루 09:00 → 18:00이 실근무 7.5시간입니다. 기준이 8시간이면
+  // 잔업만 빠진 그 하루를 또 조퇴로 묻습니다 — 고치려던 바로 그 불만입니다. 온전한 하루는 '출근 + 9시간'
+  // (8시간 + 식사 1시간)이고, 그 안의 휴게는 설정대로 빠집니다: 이 공장에서는 7.5시간.
+  ok('평소가 10.5시간이어도 기준은 잔업 없는 하루(7.5시간)에서 멈춥니다', c.shortDayLimit('day')===7.5, 'got '+c.shortDayLimit('day'));
+  ok('잔업 없이 09:00 → 18:00에 퇴근한 날은 묻지 않습니다',
+    !c.isShortDay({type:'shift',kind:'day',c:c.calc(9,18,'day',false)}), 'net='+c.calc(9,18,'day',false).net);
+  c.state.session={inIso:new Date('2026-08-11T09:00:00').toISOString()};
+  c.punch();
+  ok('STOP을 눌러도 시트가 뜨지 않습니다', c.state.session===null && c.state.reasonFor==null, 'reasonFor='+c.state.reasonFor);
+  c.state.extra=c.state.extra.filter(r=>r.day!==11);
+  { // 저녁 휴게에 '연장 시에만' 표가 붙어 있으면 그 하루는 8시간이고, 기준도 8시간입니다
+    const t=mk(V2,'2026-08-11T18:00:00');
+    t.state.settings.breaksDay=[{from:'11:30',to:'12:30'},{from:'17:00',to:'17:30',ot:true}];
+    [3,4,5,6,7].forEach(d=>t.state.extra.push({y:2026,m:8,day:d,kind:'day',type:'shift',c:t.calc(9,21,'day',false)}));
+    ok('표가 붙은 공장의 기준은 8시간', t.shortDayLimit('day')===8, 'got '+t.shortDayLimit('day'));
+    ok('09:00 → 18:00은 8시간, 묻지 않습니다', !t.isShortDay({type:'shift',kind:'day',c:t.calc(9,18,'day',false)}));
+    ok('09:00 → 17:30은 묻습니다', t.isShortDay({type:'shift',kind:'day',c:t.calc(9,17.5,'day',false)}));
+  }
+  ok('잔업이 줄어든 8.5시간짜리 하루는 묻지 않습니다',
+    !c.isShortDay({type:'shift',kind:'day',c:c.calc(9,19,'day',false)}), 'net='+c.calc(9,19,'day',false).net);
+  ok('8시간을 못 채운 7시간짜리 하루는 묻습니다',
+    c.isShortDay({type:'shift',kind:'day',c:c.calc(9,17.5,'day',false)}), 'net='+c.calc(9,17.5,'day',false).net);
   ok('평소대로 10.5시간이면 묻지 않습니다',
     !c.isShortDay({type:'shift',kind:'day',c:c.calc(9,21,'day',false)}));
   // 야간조는 야간조끼리 — 조가 다르면 평소도 다릅니다
   ok('야간은 따로 셉니다', c.normalNet('night')===null);
+}
+{ // 그 아침 그대로: 12시간 2교대(21:00–09:00, 실근무 11시간)를 돌던 사람이 07:39에 퇴근합니다.
+  const c=mk(V2,'2026-11-13T07:39:00');
+  c.state.settings.shifts='both';
+  [2,3,4,5,6,9,10,11].forEach(d=>c.state.extra.push(
+    {y:2026,m:11,day:d,kind:'night',type:'shift',c:c.calc(21,33,'night',false)}));
+  ok('평소 야간은 8시간을 넘습니다', c.normalNet('night')>8, 'got '+c.normalNet('night'));
+  c.state.session={inIso:new Date('2026-11-12T21:00:00').toISOString()};
+  c.punch();
+  ok('퇴근은 기록됩니다', c.state.session===null && c.state.extra.some(r=>r.m===11&&r.day===12));
+  ok('21:00 → 07:39는 조퇴가 아닙니다 — 시트가 뜨지 않습니다', c.state.reasonFor==null, 'reasonFor='+c.state.reasonFor);
+  // 출근과 퇴근이 어디에 놓이든: 실근무 8시간이 찼으면 묻지 않고, 못 찼으면 묻습니다.
+  // 휴게를 지우고 재면 '출근 + 8시간'이 그대로 경계입니다(20:00 → 04:00, 08:00 → 16:00 …).
+  // (주간의 평소도 알려 둡니다 — 평소를 모르는 처음 세 번은 따로 6시간 기준입니다.)
+  [2,3,4,5,6].forEach(d=>c.state.extra.push(
+    {y:2026,m:10,day:d,kind:'day',type:'shift',c:c.calc(9,21,'day',false)}));
+  c.state.settings.breaksDay=[]; c.state.settings.breaksNight=[];
+  // STOP을 실제로 눌러서 잽니다 — 반올림, 주야 판정, 이상한 근무 카드까지 지나가도록.
+  let bad=[];
+  for(let i=0;i<48;i++){
+    [[8,false],[10.5,false],[7.5,true]].forEach(([len,ask])=>{
+      const inD=new Date(2026,10,16,0,i*30), outD=new Date(inD.getTime()+len*3600000);
+      const p=mk(V2,outD.toISOString());
+      p.state.settings=JSON.parse(JSON.stringify(c.state.settings));
+      p.state.extra=c.state.extra.slice();
+      p.state.session={inIso:inD.toISOString()};
+      p.punch(); if(p.state.oddOut) p.punch({odd:{at:outD}});
+      if(p.state.session!==null || (p.state.reasonFor!=null)!==ask) bad.push(i/2+'+'+len);
+    });
+  }
+  ok('어느 시각에 출근해도 8시간이 경계입니다 (48개 시각 × 8h·10.5h·7.5h)', bad.length===0, bad.join(' '));
+  // 휴게가 있는 평소 설정에서도: 08:00 → 17:00, 20:00 → 05:00이 온전한 하루입니다
+  const d=mk(V2,'2026-11-13T17:00:00');
+  d.state.settings.shifts='both'; d.state.settings.dayStart='08:00'; d.state.settings.nightStart='20:00';
+  d.state.settings.breaksDay=[{from:'12:00',to:'13:00'}]; d.state.settings.breaksNight=[{from:'00:00',to:'01:00'}];
+  [2,3,4,5,6].forEach(x=>{ d.state.extra.push({y:2026,m:11,day:x,kind:'day',type:'shift',c:d.calc(8,20,'day',false)});
+    d.state.extra.push({y:2026,m:10,day:x,kind:'night',type:'shift',c:d.calc(20,32,'night',false)}); });
+  ok('08:00 → 17:00은 온전한 하루', !d.isShortDay({type:'shift',kind:'day',c:d.calc(8,17,'day',false)}));
+  ok('20:00 → 05:00은 온전한 하루', !d.isShortDay({type:'shift',kind:'night',c:d.calc(20,29,'night',false)}));
+  ok('08:00 → 16:30은 묻습니다', d.isShortDay({type:'shift',kind:'day',c:d.calc(8,16.5,'day',false)}));
+  ok('20:00 → 04:30은 묻습니다', d.isShortDay({type:'shift',kind:'night',c:d.calc(20,28.5,'night',false)}));
+}
+{ // 리뷰 S4: 하루를 다 채운 날(21:00 → 07:30, 9.5시간)에 근무기록 줄에서 회사 사정 사유를 달면, 시트는
+  // '짧아진 날 · 제46조 70% 보장(금액)'이라고 말하는데 근무기록 줄과 근무내역서에는 제46조 줄이 없었습니다.
+  // 같은 날에 대해 앱이 두 가지를 말하면 안 됩니다 — 시트도 isShortDay()를 봅니다.
+  const c=mk(V2,'2026-11-13T09:00:00');
+  c.state.settings.shifts='both';
+  [2,3,4,5,6,9,10,11].forEach(d=>c.state.extra.push(
+    {y:2026,m:11,day:d,kind:'night',type:'shift',inH:21,outH:33,c:c.calc(21,33,'night',false)}));
+  const full={y:2026,m:11,day:12,kind:'night',type:'shift',inH:21,outH:31.5,c:c.calc(21,31.5,'night',false)};
+  c.state.extra.push(full);
+  c.openReason(full); c.pickReason('machine');
+  const fx=c.renderVals().rsnEffect, amt=c.won(c.shutdownPay(c.reasonDate(), c.wageOn(c.reasonDate())));
+  ok('다 채운 날의 회사 사정 문장은 따로 있습니다', fx===c.T('rsn_fx_employer_full'), fx.slice(0,80));
+  ok('그 문장은 70% 금액을 말하지 않습니다', !fx.includes(amt) && !fx.includes('70'), fx.slice(0,80));
+  ok('근무기록 줄과 같은 말입니다 — 제46조가 걸리지 않는 날', !c.isEmployerShort(Object.assign({},full,{reason:{id:'machine',fault:'employer'}})));
+  c.closeReason();
+  const cut={y:2026,m:11,day:13,kind:'night',type:'shift',inH:21,outH:25,c:c.calc(21,25,'night',false)};
+  c.state.extra.push(cut);
+  c.openReason(cut); c.pickReason('machine');
+  const fx2=c.renderVals().rsnEffect;
+  ok('짧은 날에는 예전 그대로 70% 금액을 말합니다', fx2.includes(amt) && fx2!==c.T('rsn_fx_employer_full'), fx2.slice(0,80));
+  ['ko','en','vi','zh','th','id','ne','km'].forEach(L=>{ const t=V2.STR.rsn_fx_employer_full||{};
+    ok(L+' 다 채운 날 문장이 있고 46을 말합니다', typeof t[L]==='string' && t[L].includes('46') && !t[L].includes('70'), String(t[L]).slice(0,40)); });
+}
+{ // 리뷰 2회차 M1: '하루를 다 채운 날' 문장을 isShortDay()로 골랐더니 — 그것은 '묻는 선'(평소 − 1시간, 처음엔
+  // 6시간)이지 온전한 하루가 아닙니다 — 기계 고장으로 일찍 돌려보내진 7시간짜리 하루에 '다 채운 날, 차액 없음'이라고
+  // 말했습니다. 그 문장은 잔업 없는 하루(fullDayNet)를 실제로 채운 날에만 씁니다.
+  const c=mk(V2,'2026-08-11T18:00:00');
+  [3,4,5,6,7].forEach(d=>c.state.extra.push(
+    {y:2026,m:8,day:d,kind:'day',type:'shift',inH:9,outH:18,c:c.calc(9,18,'day',false)}));
+  const fxOf=(day,outH)=>{ const r={y:2026,m:8,day,kind:'day',type:'shift',inH:9,outH,c:c.calc(9,outH,'day',false)};
+    c.state.extra.push(r); c.openReason(r); c.pickReason('machine'); const v=c.renderVals().rsnEffect; c.closeReason(); return v; };
+  ok('평소 8시간 · 7시간짜리 하루에 다 채웠다고 말하지 않습니다', fxOf(10,17)!==c.T('rsn_fx_employer_full'));
+  ok('7.5시간짜리 하루에도', fxOf(11,17.5)!==c.T('rsn_fx_employer_full'));
+  ok('8시간을 채운 날에는 그 문장입니다', fxOf(12,18)===c.T('rsn_fx_employer_full'));
+  const n=mk(V2,'2026-08-11T18:00:00');
+  const r={y:2026,m:8,day:10,kind:'day',type:'shift',inH:9,outH:16,c:n.calc(9,16,'day',false)};
+  n.state.extra.push(r); n.openReason(r); n.pickReason('machine');
+  ok('새로 깐 앱의 6시간짜리 하루에도 다 채웠다고 말하지 않습니다', n.renderVals().rsnEffect!==n.T('rsn_fx_employer_full'));
+  // N12: 잘못 적힌 휴게(13:00–12:00, 12:00–16:00)가 기준을 6시간 아래로 끌어내리지 않습니다
+  n.state.settings.breaksDay=[{from:'12:00',to:'16:00'}];
+  ok('긴 휴게가 있어도 기준은 6시간 아래로 가지 않습니다', n.shortDayLimit('day')===6, 'got '+n.shortDayLimit('day'));
+  // 리뷰 3회차 S8: 시트의 문장도 같은 바닥을 봅니다 — 그 설정의 09:00 → 18:00(5시간)은 다 채운 날이 아닙니다
+  { const r5={y:2026,m:8,day:9,kind:'day',type:'shift',inH:9,outH:18,c:n.calc(9,18,'day',false)};
+    n.state.extra.push(r5); n.openReason(r5); n.pickReason('machine');
+    ok('5시간짜리 하루에 다 채웠다고 말하지 않습니다', r5.c.net===5 && n.renderVals().rsnEffect!==n.T('rsn_fx_employer_full'), 'net='+r5.c.net);
+    n.closeReason(); }
+  // N15: 잔업 없는 하루 — 휴게 없음 8, 30분에 걸치지 않은 시작(08:20)은 반올림 때문에 7.5
+  n.state.settings.breaksDay=[]; ok('휴게가 없으면 8시간', n.fullDayNet('day')===8, 'got '+n.fullDayNet('day'));
+  n.state.settings.breaksDay=[{from:'12:00',to:'13:00'}]; n.state.settings.dayStart='08:20';
+  ok('08:20 시작은 7.5시간(08:30 → 17:00)', n.fullDayNet('day')===7.5, 'got '+n.fullDayNet('day'));
+}
+{ // 리뷰 2회차 S6: 휴게 두 번인 공장에서 회사 사정으로 09:00 → 18:00(7.5시간)에 끝난 날은 이제 잔업 없는 온전한
+  // 하루입니다 — 제46조 줄도 차액도 없습니다. 17:00에 끝난 날(6.5시간)에는 그대로 있습니다.
+  const c=mk(V2,'2026-08-11T18:00:00');
+  c.state.settings.breaksDay=[{from:'11:30',to:'12:30'},{from:'17:00',to:'17:30'}];
+  [3,4,5,6,7].forEach(d=>c.state.extra.push({y:2026,m:8,day:d,kind:'day',type:'shift',c:c.calc(9,21,'day',false)}));
+  const rs={id:'machine',fault:'employer',ko:'기계 고장'};
+  ok('잔업 없는 하루에는 차액이 없습니다', c.partialShort({y:2026,m:8,day:10,kind:'day',type:'shift',c:c.calc(9,18,'day',false),reason:rs})===0);
+  ok('한 시간 일찍 끝난 날에는 제46조가 걸립니다', c.isEmployerShort({y:2026,m:8,day:11,kind:'day',type:'shift',c:c.calc(9,17,'day',false),reason:rs}));
+}
+{ // 평소 8시간인 사람이 2분 늦은 날(09:02 → 18:00, 7.5시간)은 묻지 않습니다 — 한 시간의 여유는 그대로입니다
+  const c=mk(V2,'2026-08-11T18:00:00');
+  [3,4,5,6,7].forEach(d=>c.state.extra.push(
+    {y:2026,m:8,day:d,kind:'day',type:'shift',c:c.calc(9,18,'day',false)}));
+  ok('평소 8시간이면 기준은 7시간', c.shortDayLimit('day')===7, 'got '+c.shortDayLimit('day'));
+  c.state.session={inIso:new Date('2026-08-11T09:02:00').toISOString()};
+  c.punch();
+  ok('2분 늦은 날은 묻지 않습니다', c.state.session===null && c.state.reasonFor==null, 'reasonFor='+c.state.reasonFor);
+}
+{ // 평소가 8시간에 못 미치는 공장(휴게 두 번, 실근무 7.5시간)은 예전 그대로입니다 — 기준 6.5시간
+  const c=mk(V2,'2026-08-11T18:00:00');
+  c.state.settings.breaksDay=[{from:'11:30',to:'12:30'},{from:'17:00',to:'17:30'}];
+  [3,4,5,6,7].forEach(d=>c.state.extra.push(
+    {y:2026,m:8,day:d,kind:'day',type:'shift',c:c.calc(9,18,'day',false)}));
+  ok('평소 7.5시간인 공장의 7.5시간은 묻지 않습니다',
+    !c.isShortDay({type:'shift',kind:'day',c:c.calc(9,18,'day',false)}), 'limit='+c.shortDayLimit('day'));
+  ok('그 공장의 기준은 6.5시간 그대로', c.shortDayLimit('day')===6.5, 'got '+c.shortDayLimit('day'));
+  ok('그 공장의 4시간짜리 하루는 묻습니다',
+    c.isShortDay({type:'shift',kind:'day',c:c.calc(9,14,'day',false)}));
 }
 
 console.log('\n== 조퇴 사유 · 퇴근이 먼저 저장됩니다 ==');

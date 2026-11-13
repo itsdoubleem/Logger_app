@@ -473,6 +473,7 @@
   "rsn_defect": "Hàng lỗi — dừng sản xuất",
   "rsn_edit_title": "Lý do của ngày này",
   "rsn_fx_employer": "Ngày này ngắn đi là do phía công ty. Điều 46 Luật Lao động — ngừng việc do lỗi chủ sử dụng được bảo đảm ít nhất 70% lương bình quân ngày ({p0}), và ngày này không phải phép năm của bạn.",
+  "rsn_fx_employer_full": "Ghi là do phía công ty. Ngày này đã làm đủ giờ nên không tính là ngày ngừng việc theo Điều 46, và không có khoản chênh lệch nào cho ngày này.",
   "rsn_fx_injury": "Tai nạn khi làm việc là tai nạn lao động — xử lý theo bảo hiểm tai nạn 산재보험 chứ không phải trợ cấp ngừng việc, và được chi trả viện phí cùng trợ cấp nghỉ riêng. Nhất định phải báo công ty.",
   "rsn_fx_other": "Ngày này cần được xem xét riêng.",
   "rsn_fx_weather": "Thiên tai có thể không phải lỗi của chủ sử dụng. Nhưng muốn trả ít hơn trợ cấp ngừng việc, công ty phải được Ủy ban Lao động chấp thuận (Điều 46②).",
